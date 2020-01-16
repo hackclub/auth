@@ -16,8 +16,8 @@ Objects:
   - ID
   - User
   - Created
-  - Created IP Address
-  - Created User Agent
+  - Creator IP Address
+  - Creator User Agent
   - Login Code
   - Sent Method (:email / :sms)
   - Auth Token (for whether it was activated)
@@ -25,13 +25,13 @@ Objects:
 - Auth Token
   - ID
   - User
-  - Created
-  - Created IP Address
-  - Created User Agent - Maybe do separate API Request object
-  - Invalidated
-  - Invalidated IP Address
-  - Invalidated User Agent
   - Token
+  - Created
+  - Creator IP
+  - Creator User Agent - Maybe do separate API Request object
+  - Invalidated
+  - Invalidator IP
+  - Invalidator User Agent
 
 API requests:
 
