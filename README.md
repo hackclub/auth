@@ -41,3 +41,19 @@ API requests:
 - `POST /auth_tokens` w/ login code
 - `POST /auth_tokens/:id/invalidate`
 - `PATCH /user/:id`
+
+---
+
+Set the following environment variables:
+
+```
+// Airtable API key + base to interact with
+AIRTABLE_API_KEY=
+AIRTABLE_BASE=
+
+// Email credentials for sending login codes
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USERNAME=
+SMTP_PASSWORD=
+```

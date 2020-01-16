@@ -8,9 +8,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/fabioberger/airtable-go"
+	"github.com/go-gomail/gomail"
 	"github.com/joho/godotenv"
 )
 
@@ -126,7 +128,9 @@ func ip(r *http.Request) string {
 	return r.RemoteAddr
 }
 
-// TODO: Make sure it doesn't collide with other active codes
+// TODO: Make sure it doesn't collide with other active codes - actually
+// probably fine as long as code searching is scoped per-user to active codes
+// (wonder if there's a way to keep it all in 1 API request?)
 //
 // From https://stackoverflow.com/a/39482484
 func generateLoginCode() string {
@@ -179,4 +183,24 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Email login code
+	m := gomail.NewMessage()
+	m.SetHeader("From", "Hack Club <auth@hackclub.com>")
+	m.SetHeader("To", user.Fields.Email)
+	m.SetHeader("Subject", "Hack Club Login Code: "+code.Fields.LoginCode)
+	m.SetBody("text/html", "Hi, your code is "+code.Fields.LoginCode)
+
+	host := os.Getenv("SMTP_HOST")
+	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	username, password := os.Getenv("SMTP_USERNAME"), os.Getenv("SMTP_PASSWORD")
+
+	d := gomail.NewDialer(host, port, username, password)
+
+	if err := d.DialAndSend(m); err != nil {
+		log.Fatal(err)
+	}
+
+	resp(w, http.StatusOK, "login code sent")
 }
