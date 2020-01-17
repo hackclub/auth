@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/badoux/checkmail"
 	"github.com/fabioberger/airtable-go"
 	"github.com/go-gomail/gomail"
 	"github.com/joho/godotenv"
@@ -37,7 +39,6 @@ func main() {
 	log.Println("Server listening on 8080...")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
-
 func respMsg(w http.ResponseWriter, code int, msg string) {
 	respStruct := struct {
 		Msg string `json:"msg"`
@@ -180,6 +181,18 @@ func prettyLoginCode(rawCode string) string {
 	return rawCode[:3] + "-" + rawCode[3:]
 }
 
+func validateEmail(email string) error {
+	if err := checkmail.ValidateFormat(email); err != nil {
+		return err
+	}
+
+	if err := checkmail.ValidateHost(email); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		respMsg(w, http.StatusNotFound, "not found")
@@ -191,13 +204,22 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	user, err := getUserByEmail(req.Email)
+	email := req.Email
+	email = strings.TrimSpace(email)
+	email = strings.ToLower(email)
+
+	if err := validateEmail(email); err != nil {
+		respMsg(w, http.StatusUnprocessableEntity, "email failed validation")
+		return
+	}
+
+	user, err := getUserByEmail(email)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if user == nil {
-		user, err = createUser(req.Email, "")
+		user, err = createUser(email, "")
 		if err != nil {
 			log.Fatal("error creating user:", err)
 		}
@@ -216,7 +238,7 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 	// Email login code
 	m := gomail.NewMessage()
 	m.SetHeader("From", "Hack Club Team <team@hackclub.com>")
-	m.SetHeader("To", user.Fields.Email)
+	m.SetHeader("To", m.FormatAddress(user.Fields.Email, ""))
 	m.SetHeader("Subject", "Hack Club Login Code: "+prettyLoginCode(code.Fields.LoginCode))
 	m.SetBody("text/plain", `Hi 👋,
 

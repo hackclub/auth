@@ -1,3 +1,5 @@
+github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad h1:kXfVkP8xPSJXzicomzjECcw6tv1Wl9h1lNenWBfNKdg=
+github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad/go.mod h1:r5ZalvRl3tXevRNJkwIB6DC4DD3DMjIlY9NEU1XGoaQ=
 github.com/fabioberger/airtable-go v3.1.0+incompatible h1:n5dw+HWBc+hytrVL75xe94EGt7FtNFGDII1tNoWTCAE=
 github.com/fabioberger/airtable-go v3.1.0+incompatible/go.mod h1:EoKuSh7EefzhMCyVr6iXPlgFzDgHyZCZ3E5Sg8Cy9GM=
 github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df h1:Bao6dhmbTA1KFVxmJ6nBoMuOJit2yjEgLJpIMYpop0E=
