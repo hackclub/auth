@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/rand"
 	"encoding/json"
-	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -14,7 +13,6 @@ import (
 	"time"
 
 	"github.com/badoux/checkmail"
-	"github.com/fabioberger/airtable-go"
 	"github.com/go-gomail/gomail"
 	"github.com/joho/godotenv"
 )
@@ -76,7 +74,7 @@ func NewMailer(host string, port int, username, password string) *Mailer {
 	}
 }
 
-var client *airtable.Client
+var db *DB
 var mailer *Mailer
 
 func main() {
@@ -90,9 +88,9 @@ func main() {
 	airtableAPIKey := os.Getenv("AIRTABLE_API_KEY")
 	airtableBase := os.Getenv("AIRTABLE_BASE")
 
-	client, err = airtable.New(airtableAPIKey, airtableBase)
+	db, err = NewDB(airtableAPIKey, airtableBase)
 	if err != nil {
-		log.Fatal("error loading airtable:", err)
+		log.Fatal("error initializing db:", err)
 	}
 
 	// mailer init
@@ -190,83 +188,6 @@ type loginCodeResp struct {
 	Status string `json:"status"`
 }
 
-type user struct {
-	AirtableID string `json:"id,omitempty"`
-	Fields     struct {
-		ID                  int       `json:"ID,omitempty"` // omitempty so Airtable doesn't try to set the ID to 0 when this field isn't set
-		Created             time.Time `json:"Created"`
-		Email               string    `json:"Email"`
-		Phone               string    `json:"Phone Number"`
-		PreferredAuthMethod string    `json:"Preferred Auth Method"`
-	} `json:"fields"`
-}
-
-func createUser(email, phone string) (*user, error) {
-	u := user{}
-	u.Fields.Created = time.Now()
-	u.Fields.Email = email
-	u.Fields.Phone = phone
-	u.Fields.PreferredAuthMethod = "Email"
-
-	if err := client.CreateRecord("Users", &u); err != nil {
-		return nil, err
-	}
-
-	return &u, nil
-}
-
-// user is nil if not found, error is only thrown if there's a
-// request error
-func getUserByEmail(email string) (*user, error) {
-	listParams := airtable.ListParameters{
-		// TODO Prevent string escaping problems
-		FilterByFormula: "{Email} = \"" + email + "\"",
-	}
-
-	users := []user{}
-	if err := client.ListRecords("Users", &users, listParams); err != nil {
-		return nil, err
-	}
-
-	if len(users) > 1 {
-		return nil, errors.New("too many users returned, non-unique emails")
-	} else if len(users) == 0 {
-		return nil, nil
-	}
-
-	return &users[0], nil
-}
-
-type loginCode struct {
-	AirtableID string `json:"id,omitempty"`
-	Fields     struct {
-		ID               int       `json:"ID,omitempty"`
-		User             []string  `json:"User"`
-		Created          time.Time `json:"Created"`
-		CreatorIP        string    `json:"Creator IP"`
-		CreatorUserAgent string    `json:"Creator User Agent"`
-		LoginCode        string    `json:"Login Code"`
-		SentMethod       string    `json:"Sent Method"`
-		AuthToken        []string  `json:"Auth Token"`
-	} `json:"fields"`
-}
-
-func createLoginCode(userRec, ip, userAgent, codeStr string) (*loginCode, error) {
-	code := loginCode{}
-	code.Fields.User = []string{userRec}
-	code.Fields.Created = time.Now()
-	code.Fields.CreatorIP = ip
-	code.Fields.CreatorUserAgent = userAgent
-	code.Fields.LoginCode = codeStr
-	code.Fields.SentMethod = "Email"
-
-	if err := client.CreateRecord("Login Codes", &code); err != nil {
-		return nil, err
-	}
-
-	return &code, nil
-}
-
 // TODO: Make sure it doesn't collide with other active codes - actually
 // probably fine as long as code searching is scoped per-user to active codes
 // (wonder if there's a way to keep it all in 1 API request?)
@@ -328,18 +249,18 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := getUserByEmail(email)
+	user, err := db.GetUserByEmail(email)
 	if err != nil {
 		panic(err)
 	}
 	if user == nil {
-		user, err = createUser(email, "")
+		user, err = db.CreateUser(email, "")
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	code, err := createLoginCode(
+	code, err := db.CreateLoginCode(
 		user.AirtableID,
 		ip(r),
 		r.Header.Get("User-Agent"),
