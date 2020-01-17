@@ -5,7 +5,7 @@ To-Do:
 - [ ] Implement routes until it's feature complete with what exists today in prod
   - [ ] `POST /login_codes`
     - [x] Rudimentary implementation
-    - [ ] Make UX exactly same as what's in production right now for basic flow
+    - [x] Make UX exactly same as what's in production right now for basic flow
     - [ ] Create user if doesn't exist
   - [ ] `POST /auth_tokens` w/ login code
     - [ ] Exchange login code for auth token, rudimentary implementation
