@@ -6,7 +6,7 @@ To-Do:
   - [ ] `POST /login_codes`
     - [x] Rudimentary implementation
     - [x] Make UX exactly same as what's in production right now for basic flow
-    - [ ] Create user if doesn't exist
+    - [x] Create user if doesn't exist
   - [ ] `POST /auth_tokens` w/ login code
     - [ ] Exchange login code for auth token, rudimentary implementation
   - [ ] `POST /auth_tokens/:id/invalidate`
