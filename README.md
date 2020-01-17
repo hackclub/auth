@@ -10,7 +10,7 @@ To-Do:
     - [x] Lowercase emails & strip spaces around them
     - [x] Validate email format
     - [x] Make sure errors match what is in production
-  - [ ] `POST /auth_tokens` w/ login code
+  - [ ] `POST /auth_tokens` w/ user id and login code
     - [ ] Exchange login code for auth token, rudimentary implementation
   - [ ] `POST /auth_tokens/:id/invalidate`
     - [ ] Rudimentary implementation
