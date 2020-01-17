@@ -3,7 +3,7 @@
 To-Do:
 
 - [ ] Implement routes until it's feature complete with what exists today in prod
-  - [ ] `POST /login_codes`
+  - [x] `POST /login_codes`
     - [x] Rudimentary implementation
     - [x] Make UX exactly same as what's in production right now for basic flow
     - [x] Create user if doesn't exist
