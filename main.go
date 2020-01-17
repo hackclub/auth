@@ -160,6 +160,36 @@ func resp(w http.ResponseWriter, code int, data interface{}) {
 	}
 }
 
+func ip(r *http.Request) string {
+	fwdedIp := r.Header.Get("X-Forwarded-For")
+	if fwdedIp != "" {
+		return fwdedIp
+	}
+
+	return r.RemoteAddr
+}
+
+// handlePanic intercepts a panic, logs the error, and displays a nice - if
+// ambiguous - error to the user. panics should only be used for unexpected
+// internal errors, like a 500 from airtable's api
+func handlePanic(w http.ResponseWriter) {
+	if r := recover(); r != nil {
+		log.Println("recovered panic:", r)
+		debug.PrintStack()
+		respError(w, http.StatusInternalServerError, "unexpected internal error, see logs")
+	}
+}
+
+type loginCodeReq struct {
+	Email string `json:"email"`
+}
+
+type loginCodeResp struct {
+	ID     int    `json:"id"`
+	Email  string `json:"email"`
+	Status string `json:"status"`
+}
+
 type user struct {
 	AirtableID string `json:"id,omitempty"`
 	Fields     struct {
@@ -185,7 +215,8 @@ func createUser(email, phone string) (*user, error) {
 	return &u, nil
 }
 
-// user is nil if not found, error is only thrown if there's a request error
+// user is nil if not found, error is only thrown if there's a
+// request error
 func getUserByEmail(email string) (*user, error) {
 	listParams := airtable.ListParameters{
 		// TODO Prevent string escaping problems
@@ -209,7 +240,7 @@ func getUserByEmail(email string) (*user, error) {
 type loginCode struct {
 	AirtableID string `json:"id,omitempty"`
 	Fields     struct {
-		//ID               int      `json:"ID"`
+		ID               int       `json:"ID,omitempty"`
 		User             []string  `json:"User"`
 		Created          time.Time `json:"Created"`
 		CreatorIP        string    `json:"Creator IP"`
@@ -234,15 +265,6 @@ func createLoginCode(userRec, ip, userAgent, codeStr string) (*loginCode, error)
 	}
 
 	return &code, nil
-}
-
-func ip(r *http.Request) string {
-	fwdedIp := r.Header.Get("X-Forwarded-For")
-	if fwdedIp != "" {
-		return fwdedIp
-	}
-
-	return r.RemoteAddr
 }
 
 // TODO: Make sure it doesn't collide with other active codes - actually
@@ -280,27 +302,6 @@ func validateEmail(email string) error {
 	}
 
 	return nil
-}
-
-// handlePanic intercepts a panic, logs the error, and displays a nice - if
-// ambiguous - error to the user. panics should only be used for unexpected
-// internal errors, like a 500 from airtable's api
-func handlePanic(w http.ResponseWriter) {
-	if r := recover(); r != nil {
-		log.Println("recovered panic:", r)
-		debug.PrintStack()
-		respError(w, http.StatusInternalServerError, "unexpected internal error, see logs")
-	}
-}
-
-type loginCodeReq struct {
-	Email string `json:"email"`
-}
-
-type loginCodeResp struct {
-	ID     int    `json:"id"`
-	Email  string `json:"email"`
-	Status string `json:"status"`
 }
 
 func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
