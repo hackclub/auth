@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -18,13 +19,73 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type Mailer struct {
+	Messages chan *gomail.Message
+	Host     string
+	Port     int
+	Username string
+	Password string
+}
+
+// TODO Do real error handling, really for this whole method
+func (m *Mailer) StartDaemon() {
+	log.Println("starting mailer daemon")
+	d := gomail.NewDialer(m.Host, m.Port, m.Username, m.Password)
+	var s gomail.SendCloser
+	var err error
+	open := false
+	for {
+		select {
+		case m, ok := <-m.Messages:
+			log.Println("mailer processing message")
+			if !ok {
+				return
+			}
+			if !open {
+				if s, err = d.Dial(); err != nil {
+					panic(err)
+				}
+				open = true
+			}
+			if err := gomail.Send(s, m); err != nil {
+				log.Panic(err)
+			}
+		case <-time.After(30 * time.Second):
+			if open {
+				if err := s.Close(); err != nil {
+					panic(err)
+				}
+				open = false
+			}
+		}
+	}
+}
+
+func (m *Mailer) StopDaemon() {
+	log.Println("stopping mailer daemon")
+	close(m.Messages)
+}
+
+func NewMailer(host string, port int, username, password string) *Mailer {
+	return &Mailer{
+		Messages: make(chan *gomail.Message),
+		Host:     host,
+		Port:     port,
+		Username: username,
+		Password: password,
+	}
+}
+
 var client *airtable.Client
+var mailer *Mailer
 
 func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("error loading .env file")
 	}
+
+	// airtable init
 
 	airtableAPIKey := os.Getenv("AIRTABLE_API_KEY")
 	airtableBase := os.Getenv("AIRTABLE_BASE")
@@ -34,20 +95,36 @@ func main() {
 		log.Fatal("error loading airtable:", err)
 	}
 
+	// mailer init
+
+	host := os.Getenv("SMTP_HOST")
+	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	username, password := os.Getenv("SMTP_USERNAME"), os.Getenv("SMTP_PASSWORD")
+
+	mailer = NewMailer(host, port, username, password)
+	go mailer.StartDaemon()
+	defer mailer.StopDaemon()
+
+	// http server init
+
 	http.HandleFunc("/login_codes", createLoginCodeHandler) // POST
 
 	log.Println("Server listening on 8080...")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func respMsg(w http.ResponseWriter, code int, msg string) {
-	respStruct := struct {
-		Msg string `json:"msg"`
-	}{
-		Msg: msg,
+func respError(w http.ResponseWriter, statusCode int, msg string) {
+	// {
+	//   "error": "<msg>"
+	// }
+	data := map[string]string{
+		"error": msg,
 	}
 
-	resp(w, code, respStruct)
+	resp(w, statusCode, data)
 }
 
 func respFieldError(w http.ResponseWriter, field, msg string) {
@@ -83,16 +160,6 @@ func resp(w http.ResponseWriter, code int, data interface{}) {
 	}
 }
 
-type loginCodeReq struct {
-	Email string `json:"email"`
-}
-
-type loginCodeResp struct {
-	ID     int    `json:"id"`
-	Email  string `json:"email"`
-	Status string `json:"status"`
-}
-
 type user struct {
 	AirtableID string `json:"id,omitempty"`
 	Fields     struct {
@@ -118,6 +185,7 @@ func createUser(email, phone string) (*user, error) {
 	return &u, nil
 }
 
+// user is nil if not found, error is only thrown if there's a request error
 func getUserByEmail(email string) (*user, error) {
 	listParams := airtable.ListParameters{
 		// TODO Prevent string escaping problems
@@ -205,30 +273,52 @@ func prettyLoginCode(rawCode string) string {
 	return rawCode[:3] + "-" + rawCode[3:]
 }
 
+// only validating format for now, not attempting to validate host
 func validateEmail(email string) error {
 	if err := checkmail.ValidateFormat(email); err != nil {
-		return err
-	}
-
-	if err := checkmail.ValidateHost(email); err != nil {
 		return err
 	}
 
 	return nil
 }
 
+// handlePanic intercepts a panic, logs the error, and displays a nice - if
+// ambiguous - error to the user. panics should only be used for unexpected
+// internal errors, like a 500 from airtable's api
+func handlePanic(w http.ResponseWriter) {
+	if r := recover(); r != nil {
+		log.Println("recovered panic:", r)
+		debug.PrintStack()
+		respError(w, http.StatusInternalServerError, "unexpected internal error, see logs")
+	}
+}
+
+type loginCodeReq struct {
+	Email string `json:"email"`
+}
+
+type loginCodeResp struct {
+	ID     int    `json:"id"`
+	Email  string `json:"email"`
+	Status string `json:"status"`
+}
+
 func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
+	defer handlePanic(w)
+
 	if r.Method != "POST" {
-		respMsg(w, http.StatusNotFound, "not found")
+		respError(w, http.StatusNotFound, "not found")
 		return
 	}
 
 	var req loginCodeReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Fatal(err)
+		respError(w, http.StatusBadRequest, "malformed request")
+		return
 	}
 
 	email := req.Email
+
 	email = strings.TrimSpace(email)
 	email = strings.ToLower(email)
 
@@ -239,13 +329,12 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, err := getUserByEmail(email)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-
 	if user == nil {
 		user, err = createUser(email, "")
 		if err != nil {
-			log.Fatal("error creating user:", err)
+			panic(err)
 		}
 	}
 
@@ -256,7 +345,7 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 		generateLoginCode(),
 	)
 	if err != nil {
-		log.Fatal("error creating login code:", err)
+		panic(err)
 	}
 
 	// Email login code
@@ -292,18 +381,7 @@ It will expire in 15 minutes.
 </html>
 	`)
 
-	host := os.Getenv("SMTP_HOST")
-	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	username, password := os.Getenv("SMTP_USERNAME"), os.Getenv("SMTP_PASSWORD")
-
-	d := gomail.NewDialer(host, port, username, password)
-
-	if err := d.DialAndSend(m); err != nil {
-		log.Fatal(err)
-	}
+	mailer.Messages <- m
 
 	data := loginCodeResp{
 		ID:     user.Fields.ID,
