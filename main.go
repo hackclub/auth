@@ -70,13 +70,27 @@ type loginCodeResp struct {
 type user struct {
 	AirtableID string `json:"id,omitempty"`
 	Fields     struct {
-		ID int `json:"ID"`
+		ID int `json:"ID,omitempty"` // omitempty so Airtable doesn't try to set the ID to 0 when this field isn't set
 		// TODO Use proper date type
-		Created             string `json:"Created"`
-		Email               string `json:"Email"`
-		Phone               string `json:"Phone Number"`
-		PreferredAuthMethod string `json:"Preferred Auth Method"`
+		Created             time.Time `json:"Created"`
+		Email               string    `json:"Email"`
+		Phone               string    `json:"Phone Number"`
+		PreferredAuthMethod string    `json:"Preferred Auth Method"`
 	} `json:"fields"`
+}
+
+func createUser(email, phone string) (*user, error) {
+	u := user{}
+	u.Fields.Created = time.Now()
+	u.Fields.Email = email
+	u.Fields.Phone = phone
+	u.Fields.PreferredAuthMethod = "Email"
+
+	if err := client.CreateRecord("Users", &u); err != nil {
+		return nil, err
+	}
+
+	return &u, nil
 }
 
 func getUserByEmail(email string) (*user, error) {
@@ -183,8 +197,10 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user == nil {
-		// TODO: Handle user creation
-		log.Fatal("user creation not implemented")
+		user, err = createUser(req.Email, "")
+		if err != nil {
+			log.Fatal("error creating user:", err)
+		}
 	}
 
 	code, err := createLoginCode(
