@@ -1,7 +1,10 @@
 package main
 
 import (
+	"crypto/rand"
 	"errors"
+	"io"
+	"log"
 	"time"
 
 	"github.com/fabioberger/airtable-go"
@@ -83,13 +86,42 @@ type LoginCode struct {
 	} `json:"fields"`
 }
 
-func (db *DB) CreateLoginCode(userRec, ip, userAgent, codeStr string) (*LoginCode, error) {
+// 123456 -> 123-456
+func (l LoginCode) Pretty() string {
+	rawCode := l.Fields.LoginCode
+	return rawCode[:3] + "-" + rawCode[3:]
+}
+
+// TODO: Make sure it doesn't collide with other active codes - actually
+// probably fine as long as code searching is scoped per-user to active codes
+// (wonder if there's a way to keep it all in 1 API request?)
+//
+// From https://stackoverflow.com/a/39482484
+func generateLoginCode() string {
+	const max = 6
+
+	var table = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
+
+	b := make([]byte, max)
+	n, err := io.ReadAtLeast(rand.Reader, b, max)
+	if n != max {
+		log.Fatal("unexpected error when generating login code:", err)
+	}
+
+	for i := 0; i < len(b); i++ {
+		b[i] = table[int(b[i])%len(table)]
+	}
+
+	return string(b)
+}
+
+func (db *DB) CreateLoginCode(userRecordID, ip, userAgent string) (*LoginCode, error) {
 	code := LoginCode{}
-	code.Fields.User = []string{userRec}
+	code.Fields.User = []string{userRecordID}
 	code.Fields.Created = time.Now()
 	code.Fields.CreatorIP = ip
 	code.Fields.CreatorUserAgent = userAgent
-	code.Fields.LoginCode = codeStr
+	code.Fields.LoginCode = generateLoginCode()
 	code.Fields.SentMethod = "Email"
 
 	if err := db.client.CreateRecord("Login Codes", &code); err != nil {

@@ -1,78 +1,18 @@
 package main
 
 import (
-	"crypto/rand"
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"os"
 	"runtime/debug"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/badoux/checkmail"
 	"github.com/go-gomail/gomail"
 	"github.com/joho/godotenv"
 )
-
-type Mailer struct {
-	Messages chan *gomail.Message
-	Host     string
-	Port     int
-	Username string
-	Password string
-}
-
-// TODO Do real error handling, really for this whole method
-func (m *Mailer) StartDaemon() {
-	log.Println("starting mailer daemon")
-	d := gomail.NewDialer(m.Host, m.Port, m.Username, m.Password)
-	var s gomail.SendCloser
-	var err error
-	open := false
-	for {
-		select {
-		case m, ok := <-m.Messages:
-			log.Println("mailer processing message")
-			if !ok {
-				return
-			}
-			if !open {
-				if s, err = d.Dial(); err != nil {
-					panic(err)
-				}
-				open = true
-			}
-			if err := gomail.Send(s, m); err != nil {
-				log.Panic(err)
-			}
-		case <-time.After(30 * time.Second):
-			if open {
-				if err := s.Close(); err != nil {
-					panic(err)
-				}
-				open = false
-			}
-		}
-	}
-}
-
-func (m *Mailer) StopDaemon() {
-	log.Println("stopping mailer daemon")
-	close(m.Messages)
-}
-
-func NewMailer(host string, port int, username, password string) *Mailer {
-	return &Mailer{
-		Messages: make(chan *gomail.Message),
-		Host:     host,
-		Port:     port,
-		Username: username,
-		Password: password,
-	}
-}
 
 var db *DB
 var mailer *Mailer
@@ -158,15 +98,6 @@ func resp(w http.ResponseWriter, code int, data interface{}) {
 	}
 }
 
-func ip(r *http.Request) string {
-	fwdedIp := r.Header.Get("X-Forwarded-For")
-	if fwdedIp != "" {
-		return fwdedIp
-	}
-
-	return r.RemoteAddr
-}
-
 // handlePanic intercepts a panic, logs the error, and displays a nice - if
 // ambiguous - error to the user. panics should only be used for unexpected
 // internal errors, like a 500 from airtable's api
@@ -178,6 +109,15 @@ func handlePanic(w http.ResponseWriter) {
 	}
 }
 
+func ip(r *http.Request) string {
+	fwdedIp := r.Header.Get("X-Forwarded-For")
+	if fwdedIp != "" {
+		return fwdedIp
+	}
+
+	return r.RemoteAddr
+}
+
 type loginCodeReq struct {
 	Email string `json:"email"`
 }
@@ -186,43 +126,6 @@ type loginCodeResp struct {
 	ID     int    `json:"id"`
 	Email  string `json:"email"`
 	Status string `json:"status"`
-}
-
-// TODO: Make sure it doesn't collide with other active codes - actually
-// probably fine as long as code searching is scoped per-user to active codes
-// (wonder if there's a way to keep it all in 1 API request?)
-//
-// From https://stackoverflow.com/a/39482484
-func generateLoginCode() string {
-	const max = 6
-
-	var table = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
-
-	b := make([]byte, max)
-	n, err := io.ReadAtLeast(rand.Reader, b, max)
-	if n != max {
-		log.Fatal("unexpected error when generating login code:", err)
-	}
-
-	for i := 0; i < len(b); i++ {
-		b[i] = table[int(b[i])%len(table)]
-	}
-
-	return string(b)
-}
-
-// 123456 -> 123-456
-func prettyLoginCode(rawCode string) string {
-	return rawCode[:3] + "-" + rawCode[3:]
-}
-
-// only validating format for now, not attempting to validate host
-func validateEmail(email string) error {
-	if err := checkmail.ValidateFormat(email); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
@@ -244,7 +147,7 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 	email = strings.TrimSpace(email)
 	email = strings.ToLower(email)
 
-	if err := validateEmail(email); err != nil {
+	if err := checkmail.ValidateFormat(email); err != nil {
 		respFieldError(w, "email", "is not an email")
 		return
 	}
@@ -264,7 +167,6 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 		user.AirtableID,
 		ip(r),
 		r.Header.Get("User-Agent"),
-		generateLoginCode(),
 	)
 	if err != nil {
 		panic(err)
@@ -274,12 +176,12 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 	m := gomail.NewMessage()
 	m.SetHeader("From", "Hack Club Team <team@hackclub.com>")
 	m.SetHeader("To", m.FormatAddress(user.Fields.Email, ""))
-	m.SetHeader("Subject", "Hack Club Login Code: "+prettyLoginCode(code.Fields.LoginCode))
+	m.SetHeader("Subject", "Hack Club Login Code: "+code.Pretty())
 	m.SetBody("text/plain", `Hi 👋,
 
 You requested a login code for Hack Club (https://hackclub.com). It's here:
 
-    `+prettyLoginCode(code.Fields.LoginCode)+`
+    `+code.Pretty()+`
 
 It will expire in 15 minutes.
 
@@ -295,7 +197,7 @@ It will expire in 15 minutes.
     <p>Hi 👋,</p>
     <p>You requested a login code for <a href="https://hackclub.com">Hack Club</a>. It's here:</p>
 
-    <pre style="text-align: center; background-color: #ebebeb; padding: 8px 0; font-size: 1.5em; border-radius: 4px"><b>`+prettyLoginCode(code.Fields.LoginCode)+`</b></pre>
+    <pre style="text-align: center; background-color: #ebebeb; padding: 8px 0; font-size: 1.5em; border-radius: 4px"><b>`+code.Pretty()+`</b></pre>
     <p>It will expire in 15 minutes.</p>
     <p>Tip: you can triple-click the box to copy-paste the whole thing, including the dash in the middle.</p>
     <p>- Hack Club</p>
@@ -305,11 +207,10 @@ It will expire in 15 minutes.
 
 	mailer.Messages <- m
 
-	data := loginCodeResp{
-		ID:     user.Fields.ID,
-		Email:  user.Fields.Email,
-		Status: "login code sent",
-	}
-
-	resp(w, http.StatusOK, data)
+	resp(w, http.StatusOK,
+		loginCodeResp{
+			ID:     user.Fields.ID,
+			Email:  user.Fields.Email,
+			Status: "login code sent",
+		})
 }
