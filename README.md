@@ -11,6 +11,21 @@ To-Do:
     - [x] Validate email format
     - [x] Make sure errors match what is in production
   - [ ] `POST /auth_tokens` w/ user id and login code
+    - What's currently live in production:
+
+          POST /v1/users/:id/exchange_login_code
+
+          {
+            "login_code": "123456"
+          }
+
+          Response:
+
+          {
+            # 64 character string
+            "auth_token": "51fd70ea91e1a6dbf314abe121ee2edf193a4d993d4ad1b4c889cd6a4eaf3bc1"
+          }
+
     - [ ] Exchange login code for auth token, rudimentary implementation
   - [ ] `POST /auth_tokens/:id/invalidate`
     - [ ] Rudimentary implementation
