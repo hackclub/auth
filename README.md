@@ -7,6 +7,8 @@ To-Do:
     - [x] Rudimentary implementation
     - [x] Make UX exactly same as what's in production right now for basic flow
     - [x] Create user if doesn't exist
+    - [ ] Lowercase emails & strip spaces around them
+    - [ ] Make sure errors match what is in production
   - [ ] `POST /auth_tokens` w/ login code
     - [ ] Exchange login code for auth token, rudimentary implementation
   - [ ] `POST /auth_tokens/:id/invalidate`
