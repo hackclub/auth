@@ -1,12 +1,32 @@
 # auth
 
+To-Do:
+
+- [ ] Implement routes until it's feature complete with what exists today in prod
+  - [ ] `POST /login_codes`
+    - [x] Rudimentary implementation
+    - [ ] Make UX exactly same as what's in production right now for basic flow
+    - [ ] Create user if doesn't exist
+  - [ ] `POST /auth_tokens` w/ login code
+    - [ ] Exchange login code for auth token, rudimentary implementation
+  - [ ] `POST /auth_tokens/:id/invalidate`
+    - [ ] Rudimentary implementation
+  - [ ] `PATCH /user/:id`
+    - [ ] Rudimentary implementation of updating fields
+- [ ] Once feature-complete with what's in production today, migrate data and deploy
+- [ ] Move `hackclub/api` to it w/ API passthrough for future requests to https://api.hackclub.com
+
+Future:
+
+- [ ] Optional SMS based auth
+
+---
+
 Auth service for Hack Club ecosystem. Endpoints are as follows:
 
 Objects:
 
-- User
-  - ID
-  - Created
+- User ID Created
   - Email
   - Phone number
   - Preferred auth method (:email / :sms)
@@ -35,7 +55,7 @@ Objects:
 
 API requests:
 
-- `POST /login_codes`
+- `POST /login_codes` w/ email of user
   - Automatically creates user if doesn't exist
   - Optionally specify preferred auth method. For SMS must have email set
 - `POST /auth_tokens` w/ login code
