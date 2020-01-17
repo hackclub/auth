@@ -38,23 +38,33 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func resp(w http.ResponseWriter, code int, msg string) {
+func respMsg(w http.ResponseWriter, code int, msg string) {
 	respStruct := struct {
 		Msg string `json:"msg"`
 	}{
 		Msg: msg,
 	}
 
+	resp(w, code, respStruct)
+}
+
+func resp(w http.ResponseWriter, code int, data interface{}) {
 	w.WriteHeader(code)
 
 	enc := json.NewEncoder(w)
-	if err := enc.Encode(respStruct); err != nil {
+	if err := enc.Encode(data); err != nil {
 		log.Fatal(err)
 	}
 }
 
 type loginCodeReq struct {
 	Email string `json:"email"`
+}
+
+type loginCodeResp struct {
+	ID     int    `json:"id"`
+	Email  string `json:"email"`
+	Status string `json:"status"`
 }
 
 type user struct {
@@ -151,9 +161,14 @@ func generateLoginCode() string {
 	return string(b)
 }
 
+// 123456 -> 123-456
+func prettyLoginCode(rawCode string) string {
+	return rawCode[:3] + "-" + rawCode[3:]
+}
+
 func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		resp(w, http.StatusNotFound, "not found")
+		respMsg(w, http.StatusNotFound, "not found")
 		return
 	}
 
@@ -184,10 +199,36 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Email login code
 	m := gomail.NewMessage()
-	m.SetHeader("From", "Hack Club <auth@hackclub.com>")
+	m.SetHeader("From", "Hack Club Team <team@hackclub.com>")
 	m.SetHeader("To", user.Fields.Email)
-	m.SetHeader("Subject", "Hack Club Login Code: "+code.Fields.LoginCode)
-	m.SetBody("text/html", "Hi, your code is "+code.Fields.LoginCode)
+	m.SetHeader("Subject", "Hack Club Login Code: "+prettyLoginCode(code.Fields.LoginCode))
+	m.SetBody("text/plain", `Hi 👋,
+
+You requested a login code for Hack Club (https://hackclub.com). It's here:
+
+    `+prettyLoginCode(code.Fields.LoginCode)+`
+
+It will expire in 15 minutes.
+
+- Hack Club
+`)
+	m.AddAlternative("text/html", `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  </head>
+  <body>
+    <p>Hi 👋,</p>
+    <p>You requested a login code for <a href="https://hackclub.com">Hack Club</a>. It's here:</p>
+
+    <pre style="text-align: center; background-color: #ebebeb; padding: 8px 0; font-size: 1.5em; border-radius: 4px"><b>`+prettyLoginCode(code.Fields.LoginCode)+`</b></pre>
+    <p>It will expire in 15 minutes.</p>
+    <p>Tip: you can triple-click the box to copy-paste the whole thing, including the dash in the middle.</p>
+    <p>- Hack Club</p>
+  </body>
+</html>
+	`)
 
 	host := os.Getenv("SMTP_HOST")
 	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
@@ -202,5 +243,11 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	resp(w, http.StatusOK, "login code sent")
+	data := loginCodeResp{
+		ID:     user.Fields.ID,
+		Email:  user.Fields.Email,
+		Status: "login code sent",
+	}
+
+	resp(w, http.StatusOK, data)
 }
