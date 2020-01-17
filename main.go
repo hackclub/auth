@@ -71,8 +71,7 @@ type loginCodeResp struct {
 type user struct {
 	AirtableID string `json:"id,omitempty"`
 	Fields     struct {
-		ID int `json:"ID,omitempty"` // omitempty so Airtable doesn't try to set the ID to 0 when this field isn't set
-		// TODO Use proper date type
+		ID                  int       `json:"ID,omitempty"` // omitempty so Airtable doesn't try to set the ID to 0 when this field isn't set
 		Created             time.Time `json:"Created"`
 		Email               string    `json:"Email"`
 		Phone               string    `json:"Phone Number"`
