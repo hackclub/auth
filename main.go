@@ -39,6 +39,7 @@ func main() {
 	log.Println("Server listening on 8080...")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
+
 func respMsg(w http.ResponseWriter, code int, msg string) {
 	respStruct := struct {
 		Msg string `json:"msg"`
@@ -49,7 +50,31 @@ func respMsg(w http.ResponseWriter, code int, msg string) {
 	resp(w, code, respStruct)
 }
 
+func respFieldError(w http.ResponseWriter, field, msg string) {
+	// Copies Rails error format.
+	//
+	// Example where field = "email" and msg = "is not an email":
+	//
+	// {
+	//   "errors": {
+	//     "email": [
+	//       "is not an email"
+	//     ]
+	//   }
+	// }
+	//
+	data := map[string]interface{}{
+		"errors": map[string]interface{}{
+			field: []interface{}{msg},
+		},
+	}
+
+	resp(w, http.StatusUnprocessableEntity, data)
+}
+
 func resp(w http.ResponseWriter, code int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+
 	w.WriteHeader(code)
 
 	enc := json.NewEncoder(w)
@@ -208,7 +233,7 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 	email = strings.ToLower(email)
 
 	if err := validateEmail(email); err != nil {
-		respMsg(w, http.StatusUnprocessableEntity, "email failed validation")
+		respFieldError(w, "email", "is not an email")
 		return
 	}
 
