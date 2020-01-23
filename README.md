@@ -1,5 +1,9 @@
 # auth
 
+Ideas:
+
+- Separate objects for "Emails" and "SMS" in DB
+
 To-Do:
 
 - [ ] Implement routes until it's feature complete with what exists today in prod
