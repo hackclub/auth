@@ -5,6 +5,10 @@ Ideas:
 - Separate objects for "Emails" and "SMS" in DB
 - "API Request" object in DB
 
+Notes:
+
+- Need to test for SQL-injection equivalent in Airtable filters
+
 To-Do:
 
 - [ ] Implement routes until it's feature complete with what exists today in prod
