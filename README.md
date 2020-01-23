@@ -3,6 +3,7 @@
 Ideas:
 
 - Separate objects for "Emails" and "SMS" in DB
+- "API Request" object in DB
 
 To-Do:
 
