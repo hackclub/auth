@@ -9,53 +9,18 @@ API:
 - Login codes
   - [x] `POST /login_codes` w/ email of user
     - Automatically creates user if doesn't exist
-    - [ ] Optionally specify preferred auth method. For SMS must have email set
 - Auth tokens
   - [ ] `POST /auth_tokens` w/ user id & login code
   - [ ] `POST /auth_tokens/:id/invalidate` (must be authed)
 
 Ideas:
 
-- Separate objects for "Emails" and "SMS" in DB
-- "API Request" object in DB
+- [x] Separate objects for "Emails" in DB
+- [ ] "API Request" object in DB
 
 Notes:
 
 - Need to test for SQL-injection equivalent in Airtable filters
-
-To-Do:
-
-- [ ] Implement routes until it's feature complete with what exists today in prod
-  - [x] `POST /login_codes`
-    - [x] Rudimentary implementation
-    - [x] Make UX exactly same as what's in production right now for basic flow
-    - [x] Create user if doesn't exist
-    - [x] Lowercase emails & strip spaces around them
-    - [x] Validate email format
-    - [x] Make sure errors match what is in production
-  - [ ] `POST /auth_tokens` w/ user id and login code
-    - What's currently live in production:
-
-          POST /v1/users/:id/exchange_login_code
-
-          {
-            "login_code": "123456"
-          }
-
-          Response:
-
-          {
-            # 64 character string
-            "auth_token": "51fd70ea91e1a6dbf314abe121ee2edf193a4d993d4ad1b4c889cd6a4eaf3bc1"
-          }
-
-    - [ ] Exchange login code for auth token, rudimentary implementation
-  - [ ] `POST /auth_tokens/:id/invalidate`
-    - [ ] Rudimentary implementation
-  - [ ] `PATCH /user/:id`
-    - [ ] Rudimentary implementation of updating fields
-- [ ] Once feature-complete with what's in production today, migrate data and deploy
-- [ ] Move `hackclub/api` to it w/ API passthrough for future requests to https://api.hackclub.com
 
 Future:
 
@@ -67,7 +32,9 @@ Auth service for Hack Club ecosystem. Endpoints are as follows:
 
 Objects:
 
-- User ID Created
+- User
+  - ID
+  - Created
   - Email
   - Phone number
   - Preferred auth method (:email / :sms)
@@ -93,6 +60,16 @@ Objects:
   - Invalidated
   - Invalidator IP
   - Invalidator User Agent
+
+- Email
+  - ID
+  - User
+  - Login Code
+  - To Email
+  - From Email
+  - Subject
+  - Plain Text Body
+  - HTML Body
 
 ---
 
