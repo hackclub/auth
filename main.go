@@ -158,7 +158,7 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	if user == nil {
-		user, err = db.CreateUser(email, "")
+		user, err = db.CreateUser(email)
 		if err != nil {
 			panic(err)
 		}

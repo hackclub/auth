@@ -38,7 +38,6 @@ type LoginCode struct {
 		CreatorIP        string    `json:"Creator IP"`
 		CreatorUserAgent string    `json:"Creator User Agent"`
 		LoginCode        string    `json:"Login Code"`
-		SentMethod       string    `json:"Sent Method"`
 		AuthToken        []string  `json:"Auth Token"`
 	} `json:"fields"`
 }
@@ -56,7 +55,6 @@ func (db *DB) CreateLoginCode(userRecordID, ip, userAgent string) (*LoginCode, e
 	code.Fields.CreatorIP = ip
 	code.Fields.CreatorUserAgent = userAgent
 	code.Fields.LoginCode = generateLoginCode()
-	code.Fields.SentMethod = "Email"
 
 	if err := db.client.CreateRecord("Login Codes", &code); err != nil {
 		return nil, err

@@ -36,8 +36,6 @@ Objects:
   - ID
   - Created
   - Email
-  - Phone number
-  - Preferred auth method (:email / :sms)
   - Auth Tokens
 
 - Login Code
@@ -47,7 +45,6 @@ Objects:
   - Creator IP Address
   - Creator User Agent
   - Login Code
-  - Sent Method (:email / :sms)
   - Auth Token (for whether it was activated)
 
 - Auth Token
