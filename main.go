@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/badoux/checkmail"
-	"github.com/go-gomail/gomail"
 	"github.com/joho/godotenv"
 
 	"github.com/hackclub/auth/mailer"
@@ -174,40 +173,14 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	// Email login code
-	m := gomail.NewMessage()
-	m.SetHeader("From", "Hack Club Team <team@hackclub.com>")
-	m.SetHeader("To", m.FormatAddress(user.Fields.Email, ""))
-	m.SetHeader("Subject", "Hack Club Login Code: "+code.Pretty())
-	m.SetBody("text/plain", `Hi 👋,
+	// send login code email
+	toSend := models.NewEmailLoginCode(user, code)
 
-You requested a login code for Hack Club (https://hackclub.com). It's here:
+	mail.Messages <- toSend.Message()
 
-    `+code.Pretty()+`
-
-It will expire in 15 minutes.
-
-- Hack Club
-`)
-	m.AddAlternative("text/html", `
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  </head>
-  <body>
-    <p>Hi 👋,</p>
-    <p>You requested a login code for <a href="https://hackclub.com">Hack Club</a>. It's here:</p>
-
-    <pre style="text-align: center; background-color: #ebebeb; padding: 8px 0; font-size: 1.5em; border-radius: 4px"><b>`+code.Pretty()+`</b></pre>
-    <p>It will expire in 15 minutes.</p>
-    <p>Tip: you can triple-click the box to copy-paste the whole thing, including the dash in the middle.</p>
-    <p>- Hack Club</p>
-  </body>
-</html>
-	`)
-
-	mail.Messages <- m
+	if err := db.CreateEmail(&toSend); err != nil {
+		panic(err)
+	}
 
 	resp(w, http.StatusOK,
 		loginCodeResp{
