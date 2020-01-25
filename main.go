@@ -12,10 +12,13 @@ import (
 	"github.com/badoux/checkmail"
 	"github.com/go-gomail/gomail"
 	"github.com/joho/godotenv"
+
+	"github.com/hackclub/auth/mailer"
+	"github.com/hackclub/auth/models"
 )
 
-var db *DB
-var mailer *Mailer
+var db *models.DB
+var mail *mailer.Mailer
 
 func main() {
 	err := godotenv.Load()
@@ -28,7 +31,7 @@ func main() {
 	airtableAPIKey := os.Getenv("AIRTABLE_API_KEY")
 	airtableBase := os.Getenv("AIRTABLE_BASE")
 
-	db, err = NewDB(airtableAPIKey, airtableBase)
+	db, err = models.NewDB(airtableAPIKey, airtableBase)
 	if err != nil {
 		log.Fatal("error initializing db:", err)
 	}
@@ -42,9 +45,9 @@ func main() {
 	}
 	username, password := os.Getenv("SMTP_USERNAME"), os.Getenv("SMTP_PASSWORD")
 
-	mailer = NewMailer(host, port, username, password)
-	go mailer.StartDaemon()
-	defer mailer.StopDaemon()
+	mail = mailer.NewMailer(host, port, username, password)
+	go mail.StartDaemon()
+	defer mail.StopDaemon()
 
 	// http server init
 
@@ -205,7 +208,7 @@ It will expire in 15 minutes.
 </html>
 	`)
 
-	mailer.Messages <- m
+	mail.Messages <- m
 
 	resp(w, http.StatusOK,
 		loginCodeResp{
