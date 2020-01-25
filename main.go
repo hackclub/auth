@@ -51,6 +51,7 @@ func main() {
 	// http server init
 
 	http.HandleFunc("/login_codes", createLoginCodeHandler) // POST
+	http.HandleFunc("/auth_tokens", createAuthTokenHandler) // POST
 
 	log.Println("Server listening on 8080...")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -188,4 +189,29 @@ func createLoginCodeHandler(w http.ResponseWriter, r *http.Request) {
 			Email:  user.Fields.Email,
 			Status: "login code sent",
 		})
+}
+
+type authTokenReq struct {
+	UserID    int    `json:"user_id"`
+	LoginCode string `json:"login_code"`
+}
+
+type authTokenResp struct {
+	AuthTokenID int    `json:"id"`
+	AuthToken   string `json:"auth_token"`
+}
+
+func createAuthTokenHandler(w http.ResponseWriter, r *http.Request) {
+	defer handlePanic(w)
+
+	if r.Method != "POST" {
+		respError(w, http.StatusNotFound, "not found")
+		return
+	}
+
+	var req authTokenReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respError(w, http.StatusBadRequest, "malformed request")
+		return
+	}
 }

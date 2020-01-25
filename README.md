@@ -3,15 +3,12 @@
 API:
 
 - Users
-  - [ ] `GET /users/:id` (`:id` can be "me" in all requests for current user)
-  - [ ] `PATCH /users/:id` to change fields
-  - [ ] `GET /users/:id/access_tokens` for list of active access tokens
+   - [ ] `GET /users/:id` (`:id` can be "me" in all requests for current user)
 - Login codes
   - [x] `POST /login_codes` w/ email of user
     - Automatically creates user if doesn't exist
 - Auth tokens
-  - [ ] `POST /auth_tokens` w/ user id & login code
-  - [ ] `POST /auth_tokens/:id/invalidate` (must be authed)
+  - [ ] `POST /auth_tokens` w/ user id and login code
 
 Ideas:
 
@@ -26,6 +23,7 @@ Notes:
 
 Future:
 
+- [ ] Invalidating auth tokens
 - [ ] Optional SMS based auth
 
 ---
