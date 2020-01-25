@@ -1,5 +1,19 @@
 # auth
 
+API:
+
+- Users
+  - [ ] `GET /users/:id` (`:id` can be "me" in all requests for current user)
+  - [ ] `PATCH /users/:id` to change fields
+  - [ ] `GET /users/:id/access_tokens` for list of active access tokens
+- Login codes
+  - [x] `POST /login_codes` w/ email of user
+    - Automatically creates user if doesn't exist
+    - [ ] Optionally specify preferred auth method. For SMS must have email set
+- Auth tokens
+  - [ ] `POST /auth_tokens` w/ user id & login code
+  - [ ] `POST /auth_tokens/:id/invalidate` (must be authed)
+
 Ideas:
 
 - Separate objects for "Emails" and "SMS" in DB
@@ -79,15 +93,6 @@ Objects:
   - Invalidated
   - Invalidator IP
   - Invalidator User Agent
-
-API requests:
-
-- `POST /login_codes` w/ email of user
-  - Automatically creates user if doesn't exist
-  - Optionally specify preferred auth method. For SMS must have email set
-- `POST /auth_tokens` w/ login code
-- `POST /auth_tokens/:id/invalidate`
-- `PATCH /user/:id`
 
 ---
 
