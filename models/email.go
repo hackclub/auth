@@ -28,7 +28,7 @@ func (e Email) Message() *gomail.Message {
 
 // note: modifies email fields with what airtable gives us
 func (db DB) CreateEmail(email *Email) error {
-	return db.client.CreateRecord("Emails", &email)
+	return db.client.CreateRecord("Sent Emails", &email)
 }
 
 func NewEmailLoginCode(user *User, code *LoginCode) Email {

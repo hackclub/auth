@@ -21,6 +21,8 @@ Ideas:
 Notes:
 
 - Need to test for SQL-injection equivalent in Airtable filters
+- Must fix race condition reproducible with: `while true; do http POST localhost:8080/login_codes email="putanewuserhere@zachlatta.com" &; done`
+  - Multiple users with same email gets created
 
 Future:
 
