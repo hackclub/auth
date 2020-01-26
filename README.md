@@ -8,7 +8,7 @@ API:
   - [x] `POST /login_codes` w/ email of user
     - Automatically creates user if doesn't exist
 - Auth tokens
-  - [ ] `POST /auth_tokens` w/ user id and login code
+  - [x] `POST /auth_tokens` w/ user id and login code
 
 Ideas:
 
