@@ -4,7 +4,10 @@ import (
 	"crypto/rand"
 	"io"
 	"log"
+	"strconv"
 	"time"
+
+	"github.com/fabioberger/airtable-go"
 )
 
 // Does not guarentee uniqueness. Must use scoping in Airtable to only grab
@@ -61,4 +64,31 @@ func (db *DB) CreateLoginCode(userRecordID, ip, userAgent string) (*LoginCode, e
 	}
 
 	return &code, nil
+}
+
+// LoginCode is nil if not found, error is only thrown if there's a
+// request error
+func (db *DB) GetActiveLoginCode(u *User, code string) (*LoginCode, error) {
+	const minutesValid = 15
+
+	// TODO Properly escape the code they send
+	listParams := airtable.ListParameters{
+		FilterByFormula: `AND(
+		  {User} = "` + strconv.Itoa(u.Fields.ID) + `",
+		  DATETIME_DIFF(NOW(), {Created}, 'minutes') < ` + strconv.Itoa(minutesValid) + `,
+		  {Login Code} = "` + code + `",
+		  {Auth Token} = BLANK()
+		)`,
+	}
+
+	codes := []LoginCode{}
+	if err := db.client.ListRecords("Login Codes", &codes, listParams); err != nil {
+		return nil, err
+	}
+
+	if len(codes) == 0 {
+		return nil, nil
+	}
+
+	return &codes[0], nil
 }

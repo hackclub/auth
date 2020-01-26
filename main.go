@@ -197,8 +197,7 @@ type authTokenReq struct {
 }
 
 type authTokenResp struct {
-	AuthTokenID int    `json:"id"`
-	AuthToken   string `json:"auth_token"`
+	AuthToken string `json:"auth_token"`
 }
 
 func createAuthTokenHandler(w http.ResponseWriter, r *http.Request) {
@@ -214,4 +213,37 @@ func createAuthTokenHandler(w http.ResponseWriter, r *http.Request) {
 		respError(w, http.StatusBadRequest, "malformed request")
 		return
 	}
+
+	user, err := db.GetUserByID(req.UserID)
+	if err != nil {
+		panic(err)
+	}
+	if user == nil {
+		respFieldError(w, "user", "not found")
+		return
+	}
+
+	code, err := db.GetActiveLoginCode(user, req.LoginCode)
+	if err != nil {
+		panic(err)
+	}
+	if code == nil {
+		respFieldError(w, "login_code", "invalid")
+		return
+	}
+
+	token, err := db.CreateAuthToken(
+		user.AirtableID,
+		code.AirtableID,
+		ip(r),
+		r.Header.Get("User-Agent"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	resp(w, http.StatusOK,
+		authTokenResp{
+			AuthToken: token.Fields.Token,
+		})
 }

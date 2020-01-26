@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/fabioberger/airtable-go"
@@ -43,6 +44,27 @@ func (db *DB) GetUserByEmail(email string) (*User, error) {
 
 	if len(users) > 1 {
 		return nil, errors.New("too many users returned, non-unique emails")
+	} else if len(users) == 0 {
+		return nil, nil
+	}
+
+	return &users[0], nil
+}
+
+// User is nil if not found, error is only thrown if there's a
+// request error
+func (db *DB) GetUserByID(id int) (*User, error) {
+	listParams := airtable.ListParameters{
+		FilterByFormula: "{ID} = \"" + strconv.Itoa(id) + "\"",
+	}
+
+	users := []User{}
+	if err := db.client.ListRecords("Users", &users, listParams); err != nil {
+		return nil, err
+	}
+
+	if len(users) > 1 {
+		return nil, errors.New("too many users returned, non-unique IDs")
 	} else if len(users) == 0 {
 		return nil, nil
 	}
