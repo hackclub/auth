@@ -22,6 +22,7 @@
 #
 class Program < ApplicationRecord
   self.table_name = "oauth_applications"
+  has_paper_trail
 
   include ::Doorkeeper::Orm::ActiveRecord::Mixins::Application
 
