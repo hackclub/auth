@@ -1,0 +1,6 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  approved <%= render activity.trackable.identity %>'s <%= link_to "verification", backend_verification_path(activity.trackable) %>
+  <% unless activity.parameters[:ysws_eligible].nil? %>
+    as YSWS <%= activity.parameters[:ysws_eligible] ? "eligible" : "ineligible" %>.
+  <% end %>
+<% end %>

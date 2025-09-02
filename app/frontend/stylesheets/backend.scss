@@ -1,0 +1,36 @@
+@import "./colors.css";
+@import "./snippets/banners.scss";
+@import "./snippets/admin_tools.scss";
+@import "./snippets/borders.scss";
+@import "./snippets/tooltips.scss";
+
+body {
+    font-size: 12px;
+    margin: 5rem
+}
+
+form {
+    grid-template-columns: max-content auto;
+}
+
+a {
+    text-decoration: none;
+}
+.link {
+    color: blue;
+    text-decoration: underline;
+}
+
+.identity-link {
+    color: blue;
+    text-decoration: underline;
+}
+
+
+ul {
+    list-style: square; list-style-position: inside;
+}
+
+.pointer {
+    cursor: pointer;
+}

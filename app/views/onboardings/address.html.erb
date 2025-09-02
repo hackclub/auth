@@ -1,0 +1,13 @@
+<article>
+  <header>
+    <h1>Mailing Address</h1>
+    <% case session.dig(:stashed_data, "context") %>
+    <% when "stickers" %>
+      <p>We need your mailing address to send you stickers.</p>
+    <% else %>
+      <p>Please provide your current mailing address.</p>
+    <% end %>
+  </header>
+
+  <%= render 'addresses/form', address: @address, url: address_onboarding_path, submit: "Continue →" %>
+</article>

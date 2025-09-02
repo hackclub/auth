@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  created a vouch <%= link_to "verification", backend_verification_path(activity.trackable) %>.
+<% end %>

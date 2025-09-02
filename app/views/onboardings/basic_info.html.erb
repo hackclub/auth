@@ -1,0 +1,84 @@
+<% prefill = session.dig(:stashed_data, "prefill") || {} %>
+<article>
+  <header>
+    <h1>First things first:</h1>
+    <small><i>(Already have an account?
+        <%= link_to "Sign In", signin_onboarding_path %>)
+      </i></small>
+  </header>
+  <%= form_with model: @identity, url: basic_info_onboarding_path, method: :post, local: true do |form| %>
+    <%= form.hidden_field :slack_id, value: params[:slack_id] %>
+    <% if @identity.errors.any? %>
+      <div class="banner danger">
+        <h4 style="color: var(--error-fg);"><%= pluralize(@identity.errors.count, "issue") %> prevented this from being saved:</h4>
+        <ul>
+          <% @identity.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    <div
+      data-sanctioned-countries='<%= Rails.application.config.sanctioned_countries.to_json.html_safe %>'
+      x-data="{
+        showLegalName: false,
+        ru: false,
+        showSanctionedWarning: false,
+        get sanctionedCountries() { return JSON.parse($el.dataset.sanctionedCountries) },
+        checkSanctioned() {
+          this.showSanctionedWarning = this.sanctionedCountries.includes($refs.countrySelect.value)
+          this.ru = $refs.countrySelect.value == 'RU'
+        }
+      }">
+      <fieldset>
+        <div class="grid">
+          <%= form.text_field :first_name, placeholder: "First name", required: true, value: prefill["first_name"] %>
+          <%= form.text_field :last_name, placeholder: "Last name", required: true, value: prefill["last_name"] %>
+        </div>
+        <small>This must match the name on your identification document, unless...</small>
+        <label>
+          <%= form.check_box :legal_name_different, { "x-model": "showLegalName" }, "true", "false" %>
+          your legal name is something different?
+        </label>
+        <%= form.hidden_field :legal_name_different, value: "false" %>
+        <div x-show="showLegalName" x-transition x-cloak>
+          <p><strong>Please enter your legal name as it appears on official documents:</strong></p>
+          <div class="grid">
+            <%= form.text_field :legal_first_name, placeholder: "Legal first name", value: prefill["legal_first_name"] %>
+            <%= form.text_field :legal_last_name, placeholder: "Legal last name", value: prefill["legal_last_name"] %>
+          </div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <%= form.label :country, "Primary country of residence" %>
+        <%= form.collection_select :country, Identity.countries_for_select,
+                             :first, :last,
+                             { include_blank: "Select a country" },
+                             { required: true, "x-ref": "countrySelect", "@change": "checkSanctioned()" } %>
+        <div x-show="showSanctionedWarning" x-transition class="banner danger" style="margin-top: 1rem;">
+          <b>Sanctioned country:</b> <br>
+          Unfortunately, since your country is subject to U.S. sanctions, we are legally unable to offer you prizes.
+        </div>
+        <div x-show="ru" x-transition class="banner warning" style="margin-top: 1rem;">
+          <b>Warning:</b> Due to export restrictions and payments issues we are unable to ship or send money to Russia. Many (if not most) prizes will be unavailable.
+        </div>
+      </fieldset>
+      <fieldset>
+        <%= form.label :primary_email, "Email address" %>
+        <%= form.email_field :primary_email, value: prefill["email"], placeholder: "you@example.com", required: true %>
+      </fieldset>
+      <fieldset>
+        <%= form.label :phone_number, "Phone number" %>
+        <%= form.telephone_field :phone_number, value: prefill["phone_number"], placeholder: "+1 (555) 123-4567", required: true %>
+      </fieldset>
+      <fieldset>
+        <%= form.label :birthday, "Birthday" %>
+        <%= form.date_field :birthday, value: prefill["birthday"], required: true %>
+        <small>Required to verify program eligibility</small>
+      </fieldset>
+      <footer style="text-align: center; margin-top: 2rem;">
+        <%= form.submit "Continue →", "x-bind:disabled": "showSanctionedWarning" %>
+      </footer>
+    </div>
+  <% end %>
+</article>

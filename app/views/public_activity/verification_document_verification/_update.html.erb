@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  edited a <%= activity.trackable.identity_document.document_type %> <%= link_to "document", backend_verification_path(activity.trackable) %>.
+<% end %>

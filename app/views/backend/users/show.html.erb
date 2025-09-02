@@ -1,0 +1,23 @@
+<%= render Components::Window.new("User: #{@user.username}", close_url: backend_users_path) do %>
+  <div class="padding">
+    <%= render Components::UserMention.new(@user) %>
+    <b>Roles: </b> <%= @user.pretty_roles %>
+    <br>
+    <b>Organized Programs: </b>
+    <% if @user.organized_programs.any? %>
+      <%= @user.organized_programs.map(&:name).join(", ") %>
+    <% else %>
+      <em>None</em>
+    <% end %>
+    <% super_admin_tool do %>
+      <%= link_to "edit this user", edit_backend_user_path(@user), class: "link" %>
+      <% if @user.active? %>
+        <%= button_to "deactivate this user", {action: :deactivate} %>
+        <i>(this will stop them from logging in)</i>
+        <% else %>
+        <%= button_to "activate this user", {action: :activate} %>
+        <i>(this will allow them to log in again)</i>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

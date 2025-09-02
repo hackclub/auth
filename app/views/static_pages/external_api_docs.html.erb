@@ -1,0 +1,64 @@
+<%= render Components::Window.new("Identity Vault External API") do %>
+  <div class="padding">
+    (click any of the URLs to copy them)
+    <br>
+    <br>
+
+    <b>Check an identity's status:</b>
+
+    <br>
+
+    <%= render Components::APIExample.new(method: "GET", url: api_external_check_url) %>
+    Parameters are any of:<br>
+    <%= render Components::APIExample.new(method: "GET", url: api_external_check_url(email: "nora@hackclub.com"), path_only: true) %>
+    <%= render Components::APIExample.new(method: "GET", url: api_external_check_url(slack_id: "U06QK6AG3RD"), path_only: true) %>
+    <%= render Components::APIExample.new(method: "GET", url: api_external_check_url(idv_id: "ident!ZEOfPe"), path_only: true) %>
+
+    Response will be of the shape: <br><br>
+    <pre class="debug_dump">{
+    "result"<kbd style="color:slategray">: </kbd><kbd style="color:brown">"{code}"</kbd>
+}</pre>
+    <br>
+    Possible results:
+
+    <table class="table detailed">
+      <thead>
+      <tr>
+        <th>
+          Code
+        </th>
+        <th>
+          Meaning
+        </th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>not_found</td>
+        <td>couldn't find that identity</td>
+      </tr>
+      <tr>
+        <td>needs_submission</td>
+        <td>user needs to submit or resubmit</td>
+      </tr>
+      <tr>
+        <td>pending</td>
+        <td>submitted, but not processed yet</td>
+      </tr>
+      <tr>
+        <td>rejected</td>
+        <td>duplicate identity or bad submission</td>
+      </tr>
+      <tr>
+        <td>verified_eligible</td>
+        <td>verified and YSWS eligible!</td>
+      </tr>
+      <tr>
+        <td>verified_but_over_18</td>
+        <td>verified but not YSWS eligible</td>
+      </tr>
+      </tbody>
+
+    </table>
+  </div>
+<% end %>

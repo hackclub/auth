@@ -1,0 +1,71 @@
+@mixin banner-base {
+    border: 1px solid;
+    border-radius: 8px;
+    padding: .75rem 1rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    vertical-align: center;
+
+    & > svg {
+        height: 1.25rem;
+        width: 1.25rem;
+        margin-right: 0.5rem;
+    }
+}
+
+@mixin banner-theme($bg-color, $border-color, $fg-color, $list-fg-color) {
+    background: $bg-color;
+    border-color: $border-color;
+    color: $fg-color;
+
+    & > ul {
+        color: $list-fg-color;
+        & > li {
+            color: $list-fg-color;
+        }
+    }
+}
+
+@mixin banner-warning {
+    @include banner-theme(var(--warning-bg), var(--warning-border), var(--warning-fg-strong), var(--warning-fg));
+}
+
+@mixin banner-danger {
+    @include banner-theme(var(--error-bg), var(--error-border), var(--error-fg-strong), var(--error-fg));
+}
+
+@mixin banner-info {
+    @include banner-theme(var(--info-bg), var(--info-border), var(--info-fg-strong), var(--info-fg));
+}
+
+@mixin banner-success {
+    @include banner-theme(var(--success-bg), var(--success-border), var(--success-fg-strong), var(--success-fg));
+}
+
+@mixin banner-purple {
+    @include banner-theme(var(--purple-bg), var(--purple-border), var(--purple-fg-strong), var(--purple-fg));
+}
+
+.banner {
+    @include banner-base;
+
+    &.warning {
+        @include banner-warning;
+    }
+
+    &.danger {
+        @include banner-danger;
+    }
+
+    &.info {
+        @include banner-info;
+    }
+
+    &.success {
+        @include banner-success;
+    }
+
+    &.purple {
+        @include banner-purple;
+    }
+}

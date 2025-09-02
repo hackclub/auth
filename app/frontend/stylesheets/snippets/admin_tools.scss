@@ -1,0 +1,41 @@
+$admin-red: red;
+$dev-green: #14a514;
+$mdv-blue: #1e90ff;
+$tool-font-size: 10px;
+$tool-border-width: 1.5px;
+$tool-padding: 2px;
+$tool-padding-top: 14px;
+$tool-label-position-top: 0;
+$tool-label-position-left: 3px;
+
+@mixin admin-tool($label, $color) {
+  &::before {
+    content: $label;
+    color: $color;
+    position: absolute;
+    font-size: $tool-font-size;
+    top: $tool-label-position-top;
+    left: $tool-label-position-left;
+  }
+  
+  position: relative;
+  border: $tool-border-width dashed $color;
+  padding: $tool-padding;
+  padding-top: $tool-padding-top;
+}
+
+.super-admin-tool {
+  @include admin-tool("super admin", $admin-red);
+}
+
+.mdv-tool {
+  @include admin-tool("manual document verifier", $mdv-blue);
+}
+
+.dev-tool {
+  @include admin-tool("development mode", $dev-green);
+}
+
+.program-manager-tool {
+  @include admin-tool("program manager", white);
+}

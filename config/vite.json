@@ -1,0 +1,25 @@
+{
+  "all": {
+    "sourceCodeDir": "app/frontend",
+    "watchAdditionalPaths": ["app/views/**/*.html.erb", "app/frontend/**/*.scss"],
+    "packageManager": "yarn"
+  },
+  "development": {
+    "autoBuild": true,
+    "publicOutputDir": "vite-dev",
+    "port": 3036
+  },
+  "test": {
+    "autoBuild": true,
+    "publicOutputDir": "vite-test",
+    "port": 3037
+  },
+  "production": {
+    "publicOutputDir": "",
+    "port": 3038
+  },
+  "staging": {
+    "publicOutputDir": "",
+    "port": 3039
+  }
+}

@@ -1,0 +1,50 @@
+<%= render Components::Window.new("Identities", close_url: backend_root_path, max_width: 1000) do %>
+  <div class="padding">
+    <!-- Search Form -->
+    <%= form_with url: backend_identities_path, method: :get, local: true, class: "search-form" do |f| %>
+      <div class="grid">
+        <div>
+          <%= f.search_field :search, value: params[:search], placeholder: "Search identities...", class: "form-control" %>
+        </div>
+        <div>
+          <%= f.submit "Search", class: "btn btn-primary" %>
+          <% if params[:search].present? %>
+            <%= link_to "Clear", backend_identities_path, class: "btn btn-secondary" %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if params[:search].present? %>
+      <p class="search-results">
+        Found <%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"
+      </p>
+    <% end %>
+
+    <table class="table detailed">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Verification Status</th>
+          <th>YSWS Eligible?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @identities.each do |identity| %>
+          <tr>
+            <td><%= render identity %></td>
+            <td><%= identity.primary_email %></td>
+            <td><%= identity.verification_status %></td>
+            <td><%= identity.ysws_eligible.nil? ? "?" : render_checkbox(identity.ysws_eligible) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination-wrapper">
+      <%= paginate @identities, params: { search: params[:search] } %>
+    </div>
+  </div>
+<% end %>

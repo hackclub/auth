@@ -1,0 +1,19 @@
+.form-one-line {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    label {
+        margin-left: 0.5rem;
+    }
+}
+
+[type="submit"].small {
+    width: fit-content !important;
+}
+
+.inline-buttons {
+    display: flex;
+    gap: 1rem;
+}

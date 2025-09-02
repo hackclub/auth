@@ -1,0 +1,12 @@
+<%= render Components::Window.new("Audit Logs", close_url: backend_root_path, max_width: 1000) do %>
+  Filter:
+  <div>
+    <% if params[:admin_actions_only] %>
+      <%= link_to "Show all actions", backend_audit_logs_path, method: :get, class: "button" %>
+    <% else %>
+      <%= link_to "Show only admin actions", backend_audit_logs_path(admin_actions_only: true), class: "button" %>
+    <% end %>
+  </div>
+  <%= render Components::PublicActivity::Container.new(@activities) %>
+  <%= paginate @activities %>
+<% end %>

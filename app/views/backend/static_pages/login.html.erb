@@ -1,0 +1,34 @@
+<div class="window active mx-auto" style="max-width: 400px;">
+  <div class="title-bar">
+    <div class="title-bar-text">
+      Identity Vault [
+      <% case Rails.env %>
+      <% when "development" %>
+        DEV
+      <% when "staging" %>
+        STAGING
+      <% else %>
+        PROD
+      <% end %>]
+    </div>
+  </div>
+  <div class="window-body">
+    <div class="padding">
+      Abandon hope, all ye who enter here...
+    </div>
+    <div class="padding flex justify-end">
+      <%= link_to backend_slack_auth_path, class: "button w-fit" do %>
+        Sign in with Slack?
+      <% end %>
+      <% dev_tool do %>
+        <%= form_with url: backend_fake_slack_callback_for_dev_path, method: :post do |f| %>
+          <%= f.text_field :slack_id %>
+          <%= f.submit "fake it til' you make it" %>
+        <% end %>
+      <% end %>
+    </div>
+    <div class="padding">
+      Running commit <%= ENV["SOURCE_COMMIT"]&.[](0..7) || "...dunno?" %>
+    </div>
+  </div>
+</div>

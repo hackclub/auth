@@ -1,0 +1,33 @@
+<%= render Components::Window.new("Users", close_url: backend_root_path, max_width: 600) do %>
+  <div class="padding">
+    <div class="list">
+      <table class="detailed">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Roles</th>
+            <th>Active?</th>
+            <th>View</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @users.each do |user| %>
+            <tr>
+              <td>
+                <%= render user %>
+              </td>
+              <td><%= user.pretty_roles %></td>
+              <td><%= render_checkbox(user.active?) %></td>
+              <td><%= link_to "go!", user, class: "link" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="padding flex justify-end">
+    <%= link_to new_backend_user_path, class: "button w-fit" do %>
+      + create user
+    <% end %>
+  </div>
+<% end %>

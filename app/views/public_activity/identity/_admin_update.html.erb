@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <abbr title="<%= activity.parameters[:changed_fields].map(&:humanize).join(', ') %>">edited</abbr> <%= render activity.trackable %>'s identity. (<%= activity.parameters[:reason] %>)
+<% end %>

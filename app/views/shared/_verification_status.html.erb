@@ -1,0 +1,53 @@
+<% case identity.verification_status %>
+<% when "verified" %>
+  <h1>Verification Complete</h1>
+  <p>Your identity has been successfully verified and you are approved!</p>
+<% when "pending" %>
+  <% if identity.needs_resubmission? %>
+    <h1>Document Resubmission Required</h1>
+    <p>Some of your documents were rejected for correctable reasons. Please address the issues below and resubmit:</p>
+    <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 4px; padding: 1rem; margin-bottom: 1.5rem;">
+      <ul style="margin: 0; color: #92400e;">
+        <% identity.rejected_verifications_needing_resubmission.each do |verification| %>
+          <li>
+            <strong><%= verification.rejection_reason_name %></strong>
+            <% if verification.rejection_reason_details.present? %>
+              - <%= verification.rejection_reason_details %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+    <% if identity.country == "IN" %>
+      <p><%= link_to "Resubmit Aadhaar Verification", aadhaar_onboarding_path, role: "button" %></p>
+    <% else %>
+      <p><%= link_to "Resubmit Documents", document_onboarding_path, role: "button" %></p>
+    <% end %>
+  <% else %>
+    <h1>Documents Under Review</h1>
+    <p>Thanks for uploading your documents! Our team is reviewing them now, which typically takes 1-2 business days.</p>
+    <p>We'll email you as soon as your verification is complete.</p>
+    <p>You'll be promoted to a full Slack user at that point. <abbr title="if you weren't already"><sup>(?)</sup></abbr></p>
+  <% end %>
+<% when "ineligible" %>
+  <h1>Verification Rejected</h1>
+  <p>Your identity verification has been rejected for the following reasons:</p>
+  <% fatal_rejections = identity.verifications.rejected.fatal_rejections %>
+  <div style="background-color: #fee2e2; border: 1px solid #dc2626; border-radius: 4px; padding: 1rem; margin-bottom: 1.5rem;">
+    <ul style="margin: 0; color: #dc2626;">
+      <% fatal_rejections.each do |verification| %>
+        <li>
+          <strong><%= verification.rejection_reason_name %></strong>
+          <% if verification.rejection_reason_details.present? %>
+            - <%= verification.rejection_reason_details %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+  <p>These issues cannot be corrected through resubmission.</p>
+<% else %>
+  <h1>Documents Under Review</h1>
+  <p>Thanks for uploading your documents! Our team is reviewing them now, which typically takes 1-2 business days.</p>
+  <p>We'll email you as soon as your verification is complete.</p>
+<% end %>

@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  marked a <%= link_to "verification", backend_verification_path(activity.trackable) %> as ignored because <%= activity.parameters[:reason] %>
+<% end %>

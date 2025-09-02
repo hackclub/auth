@@ -1,0 +1,37 @@
+<h1>Aadhaar Number Verification</h1>
+<p>As an Indian resident, we will verify your identity using your Aadhaar number.</p>
+<% if @identity.errors.any? %>
+  <div class="alert alert-danger">
+    <h4><%= pluralize(@identity.errors.count, "error") %> prohibited this from being saved:</h4>
+    <ul>
+      <% @identity.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+<%= form_with model: @identity, url: aadhaar_onboarding_path, method: :post, local: true do |form| %>
+  <fieldset>
+    <%= form.label :aadhaar_number, "Enter your 12-digit Aadhaar number:" %>
+    <%= form.text_field :aadhaar_number,
+        value: @identity.aadhaar_number,
+        placeholder: "123456789012",
+        required: true,
+        pattern: "\\d{12}",
+        maxlength: "12",
+        style: "font-family: monospace; font-size: 1.2em; letter-spacing: 2px;" %>
+    <small>Your Aadhaar number is encrypted and stored securely. We use it only for identity verification.</small>
+  </fieldset>
+  <footer style="text-align: center; margin-top: 2rem;">
+    <%= form.submit "Verify Aadhaar →" %>
+  </footer>
+<% end %>
+<style>
+  input[name="identity[aadhaar_number]"]:invalid {
+    border-color: #dc3545;
+  }
+
+  input[name="identity[aadhaar_number]"]:valid {
+    border-color: #28a745;
+  }
+</style>

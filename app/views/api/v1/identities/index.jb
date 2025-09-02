@@ -1,0 +1,3 @@
+{
+  identities: @identities.map { |identity| render(identity) }
+}
