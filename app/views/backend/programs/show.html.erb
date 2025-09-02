@@ -1,0 +1,66 @@
+<%= render Components::Window.new("Program: #{@program.name}", close_url: backend_programs_path, max_width: 600) do %>
+  <div class="padding">
+    <div class="space-y-4">
+      <div>
+        <h3><%= @program.name %></h3>
+        <% if @program.description.present? %>
+          <p class="text-gray-600"><%= @program.description %></p>
+        <% end %>
+      </div>
+      <div>
+        <strong>Status:</strong>
+        <%= @program.active? ? "Active" : "Inactive" %>
+      </div>
+      <div>
+        <strong>OAuth Scopes:</strong>
+        <% if @program.scopes.present? %>
+          <br>
+          <code class="bg-light p-2"><%= @program.scopes %></code>
+        <% else %>
+          <em>No scopes defined</em>
+        <% end %>
+      </div>
+      <div>
+        <strong>Users Enrolled:</strong> <%= @identities_count %>
+      </div>
+      <hr>
+      <div>
+        <div class="grid gap-2" style="grid-template-columns: max-content auto;">
+          <strong>Client ID:</strong>
+          <input type="text" value="<%= @program.uid %>" readonly autocomplete="nope">
+          <strong>Client Secret:</strong>
+          <input type="text" value="<%= @program.secret %>" readonly autocomplete="nope">
+          <strong>Program global API key:</strong>
+          <input type="text" value="<%= @program.program_key %>" readonly autocomplete="nope">
+          <strong>Redirect URIs:</strong>
+          <% if @program.redirect_uri.present? %>
+            <table>
+              <% @program.redirect_uri.split.each do |uri| %>
+                <tr>
+                  <td>
+                    <code class="bg-light"><%= uri %></code>
+                  </td>
+                  <td>
+                    <%= link_to "auth link", oauth_authorization_path(client_id: @program.uid, redirect_uri: uri, response_type: 'code', scope: @program.scopes), class: 'btn btn-success', target: '_blank' %>
+                  </td>
+                </tr>
+              <% end %>
+            </table>
+            <div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 1rem;">
+              <small style="color: #666;">(right click to copy auth URLs)</small>
+            </div>
+          <% else %>
+            <span class="bg-light font-italic text-uppercase text-muted"><%= t('.not_defined') %></span>
+          <% end %>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <%= link_to "Edit Program", edit_backend_program_path(@program), class: "button" %>
+        <%= link_to "View OAuth App", oauth_application_path(@program), class: "link", target: "_blank" %>
+        <%= link_to "Delete Program", backend_program_path(@program), method: :delete,
+                   confirm: "Are you sure? This will delete the program and all associated data.",
+                   class: "link", style: "color: red;" %>
+      </div>
+    </div>
+  </div>
+<% end %>

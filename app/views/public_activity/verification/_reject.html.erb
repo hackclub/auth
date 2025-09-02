@@ -1,0 +1,6 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  rejected <%= render activity.trackable.identity %>'s <%= link_to "verification", backend_verification_path(activity.trackable) %>
+  <% unless activity.parameters[:reason].nil? %>
+    for <%= Verification::DocumentVerification::REJECTION_REASON_NAMES[activity.parameters[:reason]].downcase %>.
+  <% end %>
+<% end %>

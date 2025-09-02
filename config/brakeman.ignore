@@ -1,0 +1,62 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "60d8df7190a1ed518ea8679aa9c8d919f27fe7a6366669433833caa541f5040d",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/backend/users/edit.html.erb",
+      "line": 3,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => Backend::Users::Form.new(User.find(params[:id])), { :locals => ({ :\"backend::users::form\" => Backend::Users::Form.new(User.find(params[:id])) }) })",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Backend::UsersController",
+          "method": "edit",
+          "line": 17,
+          "file": "app/controllers/backend/users_controller.rb",
+          "rendered": {
+            "name": "backend/users/edit",
+            "file": "app/views/backend/users/edit.html.erb"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "backend/users/edit"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": "barring some bug in superform, this is fine"
+    },
+    {
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "aedd908b558aa6308899ced4cdfa0918a074c38253b96d1ef06448762bd556be",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/slack_accounts_controller.rb",
+      "line": 7,
+      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
+      "code": "redirect_to(Identity.slack_authorize_url(url_for(:action => :create, :only_path => false)), :host => \"https://slack.com\", :allow_other_host => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "SlackAccountsController",
+        "method": "new"
+      },
+      "user_input": "Identity.slack_authorize_url(url_for(:action => :create, :only_path => false))",
+      "confidence": "Weak",
+      "cwe_id": [
+        601
+      ],
+      "note": "this will only ever be Slack"
+    }
+  ],
+  "brakeman_version": "7.1.0"
+}

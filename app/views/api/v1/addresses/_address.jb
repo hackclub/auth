@@ -1,0 +1,12 @@
+{
+  id: address.public_id,
+  first_name: address.first_name,
+  last_name: address.last_name,
+  line_1: address.line_1,
+  line_2: address.line_2,
+  city: address.city,
+  state: address.state,
+  postal_code: address.postal_code,
+  country: address.country,
+  primary: address.id == address&.identity&.primary_address&.id
+}.compact_blank

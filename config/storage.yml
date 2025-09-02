@@ -1,0 +1,32 @@
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
+
+encrypted_local_disk:
+  service: EncryptedDisk
+  private_url_policy: stream
+  root: <%= ENV["ENCRYPTED_LOCAL_DISK_ROOT"] || Rails.root.join("storage", "encrypted") %>
+
+#prod_id_documents:
+#  service: EncryptedS3
+#  endpoint: "https://hel1.your-objectstorage.com"
+#  access_key_id: <%#= Rails.application.credentials.dig(:hetzner, :access_key_id) %>
+#  secret_access_key: <%#= Rails.application.credentials.dig(:hetzner, :secret_access_key) %>
+#  region: hel1
+#  bucket: hackclub-identity-docs-prod
+#  private_url_policy: stream
+
+prod_id_documents:
+  service: EncryptedS3
+  endpoint: <%= Rails.application.credentials.dig(:cloudflare, :endpoint) %>
+  access_key_id: <%= Rails.application.credentials.dig(:cloudflare, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:cloudflare, :secret_access_key) %>
+  bucket: hackclub-identity-docs-prod
+  region: auto
+  private_url_policy: stream
+  request_checksum_calculation: "when_required"
+  response_checksum_validation: "when_required"

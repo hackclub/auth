@@ -1,0 +1,26 @@
+<h1>Welcome to Hack Club's identity platform!</h1>
+<p>
+  <% case session.dig(:stashed_data, "context") %>
+  <% when "stickers" %>
+    We are excited to send you free stickers
+  <% else %>
+    We are excited to meet you
+  <% end %>
+  – but first, we need to verify that you are 18 years old or under.</p>
+<p>In the past year, Hack Club has given out ~$1M in grants to students like you, and with that comes a lot of adults trying to slip in.</p>
+<hr>
+<div class="grid welcome-options">
+  <article>
+    <h3>✨ I'm new here!</h3>
+    <p>Let's get you set up with a new account</p>
+    <%= link_to "Get started →", basic_info_onboarding_path,
+                role: "button" %>
+  </article>
+  <article>
+    <h3>🔑 I've been here before...</h3>
+    <p>Sign in to continue where you left off</p>
+    <%= link_to "Sign in →", signin_onboarding_path,
+                role: "button",
+                class: "secondary" %>
+  </article>
+</div>

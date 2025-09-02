@@ -1,0 +1,77 @@
+<%
+# language=markdown
+md = <<~EOM
+## #0 – a little background:
+
+Hi! First off, I'd like to share a little background on Hack Club if you're not familiar (yet!):
+
+We're a charity that helps teenagers build projects, founded about 10 years ago.
+
+You can read about us on [Wikipedia](https://en.wikipedia.org/wiki/Hack_Club), in the [Wall Street Journal](https://www.wsj.com/articles/teen-hackers-try-to-convince-parents-they-are-up-to-good-11569922200), and [Make: Magazine](https://makezine.com/article/technology/hack-club-creating-a-foundation-to-empower-thousands-of-teen-makers-worldwide/).
+
+Every year tens of thousands of teens build something as part of Hack Club. (check out some videos of them [here!](https://www.youtube.com/channel/UCQzO0jpcRkP-9eWKMpJyB0w))
+
+## #1 – why do you need my ID?
+
+Because we give out free resources to teenagers, and people like free things, there is a small but persistent contingent of people pretending to be teenagers or otherwise trying to defraud us.
+
+We need your ID to verify that you are, in fact, 18 or under, and that you aren't someone we've previously had to ban for fraud.
+
+## #2 – can I trust how the ID verification system is structured?
+
+hi! i'm nora, the creator of [identity.hackclub.com](https://identity.hackclub.com), and in your position i would absolutely be asking the same question.
+
+i care a lot about privacy, probably more than a lot of people.
+
+i grew up on the internet being paranoid about this kind of thing, which is the right way to operate, you *should* be skeptical of anybody asking you for this kind of trust!
+
+that said, i built this platform to be, within the constraints we operate under as a small nonprofit, something i would feel safe uploading a scan of my passport to.
+
+### #2a – who has access to my identity documents?
+**During review:**
+Only a small number of people at Hack Club/on the HCB team who have all signed comprehensive NDAs can view your identity document for the purpose of verifying it.
+
+**After review:** 24 hours after a document is accepted or rejected by a reviewer, the review team loses access to the files and the only people who can access historic, encrypted documents are myself ([@nora](https://hackclub.slack.com/team/U06QK6AG3RD), creator of this platform, full-time HQ staff & NDA signer), Zach ([@zrl](https://hackclub.slack.com/team/U0266FRGP), Hack Club founder & executive director), and [Leo](https://hackclub.slack.com/team/U07BLJ1MBEE), HCB operations & identity team lead.
+
+This is called "Break-the-Glass" access and it's reserved for rare situations such as investigating fraud.
+There is an audit log of every time it's used, and each time requires a separate specific justification.
+
+### #2b – what can you tell me about the security of this platform?
+
+This is a Ruby on Rails app running on a Hetzner server separate from the rest of Hack Club HQ's infrastructure.
+The only people who have direct access to this server are me (Nora) and Zach, the founder of Hack Club.
+We both need physical second-factor tokens to access this server. Access to the production console is [logged](https://github.com/basecamp/console1984) and [audited](https://github.com/basecamp/audits1984/).
+
+Identity documents are encrypted in transit between your computer and our server, in transit between that server and the underlying object storage (Cloudflare R2), and at rest in that storage (using a unique AES-256-GCM key per file via [SSE-C](https://docs.aws.amazon.com/AmazonS3/latest/userguide/serv-side-encryption.html)).
+
+## #3 – what's your retention policy?
+This may change as Hack Club grows and scales, but:
+
+Right now, we need to keep ID docs on file indefinitely in an encrypted, restricted-access form to investigate cases of fraud.
+We are a charity, and unfortunately, a small number of people are willing to try to defraud us to have our money go to them instead of supporting teenagers building projects.
+Historically, our ID verification system has been key in catching examples of this.
+
+As stated in #2a, there are only two people who can view historical documents, and only in extreme cases.
+
+If this isn't a tradeoff you're comfortable with, that's fine, but in that case we aren't able to offer you resources through our grant programs.
+
+## #4 – why are you rolling your own platform?<br/>why not use SheerID, or Stripe Identity, or {some other third party service?}
+2 reasons:
+
+1: As I'm writing this (2025-06-18), there is no 3rd-party ID verification service that reliably works for high schoolers' IDs in the wide range of countries we operate in.
+
+and, 2: many of these services pass fraudulent documents at rates higher than you'd expect.
+
+## #5 – my country has a digital ID platform, why don't you support it?
+
+Linking against {your country's digital ID platform} would be a great feature!
+
+Unfortunately, we have a very small team – this identity platform is currently a one-woman show and I'm wearing a lot of other hats here.
+
+Right now, doing things that directly help people build projects is a higher priority for me. Maybe in the future!
+EOM
+%>
+<% content_for :title, "HC Identity FAQ" %>
+<h1>FAQ</h1>
+<%== Redcarpet::Markdown.new(Redcarpet::Render::HTML.new(link_attributes: { target: "_blank" })).render(md) %>
+<%= render Components::HomeButton.new %>

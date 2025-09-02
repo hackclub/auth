@@ -1,0 +1,3 @@
+<%= render Components::Window.new("Session dump", close_url: backend_root_path) do %>
+  <%== ap session %>
+<% end %>

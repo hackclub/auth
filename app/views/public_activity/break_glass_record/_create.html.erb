@@ -1,0 +1,7 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <% if activity.trackable&.automatic? %>
+    automatically
+  <% end %>
+  broke the glass on <%= render activity.trackable&.break_glassable&.identity if activity.trackable&.break_glassable&.identity %>'s <%= link_to "verification", backend_verification_path(activity.trackable.break_glassable.verification) if activity.trackable.present? %>
+  <%= activity.trackable&.reason %>.
+<% end %>

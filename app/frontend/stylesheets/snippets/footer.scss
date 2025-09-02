@@ -1,0 +1,83 @@
+@import '@picocss/pico/css/pico.colors.css';
+
+.app-footer {
+  margin-top: 3rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--pico-muted-border-color);
+  font-size: 0.875rem;
+  color: var(--pico-muted-color);
+
+  .footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-main {
+    .app-name {
+      font-weight: 600;
+      color: var(--pico-color);
+      margin: 0;
+    }
+  }
+
+  .footer-version {
+    text-align: right;
+
+    .version-info {
+      margin-bottom: 0;
+
+      .version-link {
+        color: var(--pico-primary);
+        text-decoration: none;
+        font-weight: 500;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .version-text {
+        font-weight: 500;
+        color: var(--pico-color);
+      }
+    }
+  }
+
+  .environment-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+
+    &.development {
+      background-color: var(--pico-color-amber-300);
+      color: var(--pico-color-amber-950);
+    }
+
+    &.staging {
+      background-color: var(--pico-color-purple-500);
+      color: white;
+    }
+
+    &.production {
+      background-color: var(--pico-color-green-600);
+      color: white;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .footer-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .footer-version {
+      text-align: left;
+    }
+  }
+}

@@ -1,0 +1,5 @@
+<%= render Components::Window.new("New Program", close_url: backend_programs_path, max_width: 500) do %>
+  <div class="padding">
+    <%= render Backend::Programs::Form.new @program %>
+  </div>
+<% end %>

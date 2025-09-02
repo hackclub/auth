@@ -1,0 +1,215 @@
+:root {
+  --spacing: 8px;
+  --padding: 8px;
+  --margin: 8px;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  box-sizing: border-box;
+}
+
+p {
+  margin: var(--margin) 0;
+}
+
+pre {
+  overflow: auto;
+}
+
+.margin {
+  margin: var(--margin);
+}
+
+.margin-top {
+  margin-top: var(--margin);
+}
+
+.margin-right {
+  margin-right: var(--margin);
+}
+
+.margin-bottom {
+  margin-bottom: var(--margin);
+}
+
+.margin-left {
+  margin-left: var(--margin);
+}
+
+.margin-horizontal {
+  margin-left: var(--margin);
+  margin-right: var(--margin);
+}
+
+.margin-vertical {
+  margin-top: var(--margin);
+  margin-bottom: var(--margin);
+}
+
+.padding {
+  padding: var(--padding);
+}
+
+.padding-top {
+  padding-top: var(--padding);
+}
+
+.padding-right {
+  padding-right: var(--padding);
+}
+
+.padding-bottom {
+  padding-bottom: var(--padding);
+}
+
+.padding-left {
+  padding-left: var(--padding);
+}
+
+.padding-horizontal {
+  padding-left: var(--padding);
+  padding-right: var(--padding);
+}
+
+.padding-vertical {
+  padding-top: var(--padding);
+  padding-bottom: var(--padding);
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-row.gap,
+.flex-column.gap {
+  gap: var(--spacing);
+}
+
+.flex-row.align-start,
+.flex-column.align-start {
+  align-items: flex-start;
+}
+
+.flex-row.align-center,
+.flex-column.align-center,
+.grid.align-center {
+  align-items: center;
+}
+
+.flex-row.align-end,
+.flex-column.align-end {
+  align-items: flex-end;
+}
+
+.flex-row.align-stretch,
+.flex-column.align-stretch {
+  align-items: stretch;
+}
+
+.flex-row.justify-start,
+.flex-column.justify-start {
+  justify-content: flex-start;
+}
+
+.flex-row.justify-center,
+.flex-column.justify-center {
+  justify-content: center;
+}
+
+.flex-row.justify-end,
+.flex-column.justify-end {
+  justify-content: flex-end;
+}
+
+.grow {
+  flex-grow: 1;
+}
+
+.grid {
+  display: grid;
+}
+
+.grid.gap {
+  grid-column-gap: var(--spacing);
+  grid-row-gap: var(--spacing);
+}
+
+.grid.gap-vertical {
+  grid-row-gap: var(--spacing);
+}
+
+.grid.gap-horizontal {
+  grid-column-gap: var(--spacing);
+}
+
+.checkbox-row, .radio-row {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-row label, .radio-row label {
+  padding-left: var(--spacing);
+}
+
+.window {
+  display: flex;
+  flex-direction: column;
+}
+
+.title-bar {
+  flex-shrink: 0;
+}
+
+.title-bar-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.window-body {
+  flex-grow: 1;
+}
+
+[role=menu],
+[role=menubar] {
+  user-select: none;
+  list-style-type: none;
+  display: flex;
+  white-space: nowrap;
+}
+
+[role=menu] {
+  flex-direction: column;
+}
+
+[role=menu] li,
+[role=menubar] li {
+  position: relative;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+
+[role=menu] li > ul,
+[role=menubar] li > ul {
+  position: absolute;
+  z-index: 1;
+  display: none;
+}
+
+[role=menu] li:focus-within > ul,
+[role=menubar] li:focus-within > ul {
+  display: block;
+}
+
+.list [role="option"] {
+  user-select: none;
+}

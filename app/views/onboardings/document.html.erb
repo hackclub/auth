@@ -1,0 +1,114 @@
+<% if @is_resubmission %>
+  <h1>Document Resubmission Required</h1>
+  <div class="banner warning">
+    <h3>Documents Need to Be Resubmitted</h3>
+    <p>
+      Some of your documents were rejected for correctable reasons. Please address the following issues and resubmit:
+    </p>
+    <ul>
+      <% @rejected_verifications.each do |verification| %>
+        <li>
+          <strong><%= verification.rejection_reason_name %></strong>
+          <% if verification.rejection_reason_details.present? %>
+            - <%= verification.rejection_reason_details %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+<% else %>
+  <h1>Identity Document Upload</h1>
+<% end %>
+<% case @identity.country %>
+<% when "US", "AU", "CA", "SG", "UK" %>
+  <p>Please provide one of the following:</p>
+  <ul>
+    <li>A government-issued ID (driver's license, passport,
+      <% case @identity.country %>
+      <% when "US" %>
+        state ID
+      <% when "SG" %>
+        FIN/NRIC card
+      <% when "UK" %>
+        PASS card
+      <% end %> or similar)
+    </li>
+    <li>A school ID and your most recent report card/transcript</li>
+  </ul>
+<% when "IN" %>
+  We’ll need an E-Aadhaar issued by UIDAI that is digitally verified or carries a validated digital signature <br>
+  You can get this from UIDAI, <%= link_to "instructions here", "https://hack.club/aadhaar", target: "_blank" %>. <br><br>
+<% else %>
+  <p>Please provide a government-issued ID that includes your name, date of birth, and photo.</p>
+  <p>Examples: National ID card, Passport, Driver's license, etc.</p>
+<% end %>
+<p>Upload your identification document below:</p>
+<% if @document.errors.any? %>
+  <div class="alert alert-danger">
+    <h4><%= pluralize(@document.errors.count, "error") %> prohibited this document from being saved:</h4>
+    <ul>
+      <% @document.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+<%= form_with model: @document, url: document_onboarding_path, method: :post, local: true, multipart: true,
+              html: {
+                "x-data" => "{ selectedType: '#{ @document.document_type }', transcriptFileCount: 0, studentIdFileCount: 0, governmentIdFileCount: 0, get canSubmit() { return this.selectedType === 'transcript' ? (this.transcriptFileCount >= 1 && this.studentIdFileCount >= 1) : this.governmentIdFileCount >= 1; }, submitted: false }"
+              } do |form| %>
+  <%= form.label :document_type, "Document type:" %>
+  <%= form.select :document_type,
+                  Identity::Document.collection_select_options_for_country(@identity.country),
+                  { include_blank: "Select document type" },
+                  { required: true, "x-model": "selectedType" } %>
+  <div x-show="selectedType === 'government_id'" x-transition>
+    <div class="banner info" style="border-radius: var(--pico-border-radius);">
+      <h4 style="color: var(--info-fg);">What makes a good submission?</h4>
+      <ul>
+        <li>Please take a clear and in-focus photo of your document.</li>
+        <li>The document needs to clearly show your name and date of birth.</li>
+        <li>Make sure all 4 corners of the document are visible.</li>
+      </ul>
+    </div>
+    <%= form.label :files, "Upload your government-issued ID:" %>
+    <%= file_field_tag "identity_document[files][]", :required => false, :accept => (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"), "x-on:change" => 'governmentIdFileCount = $event.target.files.length' %>
+  </div>
+  <div x-show="selectedType === 'transcript'" x-transition x-cloak>
+    <div class="upload-section">
+      <%= label_tag "identity_document_files", "Upload your transcript:" %>
+      <%= file_field_tag "identity_document[files][]", :required => false, :accept => (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"), "x-on:change" => 'transcriptFileCount = $event.target.files.length' %>
+    </div>
+    <div class="upload-section">
+      <%= label_tag "identity_document_files", "Upload your student ID:" %>
+      <%= file_field_tag "identity_document[files][]", :required => false, :accept => (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"), "x-on:change" => 'studentIdFileCount = $event.target.files.length' %>
+    </div>
+  </div>
+  <div x-cloak x-show="submitted">
+    Uploading... <br>
+    <%= vite_image_tag "images/loader.gif", style: "image-rendering: pixelated;" %> <br>
+    <br>
+  </div>
+  <% case session.dig(:stashed_data, "context") %>
+<% when nil, "stickers" %>
+    <p>After this, the HCB team will review your documents (this should take 1-2 business days).</p>
+    <p>Once you're approved, you can start earning prizes!</p>
+  <% else %>
+    <p>We'll review your documents and get back to you as soon as possible.</p>
+  <% end %>
+  <%= form.submit "Submit Documents →",
+                  ":disabled" => "!canSubmit",
+                  "x-bind:class" => "!canSubmit ? 'opacity-50 cursor-not-allowed' : ''",
+                  "x-on:click" => "submitted = true" %>
+<% end %>
+<div class="banner success" style="border-radius: var(--pico-border-radius);">
+  <h4 style="color: var(--success-fg);">We promise:</h4>
+  <ul style="margin-bottom: 0;">
+    <li>This data will never be shared with third parties.</li>
+    <li>Your documents will only be used for verifying eligibility and preventing duplicate accounts.</li>
+    <li>Your documents will be encrypted at rest.</li>
+    <li>During review: Access is limited to HCB staff for review purposes.</li>
+    <li>After review: Access is limited to core Hack Club HQ staff, only for exceptional cases, and tightly monitored.
+    </li>
+  </ul>
+</div>

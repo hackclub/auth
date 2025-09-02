@@ -1,0 +1,5 @@
+<%= render Components::Window.new("New User", close_url: backend_users_path, max_width: 500) do %>
+  <div class="padding">
+    <%= render Backend::Users::Form.new @user %>
+  </div>
+<% end %>

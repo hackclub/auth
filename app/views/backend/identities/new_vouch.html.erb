@@ -1,0 +1,11 @@
+<%= render Components::Window.new("Create Vouch Verification for #{@identity.first_name} #{@identity.last_name}", close_url: backend_identity_path(@identity)) do %>
+  <div class="padding">
+    <%= form_with model: [@identity, @vouch], url: create_vouch_backend_identity_path(@identity), method: :post, local: true do |f| %>
+      <div class="form-group">
+        <%= f.label :evidence, "Upload Evidence Picture" %>
+        <%= f.file_field :evidence, required: true %>
+      </div>
+      <%= f.submit "Create Vouch" %>
+    <% end %>
+  </div>
+<% end %>

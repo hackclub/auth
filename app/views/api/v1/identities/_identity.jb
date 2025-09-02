@@ -1,0 +1,31 @@
+ident = {
+  id: identity.public_id,
+  ysws_eligible: identity.ysws_eligible,
+  verification_status: identity.verification_status,
+  verification_status_reason: identity.verification_status_reason,
+  rejection_reason: identity.verification_status_reason,
+  rejection_reason_details: identity.verification_status_reason_details,
+  birthday: identity.birthday
+}
+
+scope "basic_info" do
+  ident[:first_name] = identity.first_name
+  ident[:last_name] = identity.last_name
+  ident[:primary_email] = identity.primary_email
+  ident[:slack_id] = identity.slack_id
+  ident[:primary_email] = identity.primary_email
+  ident[:phone_number] = identity.phone_number
+end
+
+scope "legal_name" do
+  ident[:legal_first_name] = identity.legal_first_name
+  ident[:legal_last_name] = identity.legal_last_name
+end
+
+scope "address" do
+  ident[:addresses] = identity.addresses.map do |address|
+    render address
+  end
+end
+
+ident.compact_blank

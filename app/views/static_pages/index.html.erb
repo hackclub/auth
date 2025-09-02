@@ -1,0 +1,61 @@
+<% if current_identity %>
+  <p>you're logged in as <b><%= current_identity.primary_email %>.</b></p>
+  <ul>
+    <li>
+      <% case current_identity.verification_status %>
+      <% when "verified" %>
+        ✅ your identity is <strong>verified</strong>
+      <% when "pending" %>
+        ⏳ your identity verification is <strong>pending review</strong>
+      <% when "ineligible" %>
+        ❌ your identity verification has been <strong>rejected</strong>
+        <% rejected_verifications = current_identity.verifications.rejected %>
+        <% fatal_rejections = rejected_verifications.fatal_rejections %>
+        <% if fatal_rejections.any? %>
+          <br>
+          <small style="color: #dc2626;">
+            Unfortunately, you are not eligible:
+          </small>
+          <% fatal_rejections.each do |verification| %>
+            <br>
+            <small style="color: #666; margin-left: 1em;">
+              • <%= verification.rejection_reason_name %>
+              <% if verification.rejection_reason_details.present? %>
+                - <%= verification.rejection_reason_details %>
+              <% end %>
+            </small>
+          <% end %>
+        <% end %>
+      <% when "needs_submission" %>
+        <% if current_identity.needs_resubmission? %>
+          <br>
+          <br>
+          <div class="banner warning">
+            Some documents were rejected with correctable issues.
+            <ul>
+              <% current_identity.rejected_verifications_needing_resubmission.each do |verification| %>
+                <li>
+                  <b><%= verification.rejection_reason_name %></b>
+                  <% if verification.rejection_reason_details.present? %>:
+                    <%= verification.rejection_reason_details %>
+                  <% end %>
+              <% end %>
+            </ul>
+            you can fix this by <%= link_to "resubmitting your documents", document_onboarding_path %>.
+          </div>
+        <% else %>
+          📋 <%= link_to "complete your identity verification", basic_info_onboarding_path %>
+        <% end %>
+      <% end %>
+    </li>
+    <li><%= link_to "see the programs", oauth_authorized_applications_path %> you've given access to?</li>
+    <li>
+      <% if current_identity.slack_linked? %>
+        🔗 your Slack account is linked (<code><%= current_identity.slack_id %></code>)
+      <% else %>
+        <%= link_to "link your Slack account", link_slack_account_path %>?
+      <% end %>
+    </li>
+    <li><%= link_to "manage your addresses", addresses_path %>?</li>
+  </ul>
+<% end %>

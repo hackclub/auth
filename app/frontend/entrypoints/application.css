@@ -1,0 +1,5 @@
+@import "../stylesheets/application.scss";
+
+body {
+    font-family: var(--preferred-font), system-ui;
+}

@@ -1,0 +1,14 @@
+<%= {
+    transactionalId: @TRANSACTIONAL_ID,
+    email: @recipient,
+    dataVariables: @datavariables.merge({
+        env: case Rails.env
+            when "development"
+                "[DEV] "
+            when "staging"
+                "[STAGING] "
+            else
+                "​"
+        end,
+    })
+}.to_json %>

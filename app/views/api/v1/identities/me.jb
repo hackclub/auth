@@ -1,0 +1,4 @@
+{
+  identity: render(@identity),
+  scopes: current_scopes
+}

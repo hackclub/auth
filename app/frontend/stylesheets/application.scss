@@ -1,0 +1,29 @@
+// $theme-color: "amber";
+$theme-color: "lime";
+@import "@picocss/pico/scss/pico";
+
+:root {
+    --pico-font-family-sans-serif: Inter, system-ui, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, Helvetica, Arial, "Helvetica Neue", sans-serif, var(--pico-font-family-emoji) !important;
+    --pico-font-size: 16px !important;
+    /* Original: 100% */
+    --pico-line-height: 1.25 !important;
+    /* Original: 1.5 */
+    --pico-form-element-spacing-vertical: 0.5rem !important;
+    /* Original: 1rem */
+    --pico-form-element-spacing-horizontal: 1.0rem !important;
+    /* Original: 1.25rem */
+    --pico-border-radius: 0.375rem !important;
+    /* Original: 0.25rem */
+}
+
+[x-cloak] { display: none !important; }
+
+@import "./colors.css";
+@import "./snippets/banners.scss";
+@import "./snippets/admin_tools.scss";
+@import "./snippets/forms.scss";
+@import "./snippets/brand.scss";
+@import "./snippets/borders.scss";
+@import "./snippets/lightswitch.scss";
+@import "./snippets/tooltips.scss";
+@import "./snippets/footer.scss";

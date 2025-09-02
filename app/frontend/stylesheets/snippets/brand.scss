@@ -1,0 +1,15 @@
+.brand {
+    &>h1 {
+        display: inline;
+        margin-left: 1rem;
+        vertical-align: middle;
+        font-size: 29px;
+    }
+
+    & img {
+        width: 50px;
+        display: inline;
+    }
+
+    margin-bottom: 1rem;
+}
