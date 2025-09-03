@@ -94,7 +94,7 @@ gem "lz_string", "~> 0.3.0"
 
 gem "valid_email2", "~> 7.0"
 
-gem "rails_semantic_logger", "~> 4.17"
+gem "rails_semantic_logger", "~> 4.18"
 
 gem "acts_as_paranoid", "~> 0.10.3"
 
