@@ -48,7 +48,7 @@ gem "honeybadger", "~> 5.28"
 
 gem "http", "~> 5.2"
 
-gem "superform", "~> 0.5.1"
+gem "superform", "~> 0.6.1"
 
 gem "phlex", "~> 2.2"
 
