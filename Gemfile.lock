@@ -143,7 +143,7 @@ GEM
       parser
       rails (>= 7.0)
       rainbow
-    countries (7.1.1)
+    countries (8.0.4)
       unaccent (~> 0.3)
     crass (1.0.6)
     date (3.4.1)
@@ -543,7 +543,7 @@ DEPENDENCIES
   bootsnap
   brakeman
   console1984 (~> 0.2.2)
-  countries (~> 7.1)
+  countries (~> 8.0)
   debug
   doorkeeper (~> 5.8)
   dotenv
