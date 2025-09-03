@@ -52,7 +52,7 @@ gem "superform", "~> 0.5.1"
 
 gem "phlex", "~> 2.2"
 
-gem "phlex-rails", "~> 2.2"
+gem "phlex-rails", "~> 2.3"
 
 gem "literal", "~> 1.7"
 
