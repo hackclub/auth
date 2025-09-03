@@ -50,7 +50,7 @@ gem "http", "~> 5.2"
 
 gem "superform", "~> 0.5.1"
 
-gem "phlex", "~> 2.2"
+gem "phlex", "~> 2.3"
 
 gem "phlex-rails", "~> 2.2"
 
