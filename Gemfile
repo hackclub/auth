@@ -46,7 +46,7 @@ gem "pundit", "~> 2.5"
 
 gem "honeybadger", "~> 5.28"
 
-gem "http", "~> 5.2"
+gem "http", "~> 5.3"
 
 gem "superform", "~> 0.5.1"
 

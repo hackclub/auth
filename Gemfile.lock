@@ -114,7 +114,7 @@ GEM
       aws-sigv4 (~> 1.5)
     aws-sigv4 (1.12.0)
       aws-eventstream (~> 1, >= 1.0.2)
-    base64 (0.2.0)
+    base64 (0.3.0)
     benchmark (0.4.0)
     better_html (2.1.1)
       actionview (>= 6.0)
@@ -224,9 +224,8 @@ GEM
     honeybadger (5.28.0)
       logger
       ostruct
-    http (5.2.0)
+    http (5.3.1)
       addressable (~> 2.8)
-      base64 (~> 0.1)
       http-cookie (~> 1.0)
       http-form_data (~> 2.2)
       llhttp-ffi (~> 0.5.0)
@@ -411,7 +410,7 @@ GEM
       thor (~> 1.0, >= 1.2.2)
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
-    rake (13.2.1)
+    rake (13.3.0)
     rdoc (6.14.0)
       erb
       psych (>= 4.0.0)
@@ -555,7 +554,7 @@ DEPENDENCIES
   good_job (~> 4.10)
   hashid-rails (~> 1.4)
   honeybadger (~> 5.28)
-  http (~> 5.2)
+  http (~> 5.3)
   image_processing (~> 1.2)
   jb (~> 0.8.2)
   kaminari (~> 1.2)
