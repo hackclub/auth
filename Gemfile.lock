@@ -271,7 +271,7 @@ GEM
       railties (>= 6.1)
       rexml
     lint_roller (1.1.0)
-    literal (1.7.1)
+    literal (1.8.1)
       zeitwerk
     llhttp-ffi (0.5.1)
       ffi-compiler (~> 1.0)
@@ -560,7 +560,7 @@ DEPENDENCIES
   jb (~> 0.8.2)
   kaminari (~> 1.2)
   letter_opener_web (~> 3.0)
-  literal (~> 1.7)
+  literal (~> 1.8)
   lockbox (~> 2.0)
   lz_string (~> 0.3.0)
   mini-levenshtein (~> 0.1.2)

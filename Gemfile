@@ -54,7 +54,7 @@ gem "phlex", "~> 2.2"
 
 gem "phlex-rails", "~> 2.2"
 
-gem "literal", "~> 1.7"
+gem "literal", "~> 1.8"
 
 gem "jb", "~> 0.8.2"
 
