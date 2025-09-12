@@ -111,7 +111,7 @@ class Verification::AadhaarVerification < Verification
     # Retry-able issues
     invalid_format: "invalid_format",
     service_unavailable: "service_unavailable",
-    under_11: "under_11",
+    under_13: "under_13",
     other: "other",
     # Fatal issues
     info_mismatch: "info_mismatch",
@@ -119,7 +119,7 @@ class Verification::AadhaarVerification < Verification
   }
 
   # Define retry-able vs fatal rejection reasons
-  RETRYABLE_REJECTION_REASONS = %w[invalid_format service_unavailable under_11 other].freeze
+  RETRYABLE_REJECTION_REASONS = %w[invalid_format service_unavailable 13 other].freeze
   FATAL_REJECTION_REASONS = %w[info_mismatch duplicate].freeze
 
   # Friendly names for rejection reasons
@@ -127,7 +127,7 @@ class Verification::AadhaarVerification < Verification
     # Retry-able issues
     "invalid_format" => "Invalid Aadhaar format",
     "service_unavailable" => "Aadhaar verification service unavailable",
-    "under_11" => "Submitter is under 11 years old",
+    "under_13" => "Submitter is under 13 years old",
     "other" => "Other fixable issue",
     # Fatal issues
     "info_mismatch" => "Aadhaar information doesn't match profile",

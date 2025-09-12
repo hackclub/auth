@@ -94,7 +94,7 @@ class Verification::DocumentVerification < Verification
     not_readable: "not_readable",
     wrong_type: "wrong_type",
     expired: "expired",
-    under_11: "under_11",
+    under_13: "under_13",
     other: "other",
     # Fatal issues
     info_mismatch: "info_mismatch",
@@ -103,7 +103,7 @@ class Verification::DocumentVerification < Verification
   }
 
   # Define retry-able vs fatal rejection reasons
-  RETRYABLE_REJECTION_REASONS = %w[poor_quality not_readable wrong_type expired under_11 other].freeze
+  RETRYABLE_REJECTION_REASONS = %w[poor_quality not_readable wrong_type expired under_13 other].freeze
   FATAL_REJECTION_REASONS = %w[info_mismatch altered duplicate].freeze
 
   # Friendly names for rejection reasons
@@ -113,7 +113,7 @@ class Verification::DocumentVerification < Verification
     "not_readable" => "Document not readable",
     "wrong_type" => "Wrong document type",
     "expired" => "Expired document",
-    "under_11" => "Submitter is under 11 years old",
+    "under_13" => "Submitter is under 13 years old",
     "other" => "Other fixable issue",
     # Fatal issues
     "info_mismatch" => "Information doesn't match profile",

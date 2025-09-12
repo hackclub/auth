@@ -23,8 +23,8 @@ class VerificationMailer < ApplicationMailer
     reason_line = @verification.try(:rejection_reason_name)&.downcase || @verification.rejection_reason.humanize.downcase
     reason_line += " (#{@verification.rejection_reason_details})" if @verification.rejection_reason_details.present?
 
-    if @verification.rejection_reason == "under_11"
-      reason_line += ". You can resubmit your application once you turn 11 years old"
+    if @verification.rejection_reason == "under_13"
+      reason_line += ". You can resubmit your application once you turn 13 years old"
     end
 
     @datavariables = {
