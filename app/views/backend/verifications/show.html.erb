@@ -95,16 +95,16 @@
           <div>
             <h3 style="color: #dc2626;">❌ Reject Document</h3>
             <%= form_with url: reject_backend_verification_path(@verification), method: :patch, local: true do |form| %>
-              <% if @verification.identity.under_11? %>
+              <% if @verification.identity.under_13? %>
                 <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-                  ⚠️ <strong>Warning:</strong> The submitted identity is under 11 years old (age <%= @verification.identity.age.round(2) %>). Consider selecting "Submitter is under 11 years old" as the rejection reason.
+                  ⚠️ <strong>Warning:</strong> The submitted identity is under 13 years old (age <%= @verification.identity.age.round(2) %>). Consider selecting "Submitter is under 13 years old" as the rejection reason.
                 </div>
               <% end %>
               <%= form.label :rejection_reason, "Rejection Reason:" %>
               <% if @verification.is_a?(Verification::AadhaarVerification) %>
                 <%
-                  default_selection = if @verification.identity.under_11?
-                    "under_11"
+                  default_selection = if @verification.identity.under_13?
+                    "under_13"
                   elsif @verification.identity.resemblances.any?
                     "duplicate"
                   else
@@ -126,8 +126,8 @@
                                required: true, style: "width: 100%; margin-bottom: 1rem;" } %>
               <% elsif @verification.is_a?(Verification::DocumentVerification) %>
                 <%
-                  default_selection = if @verification.identity.under_11?
-                    "under_11"
+                  default_selection = if @verification.identity.under_13?
+                    "under_13"
                   elsif @verification.identity.resemblances.any?
                     "duplicate"
                   else

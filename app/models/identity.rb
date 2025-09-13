@@ -259,7 +259,7 @@ class Identity < ApplicationRecord
     needs_resubmission?
   end
 
-  def under_11? = age <= 11
+  def under_13? = age <= 13
 
   def age = (Date.today - birthday).days.in_years
 
