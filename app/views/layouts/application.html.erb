@@ -10,7 +10,11 @@
     <%= yield :head %>
     <script>
       (function() {
-        const savedTheme = localStorage.getItem("theme") || "light";
+        let savedTheme = localStorage.getItem("theme");
+        if (!savedTheme) {
+          savedTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          localStorage.setItem("theme", savedTheme);
+        }
         document.documentElement.dataset.theme = savedTheme;
       })();
     </script>

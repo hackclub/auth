@@ -1,5 +1,13 @@
+function getPreferred() {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+        return savedTheme;
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
 // Get the current theme that was already set in the head
-const savedTheme = localStorage.getItem("theme") || "light";
+const savedTheme = getPreferred();
 
 function updateIcon(theme) {
     const icon = document.querySelector(".lightswitch-icon");
@@ -8,12 +16,20 @@ function updateIcon(theme) {
     }
 }
 
-// Set initial icon and show button after theme is set
+document.body.parentElement.dataset.theme = savedTheme;
 updateIcon(savedTheme);
 const lightswitchBtn = document.getElementById("lightswitch");
 if (lightswitchBtn) {
     lightswitchBtn.classList.add("theme-loaded");
 }
+
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    if (!localStorage.getItem("theme")) {
+        const theme = e.matches ? "dark" : "light";
+        document.body.parentElement.dataset.theme = theme;
+        updateIcon(theme);
+    }
+});
 
 document.getElementById("lightswitch").addEventListener("click", () => {
     const theme = document.body.parentElement.dataset.theme === "dark" ? "light" : "dark";
