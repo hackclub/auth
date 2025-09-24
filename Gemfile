@@ -102,7 +102,7 @@ gem "console1984", "~> 0.2.2"
 
 gem "audits1984", "~> 0.1.7"
 
-gem "propshaft", "~> 1.1"
+gem "propshaft", "~> 1.3"
 
 gem "mini-levenshtein", "~> 0.1.2"
 
