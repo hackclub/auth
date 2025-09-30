@@ -106,7 +106,7 @@ gem "propshaft", "~> 1.1"
 
 gem "mini-levenshtein", "~> 0.1.2"
 
-gem "faraday", "~> 2.13"
+gem "faraday", "~> 2.14"
 
 gem "ruby-vips", "~> 2.2"
 
