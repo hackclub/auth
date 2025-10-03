@@ -71,6 +71,13 @@ module IdentityVault
     # Aadhaar verification configuration
     config.sanctioned_countries = config_for(:sanctioned_countries)
 
+    config.saml = config_for(:saml)
+
+    # Validate SAML keys at boot time
+    config.after_initialize do
+      SAMLService::Entities.validate_keys! if defined?(SAMLService::Entities)
+    end
+
     # Use ImageMagick for image processing instead of VIPS
     config.active_storage.variant_processor = :mini_magick
   end

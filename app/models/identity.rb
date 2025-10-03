@@ -39,7 +39,7 @@ class Identity < ApplicationRecord
   acts_as_paranoid
   include PublicActivity::Model
 
-  tracked owner: ->(controller, model) { controller&.user_for_public_activity }, only: [ :create, :admin_update ]
+  tracked owner: ->(controller, model) { controller&.user_for_public_activity }, only: [:create, :admin_update]
 
   include CountryEnumable
 
@@ -76,22 +76,22 @@ class Identity < ApplicationRecord
   validates :aadhaar_number, format: { with: /\A\d{12}\z/, message: "must be 12 digits" }, if: -> { aadhaar_number.present? }
 
   scope :search, ->(term) {
-          return all if term.blank?
+    return all if term.blank?
 
-          sanitized_term = "%#{term}%"
-          where(
-            "first_name ILIKE ? OR last_name ILIKE ? OR primary_email ILIKE ? OR slack_id ILIKE ?",
-            sanitized_term, sanitized_term, sanitized_term, sanitized_term
-          )
-        }
+    sanitized_term = "%#{term}%"
+    where(
+      "first_name ILIKE ? OR last_name ILIKE ? OR primary_email ILIKE ? OR slack_id ILIKE ?",
+      sanitized_term, sanitized_term, sanitized_term, sanitized_term
+    )
+  }
 
   scope :with_fatal_rejections, -> {
-          joins(:verifications).where(verifications: { fatal: true, ignored_at: nil })
-        }
+    joins(:verifications).where(verifications: { fatal: true, ignored_at: nil })
+  }
 
   scope :verified_but_ysws_ineligible, -> {
-          joins(:verifications).where(verifications: { status: "approved", ignored_at: nil }).where(ysws_eligible: false)
-        }
+    joins(:verifications).where(verifications: { status: "approved", ignored_at: nil }).where(ysws_eligible: false)
+  }
 
   validate :birthday_must_be_at_least_six_years_ago
 
@@ -115,11 +115,11 @@ class Identity < ApplicationRecord
 
   def self.link_slack_account(code, redirect_uri, current_identity)
     response = HTTP.post("https://slack.com/api/oauth.v2.access", form: {
-                                                                    client_id: ENV["SLACK_CLIENT_ID"],
-                                                                    client_secret: ENV["SLACK_CLIENT_SECRET"],
-                                                                    code: code,
-                                                                    redirect_uri: redirect_uri
-                                                                  })
+      client_id: ENV["SLACK_CLIENT_ID"],
+      client_secret: ENV["SLACK_CLIENT_SECRET"],
+      code: code,
+      redirect_uri: redirect_uri
+    })
 
     data = JSON.parse(response.body.to_s)
 
@@ -266,6 +266,27 @@ class Identity < ApplicationRecord
   def suggested_aadhaar_password
     name = "#{legal_first_name}#{legal_last_name}".presence || "#{first_name}#{last_name}"
     "#{name.gsub(" ", "")[...4].upcase}#{birthday.year}"
+  end
+
+  def to_saml_nameid(options = {})
+    SAML2::NameID.new(
+      "HCID_#{Rails.env.development? ? "DEV" : "PROD"}_#{hashid}",
+      SAML2::NameID::Format::PERSISTENT,
+      **options
+    )
+  end
+
+  # spray & pray - SAML2 gem will only pull the attrs an SP asks for in its metadata
+  def to_saml_attributes
+    attrs = []
+
+    attrs << SAML2::Attribute.new("User.Email", primary_email, "User Email", SAML2::Attribute::NameFormats::UNSPECIFIED)
+    attrs << SAML2::Attribute.new("User.FirstName", first_name, "User First Name", SAML2::Attribute::NameFormats::UNSPECIFIED)
+    attrs << SAML2::Attribute.new("User.LastName", last_name, "User Last Name", SAML2::Attribute::NameFormats::UNSPECIFIED)
+    attrs << SAML2::Attribute.new("email", primary_email, "User Email", SAML2::Attribute::NameFormats::UNSPECIFIED)
+    attrs << SAML2::Attribute.new("firstName", first_name, "User First Name", SAML2::Attribute::NameFormats::UNSPECIFIED)
+    attrs << SAML2::Attribute.new("lastName", last_name, "User Last Name", SAML2::Attribute::NameFormats::UNSPECIFIED)
+    attrs
   end
 
   alias_method :to_param, :public_id

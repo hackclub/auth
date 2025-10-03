@@ -121,3 +121,5 @@ gem "flipper-active_record", "~> 1.3"
 gem "annotaterb", "~> 4.19"
 
 gem "erb_lint", "~> 0.9.0", group: :development
+
+gem "saml2", "~> 3.2"

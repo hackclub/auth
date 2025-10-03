@@ -297,7 +297,11 @@ Rails.application.routes.draw do
   get "/slack/link", to: "slack_accounts#new", as: :link_slack_account
   get "/slack/callback", to: "slack_accounts#create", as: :slack_account_callback
 
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  scope :saml do
+    get "/metadata", to: "saml#metadata"
+    post "/idp_initiated/:slug", to: "saml#idp_initiated", as: :idp_initiated_saml
+    get "/auth", to: "saml#sp_initiated_get"
+  end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

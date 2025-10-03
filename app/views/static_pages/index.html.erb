@@ -59,3 +59,14 @@
     <li><%= link_to "manage your addresses", addresses_path %>?</li>
   </ul>
 <% end %>
+
+<%= form_with url: idp_initiated_saml_path(slug: "iam_showcase"), id: "idp_initiated_saml_form" do |f| %>
+  <%= f.submit "iam showcase" %>
+<% end %>
+
+<%= form_with url: idp_initiated_saml_path(slug: "samltool"), id: "idp_initiated_saml_form" do |f| %>
+  <%= f.submit "samltool" %>
+<% end %>
+<%= form_with url: idp_initiated_saml_path(slug: "slack"), id: "idp_initiated_saml_form" do |f| %>
+  <%= f.submit "slack" %>
+<% end %>
