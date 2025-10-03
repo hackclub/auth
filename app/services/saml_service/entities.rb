@@ -38,6 +38,14 @@ module SAMLService
             ent
         end
 
+        def metadata_xml
+          @metadata_xml ||= begin
+                              xml = idp_entity.to_xml
+                              xml.root.add_child Nokogiri::XML::Comment.new(xml, " haiii :3 ")
+                              xml.add_child Nokogiri::XML::Comment.new(xml, " curious thing, aren't you? – https://hack.af/gh/identity-vault , glory awaits")
+                              xml.to_s
+                            end
+        end
         def service_providers
             @service_providers ||= cfg.dig(:service_providers)&.each_with_object({}) do |sp_config, hash|
             sp = SAML2::ServiceProvider.new

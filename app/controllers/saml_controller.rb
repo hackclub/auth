@@ -1,5 +1,3 @@
-require 'ruby-saml'
-
 class SAMLController < ApplicationController
   skip_before_action :authenticate_identity!, only: [:metadata]
 
@@ -7,7 +5,8 @@ class SAMLController < ApplicationController
   SSO_ENDPOINT_PATH = '/saml/auth'
 
   def metadata
-    render xml: SAMLService::Entities.idp_entity.to_xml
+    xml = SAMLService::Entities.metadata_xml
+    render xml:
   end
 
   def idp_initiated
