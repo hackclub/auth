@@ -1,16 +1,13 @@
 class ApplicationController < ActionController::Base
   include PublicActivity::StoreController
   include IsSneaky
+  include SessionsHelper
 
   helper_method :current_identity, :identity_signed_in?, :current_onboarding_step
 
   before_action :invalidate_v1_sessions, :authenticate_identity!, :set_honeybadger_context
 
   before_action :set_paper_trail_whodunnit
-
-  def current_identity
-    @current_identity ||= Identity.find_by(id: session[:identity_id]) if session[:identity_id]
-  end
 
   alias_method :user_for_public_activity, :current_identity
 
@@ -37,7 +34,7 @@ class ApplicationController < ActionController::Base
       # EW
       return if controller_name == "onboardings"
 
-      redirect_to welcome_onboarding_path
+      redirect_to welcome_path
     end
   end
 

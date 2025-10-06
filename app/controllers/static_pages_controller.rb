@@ -1,7 +1,10 @@
 class StaticPagesController < ApplicationController
-  skip_before_action :authenticate_identity!, only: [ :faq, :external_api_docs ]
+  skip_before_action :authenticate_identity!, only: [ :faq, :external_api_docs, :welcome ]
 
-  def index
+  def home
+  end
+
+  def welcome
   end
 
   def faq

@@ -125,7 +125,7 @@ module SAMLService
             # Verify key and cert match
             cert = OpenSSL::X509::Certificate.new("-----BEGIN CERTIFICATE-----\n#{x509_certificate}\n-----END CERTIFICATE-----")
             key = OpenSSL::PKey::RSA.new(private_key)
-            
+
             unless cert.check_private_key(key)
               raise "SAML IdP certificate and private key do not match!"
             end
@@ -139,7 +139,7 @@ module SAMLService
 
         def load_sp_certificate(cert_config)
             return nil unless cert_config.present?
-            
+
             if cert_config.is_a?(String) && cert_config.start_with?('file://')
               path = cert_config.sub('file://', '')
               File.read(path).gsub(/-----(BEGIN|END) CERTIFICATE-----/, "").gsub(/\n/, "")
@@ -153,8 +153,8 @@ module SAMLService
 
         def yaml_to_saml(yaml, saml)
             yaml.each do |key, value|
-            saml.send("#{key}=", value)
-            end
+              saml.send("#{key}=", value)
+              end
             saml
         end
 

@@ -231,8 +231,9 @@ Rails.application.routes.draw do
     end
   end
 
-  root "static_pages#index"
+  root "static_pages#home"
 
+  get "/welcome", to: "static_pages#welcome", as: :welcome
   get "/faq", to: "static_pages#faq", as: :faq
 
   # Login system routes

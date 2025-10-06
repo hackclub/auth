@@ -48,12 +48,16 @@ class Identity < ApplicationRecord
 
   has_country_enum
 
+  has_many :sessions, class_name: "IdentitySession", dependent: :destroy
+  has_many :login_attempts
+  has_many :login_codes, class_name: "Identity::LoginCode"
+
+
   has_many :documents, class_name: "Identity::Document"
   has_many :verifications, class_name: "Verification"
   has_many :document_verifications, class_name: "Verification::DocumentVerification", dependent: :destroy
   has_many :aadhaar_verifications, class_name: "Verification::AadhaarVerification"
   has_many :vouch_verifications, class_name: "Verification::VouchVerification", dependent: :destroy
-  has_many :login_codes, class_name: "Identity::LoginCode"
   has_many :addresses, class_name: "Address"
   belongs_to :primary_address, class_name: "Address", optional: true
 
@@ -260,6 +264,15 @@ class Identity < ApplicationRecord
   end
 
   def under_13? = age <= 13
+
+  def locked_at? = locked_at.present?
+
+  def unlock! = update!(locked_at: nil)
+
+  def lock!
+    update!(locked_at: Time.now)
+    sessions.destroy_all
+  end
 
   def age = (Date.today - birthday).days.in_years
 
