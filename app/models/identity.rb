@@ -51,7 +51,9 @@ class Identity < ApplicationRecord
   has_many :sessions, class_name: "IdentitySession", dependent: :destroy
   has_many :login_attempts
   has_many :login_codes, class_name: "Identity::LoginCode"
-
+  has_many :v2_login_codes, class_name: "Identity::V2LoginCode"
+  has_many :totps, class_name: "Identity::TOTP", dependent: :destroy
+  has_many :backup_codes, class_name: "Identity::BackupCode", dependent: :destroy
 
   has_many :documents, class_name: "Identity::Document"
   has_many :verifications, class_name: "Verification"
@@ -71,7 +73,6 @@ class Identity < ApplicationRecord
   has_many :all_programs, through: :all_access_tokens, source: :application
 
   validates :first_name, :last_name, :country, :primary_email, :birthday, presence: true
-  validates :phone_number, presence: true, on: :create
   validates :primary_email, uniqueness: true
   validates :primary_email, 'valid_email_2/email': { mx: true, disposable: true }
 
@@ -265,7 +266,7 @@ class Identity < ApplicationRecord
 
   def under_13? = age <= 13
 
-  def locked_at? = locked_at.present?
+  def locked? = locked_at.present?
 
   def unlock! = update!(locked_at: nil)
 
@@ -275,6 +276,12 @@ class Identity < ApplicationRecord
   end
 
   def age = (Date.today - birthday).days.in_years
+
+  def phone_number_verified? = phone_number.present?
+
+  def totp = totps.verified.first
+
+  def backup_codes_enabled? = backup_codes.active.any?
 
   def suggested_aadhaar_password
     name = "#{legal_first_name}#{legal_last_name}".presence || "#{first_name}#{last_name}"

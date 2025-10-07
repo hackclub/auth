@@ -1,0 +1,20 @@
+<article>
+  <header>
+    <h1>Enter authenticator code</h1>
+    <p>Enter the 6-digit code from your authenticator app.</p>
+  </header>
+  <%= form_with url: verify_totp_login_attempt_path(@attempt), method: :post, local: true do |form| %>
+    <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present% %>
+    <div>
+      <%= form.label :code, "Authenticator code" %>
+      <%= form.text_field :code, required: true, inputmode: "numeric", pattern: "[0-9]*", autofocus: true, autocomplete: "one-time-code", maxlength: 6 %>
+    </div>
+    <div>
+      <%= form.submit "Verify" %>
+    </div>
+  <% end %>
+  <% if @attempt.backup_code_available? %>
+    <p><small><%= link_to "Use a backup code instead", backup_code_login_attempt_path(@attempt, return_to: params[:return_to]) %></small></p>
+  <% end %>
+</article>
+

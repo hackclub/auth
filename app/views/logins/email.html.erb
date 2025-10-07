@@ -1,0 +1,25 @@
+<article x-data="{ 
+  codeValue: '',
+  get isComplete() { 
+    return this.codeValue.replace(/\D/g, '').length === 6;
+  }
+}">
+  <header>
+    <h1>Check your email</h1>
+    <p>We sent a code to <strong><%= @identity.primary_email %></strong>.</p>
+  </header>
+  <%= form_with url: verify_login_attempt_path(@attempt), method: :post, local: true do |form| %>
+    <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
+    <div>
+      <%= form.label :code, "Enter the 6-digit code" %>
+      <%= render Components::Login::CodeInput.new(form: form, prefix: "H", alpine_model: "codeValue") %>
+    </div>
+    <div>
+      <%= form.submit "Verify", "x-bind:disabled": "!isComplete" %>
+    </div>
+  <% end %>
+  <form action="<%= resend_login_attempt_path(@attempt, return_to: params[:return_to]) %>" method="post">
+    <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+    <button type="submit">Resend code</button>
+  </form>
+</article>

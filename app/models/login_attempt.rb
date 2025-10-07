@@ -8,7 +8,7 @@ class LoginAttempt < ApplicationRecord
   has_encrypted :browser_token
   before_validation :ensure_browser_token
 
-  store_accessor :authentication_factors, :sms, :email, :totp, :backup_code, prefix: :authenticated_with
+  store_accessor :authentication_factors, :sms, :email, :totp, :backup_code, :legacy_email, prefix: :authenticated_with
 
   EXPIRATION = 15.minutes
 

@@ -1,0 +1,91 @@
+<article>
+  <header>
+    <h1><%= @onboarding_scenario.title %></h1>
+    <small><i>(Already have an account?
+      <%= link_to "Sign In", new_sessions_path %>)
+    </i></small>
+  </header>
+
+  <%= form_with model: @identity, url: request.path, method: :post, local: true do |form| %>
+    <%# Pass through email_token as hidden for legacy flows %>
+    <% if params[:email_token].present? %>
+      <%= hidden_field_tag :email_token, params[:email_token] %>
+    <% end %>
+    <%# Pass through return_to if present %>
+    <% if params[:return_to].present? %>
+      <%= hidden_field_tag :return_to, params[:return_to] %>
+    <% end %>
+    <% if @identity.errors.any? %>
+      <div class="banner danger">
+        <h4 style="color: var(--error-fg);"><%= pluralize(@identity.errors.count, "issue") %> prevented this from being saved:</h4>
+        <ul>
+          <% @identity.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="grid">
+      <% if @onboarding_scenario.form_fields.include?(:first_name) %>
+        <div>
+          <%= form.label :first_name %>
+          <%= form.text_field :first_name, required: true %>
+        </div>
+      <% end %>
+
+      <% if @onboarding_scenario.form_fields.include?(:last_name) %>
+        <div>
+          <%= form.label :last_name %>
+          <%= form.text_field :last_name, required: true %>
+        </div>
+      <% end %>
+
+      <% if @onboarding_scenario.form_fields.include?(:primary_email) %>
+        <div>
+          <%= form.label :primary_email, "Email" %>
+          <%= form.email_field :primary_email, required: true %>
+        </div>
+      <% else %>
+        <%# When email is provided from scenario, lock it in as hidden %>
+        <% if @identity.primary_email.present? %>
+          <%= form.hidden_field :primary_email, value: @identity.primary_email %>
+          <div>
+            <label>Email</label>
+            <input type="text" value="<%= @identity.primary_email %>" disabled>
+          </div>
+        <% end %>
+      <% end %>
+
+      <% if @onboarding_scenario.form_fields.include?(:birthday) %>
+        <div>
+          <%= form.label :birthday %>
+          <%= form.date_field :birthday, required: true %>
+        </div>
+      <% end %>
+
+      <% if @onboarding_scenario.form_fields.include?(:phone_number) %>
+        <div>
+          <%= form.label :phone_number %>
+          <%= form.telephone_field :phone_number, required: true %>
+        </div>
+      <% end %>
+
+      <% if @onboarding_scenario.form_fields.include?(:country) %>
+        <div>
+          <%= form.label :country %>
+<%= form.collection_select :country, Identity.countries_for_select,
+                             :first, :last,
+                             { include_blank: "Select a country" },
+                             { required: true, "x-ref": "countrySelect", "@change": "checkSanctioned()" } %>
+        </div>
+      <% end %>
+    </div>
+
+    <div>
+      <%= form.submit "Continue" %>
+    </div>
+  <% end %>
+</article>
+
+

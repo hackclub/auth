@@ -245,21 +245,28 @@ Rails.application.routes.draw do
     end
   end
 
-  resource :onboarding, only: [ :show ] do
-    get :welcome
-    get :signin
-    get :basic_info
-    post :basic_info, to: "onboardings#create_basic_info"
-    get :document
-    post :document, to: "onboardings#create_document"
-    get :aadhaar
-    post :aadhaar, to: "onboardings#submit_aadhaar"
-    get :aadhaar_step_2, to: "onboardings#aadhaar_step_2"
-    get :address
-    post :address, to: "onboardings#create_address"
-    get :submitted
-    get :continue
-  end
+  # Signup (no scenario exposed via params)
+  get "/signup", to: "identities#new", defaults: { route_context: "signup" }, as: :signup
+  post "/signup", to: "identities#create", defaults: { route_context: "signup" }
+  get "/migrate", to: "identities#new", defaults: { route_context: "migrate" }, as: :migrate
+  post "/migrate", to: "identities#create", defaults: { route_context: "migrate" }
+  get "/join/:slug", to: "identities#new", defaults: { route_context: "join" }, as: :join
+  post "/join/:slug", to: "identities#create", defaults: { route_context: "join" }
+
+  # Login flow
+  get "/login", to: "logins#new", as: :login
+  post "/login", to: "logins#create"
+  get "/login/:id", to: "logins#show", as: :login_attempt
+  post "/login/:id/verify", to: "logins#verify", as: :verify_login_attempt
+  post "/login/:id/resend", to: "logins#resend", as: :resend_login_attempt
+  get "/login/:id/sms", to: "logins#sms", as: :sms_login_attempt
+  post "/login/:id/sms", to: "logins#verify_sms", as: :verify_sms_login_attempt
+  get "/login/:id/totp", to: "logins#totp", as: :totp_login_attempt
+  post "/login/:id/totp", to: "logins#verify_totp", as: :verify_totp_login_attempt
+  get "/login/:id/backup_code", to: "logins#backup_code", as: :backup_code_login_attempt
+  post "/login/:id/backup_code", to: "logins#verify_backup_code", as: :verify_backup_code_login_attempt
+
+  # Old onboarding routes removed
 
   resource :aadhaar, only: [], controller: "aadhaar" do
     get :async_digilocker_link

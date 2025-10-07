@@ -8,8 +8,8 @@ module SessionsHelper
   def sign_in(identity:, fingerprint_info: {}, impersonate: false)
     session_token = SecureRandom.urlsafe_base64
     session_duration = 1.month
-    expiration_at = session_duration.seconds.from_now
-    cookies.encrypted[:session_token] = { value: session_token, expires: expiration_at }
+    expires_at = session_duration.seconds.from_now
+    cookies.encrypted[:session_token] = { value: session_token, expires: expires_at }
     cookies.encrypted[:signed_user] = identity.signed_id(expires_in: 2.months, purpose: :remember_me)
     ident_session = identity.sessions.build(
       session_token:,
@@ -18,7 +18,7 @@ module SessionsHelper
       os_info: fingerprint_info[:os_info],
       timezone: fingerprint_info[:timezone],
       ip: fingerprint_info[:ip],
-      expiration_at:
+      expires_at:
     )
     
     raise(AccountLockedError, "Your HCB account has been locked.") if identity.locked?

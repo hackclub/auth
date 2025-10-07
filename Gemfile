@@ -125,3 +125,7 @@ gem "erb_lint", "~> 0.9.0", group: :development
 gem "saml2", "~> 3.2"
 
 gem "geocoder", "~> 1.8"
+
+gem "rotp", "~> 6.3"
+
+gem "bcrypt", "~> 3.1"

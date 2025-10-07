@@ -1,13 +1,13 @@
 module OnboardingScenarios
     class LegacyMigration < Base
-        def self.slug = "legacy"
-
         # Pull email from a signed param; users only enter name and birthday
-        def title = "Confirm your details"
+        def title
+            "Confirm your details"
+        end
 
-        def form_fields = %i[ first_name last_name birthday country ]
-
-        def next_action = :home
+        def form_fields
+            [ :first_name, :last_name, :birthday, :country ]
+        end
 
         def extract_params_proc
             permitted = form_fields
@@ -31,10 +31,6 @@ module OnboardingScenarios
 
                 email.present? ? base_attrs.merge(primary_email: email) : base_attrs
             }
-        end
-
-        def next_action
-            :home
         end
     end
 end

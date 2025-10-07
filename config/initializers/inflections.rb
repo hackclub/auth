@@ -4,4 +4,5 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.acronym "HCB"
   inflect.acronym "SAML"
   inflect.acronym "NameID"
+  inflect.acronym "TOTP"
 end

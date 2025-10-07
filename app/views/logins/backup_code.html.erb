@@ -1,0 +1,20 @@
+<article>
+  <header>
+    <h1>Enter backup code</h1>
+    <p>Enter one of your backup codes to sign in.</p>
+  </header>
+  <%= form_with url: verify_backup_code_login_attempt_path(@attempt), method: :post, local: true do |form| %>
+    <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
+    <div>
+      <%= form.label :code, "Backup code" %>
+      <%= form.text_field :code, required: true, autofocus: true, autocomplete: "off" %>
+    </div>
+    <div>
+      <%= form.submit "Verify" %>
+    </div>
+  <% end %>
+  <% if @attempt.totp_available? %>
+    <p><small><%= link_to "Use authenticator app instead", totp_login_attempt_path(@attempt, return_to: params[:return_to]) %></small></p>
+  <% end %>
+</article>
+

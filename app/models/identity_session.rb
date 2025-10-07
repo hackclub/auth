@@ -6,16 +6,16 @@ class IdentitySession < ApplicationRecord
   belongs_to :identity
 
   include PublicActivity::Model
-  tracked owner: proc{ |controller, record| record.user }, recipient: proc { |controller, record| record.user }, only: [:create]
+  tracked owner: proc{ |controller, record| record.identity }, recipient: proc { |controller, record| record.identity }, only: [:create]
 
   scope :expired, -> { where("expires_at <= ?", Time.now) }
   scope :not_expired, -> { where("expires_at > ?", Time.now) }
   scope :recently_expired_within, ->(date) { expired.where("expires_at >= ?", date) }
 
   after_create_commit do
-    if user.user_sessions.size == 1
+    if identity.sessions.size == 1
       # UserSessionMailer.first_login(user:).deliver_later
-    elsif fingerprint.present? && user.user_sessions.excluding(self).where(fingerprint:).none?
+    elsif fingerprint.present? && identity.sessions.excluding(self).where(fingerprint:).none?
       # UserSessionMailer.new_login(user_session: self).deliver_later
     end
   end

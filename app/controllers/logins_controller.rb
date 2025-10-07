@@ -1,0 +1,259 @@
+class LoginsController < ApplicationController
+    skip_before_action :authenticate_identity!
+    before_action :set_return_to, only: [ :new, :create ]
+    before_action :set_attempt, except: [ :new, :create ]
+    before_action :validate_browser_token, except: [ :new, :create ]
+    before_action :already_logged_in
+
+    def new
+        @prefill_email = params[:email] if params[:email].present?
+    end
+
+    def create
+        email = params[:email].to_s.strip.downcase
+        identity = Identity.find_by(primary_email: email)
+        unless identity
+            redirect_to signup_path(email: email, return_to: @return_to)
+            return
+        end
+
+        attempt = LoginAttempt.create!(
+            identity: identity,
+            authentication_factors: {},
+            provenance: "login",
+            next_action: "home"
+        )
+
+        # Set browser token cookie for security
+        cookies.signed["browser_token_#{attempt.to_param}"] = {
+            value: attempt.browser_token,
+            expires: LoginAttempt::EXPIRATION.from_now
+        }
+
+        send_v2_login_code(identity)
+        redirect_to login_attempt_path(id: attempt.to_param, return_to: @return_to), status: :see_other
+    rescue => e
+        flash[:error] = e.message
+        redirect_to login_path
+    end
+
+    def show
+        render :email, status: :unprocessable_entity
+    end
+
+    def verify
+        # Clear any previous flash to avoid stale error messages
+        flash.clear
+
+        code = params[:code].to_s.strip.gsub(/[^0-9]/, "")
+        login_code = Identity::V2LoginCode.active.where(identity: @identity, code: code).first
+
+        unless login_code
+            flash.now[:error] = "Invalid or expired code, please try again"
+            render :email, status: :unprocessable_entity
+            return
+        end
+
+        # Ensure this login attempt hasn't already created a session
+        if @attempt.session.present?
+            flash[:error] = "This login has already been completed"
+            redirect_to login_attempt_path(id: @attempt.to_param)
+            return
+        end
+
+        login_code.update!(used_at: Time.current, ip_address: request.remote_ip, user_agent: request.user_agent)
+
+        factors = (@attempt.authentication_factors || {}).dup
+        # Use special factor for legacy provenance, else standard email factor
+        factor_key = @attempt.provenance == "signup_legacy" ? :legacy_email : :email
+        factors[factor_key] = true
+        @attempt.update!(authentication_factors: factors)
+
+        # Check if authentication is complete
+        handle_post_verification_redirect
+    rescue SessionsHelper::AccountLockedError => e
+        flash[:error] = e.message
+        redirect_to login_path
+    end
+
+    def resend
+        send_v2_login_code(@attempt.identity)
+        flash[:notice] = "A new code has been sent to #{@identity.primary_email}"
+        redirect_to login_attempt_path(id: @attempt.to_param, return_to: params[:return_to]), status: :see_other
+    end
+
+    def sms
+        # TODO: Implement SMS sending
+        render status: :unprocessable_entity
+    end
+
+    def verify_sms
+        flash.clear
+        # TODO: Implement actual SMS verification
+        code = params[:code].to_s.strip
+        
+        # Placeholder - in real implementation, verify SMS code
+        unless code.present?
+            flash.now[:error] = "Please enter the SMS code"
+            render :sms, status: :unprocessable_entity
+            return
+        end
+
+        factors = (@attempt.authentication_factors || {}).dup
+        factors[:sms] = true
+        @attempt.update!(authentication_factors: factors)
+
+        handle_post_verification_redirect
+    end
+
+    def totp
+        render status: :unprocessable_entity
+    end
+
+    def verify_totp
+        flash.clear
+        code = params[:code].to_s.strip.gsub(/[^0-9]/, "")
+        
+        totp_instance = @identity.totp
+        unless totp_instance&.verify(code, drift_behind: 30, drift_ahead: 30)
+            flash.now[:error] = "Invalid TOTP code, please try again"
+            render :totp, status: :unprocessable_entity
+            return
+        end
+
+        factors = (@attempt.authentication_factors || {}).dup
+        factors[:totp] = true
+        @attempt.update!(authentication_factors: factors)
+
+        handle_post_verification_redirect
+    end
+
+    def backup_code
+        render status: :unprocessable_entity
+    end
+
+    def verify_backup_code
+        flash.clear
+        code = params[:code].to_s.strip
+        
+        backup = @identity.backup_codes.active.find { |bc| bc.authenticate_code(code) }
+        unless backup
+            flash.now[:error] = "Invalid backup code"
+            render :backup_code, status: :unprocessable_entity
+            return
+        end
+
+        backup.mark_used!
+
+        factors = (@attempt.authentication_factors || {}).dup
+        factors[:backup_code] = true
+        @attempt.update!(authentication_factors: factors)
+
+        handle_post_verification_redirect
+    end
+
+    private
+
+    def set_attempt
+        @attempt = LoginAttempt.incomplete.active.find_by_hashid!(params[:id])
+
+        @identity = @attempt.identity
+    rescue ActiveRecord::RecordNotFound
+        flash[:error] = "Invalid login attempt, please start again"
+        redirect_to login_path
+    end
+
+    def already_logged_in
+        if identity_signed_in?
+            flash[:info] = "you're already logged in, silly!"
+            redirect_to root_path
+        end
+    end
+
+    def validate_browser_token
+        return true if Rails.env.test?
+        return true unless @attempt.browser_token
+
+        cookie_token = cookies.signed["browser_token_#{@attempt.to_param}"]
+        unless cookie_token
+            flash[:error] = "This doesn't seem to be the browser who began this login; please ensure cookies are enabled"
+            redirect_to login_path
+            return false
+        end
+
+        unless ActiveSupport::SecurityUtils.secure_compare(@attempt.browser_token, cookie_token)
+            flash[:error] = "Browser token mismatch; please ensure cookies are enabled"
+            redirect_to login_path
+            return false
+        end
+
+        true
+    end
+
+    def set_return_to
+        @return_to = url_from(params[:return_to]) if params[:return_to].present?
+    end
+
+    def url_from(param)
+        # Basic sanitization - only allow relative paths or approved hosts
+        return nil if param.blank?
+        uri = URI.parse(param)
+        return param if uri.relative?
+        # Add allowed hosts check here if needed
+        nil
+    rescue URI::InvalidURIError
+        nil
+    end
+
+    def fingerprint_info
+        {
+            fingerprint: params[:fingerprint],
+            device_info: params[:device_info],
+            os_info: params[:os_info],
+            timezone: params[:timezone],
+            ip: request.remote_ip
+        }
+    end
+
+    def send_v2_login_code(identity)
+        code = Identity::V2LoginCode.create!(identity: identity, ip_address: request.remote_ip, user_agent: request.user_agent)
+        IdentityMailer.v2_login_code(code).deliver_later if defined?(IdentityMailer)
+    end
+
+    def handle_post_verification_redirect
+        # Only create session if authentication requirements are met
+        if @attempt.complete? || @attempt.may_mark_complete?
+            @attempt.mark_complete! if @attempt.may_mark_complete?
+            
+            session = sign_in(identity: @identity, fingerprint_info: fingerprint_info)
+            @attempt.update!(session: session)
+
+            case (@attempt.next_action || "home").to_sym
+            when :slack
+                redirect_to link_slack_account_path
+            else
+                redirect_to params[:return_to].presence || root_path
+            end
+        else
+            # Need more factors - redirect to next available factor
+            redirect_to_next_factor
+        end
+    end
+
+    def redirect_to_next_factor
+        available = @attempt.available_factors
+        return_to = params[:return_to]
+
+        if available.include?(:sms)
+            redirect_to sms_login_attempt_path(id: @attempt.to_param, return_to: return_to), status: :see_other
+        elsif available.include?(:totp)
+            redirect_to totp_login_attempt_path(id: @attempt.to_param, return_to: return_to), status: :see_other
+        elsif available.include?(:backup_code)
+            redirect_to backup_code_login_attempt_path(id: @attempt.to_param, return_to: return_to), status: :see_other
+        else
+            # No available factors - this shouldn't happen
+            flash[:error] = "Unable to complete authentication"
+            redirect_to login_path
+        end
+    end
+end
