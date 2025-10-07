@@ -1,3 +1,7 @@
-<h1>Home</h1>
-account
-fasfaf
+<div class="home-container">
+  <%= render Components::SSOAppGrid.new(apps: @sso_apps) %>
+  
+  <div class="home-footer">
+    <%= button_to "Log Out", logout_path, method: :delete %>
+  </div>
+</div>

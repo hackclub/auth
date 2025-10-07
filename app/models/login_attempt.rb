@@ -61,7 +61,10 @@ class LoginAttempt < ApplicationRecord
     self.browser_token ||= SecureRandom.base58(24)
   end
 
-  def email_available? = !authenticated_with_email
+  def email_available?
+    # If legacy_email factor is already satisfied (migration flow), email code is not available/needed
+    !authenticated_with_email && !authenticated_with_legacy_email
+  end
 
   def sms_available? = !authenticated_with_sms && identity.phone_number_verified?
 

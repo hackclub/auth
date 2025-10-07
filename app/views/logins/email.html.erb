@@ -22,4 +22,26 @@
     <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
     <button type="submit">Resend code</button>
   </form>
+  <p style="margin-top: 1rem;">
+    Wrong email?
+    <% signup_flow = @attempt.provenance&.start_with?("signup") %>
+    <% if signup_flow %>
+      <%= link_to "Use a different address", signup_path(
+        identity: {
+          first_name: @identity.first_name,
+          last_name: @identity.last_name,
+          birthday: @identity.birthday,
+          country: @identity.country,
+          primary_email: @identity.primary_email
+        },
+        return_to: params[:return_to]
+      ) %>
+    <% else %>
+      <%= link_to "Use a different address", login_path(email: @identity.primary_email, return_to: params[:return_to]) %>
+    <% end %>
+  </p>
+  <% dev_tool do %>
+    sorry, i lied, we didn't actually send a real email.... <br/>
+    grab the code <%= link_to "here", letter_opener_web_path, target: "_blank" %> ?
+  <% end %>
 </article>

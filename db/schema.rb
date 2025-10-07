@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_06_235941) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_07_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -292,8 +292,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_06_235941) do
     t.boolean "permabanned", default: false
     t.datetime "locked_at"
     t.boolean "use_two_factor_authentication"
+    t.datetime "legacy_migrated_at"
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
+    t.index ["legacy_migrated_at"], name: "index_identities_on_legacy_migrated_at"
     t.index ["primary_address_id"], name: "index_identities_on_primary_address_id"
     t.index ["slack_id"], name: "index_identities_on_slack_id"
   end

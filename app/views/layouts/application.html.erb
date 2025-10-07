@@ -22,15 +22,30 @@
     <%= vite_javascript_tag 'application' %>
   </head>
   <body>
-    <main class="container">
-      <%= render Components::Brand.new(identity: current_identity) %>
-      <%= render "shared/flash" %>
-      <span id="async_flash"></span>
-      <%= yield %>
-      <%= render Components::Footer.new %>
-    </main>
+  <% if signed_in? %>
+  <div class="app-layout">
+    <%= render Components::Sidebar.new(current_path: request.path) %>
+    <div class="main-content">
+      <main class="container">
+        <%= render Components::Brand.new(identity: current_identity) %>
+          <%= render "shared/flash" %>
+          <span id="async_flash"></span>
+        <%= yield %>
+        <%= render Components::Footer.new %>
+          </main>
+        </div>
+      </div>
+    <% else %>
+      <main class="container">
+        <%= render Components::Brand.new(identity: current_identity) %>
+        <%= render "shared/flash" %>
+        <span id="async_flash"></span>
+        <%= yield %>
+        <%= render Components::Footer.new %>
+      </main>
+    <% end %>
     <% unless Rails.env.production? %>
       <div class="environment <%= Rails.env %>" />
-      <% end %>
-    </body>
+    <% end %>
+  </body>
   </html>

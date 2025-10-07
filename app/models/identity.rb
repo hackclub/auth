@@ -283,6 +283,8 @@ class Identity < ApplicationRecord
 
   def backup_codes_enabled? = backup_codes.active.any?
 
+  def legacy_migrated? = legacy_migrated_at.present?
+
   def suggested_aadhaar_password
     name = "#{legal_first_name}#{legal_last_name}".presence || "#{first_name}#{last_name}"
     "#{name.gsub(" ", "")[...4].upcase}#{birthday.year}"

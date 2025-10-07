@@ -79,6 +79,8 @@ module SAMLService
 
             hash[sp_config[:entity_id]] = {
                 friendly_name: sp_config[:friendly_name],
+                tagline: sp_config[:tagline],
+                icon: sp_config[:icon],
                 entity: ent,
                 allow_idp_initiated: sp_config[:allow_idp_initiated],
                 allow_unsigned_requests: sp_config[:allow_unsigned_requests] || false,

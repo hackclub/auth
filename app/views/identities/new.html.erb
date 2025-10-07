@@ -2,7 +2,7 @@
   <header>
     <h1><%= @onboarding_scenario.title %></h1>
     <small><i>(Already have an account?
-      <%= link_to "Sign In", new_sessions_path %>)
+      <%= link_to "Sign In", login_path %>)
     </i></small>
   </header>
 
@@ -16,7 +16,7 @@
       <%= hidden_field_tag :return_to, params[:return_to] %>
     <% end %>
     <% if @identity.errors.any? %>
-      <div class="banner danger">
+      <div class="banner danger" aria-live="polite">
         <h4 style="color: var(--error-fg);"><%= pluralize(@identity.errors.count, "issue") %> prevented this from being saved:</h4>
         <ul>
           <% @identity.errors.full_messages.each do |message| %>
@@ -26,64 +26,77 @@
       </div>
     <% end %>
 
-    <div class="grid">
-      <% if @onboarding_scenario.form_fields.include?(:first_name) %>
-        <div>
-          <%= form.label :first_name %>
-          <%= form.text_field :first_name, required: true %>
-        </div>
-      <% end %>
+    <% if (@onboarding_scenario.form_fields & [:first_name, :last_name, :birthday]).any? %>
+      <fieldset>
+        <legend>Personal details</legend>
+        <div class="grid">
+          <% if @onboarding_scenario.form_fields.include?(:first_name) %>
+            <div>
+              <%= form.label :first_name, "First name" %>
+              <%= form.text_field :first_name, required: true, placeholder: "e.g., Ada", autocomplete: "given-name" %>
+            </div>
+          <% end %>
 
-      <% if @onboarding_scenario.form_fields.include?(:last_name) %>
-        <div>
-          <%= form.label :last_name %>
-          <%= form.text_field :last_name, required: true %>
-        </div>
-      <% end %>
+          <% if @onboarding_scenario.form_fields.include?(:last_name) %>
+            <div>
+              <%= form.label :last_name, "Last name" %>
+              <%= form.text_field :last_name, required: true, placeholder: "e.g., Lovelace", autocomplete: "family-name" %>
+            </div>
+          <% end %>
 
-      <% if @onboarding_scenario.form_fields.include?(:primary_email) %>
-        <div>
-          <%= form.label :primary_email, "Email" %>
-          <%= form.email_field :primary_email, required: true %>
+          <% if @onboarding_scenario.form_fields.include?(:birthday) %>
+            <div>
+              <%= form.label :birthday, "Birthday" %>
+              <%= form.date_field :birthday, required: true, autocomplete: "bday" %>
+            </div>
+          <% end %>
         </div>
-      <% else %>
-        <%# When email is provided from scenario, lock it in as hidden %>
-        <% if @identity.primary_email.present? %>
-          <%= form.hidden_field :primary_email, value: @identity.primary_email %>
-          <div>
-            <label>Email</label>
-            <input type="text" value="<%= @identity.primary_email %>" disabled>
-          </div>
-        <% end %>
-      <% end %>
+      </fieldset>
+    <% end %>
 
-      <% if @onboarding_scenario.form_fields.include?(:birthday) %>
-        <div>
-          <%= form.label :birthday %>
-          <%= form.date_field :birthday, required: true %>
-        </div>
-      <% end %>
+    <% if (@onboarding_scenario.form_fields & [:primary_email, :phone_number, :country]).any? || @identity.primary_email.present? %>
+      <fieldset>
+        <legend>Contact</legend>
+        <div class="grid">
+          <% if @onboarding_scenario.form_fields.include?(:primary_email) %>
+            <div>
+              <%= form.label :primary_email, "Email" %>
+              <%= form.email_field :primary_email, required: true, placeholder: "you@example.com", autocomplete: "email", "aria-describedby": "emailHelp" %>
+              <small id="emailHelp">We'll send a one-time code to this address.</small>
+            </div>
+          <% else %>
+            <%# When email is provided from scenario, lock it in as hidden %>
+            <% if @identity.primary_email.present? %>
+              <%= form.hidden_field :primary_email, value: @identity.primary_email %>
+              <div>
+                <label>Email</label>
+                <input type="text" value="<%= @identity.primary_email %>" disabled aria-disabled="true">
+              </div>
+            <% end %>
+          <% end %>
 
-      <% if @onboarding_scenario.form_fields.include?(:phone_number) %>
-        <div>
-          <%= form.label :phone_number %>
-          <%= form.telephone_field :phone_number, required: true %>
-        </div>
-      <% end %>
+          <% if @onboarding_scenario.form_fields.include?(:phone_number) %>
+            <div>
+              <%= form.label :phone_number, "Phone number" %>
+              <%= form.telephone_field :phone_number, required: true, placeholder: "+1 415 555 2671", autocomplete: "tel" %>
+            </div>
+          <% end %>
 
-      <% if @onboarding_scenario.form_fields.include?(:country) %>
-        <div>
-          <%= form.label :country %>
+          <% if @onboarding_scenario.form_fields.include?(:country) %>
+            <div>
+              <%= form.label :country, "Country" %>
 <%= form.collection_select :country, Identity.countries_for_select,
                              :first, :last,
                              { include_blank: "Select a country" },
-                             { required: true, "x-ref": "countrySelect", "@change": "checkSanctioned()" } %>
+                             { required: true, autocomplete: "country-name", "x-ref": "countrySelect", "@change": "checkSanctioned()" } %>
+            </div>
+          <% end %>
         </div>
-      <% end %>
-    </div>
+      </fieldset>
+    <% end %>
 
     <div>
-      <%= form.submit "Continue" %>
+      <%= form.submit "Continue", class: "contrast" %>
     </div>
   <% end %>
 </article>

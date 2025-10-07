@@ -21,8 +21,6 @@ module CountryEnumable
       enum field, self.country_enum_list, prefix: field
     end
 
-    private
-
     def country_enum_list
       {
         AD: 6,

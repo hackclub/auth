@@ -4,7 +4,6 @@ module SessionsHelper
   class AccountLockedError < StandardError; end
   
 
-  # DEPRECATED - begin to start deprecating and ultimately replace with sign_in_and_set_cookie
   def sign_in(identity:, fingerprint_info: {}, impersonate: false)
     session_token = SecureRandom.urlsafe_base64
     session_duration = 1.month
@@ -59,7 +58,7 @@ module SessionsHelper
       &.update(signed_out_at: Time.now, expires_at: Time.now)
 
     cookies.delete(:session_token)
-    self.current_user = nil
+    self.current_identity = nil
   end
 
   def sign_out_of_all_sessions(identity = current_identity)

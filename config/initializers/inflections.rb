@@ -5,4 +5,5 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.acronym "SAML"
   inflect.acronym "NameID"
   inflect.acronym "TOTP"
+  inflect.acronym "SSO"
 end

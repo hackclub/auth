@@ -245,7 +245,6 @@ Rails.application.routes.draw do
     end
   end
 
-  # Signup (no scenario exposed via params)
   get "/signup", to: "identities#new", defaults: { route_context: "signup" }, as: :signup
   post "/signup", to: "identities#create", defaults: { route_context: "signup" }
   get "/migrate", to: "identities#new", defaults: { route_context: "migrate" }, as: :migrate
@@ -253,7 +252,6 @@ Rails.application.routes.draw do
   get "/join/:slug", to: "identities#new", defaults: { route_context: "join" }, as: :join
   post "/join/:slug", to: "identities#create", defaults: { route_context: "join" }
 
-  # Login flow
   get "/login", to: "logins#new", as: :login
   post "/login", to: "logins#create"
   get "/login/:id", to: "logins#show", as: :login_attempt
@@ -266,7 +264,7 @@ Rails.application.routes.draw do
   get "/login/:id/backup_code", to: "logins#backup_code", as: :backup_code_login_attempt
   post "/login/:id/backup_code", to: "logins#verify_backup_code", as: :verify_backup_code_login_attempt
 
-  # Old onboarding routes removed
+  delete "/logout", to: "sessions#logout", as: :logout
 
   resource :aadhaar, only: [], controller: "aadhaar" do
     get :async_digilocker_link

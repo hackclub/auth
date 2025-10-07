@@ -1,4 +1,6 @@
 class LoginsController < ApplicationController
+    include SAMLHelper
+    
     skip_before_action :authenticate_identity!
     before_action :set_return_to, only: [ :new, :create ]
     before_action :set_attempt, except: [ :new, :create ]
@@ -38,7 +40,12 @@ class LoginsController < ApplicationController
     end
 
     def show
-        render :email, status: :unprocessable_entity
+        # If email is already satisfied (including legacy_email), skip code entry
+        if !@attempt.email_available?
+            redirect_to_next_factor
+        else
+            render :email, status: :unprocessable_entity
+        end
     end
 
     def verify
@@ -228,9 +235,14 @@ class LoginsController < ApplicationController
             session = sign_in(identity: @identity, fingerprint_info: fingerprint_info)
             @attempt.update!(session: session)
 
+            # If this login was from legacy migration provenance and we just completed, stamp the identity
+            if @attempt.provenance == "signup_legacy" && !@identity.legacy_migrated?
+                @identity.update!(legacy_migrated_at: Time.current)
+            end
+
             case (@attempt.next_action || "home").to_sym
             when :slack
-                redirect_to link_slack_account_path
+                render_saml_response_for("slack")
             else
                 redirect_to params[:return_to].presence || root_path
             end
@@ -255,5 +267,18 @@ class LoginsController < ApplicationController
             flash[:error] = "Unable to complete authentication"
             redirect_to login_path
         end
+    end
+
+    def render_saml_response_for(slug)
+        sp_config = SAMLService::Entities.sp_by_slug(slug)
+        raise "SP not configured" unless sp_config&.dig(:allow_idp_initiated)
+
+        response = build_saml_response(
+            identity: @identity,
+            sp_config: sp_config,
+            in_response_to: nil
+        )
+
+        render_saml_response(saml_response: response, sp_config: sp_config)
     end
 end

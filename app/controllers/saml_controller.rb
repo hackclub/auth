@@ -1,4 +1,6 @@
 class SAMLController < ApplicationController
+  include SAMLHelper
+  
   skip_before_action :authenticate_identity!, only: [:metadata]
 
   AUTHN_REQUEST_TTL = 5.minutes
@@ -17,12 +19,13 @@ class SAMLController < ApplicationController
       render :error and return
     end
 
-    response = build_response(
-      @sp_config[:entity].service_providers.first,
-      nil # no InResponseTo for IdP-initiated
+    response = build_saml_response(
+      identity: current_identity,
+      sp_config: @sp_config,
+      in_response_to: nil
     )
 
-    pass_response_to_sp(response)
+    render_saml_response(saml_response: response, sp_config: @sp_config)
   end
 
   def sp_initiated_get
@@ -32,67 +35,16 @@ class SAMLController < ApplicationController
     return unless verify_authn_request_signature!
     return unless check_replay!
 
-    response = build_response(
-      @sp_config[:entity].service_providers.first,
-      @authn_request
+    response = build_saml_response(
+      identity: current_identity,
+      sp_config: @sp_config,
+      in_response_to: @authn_request
     )
 
-    pass_response_to_sp(response)
+    render_saml_response(saml_response: response, sp_config: @sp_config)
   end
 
   private
-
-  def build_response(sp, in_response_to)
-    if in_response_to
-      response = SAML2::Response.respond_to(
-        in_response_to,
-        issuer,
-        current_identity.to_saml_nameid,
-        filtered_attributes
-      )
-    else
-      # IdP-initiated
-      response = SAML2::Response.initiate(sp, issuer, current_identity.to_saml_nameid, filtered_attributes)
-    end
-
-    # Extend TTLs from default 30s to 5 minutes for better compatibility
-    now = Time.now.utc
-    response.assertions.each do |assertion|
-      assertion.conditions.not_on_or_after = now + 5.minutes
-      assertion.subject.confirmation.not_on_or_after = now + 5.minutes
-    end
-
-    response
-  end
-
-  def filtered_attributes
-    all_attrs = current_identity.to_saml_attributes
-    
-    # Apply per-SP attribute whitelist if configured
-    if @sp_config[:allowed_attributes].present?
-      allowed = @sp_config[:allowed_attributes]
-      all_attrs.select { |attr| allowed.include?(attr.name) }
-    else
-      all_attrs
-    end
-  end
-
-  def pass_response_to_sp(saml_response)
-    # TODO: HTTP redirect binding support? didn't build it because we don't need it but maybe someday
-    signed_xml = SAMLService::Signing.sign_response(saml_response)
-    @saml_response = Base64.strict_encode64(signed_xml.to_s)
-    @saml_acs_url = @sp_config[:entity].service_providers.first.assertion_consumer_services.default.location
-    
-    if Rails.env.production? && URI(@saml_acs_url).scheme != 'https'
-      @error = "ACS URL must use HTTPS in production"
-      render :error, status: :bad_request and return
-    end
-
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
-    response.headers['Pragma'] = 'no-cache'
-
-    render template: "saml/http_post", layout: "minimal"
-  end
 
   def verify_authn_request_signature!
     return true if @sp_config[:allow_unsigned_requests]
@@ -219,7 +171,4 @@ class SAMLController < ApplicationController
     true
   end
 
-  def issuer
-    @issuer ||= SAML2::NameID.new(SAMLService::Entities.idp_entity.entity_id)
-  end
 end

@@ -2,13 +2,16 @@ development:
   service_providers:
     - slug: samltool
       allow_idp_initiated: true
-      friendly_name: SAML TOOL
+      friendly_name: samltool.io
+      tagline: echoes & validates the SAML response. not super useful unless you're hacking on the SAML assertion code...
       entity_id: https://samltool.io
       assertion_consumer_services:
         - location: https://samltool.io
           binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
     - slug: slack
       friendly_name: Slack
+      tagline: Team communication platform
+      icon: slack.png
       entity_id: https://slack.com
       assertion_consumer_services:
         - location: https://wackclub.enterprise.slack.com/sso/saml
@@ -68,6 +71,7 @@ development:
     - slug: iam_showcase
       allow_idp_initiated: true
       friendly_name: IAM Showcase
+      tagline: Identity management testing
       entity_id: IAMShowcase
       assertion_consumer_services:
         - location: https://sptest.iamshowcase.com/acs
