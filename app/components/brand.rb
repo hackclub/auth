@@ -12,23 +12,14 @@ class Components::Brand < Components::Base
       else
         logo
       end
-      h1 { "Hack Club Identity" }
+      h1 { "Hack Club Account" }
     end
     button id: "lightswitch", class: "lightswitch-btn", type: "button", "aria-label": "Toggle theme" do
       span class: "lightswitch-icon" do
         "🌙"
       end
     end
-    case Rails.env
-    when "staging"
-      div(class: "banner purple") do
-        safe "this is a staging environment. <b>do not upload any actual personal information here.<b>"
-      end
-    when "development"
-      div(class: "banner success") do
-        plain "you're in dev! go nuts :3"
-      end
-    end
+    render Components::EnvironmentBanner.new
   end
 
   def logo

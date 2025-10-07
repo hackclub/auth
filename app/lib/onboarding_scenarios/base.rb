@@ -39,5 +39,11 @@ module OnboardingScenarios
 
         # Used to guide post-signup flow. For now: :home or :slack
         def next_action = :home
+
+        # Whether this scenario accepts adult (>18) users
+        def accepts_adults = false
+
+        # Whether this scenario accepts users under 13
+        def accepts_under13 = false
     end
 end

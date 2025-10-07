@@ -50,8 +50,8 @@ class Identity < ApplicationRecord
 
   has_many :sessions, class_name: "IdentitySession", dependent: :destroy
   has_many :login_attempts
-  has_many :login_codes, class_name: "Identity::LoginCode"
-  has_many :v2_login_codes, class_name: "Identity::V2LoginCode"
+  has_many :login_codes, class_name: "Identity::LoginCode", dependent: :destroy
+  has_many :v2_login_codes, class_name: "Identity::V2LoginCode", dependent: :destroy
   has_many :totps, class_name: "Identity::TOTP", dependent: :destroy
   has_many :backup_codes, class_name: "Identity::BackupCode", dependent: :destroy
 
@@ -105,6 +105,7 @@ class Identity < ApplicationRecord
 
   validate :legal_names_must_be_complete
 
+  before_validation :downcase_email
   before_commit :copy_legal_name_if_needed, on: :create
 
   def self.slack_authorize_url(redirect_uri)
@@ -314,6 +315,10 @@ class Identity < ApplicationRecord
   alias_method :to_param, :public_id
 
   private
+
+  def downcase_email
+    self.primary_email = primary_email&.downcase
+  end
 
   def copy_legal_name_if_needed
     self.legal_first_name = first_name if legal_first_name.blank?

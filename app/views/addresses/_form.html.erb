@@ -2,10 +2,11 @@
   <% if local_assigns[:from_program] %>
     <%= f.hidden_field :from_program, value: true %>
   <% end %>
+  
   <% if address.errors.any? %>
-    <div class="banner danger">
-      <h4 style="color: var(--error-fg);"><%= pluralize(address.errors.count, "issue") %> prevented this from being saved:</h4>
-      <ul>
+    <div class="banner danger" style="margin-bottom: 1.5rem;">
+      <h4 style="color: var(--error-fg); margin: 0 0 0.5rem;"><%= pluralize(address.errors.count, "issue") %> prevented this from being saved:</h4>
+      <ul style="margin: 0; padding-left: 1.5rem;">
         <% address.errors.full_messages.each do |message| %>
           <li><%= message %></li>
         <% end %>
@@ -13,27 +14,31 @@
     </div>
   <% end %>
 
-  <fieldset>
-    <legend>Address Details</legend>
-    <div class="grid">
-      <%= f.text_field :first_name, placeholder: "First name", required: true %>
-      <%= f.text_field :last_name, placeholder: "Last name", required: true %>
-    </div>
-    <%= f.text_field :line_1, placeholder: "Address line 1", required: true %>
-    <%= f.text_field :line_2, placeholder: "Address line 2 (optional)" %>
-    <div class="grid">
-      <%= f.text_field :city, placeholder: "City", required: true %>
-      <%= f.text_field :state, placeholder: "State/Province", required: true %>
-    </div>
-    <%= f.text_field :postal_code, placeholder: "Postal code", required: true %>
-    <%= f.label :country, "Country" %>
-    <%= f.collection_select :country, Address.countries_for_select,
-                             :first, :last,
-                             { include_blank: "Select a country" },
-                             { required: true } %>
-  </fieldset>
+  <div class="grid">
+    <%= f.text_field :first_name, placeholder: "First name", required: true %>
+    <%= f.text_field :last_name, placeholder: "Last name", required: true %>
+  </div>
 
-  <footer style="text-align: center; margin-top: 2rem;">
+  <%= f.text_field :line_1, placeholder: "Address line 1", required: true %>
+  <%= f.text_field :line_2, placeholder: "Address line 2 (optional)" %>
+  
+  <div class="grid">
+    <%= f.text_field :city, placeholder: "City", required: true %>
+    <%= f.text_field :state, placeholder: "State/Province", required: true %>
+  </div>
+  
+  <div class="grid">
+    <%= f.text_field :postal_code, placeholder: "Postal code", required: true %>
+    <%= f.collection_select :country, Address.countries_for_select,
+                            :first, :last,
+                            { include_blank: "Country" },
+                            { required: true } %>
+  </div>
+
+  <div style="margin-top: 1.5rem;">
     <%= f.submit local_assigns[:submit] || "Save Address" %>
-  </footer>
+    <% unless local_assigns[:from_program] %>
+      <%= link_to "Cancel", addresses_path, role: "button", class: "secondary" %>
+    <% end %>
+  </div>
 <% end %>

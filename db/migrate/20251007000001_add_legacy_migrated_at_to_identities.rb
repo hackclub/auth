@@ -6,3 +6,5 @@ class AddLegacyMigratedAtToIdentities < ActiveRecord::Migration[8.0]
 end
 
 
+
+

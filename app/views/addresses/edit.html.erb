@@ -1,6 +1,12 @@
-<h1>Edit Address</h1>
+<div class="page-container-tight">
+  <div class="page-header">
+    <h1>Edit Address</h1>
+    <p>Update your mailing address information</p>
+  </div>
 
-<%= render 'form', address: @address %>
+  <%= render 'form', address: @address %>
 
-<%= link_to "Show", @address %> |
-<%= link_to "Back", addresses_path %>
+  <div class="page-navigation">
+    <%= link_to "← Back to addresses", addresses_path %>
+  </div>
+</div>

@@ -2,22 +2,25 @@
 const savedTheme = localStorage.getItem("theme") || "light";
 
 function updateIcon(theme) {
-    const icon = document.querySelector(".lightswitch-icon");
-    if (icon) {
+    const icons = document.querySelectorAll(".lightswitch-icon");
+    icons.forEach(icon => {
         icon.textContent = theme === "dark" ? "💡" : "🌙";
-    }
+    });
 }
 
-// Set initial icon and show button after theme is set
+// Set initial icon and show all lightswitch buttons after theme is set
 updateIcon(savedTheme);
-const lightswitchBtn = document.getElementById("lightswitch");
-if (lightswitchBtn) {
-    lightswitchBtn.classList.add("theme-loaded");
-}
+const lightswitchButtons = document.querySelectorAll(".lightswitch-btn");
+lightswitchButtons.forEach(btn => {
+    btn.classList.add("theme-loaded");
+});
 
-document.getElementById("lightswitch").addEventListener("click", () => {
-    const theme = document.body.parentElement.dataset.theme === "dark" ? "light" : "dark";
-    document.body.parentElement.dataset.theme = theme;
-    localStorage.setItem("theme", theme);
-    updateIcon(theme);
+// Add click handler to all lightswitch buttons
+lightswitchButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const theme = document.body.parentElement.dataset.theme === "dark" ? "light" : "dark";
+        document.body.parentElement.dataset.theme = theme;
+        localStorage.setItem("theme", theme);
+        updateIcon(theme);
+    });
 });

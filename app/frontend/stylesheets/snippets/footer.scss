@@ -2,12 +2,22 @@
 
 .app-footer {
   margin-top: 3rem;
-  padding: 1.5rem 0;
+  padding: 2rem 1.5rem;
   border-top: 1px solid var(--pico-muted-border-color);
   font-size: 0.875rem;
   color: var(--pico-muted-color);
 
+  @media (min-width: 768px) {
+    padding: 2rem 2rem;
+  }
+
+  @media (min-width: 1024px) {
+    padding: 2rem 2.5rem;
+  }
+
   .footer-content {
+    max-width: 1280px;
+    margin: 0 auto;
     display: flex;
     justify-content: space-between;
     align-items: baseline;

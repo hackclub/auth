@@ -1,11 +1,12 @@
 class LoginsController < ApplicationController
+  layout "logged_out"
     include SAMLHelper
     
     skip_before_action :authenticate_identity!
     before_action :set_return_to, only: [ :new, :create ]
     before_action :set_attempt, except: [ :new, :create ]
     before_action :validate_browser_token, except: [ :new, :create ]
-    before_action :already_logged_in
+    before_action :ensure_no_user!
 
     def new
         @prefill_email = params[:email] if params[:email].present?
@@ -244,6 +245,7 @@ class LoginsController < ApplicationController
             when :slack
                 render_saml_response_for("slack")
             else
+                flash[:success] = "Logged in!"
                 redirect_to params[:return_to].presence || root_path
             end
         else

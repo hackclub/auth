@@ -2,7 +2,6 @@
 
 module SessionsHelper
   class AccountLockedError < StandardError; end
-  
 
   def sign_in(identity:, fingerprint_info: {}, impersonate: false)
     session_token = SecureRandom.urlsafe_base64
@@ -19,7 +18,7 @@ module SessionsHelper
       ip: fingerprint_info[:ip],
       expires_at:
     )
-    
+
     raise(AccountLockedError, "Your HCB account has been locked.") if identity.locked?
 
     ident_session.save!
@@ -27,15 +26,20 @@ module SessionsHelper
 
     ident_session
   end
-  
-  
+
+  def ensure_no_user!
+    if identity_signed_in?
+      flash[:info] = "you're already logged in, silly!"
+      redirect_to root_path
+    end
+  end
 
   def signed_in? = !current_identity.nil?
 
   def current_identity=(identity)
     @current_identity = identity
   end
-  
+
   def current_identity
     @current_identity ||= current_session&.identity
   end

@@ -1,10 +1,21 @@
-<article>
-  <header>
-    <h1><%= @onboarding_scenario.title %></h1>
-    <small><i>(Already have an account?
-      <%= link_to "Sign In", login_path %>)
-    </i></small>
-  </header>
+<div class="auth-container">
+  <div class="auth-card">
+    <header>
+      <h1><%= @onboarding_scenario.title %></h1>
+      <small>Already have a Hack Club account?
+        <%= link_to "Log in", login_path %>!
+      </small>
+    </header>
+
+    <% if @age_restriction %>
+      <div class="banner warning">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <%= @age_restriction %>
+      </div>
+      <br/>
+    <% end %>
 
   <%= form_with model: @identity, url: request.path, method: :post, local: true do |form| %>
     <%# Pass through email_token as hidden for legacy flows %>
@@ -28,19 +39,18 @@
 
     <% if (@onboarding_scenario.form_fields & [:first_name, :last_name, :birthday]).any? %>
       <fieldset>
-        <legend>Personal details</legend>
         <div class="grid">
           <% if @onboarding_scenario.form_fields.include?(:first_name) %>
             <div>
               <%= form.label :first_name, "First name" %>
-              <%= form.text_field :first_name, required: true, placeholder: "e.g., Ada", autocomplete: "given-name" %>
+              <%= form.text_field :first_name, required: true, placeholder: "Fiona", autocomplete: "given-name", "aria-describedby": "nameHelp" %>
             </div>
           <% end %>
 
           <% if @onboarding_scenario.form_fields.include?(:last_name) %>
             <div>
               <%= form.label :last_name, "Last name" %>
-              <%= form.text_field :last_name, required: true, placeholder: "e.g., Lovelace", autocomplete: "family-name" %>
+              <%= form.text_field :last_name, required: true, placeholder: "Hackworth", autocomplete: "family-name", "aria-describedby": "nameHelp" %>
             </div>
           <% end %>
 
@@ -51,18 +61,18 @@
             </div>
           <% end %>
         </div>
+          <small id="nameHelp">* not necessarily your legal name, what do people usually call you?</small>
+
       </fieldset>
     <% end %>
 
     <% if (@onboarding_scenario.form_fields & [:primary_email, :phone_number, :country]).any? || @identity.primary_email.present? %>
       <fieldset>
-        <legend>Contact</legend>
         <div class="grid">
           <% if @onboarding_scenario.form_fields.include?(:primary_email) %>
             <div>
               <%= form.label :primary_email, "Email" %>
-              <%= form.email_field :primary_email, required: true, placeholder: "you@example.com", autocomplete: "email", "aria-describedby": "emailHelp" %>
-              <small id="emailHelp">We'll send a one-time code to this address.</small>
+              <%= form.email_field :primary_email, required: true, placeholder: "orpheus@dino.mail", autocomplete: "email", "aria-describedby": "emailHelp" %>
             </div>
           <% else %>
             <%# When email is provided from scenario, lock it in as hidden %>
@@ -92,13 +102,13 @@
             </div>
           <% end %>
         </div>
+        <small id="emailHelp">We'll send a one-time code to this address.</small>
       </fieldset>
     <% end %>
 
-    <div>
-      <%= form.submit "Continue", class: "contrast" %>
-    </div>
+    <%= form.submit "Continue →", disabled: @age_restriction.present? %>
   <% end %>
-</article>
+  </div>
+</div>
 
 

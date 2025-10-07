@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html data-theme="light">
   <head>
-    <title><%= content_for(:title) || "Identity Vault" %></title>
+    <title><%= content_for(:title) || "Hack Club Identity" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -21,33 +21,17 @@
     <%= vite_stylesheet_tag "application.css" %>
     <%= vite_javascript_tag 'application' %>
   </head>
-  <body>
-  <% if signed_in? %>
-  <div class="app-layout">
-  <%= render Components::Sidebar.new(current_path: request.path) %>
-  <div class="main-content">
-  <main class="container">
-  <div class="mobile-brand">
-    <%= render Components::Brand.new(identity: current_identity) %>
-  </div>
-  <%= render "shared/flash" %>
-  <span id="async_flash"></span>
+  <body class="auth-layout">
+    <button id="lightswitch" class="lightswitch-btn" type="button" aria-label="Toggle theme">
+      <span class="lightswitch-icon">🌙</span>
+    </button>
+    <div class="auth-flash-wrapper">
+      <%= render "shared/flash" %>
+      <span id="async_flash"></span>
+    </div>
     <%= yield %>
-      <%= render Components::Footer.new %>
-      </main>
-      </div>
-  </div>
-  <% else %>
-  <main class="container">
-  <%= render Components::Brand.new(identity: current_identity) %>
-  <%= render "shared/flash" %>
-  <span id="async_flash"></span>
-    <%= yield %>
-      <%= render Components::Footer.new %>
-    </main>
-  <% end %>
-  <% unless Rails.env.production? %>
+    <% unless Rails.env.production? %>
       <div class="environment <%= Rails.env %>" />
     <% end %>
   </body>
-  </html>
+</html>

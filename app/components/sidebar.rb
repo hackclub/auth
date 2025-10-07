@@ -8,7 +8,9 @@ class Components::Sidebar < Components::Base
   register_value_helper :signed_in?
   register_value_helper :root_path
   register_value_helper :logout_path
-  
+  register_output_helper :copy_to_clipboard
+  register_output_helper :vite_image_tag
+
   def initialize(current_path:)
     @current_path = current_path
   end
@@ -16,12 +18,13 @@ class Components::Sidebar < Components::Base
   def view_template
     render_mobile_toggle
     render_overlay
-    
+
     nav(class: "sidebar", id: "sidebar") do
+      render_sidebar_brand
       render_navigation
       render_user_section if signed_in?
     end
-    
+
     render_toggle_script
   end
 
@@ -29,7 +32,8 @@ class Components::Sidebar < Components::Base
 
   def nav_items
     [
-      { label: "Home", path: root_path, icon: "🏠" }
+      { label: "Home", path: root_path, icon: "🏠" },
+      { label: "Physical Addresses", path: addresses_path, icon: "✉️" }
     ]
   end
 
@@ -66,7 +70,7 @@ class Components::Sidebar < Components::Base
 
   def render_nav_item(label:, path:, icon: nil)
     is_active = @current_path == path
-    
+
     link_to(path, class: ["sidebar-nav-item", ("active" if is_active)].compact.join(" ")) do
       span(class: "nav-icon") { icon } if icon
       span(class: "nav-label") { label }
@@ -82,8 +86,10 @@ class Components::Sidebar < Components::Base
 
   def render_user_info
     div(class: "user-info") do
-      div(class: "user-avatar") do
-        span { current_identity.first_name&.first || "?" }
+      copy_to_clipboard current_identity.public_id, tooltip_direction: "e", label: "click to copy your account ID..." do
+        div(class: "user-avatar") do
+          span { current_identity.first_name&.first || "?" }
+        end
       end
       div(class: "user-details") do
         div(class: "user-name") do
@@ -102,6 +108,24 @@ class Components::Sidebar < Components::Base
         plain "Logout"
       end
     end
+  end
+
+  def render_sidebar_brand
+    div(class: "sidebar-brand") do
+      if current_identity.present?
+        copy_to_clipboard current_identity.public_id, tooltip_direction: "e", label: "click to copy your internal ID" do
+          vite_image_tag("images/hc-square.png", alt: "Hack Club logo", class: "brand-logo")
+        end
+      else
+        vite_image_tag("images/hc-square.png", alt: "Hack Club logo", class: "brand-logo")
+      end
+      h1 { "Hack Club Account" }
+      button(id: "lightswitch", class: "lightswitch-btn", type: "button", "aria-label": "Toggle theme") do
+        span(class: "lightswitch-icon") { "🌙" }
+      end
+    end
+    render Components::EnvironmentBanner.new
+    
   end
 
   def render_toggle_script

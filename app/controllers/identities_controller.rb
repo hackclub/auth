@@ -1,9 +1,11 @@
 class IdentitiesController < ApplicationController
+  layout "logged_out", only: [:new, :create]
     skip_before_action :authenticate_identity!, only: [ :new, :create ]
     before_action :set_identity, except: [ :new, :create ]
     before_action :set_onboarding_scenario, only: [ :new, :create ]
     before_action :set_return_to, only: [ :new, :create ]
     before_action :ensure_migration_token_present, only: [ :new, :create ]
+    before_action :ensure_no_user!, only: [ :new, :create ]
 
     def new
         @prefill_attributes = scenario_prefill_attributes
@@ -15,13 +17,12 @@ class IdentitiesController < ApplicationController
     end
 
     def create
+        flash.clear
         @prefill_attributes = scenario_prefill_attributes
 
         # Permit fields defined by the scenario
         attrs = params.require(:identity).permit(*@onboarding_scenario.form_fields).to_h.symbolize_keys
 
-        # If a hidden primary_email was submitted (legacy flows), ensure it matches the
-        # securely-derived prefill email; ignore if it doesn't.
         posted_email = params.dig(:identity, :primary_email)
         if posted_email.present? && @prefill_attributes[:primary_email].present? && posted_email != @prefill_attributes[:primary_email]
             Rails.logger.warn("Primary email mismatch between hidden field and verified token; ignoring hidden value")
@@ -34,63 +35,38 @@ class IdentitiesController < ApplicationController
 
         if attrs[:primary_email].present?
             existing_identity = Identity.find_by(primary_email: attrs[:primary_email])
-            if existing_identity
-                if @onboarding_scenario.is_a?(OnboardingScenarios::LegacyMigration)
-                    if existing_identity.legacy_migrated?
-                        flash[:info] = "that email address has already been migrated"
-                        redirect_to login_path(email: existing_identity.primary_email, return_to: @return_to)
-                        return
-                    end
-                    # Migration flow: skip email code, trust signed token and mark email factor complete
-                    attempt = LoginAttempt.create!(
-                        identity: existing_identity,
-                        authentication_factors: { legacy_email: true },
-                        provenance: "signup_legacy",
-                        next_action: @onboarding_scenario.next_action.to_s
-                    )
-
-                    # If no additional factors are required, sign in immediately
-                    if attempt.may_mark_complete?
-                        attempt.mark_complete!
-                        session_rec = sign_in(identity: existing_identity, fingerprint_info: { ip: request.remote_ip })
-                        existing_identity.update!(legacy_migrated_at: Time.current)
-                        attempt.update!(session: session_rec)
-                        redirect_to @return_to.presence || root_path, status: :see_other
-                        return
-                    end
-
-                    # Additional factor required (e.g., TOTP/SMS). Set browser token and send user to next factor.
-                    cookies.signed["browser_token_#{attempt.to_param}"] = {
-                        value: attempt.browser_token,
-                        expires: LoginAttempt::EXPIRATION.from_now
-                    }
-
-                    redirect_to login_attempt_path(id: attempt.to_param, return_to: @return_to), status: :see_other
-                    return
-                else
-                    flash[:info] = "an account with that email already exists, sending you a login code :-)"
-                    attempt = LoginAttempt.create!(
-                        identity: existing_identity,
-                        authentication_factors: {},
-                        provenance: "login",
-                        next_action: "home"
-                    )
-
-                    # Set browser token cookie for security
-                    cookies.signed["browser_token_#{attempt.to_param}"] = {
-                        value: attempt.browser_token,
-                        expires: LoginAttempt::EXPIRATION.from_now
-                    }
-
-                    login_code = Identity::V2LoginCode.create!(identity: existing_identity)
-                    if defined?(IdentityMailer)
-                        IdentityMailer.v2_login_code(login_code).deliver_later
-                    end
-
-                    redirect_to login_attempt_path(id: attempt.to_param, return_to: @return_to), status: :see_other
-                    return
-                end
+            if existing_identity.present?
+              flash[:info] = "You already have an account, please log in!"
+              return redirect_to login_path(email: attrs[:primary_email], return_to: @return_to)
             end
+        end
+
+        if attrs[:birthday].present?
+          birthday = attrs[:birthday].is_a?(String) ? Date.parse(attrs[:birthday]) : attrs[:birthday]
+          if birthday > Date.today
+            flash[:error] = "I'm sorry, I may be gullible but I'm not willing to believe you were born in the future."
+            @identity = Identity.new(@prefill_attributes.merge(attrs))
+            render :new, status: :unprocessable_entity
+            return
+          end
+
+          age = (Date.today - birthday).days.in_years
+
+          if age > 18 && !@onboarding_scenario.accepts_adults
+            @age_restriction = "Hack Club is a community for teenagers. <br/>Unfortunately, you are not eligible to join.".html_safe
+            @identity = Identity.new(@prefill_attributes.merge(attrs))
+            render :new, status: :unprocessable_entity
+            return
+          end
+
+          if age < 13 && !@onboarding_scenario.accepts_under13
+            age_diff = (13 - age).round
+            diff_text = age_diff == 1 ? "a year" : "#{age_diff} years"
+            @age_restriction = "Hi there. <br/> Unfortunately, for regulatory reasons outside of our control, we can't accept users under 13. This sucks, and we're sorry. Please come back in #{diff_text}, we'd love to have you as a member of our community!".html_safe
+            @identity = Identity.new(@prefill_attributes.merge(attrs))
+            render :new, status: :unprocessable_entity
+            return
+          end
         end
 
         # Ensure country is present; if missing, use GeoIP detection with US fallback

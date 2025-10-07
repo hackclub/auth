@@ -1,3 +1,12 @@
-<h1>add your address!</h1>
-<%= render 'form', address: @address %>
-<%= link_to "Back", addresses_path %>
+<div class="page-container-tight">
+  <div class="page-header">
+    <h1>Add Your Address</h1>
+    <p>We'll use this address to send you physical items when needed</p>
+  </div>
+
+  <%= render 'form', address: @address %>
+
+  <div class="page-navigation">
+    <%= link_to "← Back to addresses", addresses_path %>
+  </div>
+</div>

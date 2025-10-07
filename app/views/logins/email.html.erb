@@ -1,47 +1,53 @@
-<article x-data="{ 
+<div class="auth-container" x-data="{ 
   codeValue: '',
   get isComplete() { 
     return this.codeValue.replace(/\D/g, '').length === 6;
   }
 }">
-  <header>
-    <h1>Check your email</h1>
-    <p>We sent a code to <strong><%= @identity.primary_email %></strong>.</p>
-  </header>
-  <%= form_with url: verify_login_attempt_path(@attempt), method: :post, local: true do |form| %>
-    <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
-    <div>
-      <%= form.label :code, "Enter the 6-digit code" %>
-      <%= render Components::Login::CodeInput.new(form: form, prefix: "H", alpine_model: "codeValue") %>
-    </div>
-    <div>
-      <%= form.submit "Verify", "x-bind:disabled": "!isComplete" %>
-    </div>
-  <% end %>
-  <form action="<%= resend_login_attempt_path(@attempt, return_to: params[:return_to]) %>" method="post">
-    <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-    <button type="submit">Resend code</button>
-  </form>
-  <p style="margin-top: 1rem;">
-    Wrong email?
-    <% signup_flow = @attempt.provenance&.start_with?("signup") %>
-    <% if signup_flow %>
-      <%= link_to "Use a different address", signup_path(
-        identity: {
-          first_name: @identity.first_name,
-          last_name: @identity.last_name,
-          birthday: @identity.birthday,
-          country: @identity.country,
-          primary_email: @identity.primary_email
-        },
-        return_to: params[:return_to]
-      ) %>
-    <% else %>
-      <%= link_to "Use a different address", login_path(email: @identity.primary_email, return_to: params[:return_to]) %>
+  <div class="auth-card">
+    <header>
+      <h1>Check your email...</h1>
+      <small>We sent a code to <strong><%= @identity.primary_email %></strong></small>
+    </header>
+    
+    <%= form_with url: verify_login_attempt_path(@attempt), method: :post, local: true do |form| %>
+      <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
+      <fieldset>
+        <%= form.label :code, "Enter the 6-digit code" %>
+        <%= render Components::Login::CodeInput.new(form: form, prefix: "H", alpine_model: "codeValue") %>
+      </fieldset>
+      <%= form.submit "Verify →", "x-bind:disabled": "!isComplete" %>
     <% end %>
-  </p>
-  <% dev_tool do %>
-    sorry, i lied, we didn't actually send a real email.... <br/>
-    grab the code <%= link_to "here", letter_opener_web_path, target: "_blank" %> ?
-  <% end %>
-</article>
+    
+    <footer>
+      <%= form_with url: resend_login_attempt_path(@attempt, return_to: params[:return_to]), method: :post, style: "margin: 0;" do %>
+        <%= button_tag "Resend code", type: "submit", class: "secondary" %>
+      <% end %>
+      
+      <p style="margin-top: 1rem;">
+        Wrong email?
+        <% signup_flow = @attempt.provenance&.start_with?("signup") %>
+        <% if signup_flow %>
+          <%= link_to "Use a different address", signup_path(
+            identity: {
+              first_name: @identity.first_name,
+              last_name: @identity.last_name,
+              birthday: @identity.birthday,
+              country: @identity.country,
+              primary_email: @identity.primary_email
+            },
+            return_to: params[:return_to]
+          ) %>
+        <% else %>
+          <%= link_to "Use a different address", login_path(email: @identity.primary_email, return_to: params[:return_to]) %>
+        <% end %>
+      </p>
+      
+      <% dev_tool do %>
+        <p style="margin-top: 1rem; font-size: 0.85rem;">
+          <em>Dev mode: grab the code <%= link_to "here", letter_opener_web_path, target: "_blank" %></em>
+        </p>
+      <% end %>
+    </footer>
+  </div>
+</div>
