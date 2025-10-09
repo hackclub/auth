@@ -8,7 +8,7 @@ class LoginAttempt < ApplicationRecord
   has_encrypted :browser_token
   before_validation :ensure_browser_token
 
-  store_accessor :authentication_factors, :sms, :email, :totp, :backup_code, :legacy_email, prefix: :authenticated_with
+  store_accessor :authentication_factors, :email, :totp, :backup_code, :legacy_email, prefix: :authenticated_with
 
   EXPIRATION = 15.minutes
 
@@ -66,7 +66,7 @@ class LoginAttempt < ApplicationRecord
     !authenticated_with_email && !authenticated_with_legacy_email
   end
 
-  def sms_available? = !authenticated_with_sms && identity.phone_number_verified?
+
 
   def totp_available? = !authenticated_with_totp && identity.totp.present?
 
@@ -74,7 +74,6 @@ class LoginAttempt < ApplicationRecord
 
   def available_factors
     factors = []
-    factors << :sms if sms_available?
     factors << :email if email_available?
     factors << :totp if totp_available?
     factors << :backup_code if backup_code_available?

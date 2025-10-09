@@ -40,6 +40,6 @@ class IdentitySession < ApplicationRecord
   private
 
   def identity_is_unlocked
-
+    errors.add(:base, "Account is locked") if identity&.locked?
   end
 end

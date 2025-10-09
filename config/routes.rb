@@ -265,8 +265,7 @@ Rails.application.routes.draw do
   get "/login/:id", to: "logins#show", as: :login_attempt
   post "/login/:id/verify", to: "logins#verify", as: :verify_login_attempt
   post "/login/:id/resend", to: "logins#resend", as: :resend_login_attempt
-  get "/login/:id/sms", to: "logins#sms", as: :sms_login_attempt
-  post "/login/:id/sms", to: "logins#verify_sms", as: :verify_sms_login_attempt
+  
   get "/login/:id/totp", to: "logins#totp", as: :totp_login_attempt
   post "/login/:id/totp", to: "logins#verify_totp", as: :verify_totp_login_attempt
   get "/login/:id/backup_code", to: "logins#backup_code", as: :backup_code_login_attempt

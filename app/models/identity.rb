@@ -284,7 +284,7 @@ class Identity < ApplicationRecord
 
   def age = (Date.today - birthday).days.in_years
 
-  def phone_number_verified? = phone_number.present?
+
 
   def totp = totps.verified.first
 

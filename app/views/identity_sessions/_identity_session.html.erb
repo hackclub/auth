@@ -40,7 +40,7 @@
         <span class="<%= 'backup-code-method' if identity_session.login_attempt.authenticated_with_backup_code %>">
           <% auth_methods = [] %>
           <% auth_methods << "Email" if identity_session.login_attempt.authenticated_with_email || identity_session.login_attempt.authenticated_with_legacy_email %>
-          <% auth_methods << "SMS" if identity_session.login_attempt.authenticated_with_sms %>
+    
           <% auth_methods << "TOTP" if identity_session.login_attempt.authenticated_with_totp %>
           <% auth_methods << "Backup code" if identity_session.login_attempt.authenticated_with_backup_code %>
           <%= auth_methods.join(", ") %>

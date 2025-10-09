@@ -90,29 +90,7 @@ class LoginsController < ApplicationController
         redirect_to login_attempt_path(id: @attempt.to_param, return_to: params[:return_to]), status: :see_other
     end
 
-    def sms
-        # TODO: Implement SMS sending
-        render status: :unprocessable_entity
-    end
 
-    def verify_sms
-        flash.clear
-        # TODO: Implement actual SMS verification
-        code = params[:code].to_s.strip
-        
-        # Placeholder - in real implementation, verify SMS code
-        unless code.present?
-            flash.now[:error] = "Please enter the SMS code"
-            render :sms, status: :unprocessable_entity
-            return
-        end
-
-        factors = (@attempt.authentication_factors || {}).dup
-        factors[:sms] = true
-        @attempt.update!(authentication_factors: factors)
-
-        handle_post_verification_redirect
-    end
 
     def totp
         render status: :unprocessable_entity
@@ -293,9 +271,7 @@ class LoginsController < ApplicationController
         available = @attempt.available_factors
         return_to = params[:return_to]
 
-        if available.include?(:sms)
-            redirect_to sms_login_attempt_path(id: @attempt.to_param, return_to: return_to), status: :see_other
-        elsif available.include?(:totp)
+        if available.include?(:totp)
             redirect_to totp_login_attempt_path(id: @attempt.to_param, return_to: return_to), status: :see_other
         elsif available.include?(:backup_code)
             redirect_to backup_code_login_attempt_path(id: @attempt.to_param, return_to: return_to), status: :see_other
