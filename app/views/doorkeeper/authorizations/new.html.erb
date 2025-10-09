@@ -1,64 +1,65 @@
-<%# this should be in a controller, but i'd rather not get into doorkeeper's guts right now %>
-<% first_time = current_identity.access_tokens.none? %>
-<main class="container">
-  <% if first_time %>
-    <%= render "shared/verification_status", identity: current_identity %>
-
-    <h2><%= session.dig(:stashed_data, "splash_message") || "Continue to #{@pre_auth.client.name}..." %></h2>
-    <%= form_tag oauth_authorization_path, method: :post do %>
-      <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>
-      <%= hidden_field_tag :redirect_uri, @pre_auth.redirect_uri, id: nil %>
-      <%= hidden_field_tag :state, @pre_auth.state, id: nil %>
-      <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
-      <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
-      <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
-      <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
-      <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
-      <%= submit_tag session.dig(:stashed_data, "splash_continue") || "go! →", class: "btn btn-success btn-lg btn-block" %>
-    <% end %>
-  <% else %>
-    <h1 class="page-header" role="banner">
-      <%= session.dig(:stashed_data, "splash_message") || "Continue to #{@pre_auth.client.name}..." %>
-    </h1>
-    <main role="main">
-      <p class="h4">
-        <%= raw t('.prompt', client_name: content_tag(:strong, class: 'text-info') { @pre_auth.client.name }) %>
-      </p>
-      <% if @pre_auth.scopes.count > 0 %>
-        <div id="oauth-permissions">
-          <p><%= t('.able_to') %>:</p>
-          <ul class="text-info">
+<div class="auth-container">
+  <div class="auth-card oauth-consent">
+    <header>
+      <h1><%= session.dig(:stashed_data, "splash_message") || "Continue to #{@pre_auth.client.name}?" %></h1>
+      <small>
+        <%= raw t('.prompt', client_name: content_tag(:strong) { @pre_auth.client.name }) %>
+      </small>
+    </header>
+    
+    <% if @pre_auth.scopes.count > 0 %>
+      <div class="oauth-permissions">
+        <fieldset>
+          <legend><%= t('.able_to') %></legend>
+          <ul class="permissions-list">
             <% @pre_auth.scopes.each do |scope| %>
               <li>
                 <% case scope %>
                 <% when "basic_info" %>
-                  See basic information about you
-                  <ul>
-                    <li><b>email</b>: <%= current_identity.primary_email %></li>
-                    <li><b>name</b>: <%= current_identity.first_name %> <%= current_identity.last_name %></li>
-                    <li><b>verification status</b>: <%= current_identity.verification_status %></li>
-                  </ul>
+                  <div class="permission-item">
+                    <strong>See basic information about you</strong>
+                    <ul class="permission-details">
+                      <li><span>Email:</span> <%= current_identity.primary_email %></li>
+                      <li><span>Name:</span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
+                      <li><span>Verification status:</span> <%= current_identity.verification_status %></li>
+                    </ul>
+                  </div>
                 <% else %>
-                  <%= t scope, scope: [:doorkeeper, :scopes] %>
+                  <div class="permission-item">
+                    <strong><%= t scope, scope: [:doorkeeper, :scopes] %></strong>
+                  </div>
                 <% end %>
               </li>
             <% end %>
           </ul>
-        </div>
-      <% end %>
-      <div class="actions">
-        <%= form_tag oauth_authorization_path, method: :post do %>
-          <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>
-          <%= hidden_field_tag :redirect_uri, @pre_auth.redirect_uri, id: nil %>
-          <%= hidden_field_tag :state, @pre_auth.state, id: nil %>
-          <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
-          <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
-          <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
-          <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
-          <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
-          <%= submit_tag session.dig(:stashed_data, "splash_continue") || "authorize →", class: "btn btn-success btn-lg btn-block" %>
-        <% end %>
+        </fieldset>
       </div>
-    </main>
-  </main>
-<% end %>
+    <% end %>
+    
+    <div class="oauth-actions">
+      <%= form_tag oauth_authorization_path, method: :delete do %>
+        <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>
+        <%= hidden_field_tag :redirect_uri, @pre_auth.redirect_uri, id: nil %>
+        <%= hidden_field_tag :state, @pre_auth.state, id: nil %>
+        <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
+        <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
+        <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
+        <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
+        <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
+        <%= submit_tag "Deny", class: "secondary" %>
+      <% end %>
+      
+      <%= form_tag oauth_authorization_path, method: :post do %>
+        <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>
+        <%= hidden_field_tag :redirect_uri, @pre_auth.redirect_uri, id: nil %>
+        <%= hidden_field_tag :state, @pre_auth.state, id: nil %>
+        <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
+        <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
+        <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
+        <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
+        <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
+        <%= submit_tag session.dig(:stashed_data, "splash_continue") || "Authorize →" %>
+      <% end %>
+    </div>
+  </div>
+</div>

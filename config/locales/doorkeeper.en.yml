@@ -68,7 +68,7 @@ en:
         title: 'An error has occurred'
       new:
         title: 'Grant access to your information'
-        prompt: "You're authorizing %{client_name} to use your identity."
+        prompt: "You're signing in to %{client_name} with your Hack Club account."
         able_to: 'This application will be able to'
       show:
         title: 'Authorization code'

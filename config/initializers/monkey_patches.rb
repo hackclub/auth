@@ -10,6 +10,7 @@ Rails.application.config.to_prepare do
   end
 
   class Doorkeeper::AuthorizationsController
+    layout "logged_out"
     before_action :hide_some_data_away, only: :new
   end
 
