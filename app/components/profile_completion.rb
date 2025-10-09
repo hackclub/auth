@@ -18,10 +18,9 @@ class Components::ProfileCompletion < ApplicationComponent
       }
     end
 
-    # Address task
     tasks << {
-      title: "Add a mailing address",
-      description: "Help us send you stickers and swag!",
+      title: I18n.t("home.completion_tasks.mailing_address.title"),
+      description: I18n.t("home.completion_tasks.mailing_address.description"),
       completed: @identity.primary_address_id.present?,
       url: -> { new_address_path },
       icon: "📬"
@@ -50,7 +49,7 @@ class Components::ProfileCompletion < ApplicationComponent
     div(class: "profile-completion") do
       div(class: "profile-completion-header") do
         div(class: "header-content") do
-          h2 { "Complete your profile" }
+          h2 { t "home.completion.complete_your_profile" }
           div(class: "completion-stats") do
             span(class: "stats-text") { "#{completed_count} of #{total_count} complete" }
           end

@@ -6,7 +6,7 @@ class Components::Brand < Components::Base
   def view_template
     div(class: "brand") do
       logo
-      h1 { "Hack Club Account" }
+      h1 { t ".brand" }
     end
     button id: "lightswitch", class: "lightswitch-btn", type: "button", "aria-label": "Toggle theme" do
       span class: "lightswitch-icon" do

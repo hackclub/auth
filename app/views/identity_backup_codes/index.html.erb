@@ -2,10 +2,10 @@
   <div class="backup-codes-section">
     <% if @newly_generated_codes.present? %>
       <div class="backup-codes-display">
-        <h4>Your Backup Codes</h4>
+        <h4><%= t ".created_heading" %></h4>
         <%= render Components::Banner.new(kind: :warning) do %>
-          <b>Save these codes now!</b> <br/>
-          You won't be able to see them again. Each code can only be used once.
+          <b><%= t "identity_backup_codes.save_em" %></b> <br/>
+          <%= t "identity_backup_codes.never_again" %>
         <% end %>
         <div class="codes-grid">
           <% @newly_generated_codes.each do |code| %>
@@ -13,24 +13,23 @@
           <% end %>
         </div>
         <button onclick="navigator.clipboard.writeText('<%= @newly_generated_codes.join('\n') %>')">
-          Copy All Codes
+          <%= t "identity_backup_codes.copy_all" %>
         </button>
       </div>
     <% else %>
       <div class="backup-codes-status">
         <div class="status-info">
-          <strong>Backup Codes</strong>
+          <strong><%= t ".heading" %></strong>
           <p class="status-detail">
-            You have <%= pluralize(@backup_codes.count, 'backup code') %> available.
-            Each code can be used once if you lose access to your authenticator app.
+             <%= t ".status", remaining: pluralize(@backup_codes.count, 'backup code') %>
           </p>
         </div>
-        <%= button_to "Regenerate Codes",
+        <%= button_to t(".regenerate"),
             identity_backup_codes_path,
             method: :post,
             class: "primary small-btn",
             data: {
-              "hx-confirm": "This will invalidate your current backup codes. Are you sure?",
+              "hx-confirm": t(".regenerate_confirmation"),
               "hx-post": identity_backup_codes_path,
               "hx-target": "#backup-codes-container",
               "hx-swap": "innerHTML"
@@ -40,6 +39,6 @@
   </div>
 <% else %>
   <div class="backup-codes-empty">
-    <p>No backup codes available. Set up TOTP first to generate backup codes.</p>
+    <p><%= t ".none" %></p>
   </div>
 <% end %>

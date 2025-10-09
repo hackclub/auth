@@ -1,12 +1,8 @@
 <div class="page-container-tight">
   <div class="page-header">
-    <h1>Add Your Address</h1>
-    <p>We'll use this address to send you physical items when needed</p>
+    <h1><%= t '.title' %></h1>
+    <p><%= t '.subtitle' %></p>
   </div>
 
   <%= render 'form', address: @address %>
-
-  <div class="page-navigation">
-    <%= link_to "← Back to addresses", addresses_path %>
-  </div>
 </div>

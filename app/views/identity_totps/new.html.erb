@@ -1,5 +1,5 @@
 <div class="totp-setup-form">
-  <p>Set up two-factor authentication using an authenticator app like Google Authenticator, Authy, or 1Password.</p>
+  <p><%= t(".instructions") %></p>
   
   <%= form_with url: identity_totps_path, method: :post, data: {
     "hx-post": identity_totps_path,
@@ -7,13 +7,13 @@
     "hx-swap": "innerHTML"
   } do |f| %>
     <div style="display: flex; gap: 0.75rem; margin-top: 2rem;">
-      <%= f.submit "Continue" %>
+      <%= f.submit t(".continue") %>
       <button type="button" 
               class="secondary"
               hx-get="<%= identity_totps_path %>"
               hx-target="#totp-container"
               hx-swap="innerHTML">
-        Cancel
+        <%= t(".cancel") %>
       </button>
     </div>
   <% end %>

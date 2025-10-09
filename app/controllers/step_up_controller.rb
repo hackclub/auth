@@ -34,11 +34,6 @@ class StepUpController < ApplicationController
       else
         false
       end
-      
-    when :sms
-      # Future: verify SMS code
-      false
-      
     else
       false
     end

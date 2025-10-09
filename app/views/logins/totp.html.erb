@@ -1,31 +1,31 @@
 <div class="auth-container">
   <div class="auth-card">
     <header>
-      <h1>Enter authenticator code</h1>
-      <small>Enter the 6-digit code from your authenticator app</small>
+      <h1><%= t(".title") %></h1>
+      <small><%= t(".subtitle") %></small>
     </header>
     
     <%= form_with url: verify_totp_login_attempt_path(@attempt), method: :post, local: true do |form| %>
       <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
       <fieldset>
-        <%= form.label :code, "Enter the 6-digit code" %>
-        <%= form.text_field :code, 
-            required: true, 
-            inputmode: "numeric", 
-            pattern: "[0-9]{6}", 
-            autofocus: true, 
-            autocomplete: "one-time-code", 
+        <%= form.label :code, t(".code_label") %>
+        <%= form.text_field :code,
+            required: true,
+            inputmode: "numeric",
+            pattern: "[0-9]{6}",
+            autofocus: true,
+            autocomplete: "one-time-code",
             maxlength: 6,
-            placeholder: "000000" %>
+            placeholder: t(".placeholder") %>
       </fieldset>
-      <%= form.submit "Verify →" %>
+      <%= form.submit "#{t('.verify')} →" %>
     <% end %>
     
     <% if @attempt.backup_code_available? %>
       <footer>
         <p>
-          Lost your authenticator?
-          <%= link_to "Use a backup code instead", backup_code_login_attempt_path(@attempt, return_to: params[:return_to]) %>
+          <%= t(".lost_authenticator") %>
+          <%= link_to t(".use_backup_code"), backup_code_login_attempt_path(@attempt, return_to: params[:return_to]) %>
         </p>
       </footer>
     <% end %>

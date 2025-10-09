@@ -32,25 +32,25 @@ class Components::Sidebar < Components::Base
 
   def nav_items
     items = [
-      { label: "Home", path: root_path, icon: "🏠" }
+      { label: t("sidebar.home"), path: root_path, icon: "🏠" }
     ]
     
-    items << { label: "My Info", path: edit_identity_path, icon: "👤" }
+    items << { label: t("sidebar.edit_info"), path: edit_identity_path, icon: "👤" }
     
     # Add verification link if user needs to submit or resubmit
     if current_identity.present?
       status = current_identity.verification_status
       if status == "needs_submission" || status == "pending"
         items << { 
-          label: status == "pending" ? "Verification (pending)" : "ID Verification", 
+          label: t("sidebar.verification"),
           path: new_verifications_path, 
           icon: status == "pending" ? "⏳" : "🪪"
         }
       end
     end
     
-    items << { label: "Physical Addresses", path: addresses_path, icon: "✉️" }
-    items << { label: "Security", path: security_path, icon: "🔒" }
+    items << { label: t("sidebar.addresses"), path: addresses_path, icon: "✉️" }
+    items << { label: t("sidebar.security"), path: security_path, icon: "🔒" }
     
     items
   end
@@ -123,7 +123,7 @@ class Components::Sidebar < Components::Base
   def render_logout_button
     form_with(url: logout_path, method: :delete, class: "logout-form") do
       button(type: "submit", class: "logout-button") do
-        plain "Logout"
+        plain t "sidebar.logout"
       end
     end
   end
@@ -131,7 +131,7 @@ class Components::Sidebar < Components::Base
   def render_sidebar_brand
     div(class: "sidebar-brand") do
       vite_image_tag("images/hc-square.png", alt: "Hack Club logo", class: "brand-logo")
-      h1 { "Hack Club Account" }
+      h1 { I18n.t(".brand") }
       button(id: "lightswitch", class: "lightswitch-btn", type: "button", "aria-label": "Toggle theme") do
         span(class: "lightswitch-icon") { "🌙" }
       end

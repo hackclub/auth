@@ -1,31 +1,18 @@
 <div class="backup-codes-display">
-  <h4>Save Your Backup Codes</h4>
+  <h4><%= t "identity_backup_codes.totp_heading" %></h4>
   <%= render Components::Banner.new(kind: :warning) do %>
-    <b>Save these codes now!</b> <br/>
-    You won't be able to see them again. Each code can only be used once.
+    <b><%= t "identity_backup_codes.save_em" %></b> <br/>
+    <%= t "identity_backup_codes.never_again" %>
   <% end %>
   <div class="codes-grid">
     <% @newly_generated_codes.each do |code| %>
       <code class="backup-code"><%= code %></code>
     <% end %>
   </div>
-  
+
   <div class="backup-codes-actions">
     <button onclick="navigator.clipboard.writeText('<%= @newly_generated_codes.join('\n') %>')">
-      Copy All Codes
+      <%= t "identity_backup_codes.copy_all" %>
     </button>
-    
-    <% if request.headers["HX-Request"] %>
-      <%= link_to "Continue to Security Settings", 
-          security_path, 
-          role: "button",
-          data: {
-            "hx-get": security_path,
-            "hx-target": "body",
-            "hx-push-url": "true"
-          } %>
-    <% else %>
-      <%= link_to "Continue to Security Settings", security_path, role: "button" %>
-    <% end %>
   </div>
 </div>

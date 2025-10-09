@@ -1,34 +1,303 @@
-# Files in the config/locales directory are used for internationalization and
-# are automatically loaded by Rails. If you want to use locales other than
-# English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more about the API, please read the Rails Internationalization guide
-# at https://guides.rubyonrails.org/i18n.html.
-#
-# Be aware that YAML interprets the following case-insensitive strings as
-# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
-# must be quoted to be interpreted as strings. For example:
-#
-#     en:
-#       "yes": yup
-#       enabled: "ON"
-
 en:
   activerecord:
     attributes:
       backend_user:
           slack_id: Slack ID
+  brand: Hack Club Account
+  home:
+    apps:
+      heading: Where do you want to go today?
+      none: No apps available...
+      launch: Launch
+    completion_tasks:
+      complete_your_profile: Complete your profile
+      mailing_address:
+        title: Add a mailing address
+        description: Help us send you stickers and swag!
+      idv:
+        verify_your_identity: Verify your identity
+        pending: Identity verification in review
+        ineligible: Identity verification ineligible
+        desc_submit: You don't *have* to... (unless you want prizes?)
+        desc_resubmit: Your previous submission was rejected. Please resubmit your documents.
+        desc_pending: Shouldn't be more than a few business days...
+  sidebar:
+    home: Home
+    edit_info: My Info
+    verification: ID Verification
+    addresses: Mailing Addresses
+    security: Security
+    logout: Sign out
+  addresses:
+    first_name: First name
+    last_name: Last name
+    line_1: Address line 1
+    line_2: Address line 2
+    city: City
+    state: State/Province
+    postal_code: Postal code
+    save: Save address
+    cancel: Cancel
+    primary: Primary
+    index:
+      title: Your Addresses
+      edit: Edit
+      make_primary: Set as primary
+      delete: Delete
+      delete_confirmation: Are you sure you want to delete this address?
+      blank_slate:
+        title: No addresses yet
+        cta: Add your first mailing address to get started
+        create: Add Your First Address
+    new:
+      title: Add Your Address
+      subtitle: We'll use this address to send you physical items when needed
+    edit:
+      title: Edit Address
+      subtitle: Update your mailing address information
+  authorized_applications:
+    none: You haven't authorized any apps yet.
+    created_at: Authorized
+    expires_at: Expires
+    scopes: Permissions
+    revoke_confirmation: Are you sure you want to revoke access for %{app}? This cannot be undone, and things may break if you do.
+    revoke: Revoke
+  identities:
+    first_name: First name
+    last_name: Last name
+    email: Email
+    email_placeholder: orpheus@dino.mail
+    phone_number: Phone number
+    phone_number_placeholder: "+18028675309"
+    birthday: Birthday
+    country: Primary country
+    country_select: Select a country...
+    fiona: Fiona
+    hackworth: Hackworth
+    edit:
+      title: My info
+      info_heading: Personal info
+      legal_name_exists: We also have a different legal name on file. Please contact us if you need to change it.
+      save: Save changes
+      no_email_change_yet: Changing your email will be available in a future release.
+    new:
+      already_have: Already have a Hack Club account?
+      log_in: Log in!
+      not_necessarily_legal_name: not necessarily your legal name, what do people usually call you?
+      email_code: We'll send a one-time code to this address.
+      continue: Continue
+  auth_type:
+    email: Email
+    totp: TOTP
+    backup_code: Backup code
+  logins:
+    new:
+      title: Welcome back!
+      subtitle: Sign in to your Hack Club Account
+      email_label: Email address
+      continue: Continue
+      no_account: Don't have an account?
+      signup: Make one
+      free: ", it's free!"
+    email:
+      title: Check your email...
+      sent_to: We sent a code to
+      code_label: Enter the 6-digit code
+      verify: Verify
+      resend: Resend code
+      wrong_email: Wrong email?
+      use_different_address: Use a different address
+    backup_code:
+      title: Enter backup code
+      description: Use one of your backup codes to sign in
+      code_label: Backup code
+      placeholder: XXXX-XXXX-XXXX
+      verify: Verify
+      use_authenticator: Use authenticator app instead
+    totp:
+      title: Enter authenticator code
+      subtitle: Enter the 6-digit code from your authenticator app
+      code_label: Enter the 6-digit code
+      placeholder: "000000"
+      verify: Verify
+      lost_authenticator: Lost your authenticator?
+      use_backup_code: Use a backup code instead
+  saml:
+    http_post:
+      title: SAMLing...
+      text: Logging you in...
+  static_pages:
+    security:
+      heading: Security
+      sessions: Active sessions
+      applications: Linked apps
+      mfa: 2-Factor Authentication
+      backup_codes: Backup Codes
+  identity_backup_codes:
+    totp_heading: "Save your backup codes:"
+    save_em: Save these codes now!
+    never_again: You won't be able to see them again. Each code can only be used once.
+    copy_all: Copy to Clipboard
+    index:
+      heading: Backup codes
+      created_heading: Your backup codes
+      regenerate: Regenerate codes
+      regenerate_confirmation: This will invalidate your current backup codes. Are you sure?
+      status: You have %{remaining} available. Each code can be used once if you lose access to your second factor.
+      none: No backup codes available. Set up 2FA first to generate backup codes.
+  identity_totps:
+    new:
+      instructions: Set up two-factor authentication using an authenticator app like Google Authenticator, Authy, or 1Password.
+      continue: Continue
+      cancel: Cancel
+    index:
+      totp_title: Authenticator App (TOTP)
+      totp_description: You can use your authenticator app to sign in.
+      remove: Remove
+      require_2fa_title: Require 2FA on login
+      require_2fa_description: When enabled, you must use a second factor (authenticator app or backup code) to sign in.
+      disable_requirement: Disable Requirement
+      enable_requirement: Enable Requirement
+      setup_description: Add an extra layer of security by requiring a second factor in addition to your password.
+      setup_authenticator: Set up Authenticator App
+    show:
+      scan_qr: Scan this QR code with your authenticator app
+      manual_entry: Can't scan? Enter manually
+      code_label: Enter the 6-digit code from your app
+      verify_enable: Verify & Enable
+      cancel_confirm: Cancel 2FA setup?
+      cancel: Cancel
+  identity_sessions:
+    index:
+      blank_slate: No active sessions # never, right?
+      logout_others: Log out all other sessions
+      logout_others_confirmation: Are you sure you want to log out of all other sessions?
+    current: Current
+    unknown: Unknown
+    unknown_device: Unknown device
+    unknown_os: Unknown OS
+    ip: IP Address
+    created_at: Signed in
+    last_seen: Last active
+    expires_at: Lasts until
+    auth_type: Login method
+    terminate: Log out
+    terminate_confirmation: Log out this session?
+  step_up:
+    new:
+      title: Gotta confirm it's you...
+      choose_method: Choose a verification method to continue
+      methods:
+        totp:
+          title: Authenticator App
+          description: Use your TOTP authenticator app
+        backup_code:
+          title: Backup Code
+          description: Use one of your backup codes
+      cancel: Cancel
+      enter_code_labels:
+        totp: Enter authenticator code
+        backup_code: Enter backup code
+      enter_code_descriptions:
+        totp: Enter the 6-digit code from your authenticator app
+        backup_code: Enter one of your backup codes
+      code_label: Enter code
+      backup_placeholder: XXXXXXXXXX
+      totp_placeholder: "000000"
+      verify: Verify
+      use_different_method: Use a different method
+  verifications:
+    document:
+      title:
+        initial: Upload your documents
+        resubmit: Resubmit your documents
+      subtitle:
+        initial: This helps us verify you're eligible for YSWS
+        resubmit: Fix the issues below and try again
+      issues_to_fix: Issues to fix
+      errors_prevented: "%{count} error prevented submission"
+      errors_prevented_plural: "%{count} errors prevented submission"
+      name_verification: Name verification
+      legal_name_help: Please enter your name as it appears on your legal documents.
+      preferred_name_note: This will not overwrite your preferred name.
+      legal_first_name: Legal first name
+      legal_last_name: Legal last name
+      what_we_accept: What we accept
+      requirements:
+        government_id: Government-issued ID
+        government_id_option: "Option 1: Government-issued ID"
+        school_documents: "Option 2: School documents"
+        e_aadhaar: E-Aadhaar from UIDAI
+        get_e_aadhaar: Get your E-Aadhaar →
+        id_examples: "Examples: National ID card, passport, driver's license"
+        must_include: Must include your name, date of birth, and photo
+        student_id_and_transcript: Student ID and recent report card or transcript
+        digitally_verified: Must be digitally verified or carry a validated digital signature
+        drivers_license_passport_or: "Driver's license, passport, %{country_id} or similar"
+      country_specific_ids:
+        US: state ID
+        SG: FIN/NRIC card
+        UK: PASS card
+        default: national ID
+      document_type_label: Document type
+      choose_document_type: Choose what you're uploading...
+      photo_tips_title: Photo tips
+      photo_tips:
+        clear_photo: Take a clear, well-lit photo—make sure it's in focus
+        all_corners: Include all 4 corners of the document
+        name_and_dob: Your name and date of birth must be clearly visible
+        avoid_glare: Avoid glare or shadows that obscure text
+      upload_government_id: Upload your government-issued ID
+      accepted_formats: "Accepted formats:"
+      formats_india: PDF only
+      formats_other: Images, PDF, HEIC
+      upload_transcript: Upload your transcript
+      transcript_help: Your most recent report card or transcript
+      upload_student_id: Upload your student ID
+      student_id_help: Photo of your school-issued student ID
+      uploading: Uploading your documents...
+      privacy_info:
+        review_time:" Review time: 1–2 business days"
+        privacy: "Privacy: Documents are encrypted and never shared with third parties. Access is limited to HCB staff during review, then core HQ staff for exceptional cases only."
+        purpose: "Purpose: Used only for age verification and preventing duplicate accounts."
+      submit_documents: Submit Documents
+    status:
+      badges:
+        under_review: Under review
+        verified: Verified
+        not_eligible: Not eligible
+        needs_resubmission: Needs resubmission
+        not_started: Not started
+      pending:
+        title: We're checking your documents
+        subtitle: You'll hear from us in 1–2 business days
+        description: Our team is reviewing your submission. We'll email %{email} when we're done.
+        submitted_ago: Submitted %{time} ago
+      verified:
+        title_ysws: You're all set for YSWS
+        title_verified: You're verified
+        subtitle_ysws: You can now participate in programs and compete for prizes
+        subtitle_verified: Your account is verified and ready to go
+        verified_ago: Verified %{time} ago
+        back_to_home: Back to Home
+      ineligible:
+        titles:
+          rejected: Verification rejected
+          restricted: Account restricted
+          unable: Unable to verify
+        subtitles:
+          rejected: Your verification was permanently rejected
+          restricted: This account is not eligible for verification
+          unable: You're not eligible for verification at this time
+        contact: Questions? Email identity@hackclub.com
+        back_to_home: Back to Home
+      needs_submission:
+        resubmission:
+          title: Please resubmit your documents
+          subtitle: We found some issues with your previous submission that you can fix
+          issues_to_fix: Issues to fix
+          resubmit_documents: Resubmit Documents
+        initial:
+          title: Get verified for YSWS
+          subtitle: Verify your age and identity to participate in programs and compete for prizes
+          start_verification: Start Verification

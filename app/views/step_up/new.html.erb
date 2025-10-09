@@ -5,8 +5,8 @@
     <% if method.nil? %>
       <%# Show method selection %>
       <header>
-        <h1>Gotta confirm it's you...</h1>
-        <small>Choose a verification method to continue</small>
+        <h1><%= t ".title" %></h1>
+        <small><%= t ".choose_method" %></small>
       </header>
 
       <div style="display: flex; flex-direction: column; gap: 1rem; margin: 2rem 0;">
@@ -15,8 +15,8 @@
               class: "step-up-method-option" do %>
             <div style="font-size: 2rem;">🔐</div>
             <div style="flex: 1;">
-              <div style="font-weight: 600;">Authenticator App</div>
-              <small>Use your TOTP authenticator app</small>
+              <div style="font-weight: 600;"><%= t(".methods.totp.title") %></div>
+              <small><%= t(".methods.totp.description") %></small>
             </div>
           <% end %>
         <% end %>
@@ -26,8 +26,8 @@
               class: "step-up-method-option" do %>
             <div style="font-size: 2rem;">🔑</div>
             <div style="flex: 1;">
-              <div style="font-weight: 600;">Backup Code</div>
-              <small>Use one of your backup codes</small>
+              <div style="font-weight: 600;"><%= t(".methods.backup_code.title") %></div>
+              <small><%= t(".methods.backup_code.description") %></small>
             </div>
           <% end %>
         <% end %>
@@ -37,8 +37,8 @@
               class: "step-up-method-option" do %>
             <div style="font-size: 2rem;">📱</div>
             <div style="flex: 1;">
-              <div style="font-weight: 600;">SMS</div>
-              <small>Receive a code via text message</small>
+              <div style="font-weight: 600;"><%= t(".methods.sms.title") %></div>
+              <small><%= t(".methods.sms.description") %></small>
             </div>
           <% end %>
         <% end %>
@@ -63,26 +63,14 @@
       </style>
 
       <footer>
-        <p><%= link_to "Cancel", security_path %></p>
+        <p><%= link_to t(".cancel"), security_path %></p>
       </footer>
 
     <% else %>
       <%# Show form for selected method %>
       <header>
-        <h1>
-          <% case method
-             when :totp %>Enter authenticator code
-          <% when :backup_code %>Enter backup code
-          <% when :sms %>Enter SMS code
-          <% end %>
-        </h1>
-        <small>
-          <% case method
-             when :totp %>Enter the 6-digit code from your authenticator app
-          <% when :backup_code %>Enter one of your backup codes
-          <% when :sms %>Enter the code sent to your phone
-          <% end %>
-        </small>
+        <h1><%= t(".enter_code_labels.#{method}") %></h1>
+        <small><%= t(".enter_code_descriptions.#{method}") %></small>
       </header>
 
       <%= form_with url: verify_step_up_path, method: :post, local: true do |f| %>
@@ -90,30 +78,30 @@
         <%= f.hidden_field :method, value: method %>
 
         <fieldset>
-          <%= f.label :code, "Enter code" %>
+          <%= f.label :code, t(".code_label") %>
           <% if method == :backup_code %>
             <%= f.text_field :code,
                 required: true,
                 autocomplete: "one-time-code",
                 autofocus: true,
-                placeholder: "XXXXXXXXXX" %>
+                placeholder: t(".backup_placeholder") %>
           <% else %>
             <%= f.text_field :code,
                 required: true,
                 autocomplete: "one-time-code",
                 autofocus: true,
-                placeholder: "000000",
+                placeholder: t(".totp_placeholder"),
                 maxlength: 6,
                 inputmode: "numeric",
                 pattern: "[0-9]{6}" %>
           <% end %>
         </fieldset>
 
-        <%= f.submit "Verify →" %>
+        <%= f.submit "#{t('.verify')} →" %>
       <% end %>
 
       <footer>
-        <p><%= link_to "Use a different method", new_step_up_path(action_type: @action) %></p>
+        <p><%= link_to t(".use_different_method"), new_step_up_path(action_type: @action) %></p>
       </footer>
     <% end %>
   </div>

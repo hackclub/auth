@@ -2,17 +2,17 @@
   <% case @status %>
   <% when "pending" %>
     <div class="status-indicator">
-      <span class="status-badge pending">Under review</span>
-      <h1>We're checking your documents</h1>
-      <p>You'll hear from us in 1–2 business days</p>
+      <span class="status-badge pending"><%= t(".badges.under_review") %></span>
+      <h1><%= t(".pending.title") %></h1>
+      <p><%= t(".pending.subtitle") %></p>
     </div>
     
     <div class="status-details">
-      <p>Our team is reviewing your submission. We'll email <strong><%= @identity.primary_email %></strong> when we're done.</p>
+      <p><%= t(".pending.description", email: @identity.primary_email) %></p>
       
       <% if @latest_verification.present? %>
         <div class="meta">
-          Submitted <%= time_ago_in_words(@latest_verification.created_at) %> ago
+          <%= t(".pending.submitted_ago", time: time_ago_in_words(@latest_verification.created_at)) %>
           <% if @latest_verification.respond_to?(:document_type) && @latest_verification.document_type.present? %>
             • <%= @latest_verification.document_type.titleize %>
           <% end %>
@@ -22,40 +22,40 @@
 
   <% when "verified" %>
     <div class="status-indicator">
-      <span class="status-badge verified">Verified</span>
-      <h1><% if @identity.ysws_eligible %>You're all set for YSWS<% else %>You're verified<% end %></h1>
-      <p><% if @identity.ysws_eligible %>You can now participate in programs and compete for prizes<% else %>Your account is verified and ready to go<% end %></p>
+      <span class="status-badge verified"><%= t(".badges.verified") %></span>
+      <h1><%= @identity.ysws_eligible ? t(".verified.title_ysws") : t(".verified.title_verified") %></h1>
+      <p><%= @identity.ysws_eligible ? t(".verified.subtitle_ysws") : t(".verified.subtitle_verified") %></p>
     </div>
     
     <% if @latest_verification.present? && @latest_verification.approved_at.present? %>
       <div class="status-details">
-        <div class="meta">Verified <%= time_ago_in_words(@latest_verification.approved_at) %> ago</div>
+        <div class="meta"><%= t(".verified.verified_ago", time: time_ago_in_words(@latest_verification.approved_at)) %></div>
       </div>
     <% end %>
 
     <div class="status-action">
-      <%= link_to "Back to Home", root_path, class: "secondary", role: "button" %>
+      <%= link_to t(".verified.back_to_home"), root_path, class: "secondary", role: "button" %>
     </div>
 
   <% when "ineligible" %>
     <div class="status-indicator">
-      <span class="status-badge rejected">Not eligible</span>
+      <span class="status-badge rejected"><%= t(".badges.not_eligible") %></span>
       <h1>
         <% if @latest_verification.present? && @latest_verification.rejected? && @latest_verification.fatal_rejection? %>
-          Verification rejected
+          <%= t(".ineligible.titles.rejected") %>
         <% elsif @identity.permabanned %>
-          Account restricted
+          <%= t(".ineligible.titles.restricted") %>
         <% else %>
-          Unable to verify
+          <%= t(".ineligible.titles.unable") %>
         <% end %>
       </h1>
       <p>
         <% if @latest_verification.present? && @latest_verification.rejected? && @latest_verification.fatal_rejection? %>
-          Your verification was permanently rejected
+          <%= t(".ineligible.subtitles.rejected") %>
         <% elsif @identity.permabanned %>
-          This account is not eligible for verification
+          <%= t(".ineligible.subtitles.restricted") %>
         <% else %>
-          You're not eligible for verification at this time
+          <%= t(".ineligible.subtitles.unable") %>
         <% end %>
       </p>
     </div>
@@ -72,20 +72,20 @@
     <% end %>
 
     <div class="status-action">
-      <p>Questions? Email <a href="mailto:bank@hackclub.com">bank@hackclub.com</a></p>
-      <%= link_to "Back to Home", root_path, class: "secondary", role: "button" %>
+      <p><%= t(".ineligible.contact") %></p>
+      <%= link_to t(".ineligible.back_to_home"), root_path, class: "secondary", role: "button" %>
     </div>
 
   <% when "needs_submission" %>
     <% if @identity.needs_resubmission? %>
       <div class="status-indicator">
-        <span class="status-badge rejected">Needs resubmission</span>
-        <h1>Please resubmit your documents</h1>
-        <p>We found some issues with your previous submission that you can fix</p>
+        <span class="status-badge rejected"><%= t(".badges.needs_resubmission") %></span>
+        <h1><%= t(".needs_submission.resubmission.title") %></h1>
+        <p><%= t(".needs_submission.resubmission.subtitle") %></p>
       </div>
       
       <div class="status-details">
-        <p><strong>Issues to fix:</strong></p>
+        <p><strong><%= t(".needs_submission.resubmission.issues_to_fix") %>:</strong></p>
         <% @identity.rejected_verifications_needing_resubmission.each do |verification| %>
           <div class="rejection-info">
             <strong><%= verification.rejection_reason_name %></strong>
@@ -97,29 +97,29 @@
       </div>
 
       <div class="status-action">
-        <%= link_to "Resubmit Documents", verification_step_path(:document), role: "button" %>
+        <%= link_to t(".needs_submission.resubmission.resubmit_documents"), verification_step_path(:document), role: "button" %>
       </div>
     <% else %>
       <div class="status-indicator">
-        <span class="status-badge none">Not started</span>
-        <h1>Get verified for YSWS</h1>
-        <p>Verify your age and identity to participate in programs and compete for prizes</p>
+        <span class="status-badge none"><%= t(".badges.not_started") %></span>
+        <h1><%= t(".needs_submission.initial.title") %></h1>
+        <p><%= t(".needs_submission.initial.subtitle") %></p>
       </div>
-      
+
       <div class="status-action">
-        <%= link_to "Start Verification", verification_step_path(:document), role: "button" %>
+        <%= link_to t(".needs_submission.initial.start_verification"), verification_step_path(:document), role: "button" %>
       </div>
     <% end %>
 
   <% else %>
     <div class="status-indicator">
-      <span class="status-badge none">Not started</span>
-      <h1>Get verified for YSWS</h1>
-      <p>Verify your age and identity to participate in programs and compete for prizes</p>
+      <span class="status-badge none"><%= t(".badges.not_started") %></span>
+      <h1><%= t(".needs_submission.initial.title") %></h1>
+      <p><%= t(".needs_submission.initial.subtitle") %></p>
     </div>
-    
+
     <div class="status-action">
-      <%= link_to "Start Verification", verification_step_path(:document), role: "button" %>
+      <%= link_to t(".needs_submission.initial.start_verification"), verification_step_path(:document), role: "button" %>
     </div>
   <% end %>
 </div>

@@ -1,10 +1,10 @@
 <div class="totp-setup-verify">
   <div class="qr-code-section">
-    <p>Scan this QR code with your authenticator app</p>
+    <p><%= t(".scan_qr") %></p>
     <%= render_qr_code(@totp.provisioning_uri) %>
     
     <details>
-      <summary>Can't scan? Enter manually</summary>
+      <summary><%= t(".manual_entry") %></summary>
       <code><%= @totp.secret %></code>
     </details>
   </div>
@@ -14,7 +14,7 @@
     "hx-target": "#totp-container",
     "hx-swap": "innerHTML"
   } do |f| %>
-    <%= f.label :code, "Enter the 6-digit code from your app" %>
+    <%= f.label :code, t(".code_label") %>
     <%= f.text_field :code, 
         required: true, 
         autocomplete: "one-time-code",
@@ -25,14 +25,14 @@
         autofocus: true %>
 
     <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
-      <%= f.submit "Verify & Enable" %>
+      <%= f.submit t(".verify_enable") %>
       <button type="button" 
               class="secondary"
               hx-delete="<%= identity_totp_path(@totp) %>"
               hx-target="#totp-container"
               hx-swap="innerHTML"
-              hx-confirm="Cancel 2FA setup?">
-        Cancel
+              hx-confirm="<%= t('.cancel_confirm') %>">
+        <%= t(".cancel") %>
       </button>
     </div>
   <% end %>

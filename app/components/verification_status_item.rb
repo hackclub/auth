@@ -19,13 +19,13 @@ class Components::VerificationStatusItem < Components::Base
   def title
     case status
     when "needs_submission"
-      "Verify your identity"
+      I18n.t("home.completion_tasks.idv.verify_your_identity")
     when "pending"
-      "Identity verification in review"
+      I18n.t("home.completion_tasks.idv.pending")
     when "ineligible"
-      "Identity verification ineligible"
+      I18n.t("home.completion_tasks.idv.ineligible")
     else
-      "Verify your identity"
+      I18n.t("home.completion_tasks.idv.verify_your_identity")
     end
   end
 
@@ -33,12 +33,12 @@ class Components::VerificationStatusItem < Components::Base
     case status
     when "needs_submission"
       if @identity.needs_resubmission?
-        "Your previous submission was rejected. Please resubmit your documents."
+        I18n.t("home.completion_tasks.idv.desc_resubmit")
       else
-        "Upload a government-issued ID to verify your identity"
+        I18n.t("home.completion_tasks.idv.desc_submit")
       end
     when "pending"
-      "Your documents are being reviewed by the HCB team"
+      I18n.t("home.completion_tasks.idv.desc_pending")
     when "ineligible"
       reason = @identity.verification_status_reason
       if reason.present?
@@ -47,7 +47,7 @@ class Components::VerificationStatusItem < Components::Base
         "You're not eligible for verification at this time"
       end
     else
-      "Upload a government-issued ID to verify your identity"
+      "Huh. That's weird."
     end
   end
 

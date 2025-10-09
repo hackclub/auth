@@ -6,29 +6,29 @@
 }">
   <div class="auth-card">
     <header>
-      <h1>Check your email...</h1>
-      <small>We sent a code to <strong><%= @identity.primary_email %></strong></small>
+      <h1><%= t(".title") %></h1>
+      <small><%= t(".sent_to") %> <strong><%= @identity.primary_email %></strong></small>
     </header>
     
     <%= form_with url: verify_login_attempt_path(@attempt), method: :post, local: true do |form| %>
       <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
       <fieldset>
-        <%= form.label :code, "Enter the 6-digit code" %>
+        <%= form.label :code, t(".code_label") %>
         <%= render Components::Login::CodeInput.new(form: form, prefix: "H", alpine_model: "codeValue") %>
       </fieldset>
-      <%= form.submit "Verify →", "x-bind:disabled": "!isComplete" %>
+      <%= form.submit "#{t('.verify')} →", "x-bind:disabled": "!isComplete" %>
     <% end %>
     
     <footer>
       <%= form_with url: resend_login_attempt_path(@attempt, return_to: params[:return_to]), method: :post, style: "margin: 0;" do %>
-        <%= button_tag "Resend code", type: "submit", class: "secondary" %>
+        <%= button_tag t(".resend"), type: "submit", class: "secondary" %>
       <% end %>
       
       <p style="margin-top: 1rem;">
-        Wrong email?
+        <%= t(".wrong_email") %>
         <% signup_flow = @attempt.provenance&.start_with?("signup") %>
         <% if signup_flow %>
-          <%= link_to "Use a different address", signup_path(
+          <%= link_to t(".use_different_address"), signup_path(
             identity: {
               first_name: @identity.first_name,
               last_name: @identity.last_name,
@@ -39,7 +39,7 @@
             return_to: params[:return_to]
           ) %>
         <% else %>
-          <%= link_to "Use a different address", login_path(email: @identity.primary_email, return_to: params[:return_to]) %>
+          <%= link_to t(".use_different_address"), login_path(email: @identity.primary_email, return_to: params[:return_to]) %>
         <% end %>
       </p>
       

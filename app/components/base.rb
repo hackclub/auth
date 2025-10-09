@@ -7,6 +7,7 @@ class Components::Base < Phlex::HTML
   include Phlex::Rails::Helpers::Routes
   include Phlex::Rails::Helpers::FormWith
   include Phlex::Rails::Helpers::DistanceOfTimeInWords
+  include Phlex::Rails::Helpers::T
 
   # Register Rails form helpers
   register_value_helper :form_authenticity_token

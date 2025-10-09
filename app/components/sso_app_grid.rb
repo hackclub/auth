@@ -7,7 +7,7 @@ class Components::SSOAppGrid < Components::Base
 
   def view_template
     div(class: "sso-app-grid") do
-      h2 { "Where do you want to go today?" }
+      h2 { t "home.apps.heading" }
 
       if @apps.any?
         div(class: "grid") do
@@ -16,7 +16,7 @@ class Components::SSOAppGrid < Components::Base
           end
         end
       else
-        p(class: "no-apps") { "No applications available" }
+        p(class: "no-apps") { t "home.apps.none" }
       end
     end
   end

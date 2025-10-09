@@ -1,13 +1,9 @@
 <div class="page-header">
-  <h1>My Info</h1>
+  <h1><%= t ".title" %></h1>
 </div>
 
-
 <div style="margin-bottom: 1.5rem;">
-  <h3>Personal info</h3>
-  <div style="margin-bottom: 1rem;">
-    
-  </div>
+  <h3><%= t ".info_heading" %></h3>
 </div>
 
 <%= form_with model: @identity, url: identity_path, method: :patch, local: true do |f| %>
@@ -24,29 +20,29 @@
 
   <div class="grid">
     <div>
-      <%= f.label :first_name, "First name" %>
-      <%= f.text_field :first_name, required: true, placeholder: "Fiona" %>
+      <%= f.label :first_name, t("identities.first_name") %>
+      <%= f.text_field :first_name, required: true, placeholder: t("identities.fiona") %>
     </div>
 
     <div>
-      <%= f.label :last_name, "Last name" %>
-      <%= f.text_field :last_name, required: true, placeholder: "Hackworth" %>
+      <%= f.label :last_name, t("identities.last_name") %>
+      <%= f.text_field :last_name, required: true, placeholder: t("identities.hackworth") %>
     </div>
   </div>
 
   <% if @identity.legal_first_name.present? && @identity.legal_last_name.present? %>
     <div class="banner info" style="margin-top: 1rem;">
-      We also have a different legal name on file. Please contact support if you need to change it.
+      <%= t ".legal_name_exists" %>
     </div>
   <% end %>
 
   <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: flex-start;">
-    <%= f.submit "Save Changes", style: "width: auto; margin: 0;" %>
+    <%= f.submit t(".save"), style: "width: auto; margin: 0;" %>
   </div>
 <% end %>
 
 <div style="margin-top: 1.5rem;">
-  <label>Email</label>
+  <label><%= t "identities.email" %></label>
   <%= text_field_tag :primary_email, @identity.primary_email, readonly: true %>
-  <small class="usn">Changing your email will be available in a future release.</small>
+  <small class="usn"><%= t ".no_email_change_yet" %></small>
 </div>

@@ -8,41 +8,40 @@
     </div>
     <div class="session-info">
       <div class="session-device">
-        <%= identity_session.device_info || "Unknown Device" %>
+        <%= identity_session.device_info || t("identity_sessions.unknown_device") %>
         <% if identity_session.id == @current_session&.id %>
-          <span class="current-badge">Current</span>
+          <span class="current-badge"><%= t "identity_sessions.current" %></span>
         <% end %>
       </div>
-      <div class="session-os"><%= identity_session.os_info || "Unknown OS" %></div>
+      <div class="session-os"><%= identity_session.os_info || t("identity_sessions.unknown_os") %></div>
     </div>
   </div>
 
   <div class="session-details">
     <div>
-      <span class="detail-label">IP Address</span>
-      <span><%= identity_session.ip || "Unknown" %></span>
+      <span class="detail-label"><%= t "identity_sessions.ip" %></span>
+      <span><%= identity_session.ip || t("identity_sessions.unknown") %></span>
     </div>
     <div>
-      <span class="detail-label">Signed in</span>
+      <span class="detail-label"><%= t "identity_sessions.created_at" %></span>
       <span><%= identity_session.created_at.strftime("%b %d, %Y at %l:%M %p") %></span>
     </div>
     <div>
-      <span class="detail-label">Last active</span>
+      <span class="detail-label"><%= t "identity_sessions.last_seen" %></span>
       <span><%= time_ago_in_words(identity_session.last_seen || identity_session.created_at) %> ago</span>
     </div>
     <div>
-      <span class="detail-label">Expires</span>
+      <span class="detail-label"><%= t "identity_sessions.expires_at" %></span>
       <span><%= identity_session.expires_at.strftime("%b %d, %Y") %></span>
     </div>
     <% if identity_session.login_attempt %>
       <div>
-        <span class="detail-label">Auth method</span>
+        <span class="detail-label"><%= t "identity_sessions.auth_type" %></span>
         <span class="<%= 'backup-code-method' if identity_session.login_attempt.authenticated_with_backup_code %>">
           <% auth_methods = [] %>
-          <% auth_methods << "Email" if identity_session.login_attempt.authenticated_with_email || identity_session.login_attempt.authenticated_with_legacy_email %>
-    
-          <% auth_methods << "TOTP" if identity_session.login_attempt.authenticated_with_totp %>
-          <% auth_methods << "Backup code" if identity_session.login_attempt.authenticated_with_backup_code %>
+          <% auth_methods << t("auth_type.email") if identity_session.login_attempt.authenticated_with_email || identity_session.login_attempt.authenticated_with_legacy_email %>
+          <% auth_methods << t("auth_type.totp") if identity_session.login_attempt.authenticated_with_totp %>
+          <% auth_methods << t("auth_type.backup_code") if identity_session.login_attempt.authenticated_with_backup_code %>
           <%= auth_methods.join(", ") %>
         </span>
       </div>
@@ -53,8 +52,8 @@
     <button class="danger small-btn"
             hx-delete="<%= identity_session_path(identity_session) %>"
             hx-target="#sessions-container"
-            hx-confirm="Log out this session?">
-      Log Out
+            hx-confirm="<%= t "identity_sessions.terminate_confirmation" %>">
+      <%= t "identity_sessions.terminate" %>
     </button>
   <% end %>
 </div>

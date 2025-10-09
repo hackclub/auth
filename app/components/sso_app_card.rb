@@ -24,7 +24,7 @@ class Components::SSOAppCard < Components::Base
         end
         
         div(class: "card-footer") do
-          span(class: "launch-text") { "Launch →" }
+          span(class: "launch-text") { "#{t("home.apps.launch")} →" }
         end
       end
     end

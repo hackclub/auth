@@ -2,8 +2,8 @@
   <div class="auth-card">
     <header>
       <h1><%= @onboarding_scenario.title %></h1>
-      <small>Already have a Hack Club account?
-        <%= link_to "Log in", login_path %>!
+      <small><%= t ".already_have" %>
+        <%= link_to t(".log_in"), login_path %>
       </small>
     </header>
 
@@ -42,26 +42,26 @@
         <div class="grid">
           <% if @onboarding_scenario.form_fields.include?(:first_name) %>
             <div>
-              <%= form.label :first_name, "First name" %>
-              <%= form.text_field :first_name, required: true, placeholder: "Fiona", autocomplete: "given-name", "aria-describedby": "nameHelp" %>
+              <%= form.label :first_name, t("identities.first_name") %>
+              <%= form.text_field :first_name, required: true, placeholder: t("identities.fiona"), autocomplete: "given-name", "aria-describedby": "nameHelp" %>
             </div>
           <% end %>
 
           <% if @onboarding_scenario.form_fields.include?(:last_name) %>
             <div>
-              <%= form.label :last_name, "Last name" %>
-              <%= form.text_field :last_name, required: true, placeholder: "Hackworth", autocomplete: "family-name", "aria-describedby": "nameHelp" %>
+              <%= form.label :last_name, t("identities.last_name") %>
+              <%= form.text_field :last_name, required: true, placeholder: t("identities.hackworth"), autocomplete: "family-name", "aria-describedby": "nameHelp" %>
             </div>
           <% end %>
 
           <% if @onboarding_scenario.form_fields.include?(:birthday) %>
             <div>
-              <%= form.label :birthday, "Birthday" %>
+              <%= form.label :birthday, t("identities.birthday") %>
               <%= form.date_field :birthday, required: true, autocomplete: "bday" %>
             </div>
           <% end %>
         </div>
-          <small id="nameHelp">* not necessarily your legal name, what do people usually call you?</small>
+          <small id="nameHelp">* <%= t ".not_necessarily_legal_name" %></small>
 
       </fieldset>
     <% end %>
@@ -71,8 +71,8 @@
         <div class="grid">
           <% if @onboarding_scenario.form_fields.include?(:primary_email) %>
             <div>
-              <%= form.label :primary_email, "Email" %>
-              <%= form.email_field :primary_email, required: true, placeholder: "orpheus@dino.mail", autocomplete: "email", "aria-describedby": "emailHelp" %>
+              <%= form.label :primary_email, t("identities.email") %>
+              <%= form.email_field :primary_email, required: true, placeholder: t("identities.email_placeholder"), autocomplete: "email", "aria-describedby": "emailHelp" %>
             </div>
           <% else %>
             <%# When email is provided from scenario, lock it in as hidden %>
@@ -87,26 +87,26 @@
 
           <% if @onboarding_scenario.form_fields.include?(:phone_number) %>
             <div>
-              <%= form.label :phone_number, "Phone number" %>
-              <%= form.telephone_field :phone_number, required: true, placeholder: "+1 415 555 2671", autocomplete: "tel" %>
+              <%= form.label :phone_number, t("identities.phone_number") %>
+              <%= form.telephone_field :phone_number, required: true, placeholder: t("identities.phone_number_placeholder"), autocomplete: "tel" %>
             </div>
           <% end %>
 
           <% if @onboarding_scenario.form_fields.include?(:country) %>
             <div>
-              <%= form.label :country, "Country" %>
+              <%= form.label :country, t("identities.country") %>
 <%= form.collection_select :country, Identity.countries_for_select,
                              :first, :last,
-                             { include_blank: "Select a country" },
+                             { include_blank: t("identities.country_select") },
                              { required: true, autocomplete: "country-name", "x-ref": "countrySelect", "@change": "checkSanctioned()" } %>
             </div>
           <% end %>
         </div>
-        <small id="emailHelp">We'll send a one-time code to this address.</small>
+        <small id="emailHelp"><%= t ".email_code" %></small>
       </fieldset>
     <% end %>
 
-    <%= form.submit "Continue →", disabled: @age_restriction.present? %>
+    <%= form.submit "#{t ".continue"} →", disabled: @age_restriction.present? %>
   <% end %>
   </div>
 </div>

@@ -15,20 +15,20 @@
   <% end %>
 
   <div class="grid">
-    <%= f.text_field :first_name, placeholder: "First name", required: true %>
-    <%= f.text_field :last_name, placeholder: "Last name", required: true %>
+    <%= f.text_field :first_name, placeholder: t("addresses.first_name"), required: true %>
+    <%= f.text_field :last_name, placeholder: t("addresses.last_name"), required: true %>
   </div>
 
-  <%= f.text_field :line_1, placeholder: "Address line 1", required: true %>
-  <%= f.text_field :line_2, placeholder: "Address line 2 (optional)" %>
+  <%= f.text_field :line_1, placeholder: t("addresses.line_1"), required: true %>
+  <%= f.text_field :line_2, placeholder: "#{t("addresses.line_2")} (optional)" %>
   
   <div class="grid">
-    <%= f.text_field :city, placeholder: "City", required: true %>
-    <%= f.text_field :state, placeholder: "State/Province", required: true %>
+    <%= f.text_field :city, placeholder: t("addresses.city"), required: true %>
+    <%= f.text_field :state, placeholder: t("addresses.state"), required: true %>
   </div>
   
   <div class="grid">
-    <%= f.text_field :postal_code, placeholder: "Postal code", required: true %>
+    <%= f.text_field :postal_code, placeholder: t("addresses.postal_code"), required: true %>
     <%= f.collection_select :country, Address.countries_for_select,
                             :first, :last,
                             { include_blank: "Country" },
@@ -36,9 +36,9 @@
   </div>
 
   <div style="margin-top: 1.5rem;">
-    <%= f.submit local_assigns[:submit] || "Save Address" %>
+    <%= f.submit local_assigns[:submit] || t("addresses.save") %>
     <% unless local_assigns[:from_program] %>
-      <%= link_to "Cancel", addresses_path, role: "button", class: "secondary" %>
+      <%= link_to t("addresses.cancel"), addresses_path, role: "button", class: "secondary" %>
     <% end %>
   </div>
 <% end %>
