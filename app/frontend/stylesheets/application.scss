@@ -28,6 +28,8 @@ $theme-color: "lime";
 @import "./snippets/sidebar.scss";
 @import "./snippets/auth.scss";
 @import "./snippets/addresses.scss";
+@import "./snippets/profile_completion.scss";
+@import "./snippets/verifications.scss";
 
 // Refined skeumorphic styling
 button:not([role="button"]),
@@ -48,6 +50,36 @@ input[type="button"],
   &:active:not(:disabled) {
     transform: translateY(0);
     @include shadow-pressed;
+  }
+
+  &.secondary {
+    background: var(--pico-background-color) !important;
+    color: var(--pico-color) !important;
+    box-shadow: none !important;
+    border: 1px solid var(--pico-muted-border-color) !important;
+
+    &:hover:not(:disabled) {
+      background: var(--pico-card-background-color) !important;
+      border-color: var(--pico-primary) !important;
+      color: var(--pico-color) !important;
+      transform: none;
+      box-shadow: none !important;
+    }
+
+    &:active:not(:disabled) {
+      color: var(--pico-color) !important;
+    }
+  }
+
+  &.danger {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #dc2626;
+      border-color: #dc2626;
+    }
   }
 }
 

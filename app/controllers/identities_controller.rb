@@ -61,8 +61,12 @@ class IdentitiesController < ApplicationController
 
           if age < 13 && !@onboarding_scenario.accepts_under13
             age_diff = (13 - age).round
-            diff_text = age_diff == 1 ? "a year" : "#{age_diff} years"
-            @age_restriction = "Hi there. <br/> Unfortunately, for regulatory reasons outside of our control, we can't accept users under 13. This sucks, and we're sorry. Please come back in #{diff_text}, we'd love to have you as a member of our community!".html_safe
+            diff_text = case age_diff
+              when 0 then "once you're 13"
+              when 1 then "in a year"
+              else "in #{age_diff} years"
+            end
+            @age_restriction = "Hi there. <br/> Unfortunately, for regulatory reasons outside of our control, we can't accept users under 13. We're sorry, we would if we could.<br/>Please come back #{diff_text}, we'd love to have you as a member of our community!".html_safe
             @identity = Identity.new(@prefill_attributes.merge(attrs))
             render :new, status: :unprocessable_entity
             return
@@ -71,6 +75,7 @@ class IdentitiesController < ApplicationController
 
         # Ensure country is present; if missing, use GeoIP detection with US fallback
         attrs[:country] ||= detected_country_alpha2
+        attrs[:onboarding_scenario] = @onboarding_scenario.class.slug
         @identity = Identity.new(attrs)
 
         if @identity.save
@@ -151,6 +156,7 @@ class IdentitiesController < ApplicationController
     end
 
     def scenario_prefill_attributes
+        return {} unless params[:identity].present?
         extractor = @onboarding_scenario.extract_params_proc
         return {} unless extractor.respond_to?(:call)
         data = instance_exec(&extractor)

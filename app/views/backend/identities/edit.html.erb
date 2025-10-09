@@ -80,8 +80,10 @@
         This functionality requires break glass permissions. All changes will be permanently logged in the audit trail with your user information and the provided reason.
       </p>
     </div>
-    <% if @identity.slack_id.present? || true %>
+    <% if @identity.slack_id.present? %>
       <%= button_to "Clear Slack ID", clear_slack_id_backend_identity_path(@identity) %>
+    <% else %>
+      <%= button_to "Provision Slack Account", reprovision_slack_backend_identity_path(@identity) %>
     <% end %>
   </div>
 <% end %>

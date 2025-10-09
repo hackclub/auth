@@ -1,0 +1,102 @@
+class Components::VerificationStatusItem < Components::Base
+  def initialize(identity:)
+    @identity = identity
+  end
+
+  def status
+    @identity.verification_status
+  end
+
+  def show?
+    # Show if not verified and not ineligible
+    status != "verified"
+  end
+
+  def completed?
+    status == "verified"
+  end
+
+  def title
+    case status
+    when "needs_submission"
+      "Verify your identity"
+    when "pending"
+      "Identity verification in review"
+    when "ineligible"
+      "Identity verification ineligible"
+    else
+      "Verify your identity"
+    end
+  end
+
+  def description
+    case status
+    when "needs_submission"
+      if @identity.needs_resubmission?
+        "Your previous submission was rejected. Please resubmit your documents."
+      else
+        "Upload a government-issued ID to verify your identity"
+      end
+    when "pending"
+      "Your documents are being reviewed by the HCB team"
+    when "ineligible"
+      reason = @identity.verification_status_reason
+      if reason.present?
+        "You're not eligible to verify: #{Verification::DocumentVerification::REJECTION_REASON_NAMES[reason] || reason}"
+      else
+        "You're not eligible for verification at this time"
+      end
+    else
+      "Upload a government-issued ID to verify your identity"
+    end
+  end
+
+  def url
+    return nil if status == "pending" || status == "ineligible"
+    new_verifications_path
+  end
+
+  def icon
+    case status
+    when "needs_submission"
+      @identity.needs_resubmission? ? "🔄" : "🪪"
+    when "pending"
+      "⏳"
+    when "ineligible"
+      "🚫"
+    else
+      "🪪"
+    end
+  end
+
+  def clickable?
+    url.present?
+  end
+
+  def view_template
+    return unless show?
+
+    if clickable?
+      a(href: url, class: "profile-task") do
+        render_content
+      end
+    else
+      div(class: "profile-task profile-task-disabled") do
+        render_content
+      end
+    end
+  end
+
+  private
+
+  def render_content
+    div(class: "task-icon") { icon }
+    div(class: "task-content") do
+      div(class: "task-title") { title }
+      div(class: "task-description") { description }
+    end
+    if clickable?
+      div(class: "task-action") { "→" }
+    end
+  end
+end

@@ -1,0 +1,152 @@
+<div class="verification-form">
+  <div class="form-header">
+    <h1><% if @is_resubmission %>Resubmit your documents<% else %>Upload your documents<% end %></h1>
+    <p><% if @is_resubmission %>Fix the issues below and try again<% else %>This helps us verify you're eligible for YSWS<% end %></p>
+  </div>
+
+  <% if @is_resubmission %>
+    <div class="resubmission-alert">
+      <h3>Issues to fix</h3>
+      <ul>
+        <% @rejected_verifications.each do |verification| %>
+          <li>
+            <strong><%= verification.rejection_reason_name %></strong>
+            <% if verification.rejection_reason_details.present? %>
+              <small><%= verification.rejection_reason_details %></small>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if @document.errors.any? %>
+    <div class="error-alert">
+      <h4><%= pluralize(@document.errors.count, "error") %> prevented submission</h4>
+      <ul>
+        <% @document.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= form_with model: @document, url: update_verification_step_path(:document), method: :put, local: true, multipart: true,
+                html: {
+                  "x-data" => "{ selectedType: '#{ @document.document_type }', transcriptFileCount: 0, studentIdFileCount: 0, governmentIdFileCount: 0, get canSubmit() { return this.selectedType === 'transcript' ? (this.transcriptFileCount >= 1 && this.studentIdFileCount >= 1) : this.governmentIdFileCount >= 1; }, submitted: false }",
+                  "x-on:submit" => "submitted = true"
+                } do |form| %>
+    
+    <div class="requirements-section">
+      <h2>What we accept</h2>
+      
+      <% case @identity.country %>
+      <% when "US", "AU", "CA", "SG", "UK" %>
+        <div class="requirement-group">
+          <strong>Option 1: Government-issued ID</strong>
+          <ul>
+            <li>Driver's license, passport, <%= case @identity.country
+              when "US" then "state ID"
+              when "SG" then "FIN/NRIC card"
+              when "UK" then "PASS card"
+              else "national ID"
+            end %> or similar</li>
+          </ul>
+        </div>
+        
+        <div class="requirement-group">
+          <strong>Option 2: School documents</strong>
+          <ul>
+            <li>Student ID <em>and</em> recent report card or transcript</li>
+          </ul>
+        </div>
+        
+      <% when "IN" %>
+        <div class="requirement-group">
+          <strong>E-Aadhaar from UIDAI</strong>
+          <ul>
+            <li>Must be digitally verified or carry a validated digital signature</li>
+            <li><%= link_to "Get your E-Aadhaar →", "https://hack.club/aadhaar", target: "_blank" %></li>
+          </ul>
+        </div>
+        
+      <% else %>
+        <div class="requirement-group">
+          <strong>Government-issued ID</strong>
+          <ul>
+            <li>Must include your name, date of birth, and photo</li>
+            <li>Examples: National ID card, passport, driver's license</li>
+          </ul>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="upload-section">
+      <%= form.label :document_type, "Document type" %>
+      <%= form.select :document_type,
+                      Identity::Document.collection_select_options_for_country(@identity.country),
+                      { include_blank: "Choose what you're uploading..." },
+                      { required: true, "x-model": "selectedType" } %>
+    </div>
+
+    <div x-show="selectedType === 'government_id'" x-transition x-cloak>
+      <div class="photo-tips">
+        <h4>Photo tips</h4>
+        <ul>
+          <li>Take a clear, well-lit photo—make sure it's in focus</li>
+          <li>Include all 4 corners of the document</li>
+          <li>Your name and date of birth must be clearly visible</li>
+          <li>Avoid glare or shadows that obscure text</li>
+        </ul>
+      </div>
+      
+      <div class="upload-section">
+        <%= form.label :files, "Upload your government-issued ID" %>
+        <%= file_field_tag "identity_document[files][]", 
+                           required: false, 
+                           accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"), 
+                           "x-on:change" => 'governmentIdFileCount = $event.target.files.length' %>
+        <small>Accepted formats: <%= @identity.country == "IN" ? "PDF only" : "Images, PDF, HEIC" %></small>
+      </div>
+    </div>
+
+    <div x-show="selectedType === 'transcript'" x-transition x-cloak>
+      <div class="upload-section">
+        <div class="field-group">
+          <%= label_tag "identity_document_files", "Upload your transcript" %>
+          <%= file_field_tag "identity_document[files][]", 
+                             required: false, 
+                             accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"), 
+                             "x-on:change" => 'transcriptFileCount = $event.target.files.length' %>
+          <small>Your most recent report card or transcript</small>
+        </div>
+        
+        <div class="field-group">
+          <%= label_tag "identity_document_files", "Upload your student ID" %>
+          <%= file_field_tag "identity_document[files][]", 
+                             required: false, 
+                             accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"), 
+                             "x-on:change" => 'studentIdFileCount = $event.target.files.length' %>
+          <small>Photo of your school-issued student ID</small>
+        </div>
+      </div>
+    </div>
+
+    <div x-cloak x-show="submitted" class="uploading-state" x-cloak>
+      <p>Uploading your documents...</p>
+      <%= vite_image_tag "images/loader.gif" %>
+    </div>
+
+    <div class="privacy-info">
+      <p><strong>Review time:</strong> 1–2 business days</p>
+      <p><strong>Privacy:</strong> Documents are encrypted and never shared with third parties. Access is limited to HCB staff during review, then core HQ staff for exceptional cases only.</p>
+      <p><strong>Purpose:</strong> Used only for age verification and preventing duplicate accounts.</p>
+    </div>
+
+    <div class="form-actions">
+      <%= form.submit "Submit Documents",
+                      ":disabled" => "!canSubmit",
+                      "x-bind:class" => "!canSubmit ? 'opacity-50 cursor-not-allowed' : ''" %>
+    </div>
+  <% end %>
+</div>

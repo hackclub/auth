@@ -9,8 +9,8 @@ development:
         - location: https://samltool.io
           binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
     - slug: slack
-      friendly_name: Slack
-      tagline: Team communication platform
+      friendly_name: Hack Club Slack
+      tagline: where most of the magic happens!
       icon: slack.png
       entity_id: https://slack.com
       assertion_consumer_services:

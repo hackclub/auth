@@ -5,13 +5,7 @@ class Components::Brand < Components::Base
 
   def view_template
     div(class: "brand") do
-      if @identity.present?
-        copy_to_clipboard @identity.public_id, tooltip_direction: "e", label: "click to copy your internal ID" do
-          logo
-        end
-      else
-        logo
-      end
+      logo
       h1 { "Hack Club Account" }
     end
     button id: "lightswitch", class: "lightswitch-btn", type: "button", "aria-label": "Toggle theme" do

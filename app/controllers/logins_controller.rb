@@ -236,7 +236,10 @@ class LoginsController < ApplicationController
             session = sign_in(identity: @identity, fingerprint_info: fingerprint_info)
             @attempt.update!(session: session)
 
-            # If this login was from legacy migration provenance and we just completed, stamp the identity
+            if @identity.slack_id.blank?
+                provision_slack_on_first_login
+            end
+
             if @attempt.provenance == "signup_legacy" && !@identity.legacy_migrated?
                 @identity.update!(legacy_migrated_at: Time.current)
             end
@@ -251,6 +254,38 @@ class LoginsController < ApplicationController
         else
             # Need more factors - redirect to next available factor
             redirect_to_next_factor
+        end
+    end
+
+    def provision_slack_on_first_login
+        scenario = scenario_for_identity(@identity)
+        slack_result = SCIMService.find_or_create_user(
+            identity: @identity,
+            scenario: scenario
+        )
+
+        if slack_result[:success]
+            @identity.update(slack_id: slack_result[:slack_id])
+            Rails.logger.info "Slack provisioning successful for #{@identity.id}: #{slack_result[:message]}"
+            
+            if scenario.slack_onboarding_flow == :internal_tutorial
+                Tutorial::BeginJob.perform_later(@identity)
+            end
+            
+            slack_result
+        else
+            Rails.logger.error "Slack provisioning failed for #{@identity.id}: #{slack_result[:error]}"
+            Honeybadger.notify(
+                "Slack provisioning failed on first login",
+                context: {
+                    identity_id: @identity.id,
+                    email: @identity.primary_email,
+                    error: slack_result[:error]
+                }
+            )
+            flash[:warning] = "We couldn't set up your Slack account. Please contact support for help."
+            @attempt.update!(next_action: "home")
+            slack_result
         end
     end
 
@@ -282,5 +317,9 @@ class LoginsController < ApplicationController
         )
 
         render_saml_response(saml_response: response, sp_config: sp_config)
+    end
+
+    def scenario_for_identity(identity)
+        identity.onboarding_scenario_instance
     end
 end

@@ -1,0 +1,26 @@
+header "✨ Welcome to Hack Club!"
+
+section "Hello, #{@identity.first_name}! I'm so glad you're here.\n\nFriend, please enjoy the tea and pie while you read this.", markdown: true
+
+divider
+
+section <<~EOCOC, markdown: true
+  _they point to a page in a book in front of you._
+
+  *_"The Tenets of the Hack Club Slack (abridged 15ᵗʰ ed.)"_, Orpheus et al.*
+
+  _handwritten in the margins, it says:_
+
+  > Be kind, thoughtful, and no advertisements.
+
+  _nearby, beautifully typeset:_
+  > *Hack Club Code of Conduct*, _a tl;dr version_:
+  > • Treat everyone with kindness and respect.
+  > • Be thoughtful in how you communicate.
+  > • Don't be destructive or inflammatory.
+  you can _(and should!)_ access the long-form version <https://hackclub.com/conduct/#hacker-values|here> if you like.
+
+EOCOC
+actions [
+          button("okay!", "coc_continue", style: "primary")
+        ]

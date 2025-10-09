@@ -45,5 +45,18 @@ module OnboardingScenarios
 
         # Whether this scenario accepts users under 13
         def accepts_under13 = false
+
+        # Slack provisioning settings
+        # Returns :full_member or :multi_channel_guest
+        def slack_user_type = :multi_channel_guest
+
+        # Returns array of channel names/IDs for multi-channel guests during onboarding
+        def slack_channels = []
+
+        # Returns array of channel names/IDs to add when promoting guest to full member
+        def promotion_channels = []
+
+        # Returns :internal_tutorial or :external_program
+        def slack_onboarding_flow = :external_program
     end
 end

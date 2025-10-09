@@ -153,6 +153,12 @@ class Identity < ApplicationRecord
 
   def slack_linked? = slack_id.present?
 
+  def onboarding_scenario_instance
+    scenario_slug = onboarding_scenario || "default"
+    scenario_class = OnboardingScenarios::Base.find_by_slug(scenario_slug) || OnboardingScenarios::DefaultJoin
+    scenario_class.new(self)
+  end
+
   def onboarding_step
     return :basic_info unless persisted?
 

@@ -99,6 +99,29 @@ module Backend
       redirect_to backend_identity_path(@identity)
     end
 
+    def reprovision_slack
+      authorize @identity
+
+      scenario = OnboardingScenarios::DefaultJoin.new(@identity)
+      slack_result = SCIMService.find_or_create_user(
+        identity: @identity,
+        scenario: scenario
+      )
+
+      if slack_result[:success]
+        @identity.update(slack_id: slack_result[:slack_id])
+        @identity.create_activity(
+          :reprovision_slack,
+          owner: current_user,
+        )
+        flash[:notice] = "Slack account provisioned: #{slack_result[:message]}"
+      else
+        flash[:error] = "Failed to provision Slack account: #{slack_result[:error]}"
+      end
+
+      redirect_to backend_identity_path(@identity)
+    end
+
     def new_vouch
       authorize Verification::VouchVerification, :create?
       @vouch = @identity.vouch_verifications.build

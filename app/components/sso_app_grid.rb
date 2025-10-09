@@ -7,8 +7,8 @@ class Components::SSOAppGrid < Components::Base
 
   def view_template
     div(class: "sso-app-grid") do
-      h2 { "Your Applications" }
-      
+      h2 { "Where do you want to go today?" }
+
       if @apps.any?
         div(class: "grid") do
           @apps.each do |app|

@@ -216,6 +216,7 @@ Rails.application.routes.draw do
     resources :identities do
       member do
         post :clear_slack_id
+        post :reprovision_slack
         get :new_vouch
         post :create_vouch
       end
@@ -271,6 +272,11 @@ Rails.application.routes.draw do
     get :digilocker_redirect
   end
 
+  get "/verifications/new", to: "verifications#new", as: :new_verifications
+  get "/verifications/status", to: "verifications#status", as: :verification_status
+  get "/verifications/:id", to: "verifications#show", as: :verification_step
+  put "/verifications/:id", to: "verifications#update", as: :update_verification_step
+
   resources :addresses do
     collection do
       get :program_create_address
@@ -302,6 +308,11 @@ Rails.application.routes.draw do
   # Slack account linking routes
   get "/slack/link", to: "slack_accounts#new", as: :link_slack_account
   get "/slack/callback", to: "slack_accounts#create", as: :slack_account_callback
+  
+  # Slack interactivity routes
+  namespace :slack do
+    post "/interactivity", to: "interactivity#create"
+  end
 
   scope :saml do
     get "/metadata", to: "saml#metadata"

@@ -1,0 +1,212 @@
+chan_announcements = "C0266FRGT"
+chan_library = "C078Q8PBD4G"
+chan_ship = "C0M8PUPU6"
+chan_welcome = "C75M7C0SY"
+chan_hq_eng = "C05SVRTCDGV"
+chan_neighbourhood = "C01AS1YEM8A"
+
+case @identity.promote_click_count
+when 0
+  header "🎉 welcome in!"
+
+  section <<~TEXT, markdown: true
+    And with that, you're now a full-fledged member of the Hack Club online community!
+
+    You feel a gentle warmth as countless friendly voices echo around you, and you notice a vast network of tunnels, channels, and rooms stretching peacefully into the distance. Your heart fills with quiet excitement. Ralsei adjusts his glasses and offers you a kind smile.
+
+    Oh! Um, if you'd like... I could show you some of my favorite places? I think you'll really like them!
+  TEXT
+
+  divider
+
+  section <<~TEXT, markdown: true
+    *<##{chan_announcements}>* is where you'll hear all the important news. It's very helpful!
+
+    *<##{chan_library}>* lets you explore all the wonderful channels and activity around Slack. There's so much to discover!
+
+    *<##{chan_ship}>* is where you can see amazing projects from people just like you! Everyone works so hard on them.
+
+    But most importantly... you simply _must_ introduce yourself in <##{chan_welcome}>*! There are so many kind and welcoming friends there who would love to meet you. You could tell them about yourself - who you are, what you enjoy doing, and anything else you'd like to share. Everyone's really nice, I promise! Don't be nervous - they'll be so happy you're here!
+  TEXT
+
+when 1
+  header "✨ you're already in!"
+
+  section <<~TEXT, markdown: true
+    Oh! Um, it looks like you're already a full member of Hack Club! That's wonderful!
+
+    Ralsei adjusts his glasses and smiles warmly at you.
+
+    I'm so glad you're here. How have you been enjoying the community? Have you made any new friends yet?
+  TEXT
+
+  divider
+
+  section <<~TEXT, markdown: true
+    If you need a reminder of where things are:
+
+    *<##{chan_announcements}>* - Important news and updates
+
+    *<##{chan_library}>* - Channel containing other channels
+
+    *<##{chan_neighbourhood}>* - Channel containing many more other channels
+
+    *<##{chan_ship}>* - Show off what you've built!
+
+    *<##{chan_welcome}>* - Meet new friends (or say hi again!)
+
+
+    Feel free to explore and make yourself at home. Everyone here is really kind, and we're all so happy you're part of our community! 💚
+  TEXT
+
+when 2
+  header "um... hi again!"
+
+  section <<~TEXT, markdown: true
+    Oh! You're back! That's okay, I don't mind at all.
+
+    Ralsei fidgets with his scarf a little nervously.
+
+    Is everything alright? Did you need help finding something specific?
+  TEXT
+
+when 3
+  header "oh, hello!"
+
+  section <<~TEXT, markdown: true
+    Ralsei looks up from his book and smiles gently.
+
+    You keep coming back here! I hope that means you're enjoying Hack Club. Or... um, did you need something? I'm here if you want to talk!
+
+    Remember, you can always ask questions in the channels, and everyone will be happy to help. We're all friends here! 💚
+  TEXT
+
+when 4
+  header "hi there..."
+
+  section <<~TEXT, markdown: true
+    Ralsei blinks and tilts his head slightly.
+
+    Oh! It's you again! Um... you know you're already a full member, right? The button doesn't do anything new after the first time...
+
+    Not that I mind you visiting! It's just... maybe you'd have more fun exploring the actual channels? 😅
+  TEXT
+
+when 5
+  header "okay so..."
+
+  section <<~TEXT, markdown: true
+    Ralsei sets down his tea with a gentle *clink*.
+
+    I really appreciate the visits, but... um... are you okay? Is the button stuck? Do you need me to get someone from <##{chan_hq_eng}> to help debug this?
+
+    Or are you just... really enjoying clicking buttons? Because that's valid too, I suppose! 💚
+  TEXT
+
+when 6
+  header "um."
+
+  section <<~TEXT, markdown: true
+    Ralsei adjusts his glasses and tries to maintain his composure.
+
+    Okay, I'm starting to think you're doing this on purpose now. Which is... fine! I'm not mad! I could never be mad at you!
+
+    But maybe... just maybe... you could go say hi in <##{chan_welcome}> instead? They'd love to meet you! And they probably have more interesting things to say than I do at this point! 😅
+  TEXT
+
+when 7
+  header "seriously?"
+
+  section <<~TEXT, markdown: true
+    Ralsei sighs softly and gives you a look that's somehow both exasperated and fond.
+
+    You're really committed to this bit, aren't you? I respect that, honestly.
+
+    *He takes a long sip of tea.*
+
+    At this point I think we're friends. Hi, friend. Please go make something cool and share it in <##{chan_ship}>. For me? 🥺
+  TEXT
+
+when 8
+  header "OKAY LISTEN—"
+
+  section <<~TEXT, markdown: true
+    Ralsei takes a deep breath and tries to stay calm.
+
+    I'm a very patient person. I really am! But you've clicked this button NINE times now. NINE!
+
+    *He adjusts his hat nervously.*
+
+    I'm not angry! I'm just... concerned! Are you trapped in some kind of loop? Do you need help? Blink twice if you're being held hostage by the button!
+
+    ...okay I'm being dramatic. But seriously, go explore! There's a whole community out there! 💚
+  TEXT
+
+else
+  case @identity.promote_click_count % 5
+  when 0
+    header "here we go again..."
+
+    section <<~TEXT, markdown: true
+      Ralsei looks up from his book with a knowing smile.
+
+      Oh! You're back again! At this point I think we should just schedule regular tea times together.
+
+      *He pours you an imaginary cup of tea.*
+
+      So... how's your day going? Made any cool projects lately? No? Just clicking buttons? That's okay too! 💚
+    TEXT
+
+  when 1
+    header "my old friend!"
+
+    section <<~TEXT, markdown: true
+      Ralsei waves enthusiastically.
+
+      Welcome back to the button-clicking dimension! Population: you and me!
+
+      You know, I've been thinking... maybe this button is actually a portal to friendship? Because I feel like we've really bonded over your persistent clicking. 
+
+      Still though, <##{chan_ship}> is pretty cool if you ever want to check it out! 😅
+    TEXT
+
+  when 2
+    header "ah, there you are!"
+
+    section <<~TEXT, markdown: true
+      Ralsei doesn't even look surprised anymore.
+
+      You know what? I've given up trying to redirect you. This is your journey now. You're the Button Clicker. It's your destiny.
+
+      *He adjusts his scarf dramatically.*
+
+      I'm just here to provide moral support and the occasional reminder that you're already a full member. Which you are. Still. Forever. 💚
+    TEXT
+
+  when 3
+    header "the prophecy continues..."
+
+    section <<~TEXT, markdown: true
+      Ralsei is now just casually reading a book.
+
+      Oh hey. Yeah. You're already a member. Channels are over there. *gestures vaguely*
+
+      I've accepted this is just what we do now. You click, I respond, the universe continues its eternal dance.
+
+      Want to hear about my book? It's about a person who keeps clicking a button and— wait. 😅
+    TEXT
+
+  when 4
+    header "one more time!"
+
+    section <<~TEXT, markdown: true
+      Ralsei sets down his book and smiles warmly.
+
+      You know what? I actually appreciate your dedication. In a world where people give up so easily, you've clicked this button #{@identity.promote_click_count + 1} times.
+
+      That's the kind of persistence that builds amazing projects! Maybe channel that energy into <##{chan_ship}>? Just a thought!
+
+      But also... I'll see you next click, won't I? 💚✨
+    TEXT
+  end
+end

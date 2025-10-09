@@ -31,10 +31,25 @@ class Components::Sidebar < Components::Base
   private
 
   def nav_items
-    [
-      { label: "Home", path: root_path, icon: "🏠" },
-      { label: "Physical Addresses", path: addresses_path, icon: "✉️" }
+    items = [
+      { label: "Home", path: root_path, icon: "🏠" }
     ]
+    
+    # Add verification link if user needs to submit or resubmit
+    if current_identity.present?
+      status = current_identity.verification_status
+      if status == "needs_submission" || status == "pending"
+        items << { 
+          label: status == "pending" ? "Verification (pending)" : "ID Verification", 
+          path: new_verifications_path, 
+          icon: status == "pending" ? "⏳" : "🪪"
+        }
+      end
+    end
+    
+    items << { label: "Physical Addresses", path: addresses_path, icon: "✉️" }
+    
+    items
   end
 
   def render_mobile_toggle
@@ -112,13 +127,7 @@ class Components::Sidebar < Components::Base
 
   def render_sidebar_brand
     div(class: "sidebar-brand") do
-      if current_identity.present?
-        copy_to_clipboard current_identity.public_id, tooltip_direction: "e", label: "click to copy your internal ID" do
-          vite_image_tag("images/hc-square.png", alt: "Hack Club logo", class: "brand-logo")
-        end
-      else
-        vite_image_tag("images/hc-square.png", alt: "Hack Club logo", class: "brand-logo")
-      end
+      vite_image_tag("images/hc-square.png", alt: "Hack Club logo", class: "brand-logo")
       h1 { "Hack Club Account" }
       button(id: "lightswitch", class: "lightswitch-btn", type: "button", "aria-label": "Toggle theme") do
         span(class: "lightswitch-icon") { "🌙" }

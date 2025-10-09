@@ -129,3 +129,5 @@ gem "geocoder", "~> 1.8"
 gem "rotp", "~> 6.3"
 
 gem "bcrypt", "~> 3.1"
+
+gem "slocks", path: "/Users/nora/RubymineProjects/slocks"

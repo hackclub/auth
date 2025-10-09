@@ -6,4 +6,5 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.acronym "NameID"
   inflect.acronym "TOTP"
   inflect.acronym "SSO"
+  inflect.acronym "SCIM"
 end
