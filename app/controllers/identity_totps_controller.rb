@@ -57,22 +57,7 @@ class IdentityTotpsController < ApplicationController
   end
 
   def destroy
-    @totp = current_identity.totp
-    @totp&.destroy
-    
-    # Disable 2FA enforcement if no other 2FA methods remain
-    if current_identity.two_factor_methods.empty?
-      current_identity.update!(use_two_factor_authentication: false)
-      # Discard all active backup codes when last 2FA method is removed
-      current_identity.backup_codes.active.each(&:mark_discarded!)
-    end
-    
-    if request.headers["HX-Request"]
-      response.headers["HX-Redirect"] = security_path
-      head :ok
-    else
-      redirect_to security_path, notice: "Two-factor authentication disabled"
-    end
+    redirect_to new_step_up_path(action_type: "remove_totp")
   end
 
   private

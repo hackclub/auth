@@ -250,6 +250,7 @@ Rails.application.routes.draw do
   resource :identity, only: [:edit, :update] do
     collection do
       post :toggle_2fa
+    get :confirm_disable_2fa
     end
   end
 
@@ -300,6 +301,10 @@ Rails.application.routes.draw do
       post :verify
     end
   end
+  
+  # Step-up authentication flow
+  get "/step_up", to: "step_up#new", as: :new_step_up
+  post "/step_up/verify", to: "step_up#verify", as: :verify_step_up
 
   resources :identity_backup_codes, only: [:index, :create]
 

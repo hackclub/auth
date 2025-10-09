@@ -290,6 +290,14 @@ class Identity < ApplicationRecord
 
   def backup_codes_enabled? = backup_codes.active.any?
 
+  def available_step_up_methods
+    methods = []
+    methods << :totp if totp.present?
+    methods << :backup_code if backup_codes_enabled?
+    # Future: methods << :sms if sms_verified?
+    methods
+  end
+
   # Generic 2FA method helpers
   def two_factor_methods
     [

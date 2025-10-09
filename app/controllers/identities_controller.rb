@@ -14,7 +14,8 @@ class IdentitiesController < ApplicationController
     def update
         @identity = current_identity
         if @identity.update(identity_params)
-            redirect_to edit_identity_path, notice: "Profile updated successfully!"
+            flash[:success] = "saved changes!"
+            redirect_to edit_identity_path
         else
             render :edit
         end
@@ -223,20 +224,27 @@ class IdentitiesController < ApplicationController
     public
 
     def toggle_2fa
-        # Can only enable 2FA if at least one 2FA method is set up
-        if !current_identity.has_two_factor_method? && !current_identity.use_two_factor_authentication?
-            flash[:error] = "You must set up a two-factor authentication method before requiring 2FA"
-            redirect_to security_path
+        # Enabling 2FA doesn't need step-up auth
+        if !current_identity.use_two_factor_authentication?
+            # Can only enable 2FA if at least one 2FA method is set up
+            if !current_identity.has_two_factor_method?
+                flash[:error] = "You must set up a two-factor authentication method before requiring 2FA"
+                redirect_to security_path
+                return
+            end
+
+            current_identity.update!(use_two_factor_authentication: true)
+
+            @totp = current_identity.totp
+            if request.headers["HX-Request"]
+                render "identity_totps/index", layout: "htmx"
+            else
+                redirect_to security_path, notice: "2FA requirement enabled"
+            end
             return
         end
 
-        current_identity.update!(use_two_factor_authentication: !current_identity.use_two_factor_authentication?)
-
-        @totp = current_identity.totp
-        if request.headers["HX-Request"]
-            render "identity_totps/index", layout: "htmx"
-        else
-            redirect_to security_path, notice: "2FA requirement #{current_identity.use_two_factor_authentication? ? 'enabled' : 'disabled'}"
-        end
+        # Disabling 2FA requires step-up auth
+        redirect_to new_step_up_path(action_type: "disable_2fa")
     end
 end
