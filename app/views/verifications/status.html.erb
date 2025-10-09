@@ -1,125 +1,141 @@
-<div class="verification-status">
+<div class="page-header">
+  <h1>ID Verification</h1>
+</div>
+
+<div class="verification-sections">
   <% case @status %>
   <% when "pending" %>
-    <div class="status-indicator">
-      <span class="status-badge pending"><%= t(".badges.under_review") %></span>
-      <h1><%= t(".pending.title") %></h1>
-      <p><%= t(".pending.subtitle") %></p>
-    </div>
-    
-    <div class="status-details">
-      <p><%= t(".pending.description", email: @identity.primary_email) %></p>
-      
-      <% if @latest_verification.present? %>
-        <div class="meta">
-          <%= t(".pending.submitted_ago", time: time_ago_in_words(@latest_verification.created_at)) %>
-          <% if @latest_verification.respond_to?(:document_type) && @latest_verification.document_type.present? %>
-            • <%= @latest_verification.document_type.titleize %>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
-
-  <% when "verified" %>
-    <div class="status-indicator">
-      <span class="status-badge verified"><%= t(".badges.verified") %></span>
-      <h1><%= @identity.ysws_eligible ? t(".verified.title_ysws") : t(".verified.title_verified") %></h1>
-      <p><%= @identity.ysws_eligible ? t(".verified.subtitle_ysws") : t(".verified.subtitle_verified") %></p>
-    </div>
-    
-    <% if @latest_verification.present? && @latest_verification.approved_at.present? %>
-      <div class="status-details">
-        <div class="meta"><%= t(".verified.verified_ago", time: time_ago_in_words(@latest_verification.approved_at)) %></div>
-      </div>
-    <% end %>
-
-    <div class="status-action">
-      <%= link_to t(".verified.back_to_home"), root_path, class: "secondary", role: "button" %>
-    </div>
-
-  <% when "ineligible" %>
-    <div class="status-indicator">
-      <span class="status-badge rejected"><%= t(".badges.not_eligible") %></span>
-      <h1>
-        <% if @latest_verification.present? && @latest_verification.rejected? && @latest_verification.fatal_rejection? %>
-          <%= t(".ineligible.titles.rejected") %>
-        <% elsif @identity.permabanned %>
-          <%= t(".ineligible.titles.restricted") %>
-        <% else %>
-          <%= t(".ineligible.titles.unable") %>
-        <% end %>
-      </h1>
-      <p>
-        <% if @latest_verification.present? && @latest_verification.rejected? && @latest_verification.fatal_rejection? %>
-          <%= t(".ineligible.subtitles.rejected") %>
-        <% elsif @identity.permabanned %>
-          <%= t(".ineligible.subtitles.restricted") %>
-        <% else %>
-          <%= t(".ineligible.subtitles.unable") %>
-        <% end %>
-      </p>
-    </div>
-    
-    <% if @latest_verification.present? && @latest_verification.rejection_reason.present? %>
-      <div class="status-details">
-        <div class="rejection-info">
-          <strong><%= @latest_verification.rejection_reason_name %></strong>
-          <% if @latest_verification.rejection_reason_details.present? %>
-            <br><%= @latest_verification.rejection_reason_details %>
-          <% end %>
-        </div>
-      </div>
-    <% end %>
-
-    <div class="status-action">
-      <p><%= t(".ineligible.contact") %></p>
-      <%= link_to t(".ineligible.back_to_home"), root_path, class: "secondary", role: "button" %>
-    </div>
-
-  <% when "needs_submission" %>
-    <% if @identity.needs_resubmission? %>
+    <section class="verification-section">
       <div class="status-indicator">
-        <span class="status-badge rejected"><%= t(".badges.needs_resubmission") %></span>
-        <h1><%= t(".needs_submission.resubmission.title") %></h1>
-        <p><%= t(".needs_submission.resubmission.subtitle") %></p>
+        <span class="status-badge pending"><%= t(".badges.under_review") %></span>
+        <h3><%= t(".pending.title") %></h3>
+        <p><%= t(".pending.subtitle") %></p>
       </div>
       
-      <div class="status-details">
-        <p><strong><%= t(".needs_submission.resubmission.issues_to_fix") %>:</strong></p>
-        <% @identity.rejected_verifications_needing_resubmission.each do |verification| %>
-          <div class="rejection-info">
-            <strong><%= verification.rejection_reason_name %></strong>
-            <% if verification.rejection_reason_details.present? %>
-              <%= verification.rejection_reason_details %>
+      <div class="status-content">
+        <p><%= t(".pending.description", email: @identity.primary_email) %></p>
+        
+        <% if @latest_verification.present? %>
+          <div class="meta">
+            <%= t(".pending.submitted_ago", time: time_ago_in_words(@latest_verification.created_at)) %>
+            <% if @latest_verification.respond_to?(:document_type) && @latest_verification.document_type.present? %>
+              • <%= @latest_verification.document_type.titleize %>
             <% end %>
           </div>
         <% end %>
       </div>
+    </section>
 
-      <div class="status-action">
-        <%= link_to t(".needs_submission.resubmission.resubmit_documents"), verification_step_path(:document), role: "button" %>
-      </div>
-    <% else %>
+  <% when "verified" %>
+    <section class="verification-section verification-verified">
       <div class="status-indicator">
-        <span class="status-badge none"><%= t(".badges.not_started") %></span>
-        <h1><%= t(".needs_submission.initial.title") %></h1>
-        <p><%= t(".needs_submission.initial.subtitle") %></p>
+        <span class="status-badge verified"><%= t(".badges.verified") %></span>
+        <h3><%= @identity.ysws_eligible ? t(".verified.title_ysws") : t(".verified.title_verified") %></h3>
+        <p><%= @identity.ysws_eligible ? t(".verified.subtitle_ysws") : t(".verified.subtitle_verified") %></p>
       </div>
+      
+      <% if @latest_verification.present? && @latest_verification.approved_at.present? %>
+        <div class="status-content">
+          <div class="meta"><%= t(".verified.verified_ago", time: time_ago_in_words(@latest_verification.approved_at)) %></div>
+        </div>
+      <% end %>
 
-      <div class="status-action">
-        <%= link_to t(".needs_submission.initial.start_verification"), verification_step_path(:document), role: "button" %>
+      <div class="status-actions">
+        <%= link_to t(".verified.back_to_home"), root_path, class: "secondary", role: "button" %>
       </div>
+    </section>
+
+  <% when "ineligible" %>
+    <section class="verification-section verification-ineligible">
+      <div class="status-indicator">
+        <span class="status-badge rejected"><%= t(".badges.not_eligible") %></span>
+        <h3>
+          <% if @latest_verification.present? && @latest_verification.rejected? && @latest_verification.fatal_rejection? %>
+            <%= t(".ineligible.titles.rejected") %>
+          <% elsif @identity.permabanned %>
+            <%= t(".ineligible.titles.restricted") %>
+          <% else %>
+            <%= t(".ineligible.titles.unable") %>
+          <% end %>
+        </h3>
+        <p>
+          <% if @latest_verification.present? && @latest_verification.rejected? && @latest_verification.fatal_rejection? %>
+            <%= t(".ineligible.subtitles.rejected") %>
+          <% elsif @identity.permabanned %>
+            <%= t(".ineligible.subtitles.restricted") %>
+          <% else %>
+            <%= t(".ineligible.subtitles.unable") %>
+          <% end %>
+        </p>
+      </div>
+      
+      <% if @latest_verification.present? && @latest_verification.rejection_reason.present? %>
+        <div class="status-content">
+          <div class="rejection-info">
+            <strong><%= @latest_verification.rejection_reason_name %></strong>
+            <% if @latest_verification.rejection_reason_details.present? %>
+              <br><%= @latest_verification.rejection_reason_details %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="status-actions">
+        <p><%= t(".ineligible.contact") %></p>
+        <%= link_to t(".ineligible.back_to_home"), root_path, class: "secondary", role: "button" %>
+      </div>
+    </section>
+
+  <% when "needs_submission" %>
+    <% if @identity.needs_resubmission? %>
+      <section class="verification-section verification-needs-action">
+        <div class="status-indicator">
+          <span class="status-badge rejected"><%= t(".badges.needs_resubmission") %></span>
+          <h3><%= t(".needs_submission.resubmission.title") %></h3>
+          <p><%= t(".needs_submission.resubmission.subtitle") %></p>
+        </div>
+        
+        <div class="status-content">
+          <p><strong><%= t(".needs_submission.resubmission.issues_to_fix") %>:</strong></p>
+          <% @identity.rejected_verifications_needing_resubmission.each do |verification| %>
+            <div class="rejection-info">
+              <strong><%= verification.rejection_reason_name %></strong>
+              <% if verification.rejection_reason_details.present? %>
+                <%= verification.rejection_reason_details %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="status-actions">
+          <%= link_to t(".needs_submission.resubmission.resubmit_documents"), verification_step_path(:document), role: "button" %>
+        </div>
+      </section>
+    <% else %>
+      <section class="verification-section">
+        <div class="status-indicator">
+          <span class="status-badge none"><%= t(".badges.not_started") %></span>
+          <h3><%= t(".needs_submission.initial.title") %></h3>
+          <p><%= t(".needs_submission.initial.subtitle") %></p>
+        </div>
+
+        <div class="status-actions">
+          <%= link_to t(".needs_submission.initial.start_verification"), verification_step_path(:document), role: "button" %>
+        </div>
+      </section>
     <% end %>
 
   <% else %>
-    <div class="status-indicator">
-      <span class="status-badge none"><%= t(".badges.not_started") %></span>
-      <h1><%= t(".needs_submission.initial.title") %></h1>
-      <p><%= t(".needs_submission.initial.subtitle") %></p>
-    </div>
+    <section class="verification-section">
+      <div class="status-indicator">
+        <span class="status-badge none"><%= t(".badges.not_started") %></span>
+        <h3><%= t(".needs_submission.initial.title") %></h3>
+        <p><%= t(".needs_submission.initial.subtitle") %></p>
+      </div>
 
-    <div class="status-action">
-      <%= link_to t(".needs_submission.initial.start_verification"), verification_step_path(:document), role: "button" %>
-    </div>
+      <div class="status-actions">
+        <%= link_to t(".needs_submission.initial.start_verification"), verification_step_path(:document), role: "button" %>
+      </div>
+    </section>
   <% end %>
 </div>

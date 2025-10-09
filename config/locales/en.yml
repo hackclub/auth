@@ -339,7 +339,7 @@ en:
       student_id_help: Photo of your school-issued student ID
       uploading: Uploading your documents...
       privacy_info:
-        review_time:" Review time: 1–2 business days"
+        review_time: "Review time: 1–2 business days"
         privacy: "Privacy: Documents are encrypted and never shared with third parties. Access is limited to HCB staff during review, then core HQ staff for exceptional cases only."
         purpose: "Purpose: Used only for age verification and preventing duplicate accounts."
       submit_documents: Submit Documents

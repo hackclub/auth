@@ -1,9 +1,9 @@
-<div class="verification-form">
-  <div class="form-header">
-    <h1><%= t(".title.#{@is_resubmission ? 'resubmit' : 'initial'}") %></h1>
-    <p><%= t(".subtitle.#{@is_resubmission ? 'resubmit' : 'initial'}") %></p>
-  </div>
+<div class="page-header">
+  <h1><%= t(".title.#{@is_resubmission ? 'resubmit' : 'initial'}") %></h1>
+  <p><%= t(".subtitle.#{@is_resubmission ? 'resubmit' : 'initial'}") %></p>
+</div>
 
+<div class="verification-form-sections">
   <% if @is_resubmission %>
     <div class="resubmission-alert">
       <h3><%= t(".issues_to_fix") %></h3>
@@ -37,9 +37,9 @@
                   "x-on:submit" => "submitted = true"
                 } do |form| %>
     
-    <div class="legal-name-section" style="margin-bottom: 2rem;">
+    <section class="verification-form-section">
       <h3><%= t(".name_verification") %></h3>
-      <p><small><%= t(".legal_name_help") %><br/> <%= t(".preferred_name_note") %></small></p>
+      <p class="section-description"><%= t(".legal_name_help") %><br/> <%= t(".preferred_name_note") %></p>
       <div class="grid">
         <div>
           <%= label_tag "legal_first_name", t(".legal_first_name") %>
@@ -50,10 +50,10 @@
           <%= text_field_tag "legal_last_name", @identity.legal_last_name.presence || @identity.last_name, required: true %>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="requirements-section">
-      <h2><%= t(".what_we_accept") %></h2>
+    <section class="verification-form-section">
+      <h3><%= t(".what_we_accept") %></h3>
       
       <% case @identity.country %>
       <% when "US", "AU", "CA", "SG", "UK" %>
@@ -89,40 +89,38 @@
           </ul>
         </div>
       <% end %>
-    </div>
+    </section>
 
-    <div class="upload-section">
+    <section class="verification-form-section">
       <%= form.label :document_type, t(".document_type_label") %>
       <%= form.select :document_type,
                       Identity::Document.collection_select_options_for_country(@identity.country),
                       { include_blank: t(".choose_document_type") },
                       { required: true, "x-model": "selectedType" } %>
-    </div>
 
-    <div x-show="selectedType === 'government_id'" x-transition x-cloak>
-      <div class="photo-tips">
-        <h4><%= t(".photo_tips_title") %></h4>
-        <ul>
-          <li><%= t(".photo_tips.clear_photo") %></li>
-          <li><%= t(".photo_tips.all_corners") %></li>
-          <li><%= t(".photo_tips.name_and_dob") %></li>
-          <li><%= t(".photo_tips.avoid_glare") %></li>
-        </ul>
+      <div x-show="selectedType === 'government_id'" x-transition x-cloak>
+        <div class="photo-tips">
+          <h4><%= t(".photo_tips_title") %></h4>
+          <ul>
+            <li><%= t(".photo_tips.clear_photo") %></li>
+            <li><%= t(".photo_tips.all_corners") %></li>
+            <li><%= t(".photo_tips.name_and_dob") %></li>
+            <li><%= t(".photo_tips.avoid_glare") %></li>
+          </ul>
+        </div>
+        
+        <div class="upload-field">
+          <%= form.label :files, t(".upload_government_id") %>
+          <%= file_field_tag "identity_document[files][]",
+                             required: false,
+                             accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"),
+                             "x-on:change" => 'governmentIdFileCount = $event.target.files.length' %>
+          <small><%= t(".accepted_formats") %> <%= @identity.country == "IN" ? t(".formats_india") : t(".formats_other") %></small>
+        </div>
       </div>
-      
-      <div class="upload-section">
-        <%= form.label :files, t(".upload_government_id") %>
-        <%= file_field_tag "identity_document[files][]",
-                           required: false,
-                           accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"),
-                           "x-on:change" => 'governmentIdFileCount = $event.target.files.length' %>
-        <small><%= t(".accepted_formats") %> <%= @identity.country == "IN" ? t(".formats_india") : t(".formats_other") %></small>
-      </div>
-    </div>
 
-    <div x-show="selectedType === 'transcript'" x-transition x-cloak>
-      <div class="upload-section">
-        <div class="field-group">
+      <div x-show="selectedType === 'transcript'" x-transition x-cloak>
+        <div class="upload-field">
           <%= label_tag "identity_document_files", t(".upload_transcript") %>
           <%= file_field_tag "identity_document[files][]",
                              required: false,
@@ -131,7 +129,7 @@
           <small><%= t(".transcript_help") %></small>
         </div>
         
-        <div class="field-group">
+        <div class="upload-field">
           <%= label_tag "identity_document_files", t(".upload_student_id") %>
           <%= file_field_tag "identity_document[files][]",
                              required: false,
@@ -140,22 +138,23 @@
           <small><%= t(".student_id_help") %></small>
         </div>
       </div>
-    </div>
 
-    <div x-cloak x-show="submitted" class="uploading-state" x-cloak>
-      <p><%= t(".uploading") %></p>
-      <%= vite_image_tag "images/loader.gif" %>
-    </div>
+      <div x-cloak x-show="submitted" class="uploading-state" x-cloak>
+        <p><%= t(".uploading") %></p>
+        <%= vite_image_tag "images/loader.gif" %>
+      </div>
+    </section>
 
-    <div class="privacy-info">
+    <section class="verification-form-section privacy-section">
       <p><strong><%= t(".privacy_info.review_time") %></strong></p>
       <p><strong><%= t(".privacy_info.privacy") %></strong></p>
       <p><strong><%= t(".privacy_info.purpose") %></strong></p>
-    </div>
+    </section>
 
     <div class="form-actions">
       <%= form.submit t(".submit_documents"),
                       ":disabled" => "!canSubmit",
+                      disabled: true,
                       "x-bind:class" => "!canSubmit ? 'opacity-50 cursor-not-allowed' : ''" %>
     </div>
   <% end %>
