@@ -7,9 +7,19 @@
           <p class="text-gray-600"><%= @program.description %></p>
         <% end %>
       </div>
+      <% if @program.owner_identity.present? %>
+        <div>
+          <strong>Developer-owned by:</strong>
+          <%= render Components::UserMention.new(@program.owner_identity) %>
+        </div>
+      <% end %>
       <div>
         <strong>Status:</strong>
         <%= @program.active? ? "Active" : "Inactive" %>
+      </div>
+      <div>
+        <strong>Trust Level:</strong>
+        <%= @program.trust_level.to_s.titleize %>
       </div>
       <div>
         <strong>OAuth Scopes:</strong>

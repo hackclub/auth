@@ -52,6 +52,11 @@ class Components::Sidebar < Components::Base
     items << { label: t("sidebar.addresses"), path: addresses_path, icon: "✉️" }
     items << { label: t("sidebar.security"), path: security_path, icon: "🔒" }
     
+    # Add developer link if developer mode is enabled
+    if current_identity.present? && current_identity.developer_mode?
+      items << { label: t("sidebar.developer"), path: developer_apps_path, icon: "🛠️" }
+    end
+    
     items
   end
 

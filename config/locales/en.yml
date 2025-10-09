@@ -27,7 +27,80 @@ en:
     verification: ID Verification
     addresses: Mailing Addresses
     security: Security
+    developer: Developer
     logout: Sign out
+  developer_apps:
+    index:
+      title: Developers' corner
+      create_new: Create New App
+      no_scopes: No scopes
+      edit: Edit
+      delete: Delete
+      delete_confirm: Are you sure you want to delete this app? This cannot be undone.
+      client_id: Client ID
+      click_to_copy_client_id: click to copy client ID
+      blank_slate:
+        title: No OAuth apps yet
+        cta: Create an app to start authenticating with Hack Club!
+        create: app me up.
+    show:
+      back_to_apps: ← Back to Apps
+      security_warning_title: Keep your credentials secure!
+      security_warning_message: Never share your client secret publicly or commit it to version control.
+      oauth_credentials: OAuth Credentials
+      client_id: Client ID
+      click_to_copy_client_id: click to copy client ID
+      client_secret: Client Secret
+      click_to_copy_client_secret: click to copy client secret
+      redirect_uris: Redirect URIs
+      test_auth: Test Auth →
+      auth_link_hint: Right click auth links to copy URL
+      configuration: Configuration
+      scopes: Scopes
+      no_scopes: No scopes selected
+      trust_level: Trust Level
+      edit_app: Edit App
+      delete_app: Delete App
+      delete_confirm: Are you sure you want to delete this app? This action cannot be undone and will revoke all existing tokens.
+    new:
+      title: Create New OAuth App
+      back_to_apps: ← Back to Apps
+      errors_header:
+        one: "%{count} issue prevented this from being saved:"
+        other: "%{count} issues prevented this from being saved:"
+      app_name: Application Name
+      app_name_placeholder: Northern California National Bank Online Banking
+      redirect_uri: Redirect URI(s)
+      redirect_uri_placeholder: http://localhost:3000/oauth/callback
+      redirect_uri_hint: Enter one redirect URI per line for OAuth callbacks
+      scopes: Scopes
+      scopes_hint: "Community apps are limited to: %{scopes}"
+      trust_level_note_html: "<strong>Note:</strong> Your app will initially be created with <code>community_untrusted</code> trust level. <br/> This means users will see a scarier consent screen when authorizing your app. <br/> Once you've developed your integration, poke Nora to get it promoted."
+      create: Create App
+      cancel: Cancel
+    edit:
+      title: Edit %{name}
+      back_to_app: ← Back to App
+      errors_header:
+        one: "%{count} issue prevented this from being saved:"
+        other: "%{count} issues prevented this from being saved:"
+      app_name: Application Name
+      redirect_uri: Redirect URI
+      redirect_uri_hint: Enter one redirect URI per line for OAuth callbacks
+      scopes: Scopes
+      scopes_hint: "Community apps are limited to: %{scopes}"
+      update: Update App
+      cancel: Cancel
+    create:
+      success: OAuth app created successfully!
+    update:
+      success: OAuth app updated successfully!
+    destroy:
+      success: OAuth app deleted successfully!
+    require_developer_mode:
+      developer_mode_required: Developer mode is not enabled for your account.
+    set_app:
+      not_found: OAuth app not found.
   addresses:
     first_name: First name
     last_name: Last name
@@ -78,6 +151,8 @@ en:
       title: My info
       info_heading: Personal info
       legal_name_exists: We also have a different legal name on file. Please contact us if you need to change it.
+      developer_mode: Developer mode
+      developer_mode_description: Wanna OAuth some OAuth? Check this box.
       save: Save changes
       no_email_change_yet: Changing your email will be available in a future release.
     new:

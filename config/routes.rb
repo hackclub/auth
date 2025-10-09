@@ -310,6 +310,8 @@ Rails.application.routes.draw do
 
   resources :authorized_applications, only: [:index, :destroy]
 
+  resources :developer_apps, path: "developer/apps"
+
   namespace :api do
     namespace :v1 do
       resources :identities, only: [ :show, :index ] do

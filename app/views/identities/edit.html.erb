@@ -36,6 +36,14 @@
     </div>
   <% end %>
 
+  <div style="margin-top: 1.5rem;">
+    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+      <%= f.check_box :developer_mode %>
+      <span><%= t(".developer_mode") %></span>
+    </label>
+    <small class="usn" style="margin-left: 1.75rem;"><%= t(".developer_mode_description") %></small>
+  </div>
+
   <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: flex-start;">
     <%= f.submit t(".save"), style: "width: auto; margin: 0;" %>
   </div>

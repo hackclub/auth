@@ -9,11 +9,12 @@
 @media (min-width: 56em) {
   .tooltipped {
     &:after {
-      background-color: #ccc;
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border);
       box-shadow:
               0 0 2px 0 rgba(0, 0, 0, 0.0625),
               0 4px 8px 0 rgba(0, 0, 0, 0.125);
-      color: var(--window-fg);
+      color: var(--text);
       content: attr(aria-label);
       font-size: 0.875rem;
       font-weight: 500;

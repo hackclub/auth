@@ -15,6 +15,22 @@ class Backend::Programs::Form < ApplicationForm
     end
     program_manager_tool do
       div style: "margin: 1rem 0;" do
+        label(class: "field-label") { "Trust Level:" }
+        select(
+          name: "program[trust_level]",
+          class: "input-field",
+          style: "width: 100%; margin-bottom: 1rem;"
+        ) do
+          Program.trust_levels.each do |key, value|
+            option(
+              value: key,
+              selected: model.trust_level == key
+            ) { key.titleize }
+          end
+        end
+      end
+
+      div style: "margin: 1rem 0;" do
         label(class: "field-label") { "OAuth Scopes:" }
         # Hidden field to ensure empty scopes array is submitted when no checkboxes are checked
         input type: "hidden", name: "program[scopes_array][]", value: ""

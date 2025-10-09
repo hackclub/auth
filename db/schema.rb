@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_09_151000) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_09_204504) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -295,6 +295,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_09_151000) do
     t.datetime "legacy_migrated_at"
     t.string "onboarding_scenario"
     t.integer "promote_click_count", default: 0
+    t.boolean "developer_mode", default: false, null: false
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
     t.index ["legacy_migrated_at"], name: "index_identities_on_legacy_migrated_at"
@@ -461,6 +462,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_09_151000) do
     t.text "program_key_ciphertext"
     t.boolean "active", default: true
     t.integer "trust_level", default: 0, null: false
+    t.bigint "owner_identity_id"
+    t.index ["owner_identity_id"], name: "index_oauth_applications_on_owner_identity_id"
     t.index ["program_key_bidx"], name: "index_oauth_applications_on_program_key_bidx", unique: true
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
   end

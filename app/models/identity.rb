@@ -72,6 +72,8 @@ class Identity < ApplicationRecord
   has_many :all_access_tokens, class_name: "Doorkeeper::AccessToken", foreign_key: :resource_owner_id
   has_many :all_programs, through: :all_access_tokens, source: :application
 
+  has_many :owned_developer_apps, class_name: "Program", foreign_key: :owner_identity_id
+
   validates :first_name, :last_name, :country, :primary_email, :birthday, presence: true
   validates :primary_email, uniqueness: true
   validates :primary_email, 'valid_email_2/email': { mx: true, disposable: true }
