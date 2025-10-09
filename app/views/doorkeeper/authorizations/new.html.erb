@@ -39,6 +39,27 @@
                       <li><span>Verification status:</span> <%= current_identity.verification_status %></li>
                     </ul>
                   </div>
+                <% when "email" %>
+                  <div class="permission-item">
+                    <strong>See your email address</strong>
+                    <ul class="permission-details">
+                      <li><span>Email:</span> <%= current_identity.primary_email %></li>
+                    </ul>
+                  </div>
+                <% when "name" %>
+                  <div class="permission-item">
+                    <strong>See your name</strong>
+                    <ul class="permission-details">
+                      <li><span>Name:</span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
+                    </ul>
+                  </div>
+                <% when "slack_id" %>
+                  <div class="permission-item">
+                    <strong>See your Slack ID</strong>
+                    <ul class="permission-details">
+                      <li><span>Slack ID:</span> <%= current_identity.slack_id || "Not set" %></li>
+                    </ul>
+                  </div>
                 <% else %>
                   <div class="permission-item">
                     <strong><%= t scope, scope: [:doorkeeper, :scopes] %></strong>
