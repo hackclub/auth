@@ -1,6 +1,9 @@
 <%= render Components::Window.new("Identity: #{@identity.first_name} #{@identity.last_name}", close_url: backend_identities_path, max_width: 1000) do %>
   <% break_glass_tool do %>
-    <div style="text-align: right; margin-bottom: 1rem;">
+    <div style="text-align: right; margin-bottom: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+      <% if @identity.slack_id.present? %>
+        <%= button_to "Promote to Full Slack User", promote_to_full_user_backend_identity_path(@identity), method: :post, class: "button", style: "background-color: #059669; border-color: #059669; color: white;" %>
+      <% end %>
       <%= link_to "Edit Identity", edit_backend_identity_path(@identity), class: "button primary", style: "background-color: #dc2626; border-color: #dc2626;" %>
     </div>
   <% end %>

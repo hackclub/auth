@@ -219,6 +219,7 @@ Rails.application.routes.draw do
         post :reprovision_slack
         get :new_vouch
         post :create_vouch
+        post :promote_to_full_user
       end
     end
 

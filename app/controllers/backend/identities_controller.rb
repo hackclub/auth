@@ -138,6 +138,28 @@ module Backend
       end
     end
 
+    def promote_to_full_user
+      authorize @identity
+      
+      unless @identity.slack_id.present?
+        flash[:error] = "Identity has no Slack account to promote"
+        redirect_to backend_identity_path(@identity)
+        return
+      end
+
+      if SlackService.promote_user(@identity.slack_id)
+        @identity.create_activity(
+          :promote_to_full_user,
+          owner: current_user,
+        )
+        flash[:notice] = "Slack user promoted to full member"
+      else
+        flash[:error] = "Failed to promote Slack user"
+      end
+      
+      redirect_to backend_identity_path(@identity)
+    end
+
     private
 
     def set_identity
