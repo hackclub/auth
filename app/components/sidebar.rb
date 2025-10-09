@@ -50,6 +50,7 @@ class Components::Sidebar < Components::Base
     end
     
     items << { label: "Physical Addresses", path: addresses_path, icon: "✉️" }
+    items << { label: "Security", path: security_path, icon: "🔒" }
     
     items
   end

@@ -1,0 +1,18 @@
+<div id="sessions-container" hx-swap-oob="true">
+  <% if @sessions.empty? %>
+    <p class="no-sessions">No active sessions</p>
+  <% else %>
+    <div class="sessions-actions">
+      <button class="secondary"
+              hx-delete="<%= destroy_all_identity_sessions_path %>"
+              hx-target="#sessions-container"
+              hx-confirm="Log out all other sessions?">
+        Log out all other sessions
+      </button>
+    </div>
+
+    <div class="sessions-list">
+      <%= render partial: "identity_session", collection: @sessions %>
+    </div>
+  <% end %>
+</div>

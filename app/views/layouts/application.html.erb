@@ -20,8 +20,9 @@
     <%= vite_client_tag %>
     <%= vite_stylesheet_tag "application.css" %>
     <%= vite_javascript_tag 'application' %>
+    <meta name="htmx-config" content='{"getCacheBusterParam":true}'>
   </head>
-  <body>
+  <body hx-headers='{"X-CSRF-Token": "<%= form_authenticity_token %>"}' hx-boost="false">
   <% if signed_in? %>
   <div class="app-layout">
   <%= render Components::Sidebar.new(current_path: request.path) %>

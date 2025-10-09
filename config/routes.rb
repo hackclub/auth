@@ -236,6 +236,7 @@ Rails.application.routes.draw do
 
   get "/welcome", to: "static_pages#welcome", as: :welcome
   get "/faq", to: "static_pages#faq", as: :faq
+  get "/security", to: "static_pages#security", as: :security
 
   # Login system routes
   resource :sessions, only: [ :new, :create, :destroy ] do
@@ -246,7 +247,11 @@ Rails.application.routes.draw do
     end
   end
 
-  resource :identity, only: [:edit, :update]
+  resource :identity, only: [:edit, :update] do
+    collection do
+      post :toggle_2fa
+    end
+  end
 
   get "/signup", to: "identities#new", defaults: { route_context: "signup" }, as: :signup
   post "/signup", to: "identities#create", defaults: { route_context: "signup" }
@@ -284,6 +289,20 @@ Rails.application.routes.draw do
       get :program_create_address
     end
   end
+
+  resources :identity_sessions, only: [:index, :destroy] do
+    collection do
+      delete :destroy_all
+    end
+  end
+
+  resources :identity_totps, only: [:index, :new, :create, :destroy] do
+    member do
+      post :verify
+    end
+  end
+
+  resources :identity_backup_codes, only: [:index, :create]
 
   namespace :api do
     namespace :v1 do

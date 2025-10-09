@@ -1,0 +1,60 @@
+<div class="session-card <%= 'current-session' if identity_session.id == @current_session&.id %>">
+  <div class="session-header">
+    <div class="session-icon">
+      <%= identity_session.os_info&.include?("Mac") || identity_session.os_info&.include?("iOS") ? "🍎" : 
+          identity_session.os_info&.include?("Windows") ? "🪟" : 
+          identity_session.os_info&.include?("Android") ? "🤖" : 
+          identity_session.os_info&.include?("Linux") ? "🐧" : "💻" %>
+    </div>
+    <div class="session-info">
+      <div class="session-device">
+        <%= identity_session.device_info || "Unknown Device" %>
+        <% if identity_session.id == @current_session&.id %>
+          <span class="current-badge">Current</span>
+        <% end %>
+      </div>
+      <div class="session-os"><%= identity_session.os_info || "Unknown OS" %></div>
+    </div>
+  </div>
+
+  <div class="session-details">
+    <div>
+      <span class="detail-label">IP Address</span>
+      <span><%= identity_session.ip || "Unknown" %></span>
+    </div>
+    <div>
+      <span class="detail-label">Signed in</span>
+      <span><%= identity_session.created_at.strftime("%b %d, %Y at %l:%M %p") %></span>
+    </div>
+    <div>
+      <span class="detail-label">Last active</span>
+      <span><%= time_ago_in_words(identity_session.last_seen || identity_session.created_at) %> ago</span>
+    </div>
+    <div>
+      <span class="detail-label">Expires</span>
+      <span><%= identity_session.expires_at.strftime("%b %d, %Y") %></span>
+    </div>
+    <% if identity_session.login_attempt %>
+      <div>
+        <span class="detail-label">Auth method</span>
+        <span class="<%= 'backup-code-method' if identity_session.login_attempt.authenticated_with_backup_code %>">
+          <% auth_methods = [] %>
+          <% auth_methods << "Email" if identity_session.login_attempt.authenticated_with_email || identity_session.login_attempt.authenticated_with_legacy_email %>
+          <% auth_methods << "SMS" if identity_session.login_attempt.authenticated_with_sms %>
+          <% auth_methods << "TOTP" if identity_session.login_attempt.authenticated_with_totp %>
+          <% auth_methods << "Backup code" if identity_session.login_attempt.authenticated_with_backup_code %>
+          <%= auth_methods.join(", ") %>
+        </span>
+      </div>
+    <% end %>
+  </div>
+  
+  <% if identity_session.id != @current_session&.id %>
+    <button class="danger small-btn"
+            hx-delete="<%= identity_session_path(identity_session) %>"
+            hx-target="#sessions-container"
+            hx-confirm="Log out this session?">
+      Log Out
+    </button>
+  <% end %>
+</div>

@@ -1,0 +1,5 @@
+<% if flash.any? %>
+  <%= render "shared/async_flash", f: flash %>
+<% end %>
+<%= yield %>
+

@@ -162,18 +162,22 @@
     }
 
     button[type="submit"] {
-      background: transparent;
-      border: none;
-      color: var(--pico-muted-color);
-      font-size: 0.875rem;
-      padding: 0.5rem 1rem;
+      background: transparent !important;
+      border: none !important;
+      color: var(--pico-muted-color) !important;
+      font-size: 0.875rem !important;
+      padding: 0.5rem 1rem !important;
       cursor: pointer;
       transition: color 0.15s ease;
-      margin: 0;
+      margin: 0 !important;
+      box-shadow: none !important;
+      transform: none !important;
 
       &:hover {
-        color: var(--pico-color);
-        background: transparent;
+        color: var(--pico-color) !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        transform: none !important;
       }
     }
   }

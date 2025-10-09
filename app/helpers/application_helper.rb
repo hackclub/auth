@@ -22,4 +22,18 @@ module ApplicationHelper
     css_classes = "pointer tooltipped tooltipped--#{tooltip_direction} #{options.delete(:class)}"
     tag.span "data-copy-to-clipboard": clipboard_value, class: css_classes, "aria-label": options.delete(:label) || "click to copy...", **options, &block
   end
+
+  def render_qr_code(data, size: 200)
+    require 'rqrcode'
+    
+    qr = RQRCode::QRCode.new(data)
+    svg = qr.as_svg(
+      color: '000',
+      shape_rendering: 'crispEdges',
+      module_size: 3,
+      standalone: true,
+      viewbox: true
+    )
+    svg.html_safe
+  end
 end

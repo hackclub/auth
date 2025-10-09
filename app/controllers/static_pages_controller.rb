@@ -14,4 +14,7 @@ class StaticPagesController < ApplicationController
   def external_api_docs
     render :external_api_docs, layout: "backend"
   end
+
+  def security
+  end
 end

@@ -1,0 +1,46 @@
+<% if @totp.present? %>
+  <div class="totp-enabled">
+    <div class="totp-status">
+      <span class="status-icon">✅</span>
+      <div class="status-info">
+        <strong>Authenticator App (TOTP)</strong>
+        <p class="status-detail">You can use your authenticator app to sign in.</p>
+      </div>
+      <%= button_to "Remove", 
+          identity_totp_path(@totp), 
+          method: :delete, 
+          class: "danger small-btn",
+          form: { "hx-confirm": "Are you sure? This will remove your authenticator app." } %>
+    </div>
+    
+    <% if current_identity.has_two_factor_method? %>
+      <div class="totp-status" style="margin-top: 1rem;">
+        <div class="status-info" style="flex: 1;">
+          <strong>Require 2FA on login</strong>
+          <p class="status-detail">When enabled, you must use a second factor (authenticator app or backup code) to sign in.</p>
+        </div>
+        <%= button_to current_identity.use_two_factor_authentication? ? "Disable Requirement" : "Enable Requirement",
+            toggle_2fa_identity_path,
+            method: :post,
+            class: current_identity.use_two_factor_authentication? ? "danger small-btn" : "primary small-btn",
+            data: {
+              "hx-post": toggle_2fa_identity_path,
+              "hx-target": "#totp-container",
+              "hx-swap": "innerHTML"
+            } %>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="totp-disabled">
+    <p class="totp-description">Add an extra layer of security by requiring a second factor in addition to your password.</p>
+    <%= link_to "Set up Authenticator App",
+        new_identity_totp_path, 
+        class: "totp-enable-btn",
+        data: { 
+          "hx-get": new_identity_totp_path,
+          "hx-target": "#totp-container",
+          "hx-swap": "innerHTML"
+        } %>
+  </div>
+<% end %>

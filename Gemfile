@@ -127,6 +127,7 @@ gem "saml2", "~> 3.2"
 gem "geocoder", "~> 1.8"
 
 gem "rotp", "~> 6.3"
+gem "rqrcode", "~> 2.0"
 
 gem "bcrypt", "~> 3.1"
 

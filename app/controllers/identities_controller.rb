@@ -219,4 +219,24 @@ class IdentitiesController < ApplicationController
     def identity_params
         params.require(:identity).permit(:first_name, :last_name)
     end
+
+    public
+
+    def toggle_2fa
+        # Can only enable 2FA if at least one 2FA method is set up
+        if !current_identity.has_two_factor_method? && !current_identity.use_two_factor_authentication?
+            flash[:error] = "You must set up a two-factor authentication method before requiring 2FA"
+            redirect_to security_path
+            return
+        end
+
+        current_identity.update!(use_two_factor_authentication: !current_identity.use_two_factor_authentication?)
+
+        @totp = current_identity.totp
+        if request.headers["HX-Request"]
+            render "identity_totps/index", layout: "htmx"
+        else
+            redirect_to security_path, notice: "2FA requirement #{current_identity.use_two_factor_authentication? ? 'enabled' : 'disabled'}"
+        end
+    end
 end

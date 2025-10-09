@@ -1,0 +1,42 @@
+<div class="page-header">
+  <h1>Security</h1>
+</div>
+
+<div class="security-sections">
+  <section class="security-section">
+    <h3>Two-Factor Authentication</h3>
+    <div 
+      id="totp-container" 
+      hx-get="<%= identity_totps_path %>" 
+      hx-trigger="load"
+      hx-swap="innerHTML"
+    >
+      <p class="loading-text">Loading...</p>
+    </div>
+    <!-- Future: Add SMS 2FA section here -->
+  </section>
+
+  <section class="security-section">
+    <h3>Backup Codes</h3>
+    <div 
+      id="backup-codes-container" 
+      hx-get="<%= identity_backup_codes_path %>" 
+      hx-trigger="load"
+      hx-swap="innerHTML"
+    >
+      <p class="loading-text">Loading...</p>
+    </div>
+  </section>
+
+  <section class="security-section">
+    <h3>Active Sessions</h3>
+    <div 
+      id="sessions-container" 
+      hx-get="<%= identity_sessions_path %>" 
+      hx-trigger="load"
+      hx-swap="innerHTML"
+    >
+      <p class="loading-text">Loading sessions...</p>
+    </div>
+  </section>
+</div>

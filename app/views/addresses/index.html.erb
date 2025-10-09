@@ -40,7 +40,7 @@
             <%= button_to "Make Primary", address_path(address, make_primary: true), method: :patch %>
           <% end %>
           <%= button_to "Delete", address, method: :delete,
-                        data: { confirm: "Are you sure you want to delete this address?" },
+                        form: { "hx-confirm": "Are you sure you want to delete this address?" },
                         class: "secondary danger" %>
         </div>
       </article>

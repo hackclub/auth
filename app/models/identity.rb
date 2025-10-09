@@ -290,6 +290,26 @@ class Identity < ApplicationRecord
 
   def backup_codes_enabled? = backup_codes.active.any?
 
+  # Generic 2FA method helpers
+  def two_factor_methods
+    [
+      totps.verified,
+      # Future: sms_two_factors.verified,
+    ].flatten.compact
+  end
+
+  def has_two_factor_method?
+    two_factor_methods.any?
+  end
+
+  def primary_two_factor_method
+    two_factor_methods.first
+  end
+
+  def requires_two_factor?
+    use_two_factor_authentication? && has_two_factor_method?
+  end
+
   def legacy_migrated? = legacy_migrated_at.present?
 
   def suggested_aadhaar_password

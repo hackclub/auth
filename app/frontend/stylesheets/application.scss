@@ -20,6 +20,7 @@ $theme-color: "lime";
 @import "./snippets/skeumorphic.scss";
 @import "./snippets/banners.scss";
 @import "./snippets/admin_tools.scss";
+@import "./snippets/buttons.scss";
 @import "./snippets/forms.scss";
 @import "./snippets/brand.scss";
 @import "./snippets/borders.scss";
@@ -34,58 +35,7 @@ $theme-color: "lime";
 @import "./snippets/addresses.scss";
 @import "./snippets/profile_completion.scss";
 @import "./snippets/verifications.scss";
-
-// Refined skeumorphic styling
-button:not([role="button"]),
-input[type="submit"],
-input[type="button"],
-[role="button"] {
-  box-shadow: 
-    0 2px 6px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    @include shadow-raised-hover;
-  }
-  
-  &:active:not(:disabled) {
-    transform: translateY(0);
-    @include shadow-pressed;
-  }
-
-  &.secondary {
-    background: var(--pico-background-color) !important;
-    color: var(--pico-color) !important;
-    box-shadow: none !important;
-    border: 1px solid var(--pico-muted-border-color) !important;
-
-    &:hover:not(:disabled) {
-      background: var(--pico-card-background-color) !important;
-      border-color: var(--pico-primary) !important;
-      color: var(--pico-color) !important;
-      transform: none;
-      box-shadow: none !important;
-    }
-
-    &:active:not(:disabled) {
-      color: var(--pico-color) !important;
-    }
-  }
-
-  &.danger {
-    background: #ef4444;
-    border-color: #ef4444;
-    color: white;
-
-    &:hover:not(:disabled) {
-      background: #dc2626;
-      border-color: #dc2626;
-    }
-  }
-}
+@import "./snippets/security.scss";
 
 input[type="text"],
 input[type="email"],
@@ -110,4 +60,26 @@ textarea {
 article,
 [role="article"] {
   @include shadow-card;
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
 }

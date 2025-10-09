@@ -1,0 +1,45 @@
+<% if @backup_codes.any? %>
+  <div class="backup-codes-section">
+    <% if @newly_generated_codes.present? %>
+      <div class="backup-codes-display">
+        <h4>Your Backup Codes</h4>
+        <%= render Components::Banner.new(kind: :warning) do %>
+          <b>Save these codes now!</b> <br/>
+          You won't be able to see them again. Each code can only be used once.
+        <% end %>
+        <div class="codes-grid">
+          <% @newly_generated_codes.each do |code| %>
+            <code class="backup-code"><%= code %></code>
+          <% end %>
+        </div>
+        <button onclick="navigator.clipboard.writeText('<%= @newly_generated_codes.join('\n') %>')">
+          Copy All Codes
+        </button>
+      </div>
+    <% else %>
+      <div class="backup-codes-status">
+        <div class="status-info">
+          <strong>Backup Codes</strong>
+          <p class="status-detail">
+            You have <%= pluralize(@backup_codes.count, 'backup code') %> available.
+            Each code can be used once if you lose access to your authenticator app.
+          </p>
+        </div>
+        <%= button_to "Regenerate Codes",
+            identity_backup_codes_path,
+            method: :post,
+            class: "primary small-btn",
+            data: {
+              "hx-confirm": "This will invalidate your current backup codes. Are you sure?",
+              "hx-post": identity_backup_codes_path,
+              "hx-target": "#backup-codes-container",
+              "hx-swap": "innerHTML"
+            } %>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="backup-codes-empty">
+    <p>No backup codes available. Set up TOTP first to generate backup codes.</p>
+  </div>
+<% end %>

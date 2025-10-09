@@ -1,29 +1,8 @@
 class Identity::TOTP < ApplicationRecord
   ISSUER = "HC_IDp_#{Rails.env}"
 
-  acts_as_paranoid
+  include TwoFactorAuthenticatable
 
-  include AASM
-
-  aasm do
-    state :unverified, initial: true
-    state :verified
-    state :expired
-
-    event :mark_verified do
-      transitions from: :unverified, to: :verified do
-        guard do
-          created_at > 15.minutes.ago
-        end
-      end
-    end
-
-    event :mark_expired do
-      transitions from: :verified, to: :expired
-    end
-  end
-
-  belongs_to :identity
   has_encrypted :secret
   validates :secret, presence: true
 
@@ -34,10 +13,24 @@ class Identity::TOTP < ApplicationRecord
     self.secret ||= ROTP::Base32.random
   end
 
-  delegate :verify, to: :instance
+  def verify_code(code, drift_behind: 30, drift_ahead: 30)
+    instance.verify(code, drift_behind: drift_behind, drift_ahead: drift_ahead)
+  end
+
+  def verify(code, **options)
+    verify_code(code, **options)
+  end
 
   def provisioning_uri
-    instance.provisioning_uri(user.email)
+    instance.provisioning_uri(identity.primary_email)
+  end
+
+  def method_name
+    "Authenticator App (TOTP)"
+  end
+
+  def method_icon
+    "📱"
   end
 
   private

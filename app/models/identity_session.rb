@@ -4,6 +4,7 @@ class IdentitySession < ApplicationRecord
   blind_index :session_token
 
   belongs_to :identity
+  has_one :login_attempt, foreign_key: :session_id
 
   include PublicActivity::Model
   tracked owner: proc{ |controller, record| record.identity }, recipient: proc { |controller, record| record.identity }, only: [:create]

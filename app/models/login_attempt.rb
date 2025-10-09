@@ -84,7 +84,8 @@ class LoginAttempt < ApplicationRecord
   private
 
   def required_authentication_factors_count
-    if identity.use_two_factor_authentication?
+    # Require 2FA if enabled AND at least one 2FA method is configured
+    if identity.requires_two_factor?
       2
     else
       1
