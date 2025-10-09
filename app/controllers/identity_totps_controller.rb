@@ -25,7 +25,7 @@ class IdentityTotpsController < ApplicationController
     @totp = current_identity.totps.find(params[:id])
     code = params[:code]
     
-    if @totp.verify(code, drift_behind: 30, drift_ahead: 30)
+    if @totp.verify(code, drift_behind: 1, drift_ahead: 1)
       @totp.mark_verified!
       
       # Generate backup codes if this is their first 2FA method
