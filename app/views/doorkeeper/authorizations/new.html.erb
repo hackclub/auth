@@ -2,6 +2,21 @@
   <div class="auth-card oauth-consent">
     <header>
       <h1><%= session.dig(:stashed_data, "splash_message") || "Continue to #{@pre_auth.client.name}?" %></h1>
+      <% application = Program.find_by(uid: @pre_auth.client.uid) %>
+      <% case application&.trust_level %>
+      <% when "community_untrusted" %>
+        <%= render Components::Banner.new(kind: :warning) do %>
+          <strong>Community Application</strong><br/>
+          This application is created by a community member and has not been officially verified by Hack Club HQ. <br/>
+          Make sure you trust the author with the information below
+        <% end %>
+      <% when "community_trusted" %>
+        <%= render Components::Banner.new(kind: :info) do %>
+          <strong>Community Application</strong> <br/>
+          This application is created by a community member. <br/>
+          Hack Club HQ has reviewed it, but please make sure you trust the author with the information below.
+        <% end %>
+      <% end %>
       <small>
         <%= raw t('.prompt', client_name: content_tag(:strong) { @pre_auth.client.name }) %>
       </small>

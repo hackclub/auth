@@ -26,6 +26,8 @@ class Program < ApplicationRecord
 
   include ::Doorkeeper::Orm::ActiveRecord::Mixins::Application
 
+  enum :trust_level, { hq_official: 0, community_untrusted: 1, community_trusted: 2 }, default: :hq_official
+
   AVAILABLE_SCOPES = [
     { name: "basic_info", description: "See basic information about you (email, name, verification status)" },
     { name: "legal_name", description: "See your legal name" },

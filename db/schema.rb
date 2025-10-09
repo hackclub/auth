@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_08_045214) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_09_151000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -460,6 +460,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_08_045214) do
     t.string "program_key_bidx"
     t.text "program_key_ciphertext"
     t.boolean "active", default: true
+    t.integer "trust_level", default: 0, null: false
     t.index ["program_key_bidx"], name: "index_oauth_applications_on_program_key_bidx", unique: true
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
   end
