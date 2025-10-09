@@ -157,7 +157,7 @@ en:
       no_email_change_yet: Changing your email will be available in a future release.
     new:
       already_have: Already have a Hack Club account?
-      log_in: Log in!
+      log_in: Log in here
       not_necessarily_legal_name: not necessarily your legal name, what do people usually call you?
       email_code: We'll send a one-time code to this address.
       continue: Continue
@@ -202,6 +202,13 @@ en:
       title: SAMLing...
       text: Logging you in...
   static_pages:
+    welcome:
+      title: Hack Club Account
+      subtitle: One account for Slack, Hack Club, and beyond.
+      cta_create: Create Your Account →
+      cta_signin: Sign In
+      security_link: Security
+      faq_link: FAQ
     security:
       heading: Security
       sessions: Active sessions

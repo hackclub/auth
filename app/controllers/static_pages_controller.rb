@@ -6,6 +6,7 @@ class StaticPagesController < ApplicationController
   end
 
   def welcome
+    render layout: "logged_out"
   end
 
   def faq

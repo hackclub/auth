@@ -18,52 +18,81 @@ input[type="button"],
     @include shadow-pressed;
   }
 
-  // Secondary button variant
-  &.secondary {
-    background: #6b7280 !important;
-    color: white !important;
-    border: 1px solid #6b7280 !important;
+  // Secondary button variant (skeumorphic style)
+  &.secondary,
+  &.outline {
+    background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%) !important;
+    color: #555 !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 
+      0 2px 6px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.05) !important;
+    
+    [data-theme="dark"] & {
+      background: linear-gradient(180deg, #2a2a2a 0%, #242424 100%) !important;
+      color: #d0d0d0 !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.3) !important;
+    }
 
     &:hover:not(:disabled) {
-      background: #4b5563 !important;
-      border-color: #4b5563 !important;
-      color: white !important;
+      background: linear-gradient(180deg, #fff 0%, #fcfcfc 100%) !important;
+      border-color: rgba(0, 0, 0, 0.15) !important;
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.05) !important;
+      
+      [data-theme="dark"] & {
+        background: linear-gradient(180deg, #333 0%, #2a2a2a 100%) !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
+        box-shadow: 
+          0 4px 12px rgba(0, 0, 0, 0.5),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1),
+          inset 0 -1px 1px rgba(0, 0, 0, 0.3) !important;
+      }
     }
 
     &:active:not(:disabled) {
-      background: #374151 !important;
-      border-color: #374151 !important;
-      color: white !important;
-    }
-    
-    [data-theme="dark"] & {
-      background: #9ca3af !important;
-      border-color: #9ca3af !important;
-      color: #1a1d23 !important;
+      box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.15),
+        inset 0 1px 3px rgba(0, 0, 0, 0.12) !important;
       
-      &:hover:not(:disabled) {
-        background: #d1d5db !important;
-        border-color: #d1d5db !important;
-        color: #1a1d23 !important;
-      }
-      
-      &:active:not(:disabled) {
-        background: #e5e7eb !important;
-        border-color: #e5e7eb !important;
-        color: #1a1d23 !important;
+      [data-theme="dark"] & {
+        box-shadow: 
+          inset 0 3px 6px rgba(0, 0, 0, 0.5),
+          inset 0 1px 3px rgba(0, 0, 0, 0.4) !important;
       }
     }
   }
 
-  // Danger button variant
+  // Danger button variant (skeumorphic style)
   &.danger {
-    background: #ef4444;
-    border-color: #ef4444;
-    color: white;
+    background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%) !important;
+    border: 1px solid #991b1b !important;
+    color: white !important;
+    box-shadow: 
+      0 2px 6px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.2) !important;
 
     &:hover:not(:disabled) {
-      background: #dc2626;
-      border-color: #dc2626;
+      background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%) !important;
+      border-color: #991b1b !important;
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    &:active:not(:disabled) {
+      box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 3px rgba(0, 0, 0, 0.2) !important;
     }
   }
 }
