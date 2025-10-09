@@ -246,6 +246,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resource :identity, only: [:edit, :update]
+
   get "/signup", to: "identities#new", defaults: { route_context: "signup" }, as: :signup
   post "/signup", to: "identities#create", defaults: { route_context: "signup" }
   get "/migrate", to: "identities#new", defaults: { route_context: "migrate" }, as: :migrate

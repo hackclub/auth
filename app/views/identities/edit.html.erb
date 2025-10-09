@@ -1,0 +1,63 @@
+<div class="page-header">
+  <h1>My Info</h1>
+</div>
+
+
+<div style="margin-bottom: 1.5rem;">
+  <h3>Account</h3>
+
+  <div style="margin-bottom: 1rem;">
+    <label>Account ID</label>
+    <div>
+      <%= copy_to_clipboard @identity.public_id, tooltip_direction: "e", label: "click to copy your account ID..." do %>
+        <code class="pointer"><%= @identity.public_id %></code>
+      <% end %>
+      <small class="usn">click to copy!</small>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 1rem;">
+    
+  </div>
+</div>
+
+<%= form_with model: @identity, url: identity_path, method: :patch, local: true do |f| %>
+  <% if @identity.errors.any? %>
+    <div class="banner danger" aria-live="polite">
+      <h4 style="color: var(--error-fg);"><%= pluralize(@identity.errors.count, "issue") %> prevented this from being saved:</h4>
+      <ul>
+        <% @identity.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid">
+    <div>
+      <%= f.label :first_name, "First name" %>
+      <%= f.text_field :first_name, required: true, placeholder: "Fiona" %>
+    </div>
+
+    <div>
+      <%= f.label :last_name, "Last name" %>
+      <%= f.text_field :last_name, required: true, placeholder: "Hackworth" %>
+    </div>
+  </div>
+
+  <% if @identity.legal_first_name.present? && @identity.legal_last_name.present? %>
+    <div class="banner info" style="margin-top: 1rem;">
+      We also have a different legal name on file. Please contact support if you need to change it.
+    </div>
+  <% end %>
+
+  <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: flex-start;">
+    <%= f.submit "Save Changes", style: "width: auto; margin: 0;" %>
+  </div>
+<% end %>
+
+<div style="margin-top: 1.5rem;">
+  <label>Email</label>
+  <%= text_field_tag :primary_email, @identity.primary_email, readonly: true %>
+  <small class="usn">Changing your email will be available in a future release.</small>
+</div>

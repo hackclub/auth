@@ -64,6 +64,30 @@ class VerificationsController < ApplicationController
     @document = Identity::Document.new(document_params)
     @document.identity = @identity
 
+    # Update legal name if different from preferred name
+    legal_first = params[:legal_first_name]
+    legal_last = params[:legal_last_name]
+    
+    if legal_first.present? && legal_last.present?
+      # Only save legal name if it's different from preferred name
+      if legal_first != @identity.first_name || legal_last != @identity.last_name
+        @identity.legal_first_name = legal_first
+        @identity.legal_last_name = legal_last
+      else
+        # If same as preferred name, clear legal name fields
+        @identity.legal_first_name = nil
+        @identity.legal_last_name = nil
+      end
+      
+      unless @identity.save
+        @is_resubmission = @identity.needs_resubmission?
+        @rejected_verifications = @identity.rejected_verifications_needing_resubmission if @is_resubmission
+        @document.errors.add(:base, "Legal name: #{@identity.errors.full_messages.join(', ')}")
+        render_wizard
+        return
+      end
+    end
+
     # Update Aadhaar number if provided (for India)
     if params[:aadhaar_number].present?
       @identity.aadhaar_number = params[:aadhaar_number]

@@ -37,6 +37,21 @@
                   "x-on:submit" => "submitted = true"
                 } do |form| %>
     
+    <div class="legal-name-section" style="margin-bottom: 2rem;">
+      <h3>Name verification</h3>
+      <p><small>Please enter your name as it appears on your legal documents.<br/> This will not overwrite your preferred name.</small></p>
+      <div class="grid">
+        <div>
+          <%= label_tag "legal_first_name", "Legal first name" %>
+          <%= text_field_tag "legal_first_name", @identity.legal_first_name.presence || @identity.first_name, required: true %>
+        </div>
+        <div>
+          <%= label_tag "legal_last_name", "Legal last name" %>
+          <%= text_field_tag "legal_last_name", @identity.legal_last_name.presence || @identity.last_name, required: true %>
+        </div>
+      </div>
+    </div>
+
     <div class="requirements-section">
       <h2>What we accept</h2>
       

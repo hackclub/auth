@@ -7,6 +7,19 @@ class IdentitiesController < ApplicationController
     before_action :ensure_migration_token_present, only: [ :new, :create ]
     before_action :ensure_no_user!, only: [ :new, :create ]
 
+    def edit
+        @identity = current_identity
+    end
+
+    def update
+        @identity = current_identity
+        if @identity.update(identity_params)
+            redirect_to edit_identity_path, notice: "Profile updated successfully!"
+        else
+            render :edit
+        end
+    end
+
     def new
         @prefill_attributes = scenario_prefill_attributes
         # Allow email to be prefilled from login redirect
@@ -201,5 +214,9 @@ class IdentitiesController < ApplicationController
             redirect_to signup_path(return_to: @return_to)
             return
         end
+    end
+
+    def identity_params
+        params.require(:identity).permit(:first_name, :last_name)
     end
 end

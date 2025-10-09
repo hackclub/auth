@@ -35,6 +35,8 @@ class Components::Sidebar < Components::Base
       { label: "Home", path: root_path, icon: "🏠" }
     ]
     
+    items << { label: "My Info", path: edit_identity_path, icon: "👤" }
+    
     # Add verification link if user needs to submit or resubmit
     if current_identity.present?
       status = current_identity.verification_status

@@ -12,7 +12,10 @@ $theme-color: "lime";
 }
 
 [x-cloak] { display: none !important; }
-
+.pointer { cursor: pointer; }
+.usn {
+  user-select: none;
+}
 @import "./colors.css";
 @import "./snippets/skeumorphic.scss";
 @import "./snippets/banners.scss";
