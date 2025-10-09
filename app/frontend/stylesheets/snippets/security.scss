@@ -177,22 +177,49 @@
 }
 
 .session-card {
-  background: #f9fafb;
-  border-radius: 10px;
-  padding: 1.25rem;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
   border: 1px solid #e5e7eb;
+  @include shadow-card;
+  transition: all 0.2s ease;
   
   [data-theme="dark"] & {
-    background: #1f2937;
-    border-color: #374151;
+    background: #252932;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      0 1px 4px rgba(0, 0, 0, 0.2);
   }
   
   &.current-session {
-    background: color-mix(in srgb, var(--pico-primary) 5%, #f9fafb 95%);
-    border-color: var(--pico-primary);
+    background: linear-gradient(135deg, #f7fee7, #ecfccb);
+    border-color: #84cc16;
+    border-width: 1px;
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.08),
+      0 1px 4px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
     
     [data-theme="dark"] & {
-      background: color-mix(in srgb, var(--pico-primary) 10%, #1f2937 90%);
+      background: linear-gradient(135deg, rgba(132, 204, 22, 0.15), rgba(132, 204, 22, 0.08));
+      border-color: var(--pico-primary);
+      box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.1),
+      0 2px 6px rgba(0, 0, 0, 0.06);
+    
+    [data-theme="dark"] & {
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        0 2px 6px rgba(0, 0, 0, 0.3);
     }
   }
 }
@@ -224,13 +251,25 @@
   display: inline-block;
   font-size: 0.7rem;
   font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  background: var(--pico-primary);
-  color: white;
+  padding: 0.25rem 0.6rem;
+  background: #84cc16;
+  color: #1a1d23;
   border-radius: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
   margin-left: 0.5rem;
+  float: right;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  
+  [data-theme="dark"] & {
+    background: var(--pico-primary);
+    color: #1a1d23;
+    box-shadow: 
+      0 1px 3px rgba(132, 204, 22, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
 }
 
 .session-os {
