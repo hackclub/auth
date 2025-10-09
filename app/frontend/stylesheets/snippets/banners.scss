@@ -23,7 +23,7 @@
     border: 1px solid $border-color;
     color: $fg-color;
 
-    & > ul {
+    & > ul, p {
         color: $list-fg-color;
         & > li {
             color: $list-fg-color;
@@ -53,6 +53,7 @@
 
 .banner {
     @include banner-base;
+    text-align: left;
 
     &.warning {
         @include banner-warning;
