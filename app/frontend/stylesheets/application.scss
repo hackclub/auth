@@ -17,7 +17,10 @@ $theme-color: "lime";
   user-select: none;
 }
 @import "./colors.css";
+@import "./snippets/tokens";
+@import "./snippets/breakpoints";
 @import "./snippets/skeumorphic.scss";
+@import "./snippets/utilities";
 @import "./snippets/banners.scss";
 @import "./snippets/admin_tools.scss";
 @import "./snippets/buttons.scss";

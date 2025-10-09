@@ -56,13 +56,10 @@
   }
 
   .profile-task {
+    @include card($padding: 1rem, $radius: $radius-md, $shadow: false);
     display: flex;
     align-items: center;
     gap: 0.875rem;
-    padding: 1rem;
-    background: var(--pico-card-background-color);
-    border: 1px solid var(--pico-card-border-color);
-    border-radius: 8px;
     text-decoration: none;
     color: var(--pico-color);
     transition: border-color 0.15s ease;
@@ -127,7 +124,7 @@
   }
 }
 
-@media (max-width: 640px) {
+@include down(640px) {
   .profile-completion {
     padding: 1.25rem;
 
@@ -141,7 +138,7 @@
 
     .profile-task {
       padding: 0.875rem;
-      gap: 0.75rem;
+      gap: $space-2;
 
       .task-icon {
         width: 36px;

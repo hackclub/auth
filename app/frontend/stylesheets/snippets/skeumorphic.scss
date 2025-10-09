@@ -101,3 +101,58 @@
   align-items: center;
   justify-content: center;
 }
+
+@mixin transition-default($props: all) {
+  transition: $props $transition-fast;
+}
+
+@mixin container($max: 1280px) {
+  max-width: $max;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+  
+  @include up($bp-sm) {
+    padding: 0 1.5rem;
+  }
+  
+  @include up($bp-lg) {
+    padding: 0 2rem;
+  }
+}
+
+@mixin card($padding: 1.5rem, $radius: $radius-lg, $shadow: true, $border: var(--pico-card-border-color)) {
+  background: var(--pico-card-background-color);
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: $padding;
+  
+  @if $shadow {
+    @include shadow-card;
+  }
+}
+
+@mixin section-card {
+  @include card(2rem, $radius-lg);
+}
+
+@mixin badge($bg, $fg, $radius: 6px) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: $radius;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: $bg;
+  color: $fg;
+}
+
+@mixin page-title($size: 1.25rem, $mb: 1.25rem) {
+  font-size: $size;
+  font-weight: 600;
+  margin: 0 0 $mb;
+  color: var(--pico-color);
+}

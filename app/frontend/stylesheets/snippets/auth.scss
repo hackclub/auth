@@ -6,63 +6,37 @@
   justify-content: center;
   min-height: 100vh;
   padding: 2rem 1rem;
-  background: #f5f7fa;
-  
-  [data-theme="dark"] & {
-    background: #1a1d23;
-  }
+  background: var(--pico-background-color);
 }
 
 .auth-card {
+  @include card($padding: $space-8 $space-6, $radius: $radius-lg);
   width: 100%;
   max-width: 640px;
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 3rem 2.75rem;
-  box-shadow: 
-    0 8px 24px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  
-  [data-theme="dark"] & {
-    background: #252932;
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 
-      0 8px 24px rgba(0, 0, 0, 0.3),
-      0 2px 8px rgba(0, 0, 0, 0.2);
-  }
   
   header {
     text-align: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: $space-7;
     
     h1 {
       font-size: 1.85rem;
       font-weight: 600;
       margin: 0 0 0.75rem;
-      color: #1a1d23;
+      color: var(--text-strong);
       letter-spacing: -0.02em;
-      
-      [data-theme="dark"] & {
-        color: #f5f7fa;
-      }
     }
     
     small {
       font-size: 0.95rem;
-      color: #6b7280;
+      color: var(--text-muted-strong);
       display: block;
       line-height: 1.5;
-      
-      [data-theme="dark"] & {
-        color: #9ca3af;
-      }
       
       a {
         color: var(--pico-primary);
         text-decoration: none;
         font-weight: 500;
+        @include transition-default(color);
         
         &:hover {
           color: var(--pico-primary-hover);
@@ -80,13 +54,9 @@
     legend {
       font-size: 0.95rem;
       font-weight: 600;
-      color: #374151;
-      margin-bottom: 1.25rem;
+      color: var(--pico-color);
+      margin-bottom: $space-4;
       padding: 0;
-      
-      [data-theme="dark"] & {
-        color: #d1d5db;
-      }
     }
     
     label {
@@ -94,40 +64,25 @@
       font-weight: 500;
       margin-bottom: 0.625rem;
       display: block;
-      color: #374151;
-      
-      [data-theme="dark"] & {
-        color: #d1d5db;
-      }
+      color: var(--pico-color);
     }
     
     input, select, textarea {
-      margin-bottom: 0.5rem;
-      border-radius: 8px;
-      background: #f9fafb;
+      margin-bottom: $space-1;
+      border-radius: $radius-md;
+      background: var(--surface-2);
+      @include transition-default(background);
       
       &:focus {
-        background: #ffffff;
-      }
-      
-      [data-theme="dark"] & {
-        background: #1f2937;
-        
-        &:focus {
-          background: #252932;
-        }
+        background: var(--surface-1);
       }
     }
     
     small {
       font-size: 0.85rem;
-      color: #6b7280;
+      color: var(--text-muted-strong);
       margin-top: 0.375rem;
       display: block;
-      
-      [data-theme="dark"] & {
-        color: #9ca3af;
-      }
     }
   }
   
@@ -138,7 +93,7 @@
   button[type="submit"],
   input[type="submit"] {
     width: 100%;
-    margin-top: 0.5rem;
+    margin-top: $space-1;
     font-weight: 600;
     font-size: 1rem;
     border: none;
@@ -146,28 +101,21 @@
   
   footer {
     text-align: center;
-    margin-top: 2.5rem;
-    padding-top: 2rem;
-    border-top: 1px solid #e5e7eb;
-    
-    [data-theme="dark"] & {
-      border-top-color: #374151;
-    }
+    margin-top: $space-7;
+    padding-top: $space-6;
+    border-top: 1px solid var(--surface-2-border);
     
     p {
-      margin: 0.5rem 0;
+      margin: $space-1 0;
       font-size: 0.9rem;
-      color: #6b7280;
-      
-      [data-theme="dark"] & {
-        color: #9ca3af;
-      }
+      color: var(--text-muted-strong);
     }
     
     a {
       color: var(--pico-primary);
       text-decoration: none;
       font-weight: 500;
+      @include transition-default(color);
       
       &:hover {
         color: var(--pico-primary-hover);

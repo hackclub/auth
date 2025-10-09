@@ -7,17 +7,16 @@
   font-size: 0.875rem;
   color: var(--pico-muted-color);
 
-  @media (min-width: 768px) {
+  @include up(768px) {
     padding: 2rem 2rem;
   }
 
-  @media (min-width: 1024px) {
+  @include up(1024px) {
     padding: 2rem 2.5rem;
   }
 
   .footer-content {
-    max-width: 1280px;
-    margin: 0 auto;
+    @include container(1280px);
     display: flex;
     justify-content: space-between;
     align-items: baseline;
@@ -57,30 +56,20 @@
   }
 
   .environment-badge {
-    display: inline-block;
-    padding: 0.2rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-
     &.development {
-      background-color: var(--pico-color-amber-300);
-      color: var(--pico-color-amber-950);
+      @include badge(var(--pico-color-amber-300), var(--pico-color-amber-950));
     }
 
     &.staging {
-      background-color: var(--pico-color-purple-500);
-      color: white;
+      @include badge(var(--pico-color-purple-500), white);
     }
 
     &.production {
-      background-color: var(--pico-color-green-600);
-      color: white;
+      @include badge(var(--pico-color-green-600), white);
     }
   }
 
-  @media (max-width: 768px) {
+  @include down(768px) {
     .footer-content {
       flex-direction: column;
       align-items: flex-start;

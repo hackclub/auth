@@ -6,7 +6,7 @@
   position: relative;
 }
 
-@media (min-width: 56em) {
+@include up(56em) {
   .tooltipped {
     &:after {
       background-color: var(--bg-secondary);

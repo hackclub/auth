@@ -1,42 +1,24 @@
 .info-sections {
   max-width: 900px;
-  margin: 2rem auto 0;
+  margin: $space-6 auto 0;
 }
 
 .info-section {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.06),
-    0 1px 4px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  
-  [data-theme="dark"] & {
-    background: #252932;
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 
-      0 2px 8px rgba(0, 0, 0, 0.3),
-      0 1px 4px rgba(0, 0, 0, 0.2);
-  }
+  @include section-card;
+  margin-bottom: $space-5;
   
   h3 {
     font-size: 1.25rem;
     font-weight: 600;
-    margin: 0 0 1.25rem;
-    color: #1a1d23;
-    
-    [data-theme="dark"] & {
-      color: #f5f7fa;
-    }
+    margin: 0 0 $space-4;
+    color: var(--text-strong);
   }
 }
 
 .developer-mode-toggle {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: $space-2;
   cursor: pointer;
   
   input[type="checkbox"] {
@@ -44,24 +26,20 @@
   }
   
   span {
-    color: #6b7280;
+    color: var(--text-muted-strong);
     font-size: 0.95rem;
-    
-    [data-theme="dark"] & {
-      color: #9ca3af;
-    }
   }
 }
 
 .form-actions {
-  margin-top: 1.5rem;
+  margin-top: $space-5;
   display: flex;
-  gap: 1rem;
+  gap: $space-3;
   align-items: center;
   
   button, input[type="submit"] {
     width: auto !important;
     margin: 0 !important;
-    padding: 0.5rem 1.5rem !important;
+    padding: $space-1 $space-5 !important;
   }
 }
