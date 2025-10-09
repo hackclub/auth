@@ -75,7 +75,7 @@ class Program < ApplicationRecord
 
   def scopes_array
     return [] if scopes.blank?
-    scopes.split(" ").reject(&:blank?)
+    scopes.to_a
   end
 
   def scopes_array=(array)

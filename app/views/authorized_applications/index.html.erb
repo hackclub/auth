@@ -1,0 +1,9 @@
+<div id="authorized-apps-container" hx-swap-oob="true">
+  <% if @access_tokens.empty? %>
+    <p class="no-sessions">No authorized applications</p>
+  <% else %>
+    <div class="sessions-list">
+      <%= render partial: "authorized_application", collection: @access_tokens, as: :access_token %>
+    </div>
+  <% end %>
+</div>
