@@ -133,4 +133,6 @@ gem "bcrypt", "~> 3.1"
 
 gem "rack-attack", "~> 6.7"
 
+gem "browser", "~> 6.0"
+
 gem "slocks", "~> 0.1.0"

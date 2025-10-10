@@ -26,6 +26,11 @@ class LoginsController < ApplicationController
             provenance: "login",
             next_action: "home"
         )
+        
+        # Store fingerprint info in session for later use
+        fp_info = fingerprint_info
+        Rails.logger.info "Fingerprint info: #{fp_info.inspect}"
+        session[:fingerprint_info] = fp_info
 
         # Set browser token cookie for security
         cookies.signed["browser_token_#{attempt.to_param}"] = {
@@ -192,10 +197,18 @@ class LoginsController < ApplicationController
     end
 
     def fingerprint_info
+        browser_info = Browser.new(request.user_agent)
+        
+        # Parse browser with version
+        browser = "#{browser_info.name} #{browser_info.full_version}"
+        
+        # Parse OS with version
+        os = "#{browser_info.platform.name} #{browser_info.platform.version}"
+        
         {
             fingerprint: params[:fingerprint],
-            device_info: params[:device_info],
-            os_info: params[:os_info],
+            device_info: browser,
+            os_info: os,
             timezone: params[:timezone],
             ip: request.remote_ip
         }
