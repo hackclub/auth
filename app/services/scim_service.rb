@@ -40,6 +40,21 @@ module SCIMService
         error_msg = response.body.dig("Errors", 0, "description") || response.body["detail"] || "Unknown error"
         Rails.logger.error "Failed to create Slack user: #{error_msg}. Full response: #{response.body.inspect}"
         
+        # Check if user already exists but wasn't found by email lookup
+        if error_msg.include?("already") || error_msg.include?("duplicate") || error_msg.include?("exists")
+          # Try to find the existing user by email using SCIM
+          existing_user = find_existing_user_by_email(identity.primary_email)
+          if existing_user
+            Rails.logger.info "Found existing Slack user via SCIM for #{identity.primary_email}: #{existing_user}"
+            return {
+              success: true,
+              slack_id: existing_user,
+              created: false,
+              message: "Linked existing Slack account (found via SCIM)"
+            }
+          end
+        end
+        
         return {
           success: false,
           error: error_msg,
@@ -75,6 +90,17 @@ module SCIMService
     end
 
     def scim_token = ENV["SLACK_SCIM_TOKEN"] || raise("SLACK_SCIM_TOKEN not configured")
+
+    def find_existing_user_by_email(email)
+      response = client.get("Users") do |req|
+        req.params["filter"] = "emails eq \"#{email}\""
+      end
+      
+      response.body.dig("Resources", 0, "id")
+    rescue => e
+      Rails.logger.warn "Error finding existing user by email via SCIM: #{e.message}"
+      nil
+    end
 
     private
 

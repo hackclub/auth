@@ -10,7 +10,7 @@
 
 <% if @apps.any? %>
   <% @apps.each do |app| %>
-    <section class="security-section" style="margin-bottom: 1rem;">
+    <section class="section-card" style="margin-bottom: 1rem;">
       <div style="display: flex; justify-content: space-between; align-items: flex-start;">
         <div>
           <h3 style="margin: 0 0 0.5rem 0;"><%= link_to app.name, developer_app_path(app) %></h3>

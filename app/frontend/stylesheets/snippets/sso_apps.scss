@@ -35,16 +35,11 @@
 }
 
 .sso-app-card {
-  @include card(1.75rem, $radius-lg);
-  @include transition-default(all);
+  @include card($padding: 1.75rem, $radius: $radius-lg);
   display: flex;
   flex-direction: column;
-  height: 100%;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  margin: 0;
-
+  @include transition-default();
+  
   &:hover {
     transform: translateY(-2px);
     box-shadow: 

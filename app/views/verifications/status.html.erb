@@ -5,7 +5,7 @@
 <div class="verification-sections">
   <% case @status %>
   <% when "pending" %>
-    <section class="verification-section">
+    <section class="section-card">
       <div class="status-indicator">
         <span class="status-badge pending"><%= t(".badges.under_review") %></span>
         <h3><%= t(".pending.title") %></h3>
@@ -27,7 +27,7 @@
     </section>
 
   <% when "verified" %>
-    <section class="verification-section verification-verified">
+    <section class="section-card verification-verified">
       <div class="status-indicator">
         <span class="status-badge verified"><%= t(".badges.verified") %></span>
         <h3><%= @identity.ysws_eligible ? t(".verified.title_ysws") : t(".verified.title_verified") %></h3>
@@ -46,7 +46,7 @@
     </section>
 
   <% when "ineligible" %>
-    <section class="verification-section verification-ineligible">
+    <section class="section-card verification-ineligible">
       <div class="status-indicator">
         <span class="status-badge rejected"><%= t(".badges.not_eligible") %></span>
         <h3>
@@ -88,7 +88,7 @@
 
   <% when "needs_submission" %>
     <% if @identity.needs_resubmission? %>
-      <section class="verification-section verification-needs-action">
+      <section class="section-card verification-needs-action">
         <div class="status-indicator">
           <span class="status-badge rejected"><%= t(".badges.needs_resubmission") %></span>
           <h3><%= t(".needs_submission.resubmission.title") %></h3>
@@ -112,21 +112,21 @@
         </div>
       </section>
     <% else %>
-      <section class="verification-section">
-        <div class="status-indicator">
-          <span class="status-badge none"><%= t(".badges.not_started") %></span>
-          <h3><%= t(".needs_submission.initial.title") %></h3>
-          <p><%= t(".needs_submission.initial.subtitle") %></p>
-        </div>
+      <section class="section-card">
+      <div class="status-indicator">
+      <span class="status-badge none"><%= t(".badges.not_started") %></span>
+      <h3><%= t(".needs_submission.initial.title") %></h3>
+      <p><%= t(".needs_submission.initial.subtitle") %></p>
+      </div>
 
-        <div class="status-actions">
-          <%= link_to t(".needs_submission.initial.start_verification"), verification_step_path(:document), role: "button" %>
-        </div>
+      <div class="status-actions">
+      <%= link_to t(".needs_submission.initial.start_verification"), verification_step_path(:document), role: "button" %>
+      </div>
       </section>
-    <% end %>
+      <% end %>
 
-  <% else %>
-    <section class="verification-section">
+      <% else %>
+      <section class="section-card">
       <div class="status-indicator">
         <span class="status-badge none"><%= t(".badges.not_started") %></span>
         <h3><%= t(".needs_submission.initial.title") %></h3>

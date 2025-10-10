@@ -1,6 +1,4 @@
 .address-card {
-  @include card($padding: $space-5, $radius: $radius-lg);
-
   .address-header {
     display: flex;
     align-items: flex-start;

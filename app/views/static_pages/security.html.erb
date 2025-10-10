@@ -4,22 +4,22 @@
 
 <div class="security-sections">
 
-  <section class="security-section">
+  <section class="section-card">
     <h3><%= t ".sessions" %></h3>
     <%= render Components::BootlegTurbo.new(identity_sessions_path, id: "sessions-container", hx_swap: "innerHTML") %>
   </section>
 
-  <section class="security-section">
+  <section class="section-card">
     <h3><%= t ".applications" %></h3>
     <%= render Components::BootlegTurbo.new(authorized_applications_path, id: "authorized-apps-container", hx_swap: "innerHTML") %>
   </section>
 
-  <section class="security-section">
+  <section class="section-card">
     <h3><%= t ".mfa" %></h3>
     <%= render Components::BootlegTurbo.new(identity_totps_path, id: "totp-container", hx_swap: "innerHTML") %>
   </section>
 
-  <section class="security-section">
+  <section class="section-card">
     <h3><%= t ".backup_codes" %></h3>
     <%= render Components::BootlegTurbo.new(identity_backup_codes_path, id: "backup-codes-container", hx_swap: "innerHTML") %>
   </section>

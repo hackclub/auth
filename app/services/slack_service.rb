@@ -6,7 +6,12 @@ module SlackService
 
     def team_id = @team_id ||= ENV["SLACK_TEAM_ID"] || raise("SLACK_TEAM_ID not configured")
 
-    def find_by_email(email) = client.users_lookupByEmail(email:).dig("user", "id") rescue nil
+    def find_by_email(email)
+      client.users_lookupByEmail(email:).dig("user", "id")
+    rescue => e
+      Rails.logger.warn "Could not find Slack user by email #{email}: #{e.message}"
+      nil
+    end
 
     def assign_to_workspace(user_id:, channel_ids: nil, user_type: :full_member)
       is_restricted = user_type == :multi_channel_guest

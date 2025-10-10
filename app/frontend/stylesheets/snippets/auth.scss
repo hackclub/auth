@@ -6,13 +6,31 @@
   justify-content: center;
   min-height: 100vh;
   padding: 2rem 1rem;
-  background: var(--pico-background-color);
+  background: #f5f5f5;
+  
+  [data-theme="dark"] & {
+    background: #1a1d23;
+  }
 }
 
 .auth-card {
-  @include card($padding: $space-8 $space-6, $radius: $radius-lg);
+  background: #fafafa;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: $radius-xl;
+  padding: 2.5rem;
   width: 100%;
-  max-width: 640px;
+  max-width: 610px;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    0 1px 4px rgba(0, 0, 0, 0.05);
+  
+  [data-theme="dark"] & {
+    background: #252932;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      0 1px 4px rgba(0, 0, 0, 0.2);
+  }
   
   header {
     text-align: center;

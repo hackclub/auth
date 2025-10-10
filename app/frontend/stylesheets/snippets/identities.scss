@@ -3,17 +3,7 @@
   margin: $space-6 auto 0;
 }
 
-.info-section {
-  @include section-card;
-  margin-bottom: $space-5;
-  
-  h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0 0 $space-4;
-    color: var(--text-strong);
-  }
-}
+
 
 .developer-mode-toggle {
   display: flex;

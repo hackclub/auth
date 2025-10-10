@@ -319,19 +319,6 @@
   }
 }
 
-.page-container-tight {
-  @include container(720px);
-  padding: 1.5rem;
-
-  @include up(768px) {
-    padding: 2rem;
-  }
-
-  @include up(1024px) {
-    padding: 2.5rem;
-  }
-}
-
 .page-header {
   margin-bottom: 2.5rem;
 
@@ -394,20 +381,6 @@
 
   @include up(768px) {
     gap: 2rem;
-  }
-}
-
-.content-card {
-  background: var(--pico-card-background-color);
-  border: 1px solid var(--pico-card-border-color);
-  border-radius: 16px;
-  padding: 2.5rem;
-  @include shadow-card;
-
-  [data-theme="dark"] & {
-    box-shadow: 
-      0 4px 16px rgba(0, 0, 0, 0.3),
-      0 2px 8px rgba(0, 0, 0, 0.2);
   }
 }
 

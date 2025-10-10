@@ -1,4 +1,4 @@
-<div class="page-container-tight">
+<div class="container-sm">
   <div class="page-header-centered">
     <h1>Mailing Address</h1>
     <% case session.dig(:stashed_data, "context") %>
@@ -9,7 +9,7 @@
     <% end %>
   </div>
 
-  <div class="content-card address-form">
+  <div class="card address-form">
     <%= render 'addresses/form', address: @address, url: address_onboarding_path, submit: "Continue →" %>
   </div>
 </div>

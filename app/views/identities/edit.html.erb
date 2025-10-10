@@ -15,7 +15,7 @@
       </div>
     <% end %>
 
-    <section class="info-section">
+    <section class="section-card">
       <h3><%= t ".info_heading" %></h3>
       
       <div class="grid">
@@ -47,14 +47,14 @@
     </section>
   <% end %>
 
-  <section class="info-section">
+  <section class="section-card">
     <h3><%= t "identities.email" %></h3>
     <%= text_field_tag :primary_email, @identity.primary_email, readonly: true %>
     <small class="usn"><%= t ".no_email_change_yet" %></small>
   </section>
 
   <%= form_with model: @identity, url: identity_path, method: :patch, local: true do |f| %>
-    <section class="info-section">
+    <section class="section-card">
       <h3><%= t(".developer_mode") %></h3>
       
       <label class="developer-mode-toggle">
