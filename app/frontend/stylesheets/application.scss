@@ -8,8 +8,22 @@ $theme-color: "lime";
     --pico-line-height: 1.25 !important;
     --pico-form-element-spacing-vertical: 0.5rem !important;
     --pico-form-element-spacing-horizontal: 1.0rem !important;
-    --pico-border-radius: 0.5rem !important;
+    --pico-border-radius: 10px !important;
+    --pico-typography-spacing-vertical: 1.25rem !important;
 }
+
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.025em;
+  font-weight: 700;
+  
+  [data-theme="dark"] & {
+    color: #f0f0f0;
+  }
+}
+
+h1 { font-size: 2.25rem; }
+h2 { font-size: 1.875rem; }
+h3 { font-size: 1.5rem; }
 
 [x-cloak] { display: none !important; }
 .pointer { cursor: pointer; }
@@ -51,14 +65,30 @@ input[type="url"],
 input[type="number"],
 select,
 textarea {
-  @include shadow-inset;
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.4);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 10px;
+  
+  [data-theme="dark"] & {
+    box-shadow: 
+      inset 0 1px 2px rgba(0, 0, 0, 0.3),
+      0 1px 0 rgba(255, 255, 255, 0.03);
+  }
   
   &:focus {
     box-shadow: 
-      inset 0 2px 4px rgba(0, 0, 0, 0.08),
       inset 0 1px 2px rgba(0, 0, 0, 0.06),
-      0 0 0 2px rgba(var(--pico-primary-rgb), 0.2);
+      0 1px 0 rgba(255, 255, 255, 0.4),
+      0 0 0 3px rgba(var(--pico-primary-rgb), 0.25);
+    
+    [data-theme="dark"] & {
+      box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.3),
+        0 1px 0 rgba(255, 255, 255, 0.03),
+        0 0 0 3px rgba(var(--pico-primary-rgb), 0.35);
+    }
   }
 }
 

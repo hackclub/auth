@@ -1,9 +1,21 @@
 .profile-completion {
-  background: var(--pico-card-background-color);
+  background: linear-gradient(165deg, var(--pico-card-background-color) 0%, var(--surface-2) 100%);
   border: 1px solid var(--pico-card-border-color);
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
+  box-shadow: 
+    4px 4px 16px rgba(0, 0, 0, 0.04),
+    2px 2px 8px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  
+  [data-theme="dark"] & {
+    background: linear-gradient(165deg, #252932 0%, #1f2329 100%);
+    box-shadow: 
+      4px 4px 16px rgba(0, 0, 0, 0.3),
+      2px 2px 8px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
 
   .profile-completion-header {
     margin-bottom: 1.25rem;

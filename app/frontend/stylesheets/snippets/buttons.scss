@@ -1,4 +1,4 @@
-button:not([role="button"]),
+button,
 input[type="submit"],
 input[type="button"],
 [role="button"] {
@@ -8,29 +8,39 @@ input[type="button"],
     inset 0 -1px 1px rgba(0, 0, 0, 0.05);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    @include shadow-raised-hover;
-  }
-  
-  &:active:not(:disabled) {
-    transform: translateY(0);
-    @include shadow-pressed;
-  }
+  // Primary button variant (lime green)
+
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.05);
+    }
+    
+    &:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow:
+        inset 0 3px 6px rgba(0, 0, 0, 0.15),
+        inset 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+
 
   // Secondary button variant (skeumorphic style)
   &.secondary,
   &.outline {
-    background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%) !important;
+    background: #fff linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(0,0,0,0.04) 100%) !important;
+    background-color: #fff !important;
     color: #555 !important;
-    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
     box-shadow: 
-      0 2px 6px rgba(0, 0, 0, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      inset 0 -1px 1px rgba(0, 0, 0, 0.05) !important;
+      0 1px 3px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.04) !important;
     
     [data-theme="dark"] & {
-      background: linear-gradient(180deg, #2a2a2a 0%, #242424 100%) !important;
+      background: #2c2c2c linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(0,0,0,0.1) 100%) !important;
       color: #d0d0d0 !important;
       border-color: rgba(255, 255, 255, 0.1) !important;
       box-shadow: 
@@ -40,7 +50,7 @@ input[type="button"],
     }
 
     &:hover:not(:disabled) {
-      background: linear-gradient(180deg, #fff 0%, #fcfcfc 100%) !important;
+      background: #fcfcfc linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(0,0,0,0.02) 100%) !important;
       border-color: rgba(0, 0, 0, 0.15) !important;
       box-shadow: 
         0 4px 12px rgba(0, 0, 0, 0.12),
@@ -48,7 +58,7 @@ input[type="button"],
         inset 0 -1px 1px rgba(0, 0, 0, 0.05) !important;
       
       [data-theme="dark"] & {
-        background: linear-gradient(180deg, #333 0%, #2a2a2a 100%) !important;
+        background: #333 linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(0,0,0,0.15) 100%) !important;
         border-color: rgba(255, 255, 255, 0.15) !important;
         box-shadow: 
           0 4px 12px rgba(0, 0, 0, 0.5),
