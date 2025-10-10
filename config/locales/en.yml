@@ -131,6 +131,36 @@ en:
     edit:
       title: Edit Address
       subtitle: Update your mailing address information
+  doorkeeper:
+    authorizations:
+      new:
+        prompt: Authorize %{client_name} to use your account?
+        able_to: This application will be able to
+        deny: Deny
+        authorize: Authorize →
+        banners:
+          community_untrusted:
+            title: Community Application
+            message_html: This application is created by a community member and has not been officially verified by Hack Club HQ. <br/> Make sure you trust the author with the information below
+          community_trusted:
+            title: Community Application
+            message_html: This application is created by a community member. <br/> Hack Club HQ has reviewed it, but please make sure you trust the author with the information below.
+        scopes:
+          basic_info:
+            title: See basic information about you
+            email_label: "Email:"
+            name_label: "Name:"
+            verification_status_label: "Verification status:"
+          email:
+            title: See your email address
+            email_label: "Email:"
+          name:
+            title: See your name
+            name_label: "Name:"
+          slack_id:
+            title: See your Slack ID
+            slack_id_label: "Slack ID:"
+            not_set: Not set
   authorized_applications:
     none: You haven't authorized any apps yet.
     created_at: Authorized

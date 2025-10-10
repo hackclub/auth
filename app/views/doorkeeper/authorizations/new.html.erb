@@ -6,15 +6,13 @@
       <% case application&.trust_level %>
       <% when "community_untrusted" %>
         <%= render Components::Banner.new(kind: :warning) do %>
-          <strong>Community Application</strong><br/>
-          This application is created by a community member and has not been officially verified by Hack Club HQ. <br/>
-          Make sure you trust the author with the information below
+          <strong><%= t('.banners.community_untrusted.title') %></strong><br/>
+          <%= raw t('.banners.community_untrusted.message_html') %>
         <% end %>
       <% when "community_trusted" %>
         <%= render Components::Banner.new(kind: :info) do %>
-          <strong>Community Application</strong> <br/>
-          This application is created by a community member. <br/>
-          Hack Club HQ has reviewed it, but please make sure you trust the author with the information below.
+          <strong><%= t('.banners.community_trusted.title') %></strong> <br/>
+          <%= raw t('.banners.community_trusted.message_html') %>
         <% end %>
       <% end %>
       <small>
@@ -32,32 +30,32 @@
                 <% case scope %>
                 <% when "basic_info" %>
                   <div class="permission-item">
-                    <strong>See basic information about you</strong>
+                    <strong><%= t('.scopes.basic_info.title') %></strong>
                     <ul class="permission-details">
-                      <li><span>Email:</span> <%= current_identity.primary_email %></li>
-                      <li><span>Name:</span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
-                      <li><span>Verification status:</span> <%= current_identity.verification_status %></li>
+                      <li><span><%= t('.scopes.basic_info.email_label') %></span> <%= current_identity.primary_email %></li>
+                      <li><span><%= t('.scopes.basic_info.name_label') %></span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
+                      <li><span><%= t('.scopes.basic_info.verification_status_label') %></span> <%= current_identity.verification_status %></li>
                     </ul>
                   </div>
                 <% when "email" %>
                   <div class="permission-item">
-                    <strong>See your email address</strong>
+                    <strong><%= t('.scopes.email.title') %></strong>
                     <ul class="permission-details">
-                      <li><span>Email:</span> <%= current_identity.primary_email %></li>
+                      <li><span><%= t('.scopes.email.email_label') %></span> <%= current_identity.primary_email %></li>
                     </ul>
                   </div>
                 <% when "name" %>
                   <div class="permission-item">
-                    <strong>See your name</strong>
+                    <strong><%= t('.scopes.name.title') %></strong>
                     <ul class="permission-details">
-                      <li><span>Name:</span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
+                      <li><span><%= t('.scopes.name.name_label') %></span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
                     </ul>
                   </div>
                 <% when "slack_id" %>
                   <div class="permission-item">
-                    <strong>See your Slack ID</strong>
+                    <strong><%= t('.scopes.slack_id.title') %></strong>
                     <ul class="permission-details">
-                      <li><span>Slack ID:</span> <%= current_identity.slack_id || "Not set" %></li>
+                      <li><span><%= t('.scopes.slack_id.slack_id_label') %></span> <%= current_identity.slack_id || t('.scopes.slack_id.not_set') %></li>
                     </ul>
                   </div>
                 <% else %>
@@ -82,7 +80,7 @@
         <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
         <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
         <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
-        <%= submit_tag "Deny", class: "secondary" %>
+        <%= submit_tag t('.deny'), class: "secondary" %>
       <% end %>
       
       <%= form_tag oauth_authorization_path, method: :post do %>
@@ -94,7 +92,7 @@
         <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
         <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
         <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
-        <%= submit_tag session.dig(:stashed_data, "splash_continue") || "Authorize →" %>
+        <%= submit_tag session.dig(:stashed_data, "splash_continue") || t('.authorize') %>
       <% end %>
     </div>
   </div>
