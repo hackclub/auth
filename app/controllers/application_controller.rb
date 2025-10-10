@@ -9,6 +9,7 @@ class ApplicationController < ActionController::Base
   before_action :invalidate_v1_sessions, :authenticate_identity!, :set_honeybadger_context
 
   before_action :set_paper_trail_whodunnit
+  before_action :touch_session_last_seen_at
 
   alias_method :user_for_public_activity, :current_identity
 
@@ -81,5 +82,11 @@ class ApplicationController < ActionController::Base
   rescue_from ActiveRecord::RecordNotFound do |e|
     flash[:error] = "sorry, couldn't find that object... (404)"
     redirect_to root_path
+  end
+
+  private
+
+  def touch_session_last_seen_at
+    current_session&.touch_last_seen_at
   end
 end

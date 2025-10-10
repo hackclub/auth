@@ -1,4 +1,6 @@
 class IdentitySession < ApplicationRecord
+  LAST_SEEN_AT_COOLDOWN = 5.minutes
+
   has_paper_trail skip: [:session_token]
   has_encrypted :session_token
   blind_index :session_token
@@ -35,6 +37,11 @@ class IdentitySession < ApplicationRecord
       latitude: nil,
       longitude: nil,
       )
+  end
+
+  def touch_last_seen_at
+    return if last_seen&.after?(LAST_SEEN_AT_COOLDOWN.ago)
+    update_column(:last_seen, Time.current)
   end
 
   private
