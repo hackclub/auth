@@ -30,6 +30,11 @@
         </div>
       </div>
 
+      <div>
+        <%= f.label :phone_number, "Phone Number" %>
+        <%= f.text_field :phone_number, placeholder: "+1 (555) 123-4567" %>
+      </div>
+
       <% if @identity.legal_first_name.present? && @identity.legal_last_name.present? %>
         <div class="banner info" style="margin-top: 1rem;">
           <%= t ".legal_name_exists" %>

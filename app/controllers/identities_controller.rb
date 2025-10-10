@@ -218,7 +218,7 @@ class IdentitiesController < ApplicationController
     end
 
     def identity_params
-        params.require(:identity).permit(:first_name, :last_name, :developer_mode)
+        params.require(:identity).permit(:first_name, :last_name, :phone_number, :developer_mode)
     end
 
     public

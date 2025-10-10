@@ -19,6 +19,14 @@ class Components::ProfileCompletion < ApplicationComponent
     end
 
     tasks << {
+      title: I18n.t("home.completion_tasks.phone_number.title"),
+      description: I18n.t("home.completion_tasks.phone_number.description"),
+      completed: @identity.phone_number.present?,
+      url: -> { edit_identity_path },
+      icon: "📞"
+    }
+
+    tasks << {
       title: I18n.t("home.completion_tasks.mailing_address.title"),
       description: I18n.t("home.completion_tasks.mailing_address.description"),
       completed: @identity.primary_address_id.present?,
@@ -26,7 +34,14 @@ class Components::ProfileCompletion < ApplicationComponent
       icon: "📬"
     }
 
-    tasks
+    # Sort tasks: completed ones first (bubbled to top)
+    tasks.sort_by do |task|
+      if task[:component]
+        task[:component].completed? ? 0 : 1
+      else
+        task[:completed] ? 0 : 1
+      end
+    end
   end
 
   def completed_count
@@ -49,7 +64,7 @@ class Components::ProfileCompletion < ApplicationComponent
     div(class: "profile-completion") do
       div(class: "profile-completion-header") do
         div(class: "header-content") do
-          h2 { t "home.completion.complete_your_profile" }
+          h2 { t "home.completion_tasks.complete_your_profile" }
           div(class: "completion-stats") do
             span(class: "stats-text") { "#{completed_count} of #{total_count} complete" }
           end
@@ -67,16 +82,17 @@ class Components::ProfileCompletion < ApplicationComponent
             next
           end
 
-          # Handle regular tasks
-          next if task[:completed]
+          # Handle regular tasks - show all tasks, style differently based on completion
+          task_classes = ["profile-task"]
+          task_classes << "completed" if task[:completed]
 
-          a(href: task[:url].call, class: "profile-task") do
+          a(href: task[:url].call, class: task_classes.join(" ")) do
             div(class: "task-icon") { task[:icon] }
             div(class: "task-content") do
               div(class: "task-title") { task[:title] }
               div(class: "task-description") { task[:description] }
             end
-            div(class: "task-action") { "→" }
+            div(class: "task-action") { task[:completed] ? "✓" : "→" }
           end
         end
       end
