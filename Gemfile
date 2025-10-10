@@ -133,4 +133,4 @@ gem "bcrypt", "~> 3.1"
 
 gem "rack-attack", "~> 6.7"
 
-gem "slocks", path: "/Users/nora/RubymineProjects/slocks"
+gem "slocks", "~> 0.1.0"
