@@ -112,3 +112,18 @@ shared:
         given_name: Nora
         surname: R.
         email_addresses: [nora@hackclub.com]
+staging:
+  idp_metadata:
+    entity_id: https://hca.dinosaurbbq.org
+    single_sign_on_services:
+      - location: https://hca.dinosaurbbq.org/saml/auth
+        binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+  service_providers:
+    - slug: samltool
+      allow_idp_initiated: true
+      friendly_name: samltool.io
+      tagline: check your assertions!
+      entity_id: https://samltool.io
+      assertion_consumer_services:
+        - location: https://samltool.io
+          binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
