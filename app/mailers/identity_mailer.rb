@@ -1,6 +1,6 @@
 class IdentityMailer < ApplicationMailer
   def v2_login_code(login_code)
-    @TRANSACTIONAL_ID = "v2_login_code"
+    @TRANSACTIONAL_ID = "cmgqzc6351kcqzv0i8yrwl1nt"
 
     @login_code = login_code
     identity = login_code.identity
