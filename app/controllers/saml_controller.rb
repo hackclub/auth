@@ -12,6 +12,11 @@ class SAMLController < ApplicationController
   end
 
   def idp_initiated
+
+    if Rails.env.staging? && params[:slug] == "slack"
+      render "static_pages/slack_staging" and return
+    end
+    
     return unless ensure_sp_configured!(slug: params[:slug])
 
     unless @sp_config[:allow_idp_initiated]
@@ -22,10 +27,6 @@ class SAMLController < ApplicationController
     unless current_identity
       session[:saml_return_to] = request.original_url
       redirect_to saml_welcome_path and return
-    end
-
-    if Rails.env.staging? && params[:slug] == "slack"
-      render "static_pages/slack_staging" and return
     end
 
     response = build_saml_response(
