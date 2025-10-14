@@ -264,6 +264,7 @@ class LoginsController < ApplicationController
 
         case (@attempt.next_action || "home").to_sym
         when :slack
+            return redirect_to slack_staging_path if Rails.env.staging?
             render_saml_response_for("slack")
         else
             flash[:success] = "Logged in!"

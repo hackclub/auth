@@ -338,6 +338,7 @@ Rails.application.routes.draw do
     post "/aadhaar/:secret_key", to: "aadhaar#create", as: :aadhaar_callback
   end
 
+  get "/slack_staging", to: "static_pages#slack_staging" if Rails.env.staging?
 
   # Slack interactivity routes
   namespace :slack do

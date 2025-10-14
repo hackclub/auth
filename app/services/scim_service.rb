@@ -3,6 +3,16 @@ module SCIMService
     SCIM_BASE_URL = "https://api.slack.com/scim/v2"
 
     def find_or_create_user(identity:, scenario:)
+      if Rails.env.staging?
+        Rails.logger.info "Skipping Slack provisioning in staging for #{identity.primary_email}"
+        return {
+          success: true,
+          slack_id: "U_STAGING_#{identity.id}",
+          created: true,
+          message: "Staging mode: Slack integration disabled"
+        }
+      end
+
       email = identity.primary_email
 
       # First check if user already exists by email via Slack Web API

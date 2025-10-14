@@ -24,6 +24,10 @@ class SAMLController < ApplicationController
       redirect_to saml_welcome_path and return
     end
 
+    if Rails.env.staging? && params[:slug] == "slack"
+      render "static_pages/slack_staging" and return
+    end
+
     response = build_saml_response(
       identity: current_identity,
       sp_config: @sp_config,
