@@ -23,7 +23,8 @@
   </head>
   <body class="auth-layout">
     <button id="lightswitch" class="lightswitch-btn" type="button" aria-label="Toggle theme">
-      <span class="lightswitch-icon">🌙</span>
+      <span class="lightswitch-moon"><%= inline_icon("moon-fill", size: 16) %></span>
+      <span class="lightswitch-sun" style="display: none;"><%= inline_icon("sun", size: 16) %></span>
     </button>
     <div class="auth-flash-wrapper">
       <%= render "shared/flash" %>

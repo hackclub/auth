@@ -24,7 +24,10 @@ class Components::SSOAppCard < Components::Base
         end
         
         div(class: "card-footer") do
-          span(class: "launch-text") { "#{t("home.apps.launch")} →" }
+          span(class: "launch-text") do
+            plain t("home.apps.launch")
+            inline_icon "external", size: 24
+          end
         end
       end
     end

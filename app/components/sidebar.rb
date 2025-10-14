@@ -32,10 +32,10 @@ class Components::Sidebar < Components::Base
 
   def nav_items
     items = [
-      { label: t("sidebar.home"), path: root_path, icon: "🏠" }
+      { label: t("sidebar.home"), path: root_path, icon: "home" }
     ]
     
-    items << { label: t("sidebar.edit_info"), path: edit_identity_path, icon: "👤" }
+    items << { label: t("sidebar.edit_info"), path: edit_identity_path, icon: "person" }
     
     # Add verification link if user needs to submit or resubmit
     if current_identity.present?
@@ -44,17 +44,17 @@ class Components::Sidebar < Components::Base
         items << { 
           label: t("sidebar.verification"),
           path: new_verifications_path, 
-          icon: status == "pending" ? "⏳" : "🪪"
+          icon: status == "pending" ? "clock" : "card-id"
         }
       end
     end
     
-    items << { label: t("sidebar.addresses"), path: addresses_path, icon: "✉️" }
-    items << { label: t("sidebar.security"), path: security_path, icon: "🔒" }
+    items << { label: t("sidebar.addresses"), path: addresses_path, icon: "email" }
+    items << { label: t("sidebar.security"), path: security_path, icon: "private" }
     
     # Add developer link if developer mode is enabled
     if current_identity.present? && current_identity.developer_mode?
-      items << { label: t("sidebar.developer"), path: developer_apps_path, icon: "🛠️" }
+      items << { label: t("sidebar.developer"), path: developer_apps_path, icon: "code" }
     end
     
     items
@@ -95,7 +95,7 @@ class Components::Sidebar < Components::Base
     is_active = @current_path == path
 
     link_to(path, class: ["sidebar-nav-item", ("active" if is_active)].compact.join(" ")) do
-      span(class: "nav-icon") { icon } if icon
+      span(class: "nav-icon") { helpers.inline_icon(icon, size: 24) } if icon
       span(class: "nav-label") { label }
     end
   end
@@ -129,6 +129,7 @@ class Components::Sidebar < Components::Base
     form_with(url: logout_path, method: :delete, class: "logout-form") do
       button(type: "submit", class: "logout-button") do
         plain t "sidebar.logout"
+        span(class: "logout-icon") { helpers.inline_icon("door-leave", size: 18) }
       end
     end
   end
@@ -138,7 +139,8 @@ class Components::Sidebar < Components::Base
       vite_image_tag("images/hc-square.png", alt: "Hack Club logo", class: "brand-logo")
       h1 { I18n.t(".brand") }
       button(id: "lightswitch", class: "lightswitch-btn", type: "button", "aria-label": "Toggle theme") do
-        span(class: "lightswitch-icon") { "🌙" }
+        span(class: "lightswitch-moon") { helpers.inline_icon("moon-fill", size: 16) }
+        span(class: "lightswitch-sun", style: "display: none;") { helpers.inline_icon("sun", size: 16) }
       end
     end
     render Components::EnvironmentBanner.new

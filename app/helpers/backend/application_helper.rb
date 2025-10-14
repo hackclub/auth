@@ -1,6 +1,6 @@
 module Backend::ApplicationHelper
   def render_checkbox(value)
-    content_tag(:span, style: "color: var(--checkbox-#{value ? "true" : "false"})") { value ? "☑" : "☒" }
+    content_tag(:span, style: "color: var(--checkbox-#{value ? "true" : "false"})") { value ? inline_icon("checkbox", size: 16) : inline_icon("cancel", size: 16) }
   end
 
   def super_admin_tool(class_name: "", element: "div", **options, &block)

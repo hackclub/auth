@@ -56,7 +56,7 @@ class Components::IdentityReview::DocumentFiles < Components::Base
             # Display PDF files inline
             div(style: "border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;") do
               div(style: "padding: 1rem; border-bottom: 1px solid #ddd; background: #f5f5f5;") do
-                span(style: "font-weight: bold;") { "📄 #{file.filename}" }
+                span(style: "font-weight: bold;") { "#{helpers.inline_icon("docs", size: 16)} #{file.filename}" }
                 a(
                   href: helpers.url_for(file),
                   target: "_blank",
@@ -85,7 +85,7 @@ class Components::IdentityReview::DocumentFiles < Components::Base
           else
             # Display other file types
             div(style: "border: 1px solid #ddd; border-radius: 4px; padding: 1rem; background: #f9f9f9;") do
-              p { "📁 File: #{file.filename}" }
+              p { "#{helpers.inline_icon("attachment", size: 16)} File: #{file.filename}" }
               p { "Type: #{file.content_type}" }
               p do
                 a(

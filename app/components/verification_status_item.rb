@@ -59,13 +59,13 @@ class Components::VerificationStatusItem < Components::Base
   def icon
     case status
     when "needs_submission"
-      @identity.needs_resubmission? ? "🔄" : "🪪"
+      @identity.needs_resubmission? ? "reply" : "card-id"
     when "pending"
-      "⏳"
+      "clock"
     when "ineligible"
-      "🚫"
+      "forbidden"
     else
-      "🪪"
+      "card-id"
     end
   end
 
@@ -90,7 +90,7 @@ class Components::VerificationStatusItem < Components::Base
   private
 
   def render_content
-    div(class: "task-icon") { icon }
+    div(class: "task-icon") { helpers.inline_icon(icon, size: 24) }
     div(class: "task-content") do
       div(class: "task-title") { title }
       div(class: "task-description") { description }

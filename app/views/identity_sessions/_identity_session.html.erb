@@ -1,10 +1,19 @@
 <div class="session-card <%= 'current-session' if identity_session.id == @current_session&.id %>">
   <div class="session-header">
     <div class="session-icon">
-      <%= identity_session.os_info&.include?("Mac") || identity_session.os_info&.include?("iOS") ? "🍎" : 
-          identity_session.os_info&.include?("Windows") ? "🪟" : 
-          identity_session.os_info&.include?("Android") ? "🤖" : 
-          identity_session.os_info&.include?("Linux") ? "🐧" : "💻" %>
+      <% if identity_session.os_info&.include?("Mac") || identity_session.os_info&.include?("macOS") %>
+        <%= inline_icon("apple", size: 32) %>
+      <% elsif identity_session.os_info&.include?("iOS") || identity_session.os_info&.include?("iPhone") || identity_session.os_info&.include?("iPad") %>
+        <%= inline_icon("apple", size: 32) %>
+      <% elsif identity_session.os_info&.include?("Windows") %>
+        <%= inline_icon("windows", size: 32) %>
+      <% elsif identity_session.os_info&.include?("Android") %>
+        <%= inline_icon("google", size: 32) %>
+      <% elsif identity_session.os_info&.include?("Linux") %>
+        <%= inline_icon("terminal", size: 32) %>
+      <% else %>
+        <%= inline_icon("web", size: 32) %>
+      <% end %>
     </div>
     <div class="session-info">
       <div class="session-device">
@@ -47,13 +56,13 @@
       </div>
     <% end %>
   </div>
-  
+
   <% if identity_session.id != @current_session&.id %>
     <button class="danger small-btn"
             hx-delete="<%= identity_session_path(identity_session) %>"
             hx-target="#sessions-container"
             hx-confirm="<%= t "identity_sessions.terminate_confirmation" %>">
-      <%= t "identity_sessions.terminate" %>
+      <%= t "identity_sessions.terminate" %> <%= inline_icon("door-leave", size: 16) %>
     </button>
   <% end %>
 </div>

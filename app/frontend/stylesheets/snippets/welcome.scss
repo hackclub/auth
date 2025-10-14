@@ -41,10 +41,19 @@
 .welcome-create-button {
   width: 100%;
   font-weight: 600;
-  font-size: 1rem;
-  padding: 0.875rem 1rem;
+  font-size: 1.05rem;
+  padding: 1rem 1.25rem;
   white-space: nowrap;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  
+  svg {
+    flex-shrink: 0;
+  }
+  
   box-shadow: 
     0 2px 6px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.4),
@@ -88,10 +97,18 @@
 
 .welcome-signin-button {
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 1rem 1.25rem;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.05rem;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 .welcome-version {

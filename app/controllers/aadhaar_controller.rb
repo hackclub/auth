@@ -32,7 +32,7 @@ class AadhaarController < ApplicationController
   end
 
   def ensure_step
-    render html: "🥐" unless current_identity&.onboarding_step == :aadhaar
+    render html: "Access denied" unless current_identity&.onboarding_step == :aadhaar
 
     if current_identity&.verification_status == "ineligible"
       redirect_to submitted_onboarding_path and return

@@ -29,8 +29,10 @@
       <% @app.redirect_uri.split.each do |uri| %>
         <div style="margin-bottom: 0.5rem; display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; align-items: center;">
           <%= text_field_tag "redirect_uri_#{uri.hash}", uri, readonly: true, style: "font-family: monospace; font-size: 0.9rem;" %>
-          <%= link_to t(".test_auth"), oauth_authorization_path(client_id: @app.uid, redirect_uri: uri, response_type: 'code', scope: @app.scopes), 
-              class: "button-secondary", style: "font-size: 0.85rem; padding: 0.5rem 0.75rem; white-space: nowrap;", target: "_blank" %>
+          <%= link_to oauth_authorization_path(client_id: @app.uid, redirect_uri: uri, response_type: 'code', scope: @app.scopes), 
+              class: "button-secondary", style: "font-size: 0.85rem; padding: 0.5rem 0.75rem; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.4rem;", target: "_blank" do %>
+            <%= t(".test_auth") %> <%= inline_icon("external", size: 14) %>
+          <% end %>
         </div>
       <% end %>
       <small class="usn" style="display: block; margin-top: 0.25rem;"><%= t ".auth_link_hint" %></small>

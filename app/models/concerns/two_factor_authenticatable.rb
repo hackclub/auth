@@ -48,7 +48,7 @@ module TwoFactorAuthenticatable
 
   # Icon or emoji for this 2FA method (override in subclasses)
   def method_icon
-    "🔐"
+    "private"
   end
 
   # Whether this method can be used as primary authentication

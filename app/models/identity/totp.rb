@@ -30,7 +30,7 @@ class Identity::TOTP < ApplicationRecord
   end
 
   def method_icon
-    "📱"
+    "message"
   end
 
   private

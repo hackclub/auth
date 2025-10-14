@@ -14,6 +14,7 @@ class Components::Base < Phlex::HTML
   register_value_helper :dev_tool
   register_output_helper :vite_image_tag
   register_value_helper :ap
+  register_output_helper :inline_icon
   register_output_helper :copy_to_clipboard
 
   if Rails.env.development?

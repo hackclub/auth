@@ -9,8 +9,11 @@ class Components::Brand < Components::Base
       h1 { t "brand" }
     end
     button id: "lightswitch", class: "lightswitch-btn", type: "button", "aria-label": "Toggle theme" do
-      span class: "lightswitch-icon" do
-        "🌙"
+      span class: "lightswitch-moon" do
+        helpers.inline_icon("moon-fill", size: 16)
+      end
+      span class: "lightswitch-sun", style: "display: none;" do
+        helpers.inline_icon("sun", size: 16)
       end
     end
     render Components::EnvironmentBanner.new

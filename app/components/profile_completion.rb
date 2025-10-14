@@ -23,7 +23,7 @@ class Components::ProfileCompletion < ApplicationComponent
       description: I18n.t("home.completion_tasks.phone_number.description"),
       completed: @identity.phone_number.present?,
       url: -> { edit_identity_path },
-      icon: "📞"
+      icon: "message"
     }
 
     tasks << {
@@ -31,7 +31,7 @@ class Components::ProfileCompletion < ApplicationComponent
       description: I18n.t("home.completion_tasks.mailing_address.description"),
       completed: @identity.primary_address_id.present?,
       url: -> { new_address_path },
-      icon: "📬"
+      icon: "email"
     }
 
     # Sort tasks: completed ones first (bubbled to top)
@@ -87,12 +87,12 @@ class Components::ProfileCompletion < ApplicationComponent
           task_classes << "completed" if task[:completed]
 
           a(href: task[:url].call, class: task_classes.join(" ")) do
-            div(class: "task-icon") { task[:icon] }
+            div(class: "task-icon") { helpers.inline_icon(task[:icon], size: 24) }
             div(class: "task-content") do
               div(class: "task-title") { task[:title] }
               div(class: "task-description") { task[:description] }
             end
-            div(class: "task-action") { task[:completed] ? "✓" : "→" }
+            div(class: "task-action") { task[:completed] ? helpers.inline_icon("check", size: 16) : "→" }
           end
         end
       end

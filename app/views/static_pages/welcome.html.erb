@@ -9,13 +9,13 @@
       <div class="grid" style="gap: 1rem;">
         <%= link_to signup_path, style: "text-decoration: none;" do %>
           <button type="button" class="primary welcome-create-button">
-            <%= t ".cta_create" %>
+            <%= inline_icon("member-add", size: 24) %> <%= t ".cta_create" %>
           </button>
         <% end %>
 
         <%= link_to login_path, style: "text-decoration: none;" do %>
           <button type="button" class="secondary welcome-signin-button">
-            <%= t ".cta_signin" %>
+            <%= inline_icon("door-enter", size: 24) %> <%= t ".cta_signin" %>
           </button>
         <% end %>
       </div>

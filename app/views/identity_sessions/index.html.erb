@@ -7,7 +7,7 @@
               hx-delete="<%= destroy_all_identity_sessions_path %>"
               hx-target="#sessions-container"
               hx-confirm="<%= t ".logout_others_confirmation" %>">
-        <%= t ".logout_others" %>
+        <%= t ".logout_others" %> <%= inline_icon("door-leave", size: 18) %>
       </button>
     </div>
 

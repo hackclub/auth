@@ -7,15 +7,24 @@
   display: none;
   cursor: pointer;
   color: #444;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   
   [data-theme="dark"] & {
     color: #d0d0d0;
   }
 
-  .lightswitch-icon {
+  .lightswitch-moon,
+  .lightswitch-sun {
     font-size: 1.25rem;
-    display: block;
     transition: transform 0.2s ease;
+    line-height: 0;
+    
+    svg {
+      display: block;
+      margin: 0;
+    }
   }
 
   &.theme-loaded {
@@ -30,7 +39,8 @@
     height: 36px;
     display: flex;
     
-    .lightswitch-icon {
+    .lightswitch-moon,
+    .lightswitch-sun {
       font-size: 1.1rem;
     }
   }

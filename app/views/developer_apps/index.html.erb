@@ -38,7 +38,7 @@
   <% end %>
 <% else %>
   <div class="empty-state">
-    <div class="empty-icon">🛠️</div>
+    <div class="empty-icon"><%= inline_icon("code", size: 48) %></div>
     <h3><%= t ".blank_slate.title" %></h3>
     <p><%= t ".blank_slate.cta" %></p>
     <%= link_to t(".blank_slate.create"), new_developer_app_path, role: "button" %>

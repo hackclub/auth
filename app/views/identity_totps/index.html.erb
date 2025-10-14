@@ -1,7 +1,7 @@
 <% if @totp.present? %>
   <div class="totp-enabled">
     <div class="totp-status">
-      <span class="status-icon">✅</span>
+      <span class="status-icon"><%= inline_icon("check", size: 16) %></span>
       <div class="status-info">
         <strong><%= t(".totp_title") %></strong>
         <p class="status-detail"><%= t(".totp_description") %></p>

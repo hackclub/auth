@@ -13,7 +13,7 @@
         <% if @available_methods.include?(:totp) %>
           <%= link_to new_step_up_path(action_type: @action, method: :totp),
               class: "step-up-method-option" do %>
-            <div style="font-size: 2rem;">🔐</div>
+            <div><%= inline_icon("private", size: 32) %></div>
             <div style="flex: 1;">
               <div style="font-weight: 600;"><%= t(".methods.totp.title") %></div>
               <small><%= t(".methods.totp.description") %></small>
@@ -24,7 +24,7 @@
         <% if @available_methods.include?(:backup_code) %>
           <%= link_to new_step_up_path(action_type: @action, method: :backup_code),
               class: "step-up-method-option" do %>
-            <div style="font-size: 2rem;">🔑</div>
+            <div><%= inline_icon("private", size: 32) %></div>
             <div style="flex: 1;">
               <div style="font-weight: 600;"><%= t(".methods.backup_code.title") %></div>
               <small><%= t(".methods.backup_code.description") %></small>
@@ -35,7 +35,7 @@
         <% if @available_methods.include?(:sms) %>
           <%= link_to new_step_up_path(action_type: @action, method: :sms),
               class: "step-up-method-option" do %>
-            <div style="font-size: 2rem;">📱</div>
+            <div><%= inline_icon("message", size: 32) %></div>
             <div style="flex: 1;">
               <div style="font-weight: 600;"><%= t(".methods.sms.title") %></div>
               <small><%= t(".methods.sms.description") %></small>

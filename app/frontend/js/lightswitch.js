@@ -2,9 +2,20 @@
 const savedTheme = localStorage.getItem("theme") || "light";
 
 function updateIcon(theme) {
-    const icons = document.querySelectorAll(".lightswitch-icon");
-    icons.forEach(icon => {
-        icon.textContent = theme === "dark" ? "💡" : "🌙";
+    const buttons = document.querySelectorAll(".lightswitch-btn");
+    buttons.forEach(btn => {
+        const moonIcon = btn.querySelector(".lightswitch-moon");
+        const sunIcon = btn.querySelector(".lightswitch-sun");
+        
+        if (moonIcon && sunIcon) {
+            if (theme === "dark") {
+                moonIcon.style.display = "none";
+                sunIcon.style.display = "inline";
+            } else {
+                moonIcon.style.display = "inline";
+                sunIcon.style.display = "none";
+            }
+        }
     });
 }
 

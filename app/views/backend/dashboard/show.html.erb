@@ -41,7 +41,7 @@
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
     <!-- Leaderboard -->
     <div style="padding: 1.5rem;">
-      <div style="font-weight: bold; margin-bottom: 1rem; color: #374151; font-size: 1.1rem;">🏆 Leaderboard</div>
+      <div style="font-weight: bold; margin-bottom: 1rem; color: #374151; font-size: 1.1rem;"><%= inline_icon("leader", size: 20) %> Leaderboard</div>
       <% if @leaderboard.any? %>
         <div class="list">
           <table class="detailed">
@@ -64,7 +64,7 @@
                 %>
                 <tr style="background-color: <%= bg_color %>;">
                   <td style="font-weight: bold; color: <%= text_color %>;">
-                    <%= index == 0 ? "👑 #{index + 1}" : index + 1 %>
+                    <%= index == 0 ? "#{index + 1} #{inline_icon("leader", size: 16)}" : index + 1 %>
                   </td>
                   <td>
                     <%= render entry[:user] %></td>
@@ -80,7 +80,7 @@
     </div>
     <!-- Rejection Reasons Breakdown -->
     <div style="padding: 1.5rem;">
-      <div style="font-weight: bold; margin-bottom: 1rem; color: #374151; font-size: 1.1rem;">📊 Rejection Reasons</div>
+      <div style="font-weight: bold; margin-bottom: 1rem; color: #374151; font-size: 1.1rem;"><%= inline_icon("analytics", size: 20) %> Rejection Reasons</div>
       <% if @rejection_breakdown.any? %>
         <div class="list">
           <table class="detailed">

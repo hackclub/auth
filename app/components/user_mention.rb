@@ -13,11 +13,11 @@ class Components::UserMention < Components::Base
         div class: "icon-label" do
           a(href: backend_user_path(@user)) do
             span { @user.username }
-            span { " ⚡" } if @user.super_admin?
+            span { helpers.inline_icon("bolt", size: 12) } if @user.super_admin?
           end
         end
       when ::Identity
-        div(class: "inline pr-2") { "🪪" }
+        div(class: "inline pr-2") { helpers.inline_icon("card-id", size: 16) }
         div class: "icon-label" do
           a(href: backend_identity_path(@user)) { span { "#{@user.first_name} #{@user.last_name}" } }
         end
