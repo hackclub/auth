@@ -16,6 +16,7 @@ class LoginsController < ApplicationController
         email = params[:email].to_s.strip.downcase
         identity = Identity.find_by(primary_email: email)
         unless identity
+            flash[:info] = "Seems like you don't have an account yet, sign up?"
             redirect_to signup_path(email: email, return_to: @return_to)
             return
         end
