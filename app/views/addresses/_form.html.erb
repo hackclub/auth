@@ -35,7 +35,7 @@
                             { required: true } %>
   </div>
 
-  <div style="margin-top: 1.5rem;">
+  <div class="form-actions">
     <%= f.submit local_assigns[:submit] || t("addresses.save") %>
     <% unless local_assigns[:from_program] %>
       <%= link_to t("addresses.cancel"), addresses_path, role: "button", class: "secondary" %>

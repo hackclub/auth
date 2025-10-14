@@ -1,18 +1,16 @@
 <div class="page-header">
   <h1><%= t('.title') %></h1>
-
-  <% if @addresses.any? %>
-    <div class="header-actions">
-      <%= link_to "Add New Address", new_address_path, role: "button" %>
-    </div>
-  <% end %>
 </div>
 
 <% if @addresses.any? %>
-  <div class="card-list">
+  <div class="info-sections">
     <% @addresses.each do |address| %>
       <%= render 'address', address: address %>
     <% end %>
+    
+    <section class="section-card" style="text-align: center; padding: 2rem;">
+      <%= link_to "Add New Address", new_address_path, role: "button" %>
+    </section>
   </div>
 <% else %>
   <div class="empty-state">
