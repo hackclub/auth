@@ -63,7 +63,7 @@ class Identity < ApplicationRecord
   has_many :addresses, class_name: "Address"
   belongs_to :primary_address, class_name: "Address", optional: true
 
-  has_many :access_tokens, -> { where(revoked_at: nil) }, class_name: "Doorkeeper::AccessToken", foreign_key: :resource_owner_id
+  has_many :access_tokens, -> { where(revoked_at: nil) }, class_name: "OAuthToken", foreign_key: :resource_owner_id
   has_many :programs, through: :access_tokens, source: :application
 
   has_many :resemblances, class_name: "Identity::Resemblance"
