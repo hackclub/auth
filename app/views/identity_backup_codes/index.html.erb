@@ -6,6 +6,7 @@
         warning_title: t("identity_backup_codes.save_warning_title"),
         warning_detail: t("identity_backup_codes.save_warning_detail"),
         show_confirmation: true,
+        identity: current_identity,
         confirmation_button_block: -> {
           button_tag(t("identity_backup_codes.index.activate_codes"),
             id: "finish-setup-btn",

@@ -4,6 +4,7 @@
   warning_detail: t("identity_backup_codes.save_warning_detail"),
   heading: true,
   show_confirmation: true,
+  identity: current_identity,
   header_block: -> { 
     content_tag(:h3, t("identity_backup_codes.totp_heading")) +
     content_tag(:p, t("identity_totps.backup_codes.step_indicator"), class: "step-indicator")

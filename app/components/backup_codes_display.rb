@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Components::BackupCodesDisplay < Components::Base
-  def initialize(codes:, warning_title:, warning_detail:, heading: nil, show_confirmation: false, header_block: nil, confirmation_button_block: nil)
+  def initialize(codes:, warning_title:, warning_detail:, heading: nil, show_confirmation: false, header_block: nil, confirmation_button_block: nil, identity: nil)
     @codes = codes
     @warning_title = warning_title
     @warning_detail = warning_detail
@@ -9,67 +9,112 @@ class Components::BackupCodesDisplay < Components::Base
     @show_confirmation = show_confirmation
     @header_block = header_block
     @confirmation_button_block = confirmation_button_block
+    @identity = identity
   end
 
   def view_template(&block)
     style do
       raw safe <<~CSS
         @media print {
-          body > *,
-          nav, header, footer, aside,
-          .sidebar, .nav, .navigation {
+          @page {
+            margin: 1cm;
+            size: A4;
+          }
+          
+          html, body {
+            height: 100vh !important;
+            max-height: 100vh !important;
+            overflow: hidden !important;
+          }
+          
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          
+          body::after {
+            content: none !important;
+            display: none !important;
+          }
+          
+          body * {
             visibility: hidden !important;
           }
           
-          .backup-codes-section,
-          .backup-codes-section *,
           .backup-codes-display,
           .backup-codes-display * {
             visibility: visible !important;
           }
           
           .backup-codes-actions,
-          .backup-codes-confirmation {
+          .backup-codes-confirmation,
+          .banner {
             display: none !important;
           }
           
+          .print-only-banner {
+            display: block !important;
+            font-size: 10pt !important;
+            padding: 6pt 8pt !important;
+            margin: 0 0 12pt !important;
+            border: 1px solid #000 !important;
+            background: white !important;
+          }
+          
           .backup-codes-display {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
             margin: 0 !important;
-            padding: 20pt !important;
+            padding: 0 !important;
+            break-inside: avoid-page;
+            page-break-inside: avoid;
           }
           
           .totp-setup-header {
-            margin-bottom: 20pt !important;
+            margin-bottom: 12pt !important;
           }
           
           .totp-setup-header h3 {
-            font-size: 18pt !important;
+            font-size: 14pt !important;
+            margin: 0 0 4pt !important;
+          }
+          
+          .totp-setup-header .step-indicator {
+            font-size: 10pt !important;
           }
           
           .backup-codes-display h4 {
-            font-size: 18pt !important;
-            margin-bottom: 20pt !important;
+            font-size: 12pt !important;
+            margin: 0 0 8pt !important;
           }
           
           .codes-grid {
             background: white !important;
             border: 1px solid #000 !important;
             page-break-inside: avoid;
+            break-inside: avoid-page;
+            padding: 8pt !important;
+            gap: 6pt !important;
+            margin: 0 !important;
           }
           
           .backup-code {
             background: white !important;
             border: 1px solid #000 !important;
             color: #000 !important;
+            font-size: 10pt !important;
+            padding: 4pt !important;
           }
         }
       CSS
     end
 
+    style do
+      raw safe ".print-only-banner { display: none; }"
+    end
+    
     div(class: "backup-codes-display") do
       if @heading && @header_block
         div(class: "totp-setup-header") do
@@ -81,6 +126,15 @@ class Components::BackupCodesDisplay < Components::Base
         b { @warning_title }
         br
         plain @warning_detail
+      end
+      
+      div(class: "print-only-banner") do
+        if @identity
+          b { "Hack Club Account recovery codes for " }
+          plain @identity&.primary_email
+          br
+          i { "Generated on #{Time.current.strftime('%B %d, %Y at %I:%M %p %Z')}" }
+        end
       end
 
       div(class: "codes-grid") do
