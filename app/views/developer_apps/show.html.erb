@@ -13,14 +13,14 @@
     <div>
       <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;"><%= t ".client_id" %></label>
       <%= copy_to_clipboard @app.uid, label: t(".click_to_copy_client_id") do %>
-        <%= text_field_tag :client_id, @app.uid, readonly: true, style: "font-family: monospace; font-size: 0.9rem; cursor: pointer;" %>
+        <%= text_field_tag :client_id, @app.uid, readonly: true, style: "font-family: monospace; font-size: 0.9rem; cursor: pointer;", autocomplete: "off" %>
       <% end %>
     </div>
 
     <div>
       <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;"><%= t ".client_secret" %></label>
       <%= copy_to_clipboard @app.secret, label: t(".click_to_copy_client_secret") do %>
-        <%= text_field_tag :client_secret, @app.secret, readonly: true, style: "font-family: monospace; font-size: 0.9rem; cursor: pointer;" %>
+        <%= text_field_tag :client_secret, @app.secret, readonly: true, style: "font-family: monospace; font-size: 0.9rem; cursor: pointer;", autocomplete: "off" %>
       <% end %>
     </div>
 
@@ -28,7 +28,7 @@
       <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;"><%= t ".redirect_uris" %></label>
       <% @app.redirect_uri.split.each do |uri| %>
         <div style="margin-bottom: 0.5rem; display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; align-items: center;">
-          <%= text_field_tag "redirect_uri_#{uri.hash}", uri, readonly: true, style: "font-family: monospace; font-size: 0.9rem;" %>
+          <%= text_field_tag "redirect_uri_#{uri.hash}", uri, readonly: true, style: "font-family: monospace; font-size: 0.9rem;", autocomplete: "off" %>
           <%= link_to oauth_authorization_path(client_id: @app.uid, redirect_uri: uri, response_type: 'code', scope: @app.scopes),
               class: "button-secondary", style: "font-size: 0.85rem; padding: 0.5rem 0.75rem; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.4rem;", target: "_blank" do %>
             <%= t(".test_auth") %> <%= inline_icon("external", size: 14) %>
@@ -48,7 +48,7 @@
       <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;"><%= t ".scopes" %></label>
       <div>
         <% if @app.scopes_array.any? %>
-          <%= text_field_tag :scopes, @app.scopes_array.join(", "), readonly: true %>
+          <%= text_field_tag :scopes, @app.scopes_array.join(", "), readonly: true, autocomplete: "off" %>
         <% else %>
           <span style="color: var(--text-secondary); font-size: 0.9rem;"><%= t ".no_scopes" %></span>
         <% end %>
@@ -57,7 +57,7 @@
 
     <div>
       <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;"><%= t ".trust_level" %></label>
-      <%= text_field_tag :trust_level, @app.trust_level.to_s.titleize, readonly: true %>
+      <%= text_field_tag :trust_level, @app.trust_level.to_s.titleize, readonly: true, autocomplete: "off" %>
     </div>
   </div>
 </section>

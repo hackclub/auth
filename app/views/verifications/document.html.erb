@@ -43,11 +43,11 @@
       <div class="grid">
         <div>
           <%= label_tag "legal_first_name", t(".legal_first_name") %>
-          <%= text_field_tag "legal_first_name", @identity.legal_first_name.presence || @identity.first_name, required: true %>
+          <%= text_field_tag "legal_first_name", @identity.legal_first_name.presence || @identity.first_name, required: true,  autocomplete: "off" %>
         </div>
         <div>
           <%= label_tag "legal_last_name", t(".legal_last_name") %>
-          <%= text_field_tag "legal_last_name", @identity.legal_last_name.presence || @identity.last_name, required: true %>
+          <%= text_field_tag "legal_last_name", @identity.legal_last_name.presence || @identity.last_name, required: true,  autocomplete: "off" %>
         </div>
       </div>
     </section>

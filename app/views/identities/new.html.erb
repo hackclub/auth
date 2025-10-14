@@ -80,7 +80,7 @@
               <%= form.hidden_field :primary_email, value: @identity.primary_email %>
               <div>
                 <label>Email</label>
-                <input type="text" value="<%= @identity.primary_email %>" disabled aria-disabled="true">
+                <input type="text" value="<%= @identity.primary_email %>" disabled aria-disabled="true" autocomplete="email">
               </div>
             <% end %>
           <% end %>
