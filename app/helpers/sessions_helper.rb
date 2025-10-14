@@ -22,8 +22,20 @@ module SessionsHelper
     session_token = SecureRandom.urlsafe_base64
     session_duration = 1.month
     expires_at = session_duration.seconds.from_now
-    cookies.encrypted[:session_token] = { value: session_token, expires: expires_at }
-    cookies.encrypted[:signed_user] = identity.signed_id(expires_in: 2.months, purpose: :remember_me)
+    cookies.encrypted[:session_token] = { 
+      value: session_token, 
+      expires: expires_at,
+      httponly: true,
+      secure: Rails.env.production?,
+      same_site: :lax
+    }
+    cookies.encrypted[:signed_user] = {
+      value: identity.signed_id(expires_in: 2.months, purpose: :remember_me),
+      expires: 2.months.from_now,
+      httponly: true,
+      secure: Rails.env.production?,
+      same_site: :lax
+    }
     ident_session = identity.sessions.build(
       session_token:,
       fingerprint: fingerprint_info[:fingerprint],

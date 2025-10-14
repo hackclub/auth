@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_09_204504) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_14_152131) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -397,7 +397,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_09_204504) do
     t.bigint "identity_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "login_attempt_id"
+    t.index ["identity_id", "login_attempt_id", "code", "used_at"], name: "index_v2_codes_on_identity_attempt_code_used"
     t.index ["identity_id"], name: "index_identity_v2_login_codes_on_identity_id"
+    t.index ["login_attempt_id"], name: "index_identity_v2_login_codes_on_login_attempt_id"
   end
 
   create_table "login_attempts", force: :cascade do |t|
@@ -536,6 +539,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_09_204504) do
   add_foreign_key "identity_sessions", "identities"
   add_foreign_key "identity_totps", "identities"
   add_foreign_key "identity_v2_login_codes", "identities"
+  add_foreign_key "identity_v2_login_codes", "login_attempts"
   add_foreign_key "login_attempts", "identities"
   add_foreign_key "login_attempts", "identity_sessions", column: "session_id"
   add_foreign_key "oauth_access_grants", "identities", column: "resource_owner_id"

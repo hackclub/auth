@@ -35,10 +35,13 @@ class LoginsController < ApplicationController
         # Set browser token cookie for security
         cookies.signed["browser_token_#{attempt.to_param}"] = {
             value: attempt.browser_token,
-            expires: LoginAttempt::EXPIRATION.from_now
+            expires: LoginAttempt::EXPIRATION.from_now,
+            httponly: true,
+            secure: Rails.env.production?,
+            same_site: :lax
         }
 
-        send_v2_login_code(identity)
+        send_v2_login_code(identity, attempt)
         redirect_to login_attempt_path(id: attempt.to_param, return_to: @return_to), status: :see_other
     rescue => e
         flash[:error] = e.message
@@ -59,7 +62,7 @@ class LoginsController < ApplicationController
         flash.clear
 
         code = params[:code].to_s.strip.gsub(/[^0-9]/, "")
-        login_code = Identity::V2LoginCode.active.where(identity: @identity, code: code).first
+        login_code = Identity::V2LoginCode.active.find_by(identity: @identity, login_attempt: @attempt, code: code)
 
         unless login_code
             flash.now[:error] = "Invalid or expired code, please try again"
@@ -74,7 +77,18 @@ class LoginsController < ApplicationController
             return
         end
 
-        login_code.update!(used_at: Time.current, ip_address: request.remote_ip, user_agent: request.user_agent)
+        # Atomically consume the code to prevent race conditions
+        updated = Identity::V2LoginCode.where(id: login_code.id, used_at: nil).update_all(
+            used_at: Time.current,
+            ip_address: request.remote_ip.to_s,
+            user_agent: request.user_agent
+        )
+        
+        unless updated == 1
+            flash.now[:error] = "This code has already been used"
+            render :email, status: :unprocessable_entity
+            return
+        end
 
         factors = (@attempt.authentication_factors || {}).dup
         # Use special factor for legacy provenance, else standard email factor
@@ -90,7 +104,7 @@ class LoginsController < ApplicationController
     end
 
     def resend
-        send_v2_login_code(@attempt.identity)
+        send_v2_login_code(@attempt.identity, @attempt)
         flash[:notice] = "A new code has been sent to #{@identity.primary_email}"
         redirect_to login_attempt_path(id: @attempt.to_param, return_to: params[:return_to]), status: :see_other
     end
@@ -106,7 +120,7 @@ class LoginsController < ApplicationController
         code = params[:code].to_s.strip.gsub(/[^0-9]/, "")
         
         totp_instance = @identity.totp
-        unless totp_instance&.verify(code, drift_behind: 30, drift_ahead: 30)
+        unless totp_instance&.verify(code, drift_behind: 1, drift_ahead: 1)
             flash.now[:error] = "Invalid TOTP code, please try again"
             render :totp, status: :unprocessable_entity
             return
@@ -214,37 +228,47 @@ class LoginsController < ApplicationController
         }
     end
 
-    def send_v2_login_code(identity)
-        code = Identity::V2LoginCode.create!(identity: identity, ip_address: request.remote_ip, user_agent: request.user_agent)
+    def send_v2_login_code(identity, attempt = nil)
+        code = Identity::V2LoginCode.create!(identity: identity, login_attempt: attempt, ip_address: request.remote_ip, user_agent: request.user_agent)
         IdentityMailer.v2_login_code(code).deliver_later if defined?(IdentityMailer)
     end
 
     def handle_post_verification_redirect
         # Only create session if authentication requirements are met
-        if @attempt.complete? || @attempt.may_mark_complete?
+        LoginAttempt.transaction do
+            @attempt.lock!
+            
+            if @attempt.session_id.present?
+                flash[:error] = "This login has already been completed"
+                return redirect_to login_attempt_path(id: @attempt.to_param)
+            end
+            
             @attempt.mark_complete! if @attempt.may_mark_complete?
+            
+            unless @attempt.complete?
+                # Need more factors - redirect to next available factor
+                return redirect_to_next_factor
+            end
             
             session = sign_in(identity: @identity, fingerprint_info: fingerprint_info)
             @attempt.update!(session: session)
+        end
 
-            if @identity.slack_id.blank?
-                provision_slack_on_first_login
-            end
+        if @identity.slack_id.blank?
+            provision_slack_on_first_login
+        end
 
-            if @attempt.provenance == "signup_legacy" && !@identity.legacy_migrated?
-                @identity.update!(legacy_migrated_at: Time.current)
-            end
+        if @attempt.provenance == "signup_legacy" && !@identity.legacy_migrated?
+            @identity.update!(legacy_migrated_at: Time.current)
+        end
 
-            case (@attempt.next_action || "home").to_sym
-            when :slack
-                render_saml_response_for("slack")
-            else
-                flash[:success] = "Logged in!"
-                redirect_to params[:return_to].presence || root_path
-            end
+        case (@attempt.next_action || "home").to_sym
+        when :slack
+            render_saml_response_for("slack")
         else
-            # Need more factors - redirect to next available factor
-            redirect_to_next_factor
+            flash[:success] = "Logged in!"
+            safe_return_to = url_from(params[:return_to])
+            redirect_to safe_return_to.presence || root_path
         end
     end
 
@@ -282,12 +306,12 @@ class LoginsController < ApplicationController
 
     def redirect_to_next_factor
         available = @attempt.available_factors
-        return_to = params[:return_to]
+        safe_return_to = url_from(params[:return_to])
 
         if available.include?(:totp)
-            redirect_to totp_login_attempt_path(id: @attempt.to_param, return_to: return_to), status: :see_other
+            redirect_to totp_login_attempt_path(id: @attempt.to_param, return_to: safe_return_to), status: :see_other
         elsif available.include?(:backup_code)
-            redirect_to backup_code_login_attempt_path(id: @attempt.to_param, return_to: return_to), status: :see_other
+            redirect_to backup_code_login_attempt_path(id: @attempt.to_param, return_to: safe_return_to), status: :see_other
         else
             # No available factors - this shouldn't happen
             flash[:error] = "Unable to complete authentication"
