@@ -40,7 +40,7 @@ FROM base AS build
 # Install packages needed to build gems
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y curl libjemalloc2 libvips imagemagick postgresql-client libffi-dev build-essential git libpq-dev libyaml-dev pkg-config \
-    cmake libjpeg-dev libpng-dev libaom-dev libx265-dev libde265-dev libxmlsec1-dev libxmlsec1 && \
+    cmake libjpeg-dev libpng-dev libaom-dev libx265-dev libde265-dev libxmlsec1-dev libxmlsec1 libxmlsec1-openssl && \
     # Build libheif from latest source with examples
     cd /tmp && \
     git clone --depth 1 https://github.com/strukturag/libheif.git && \
