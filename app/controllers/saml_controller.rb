@@ -12,11 +12,10 @@ class SAMLController < ApplicationController
   end
 
   def idp_initiated
-
     if Rails.env.staging? && params[:slug] == "slack"
       render "static_pages/slack_staging" and return
     end
-    
+
     return unless ensure_sp_configured!(slug: params[:slug])
 
     unless @sp_config[:allow_idp_initiated]
