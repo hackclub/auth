@@ -7,6 +7,7 @@ class IdentityPolicy < ApplicationPolicy
 
   alias_method :clear_slack_id?, :update?
   alias_method :reprovision_slack?, :update?
+  alias_method :promote_to_full_user?, :update?
 
   class Scope < ApplicationPolicy::Scope
     def resolve

@@ -40,6 +40,18 @@ module SCIMService
         error_msg = response.body.dig("Errors", 0, "description") || response.body["detail"] || "Unknown error"
         Rails.logger.error "Failed to create Slack user: #{error_msg}. Full response: #{response.body.inspect}"
         
+        # Check for email_taken error with existing_user ID
+        if error_msg =~ /email_taken.*existing_user=(U[A-Z0-9]+)/i
+          existing_slack_id = $1
+          Rails.logger.info "Email taken, extracted existing Slack user ID: #{existing_slack_id}"
+          return {
+            success: true,
+            slack_id: existing_slack_id,
+            created: false,
+            message: "Linked existing Slack account (from error response)"
+          }
+        end
+        
         # Check if user already exists but wasn't found by email lookup
         if error_msg.include?("already") || error_msg.include?("duplicate") || error_msg.include?("exists")
           # Try to find the existing user by email using SCIM
