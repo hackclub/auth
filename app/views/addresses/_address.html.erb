@@ -1,0 +1,34 @@
+<div class="address-card">
+  <div class="address-header">
+    <div class="address-icon">📬</div>
+    <div class="address-info">
+      <div class="address-name">
+        <%= address.first_name %> <%= address.last_name %>
+      </div>
+    </div>
+    <% if current_identity.primary_address == address %>
+      <span class="primary-badge">
+        🏠 <%= t "addresses.primary" %>
+      </span>
+    <% end %>
+  </div>
+
+  <div class="address-details">
+    <%= address.line_1 %><br>
+    <% if address.line_2.present? %>
+      <%= address.line_2 %><br>
+    <% end %>
+    <%= address.city %>, <%= address.state %> <%= address.postal_code %><br>
+    <%= address.country %>
+  </div>
+  
+  <div class="address-actions">
+    <%= button_to t("addresses.index.edit"), edit_address_path(address), method: :get, class: "secondary small-btn" %>
+    <% unless current_identity.primary_address == address %>
+      <%= button_to t("addresses.index.make_primary"), address_path(address, make_primary: true), method: :patch, class: "small-btn" %>
+    <% end %>
+    <%= button_to t("addresses.index.delete"), address, method: :delete,
+                  form: { "hx-confirm": t("addresses.index.delete_confirmation") },
+                  class: "secondary danger small-btn" %>
+  </div>
+</div>
