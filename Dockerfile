@@ -17,7 +17,7 @@ WORKDIR /rails
 # Install base packages with runtime libraries for libheif
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y curl libjemalloc2 libvips imagemagick postgresql-client libffi-dev \
-    libjpeg62-turbo libaom3 libx265-199 libde265-0 libpng16-16 wget && \
+    libjpeg62-turbo libaom3 libx265-199 libde265-0 libpng16-16 wget libxmlsec1 libxmlsec1-openssl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -40,7 +40,7 @@ FROM base AS build
 # Install packages needed to build gems
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y curl libjemalloc2 libvips imagemagick postgresql-client libffi-dev build-essential git libpq-dev libyaml-dev pkg-config \
-    cmake libjpeg-dev libpng-dev libaom-dev libx265-dev libde265-dev libxmlsec1-dev libxmlsec1 libxmlsec1-openssl libxmlsec1t64-openssl && \
+    cmake libjpeg-dev libpng-dev libaom-dev libx265-dev libde265-dev libxmlsec1-dev libxmlsec1 libxmlsec1-openssl && \
     # Build libheif from latest source with examples
     cd /tmp && \
     git clone --depth 1 https://github.com/strukturag/libheif.git && \
