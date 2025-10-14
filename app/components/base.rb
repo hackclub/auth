@@ -16,6 +16,9 @@ class Components::Base < Phlex::HTML
   register_value_helper :ap
   register_output_helper :inline_icon
   register_output_helper :copy_to_clipboard
+  register_output_helper :button_tag
+  register_output_helper :content_tag
+  register_output_helper :link_to
 
   if Rails.env.development?
     def before_template

@@ -32,7 +32,8 @@ module ApplicationHelper
       shape_rendering: 'crispEdges',
       module_size: 3,
       standalone: true,
-      viewbox: true
+      viewbox: true,
+      svg_attributes: { class: "qr" }
     )
     svg.html_safe
   end

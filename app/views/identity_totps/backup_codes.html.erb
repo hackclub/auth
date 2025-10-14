@@ -1,18 +1,22 @@
-<div class="backup-codes-display">
-  <h4><%= t "identity_backup_codes.totp_heading" %></h4>
-  <%= render Components::Banner.new(kind: :warning) do %>
-    <b><%= t "identity_backup_codes.save_em" %></b> <br/>
-    <%= t "identity_backup_codes.never_again" %>
-  <% end %>
-  <div class="codes-grid">
-    <% @newly_generated_codes.each do |code| %>
-      <code class="backup-code"><%= code %></code>
-    <% end %>
-  </div>
-
-  <div class="backup-codes-actions">
-    <button onclick="navigator.clipboard.writeText('<%= @newly_generated_codes.join('\n') %>')">
-      <%= t "identity_backup_codes.copy_all" %>
-    </button>
-  </div>
-</div>
+<%= render Components::BackupCodesDisplay.new(
+  codes: @newly_generated_codes,
+  warning_title: t("identity_backup_codes.save_warning_title"),
+  warning_detail: t("identity_backup_codes.save_warning_detail"),
+  heading: true,
+  show_confirmation: true,
+  header_block: -> { 
+    content_tag(:h3, t("identity_backup_codes.totp_heading")) +
+    content_tag(:p, t("identity_totps.backup_codes.step_indicator"), class: "step-indicator")
+  },
+  confirmation_button_block: -> {
+    link_to(t("identity_backup_codes.finish"), 
+      security_path,
+      id: "finish-setup-btn",
+      class: "button",
+      style: "pointer-events: none; opacity: 0.5;",
+      data: {
+        "disabled": "true"
+      }
+    )
+  }
+) %>

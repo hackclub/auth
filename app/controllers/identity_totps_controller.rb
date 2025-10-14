@@ -8,16 +8,10 @@ class IdentityTotpsController < ApplicationController
   def new
     @totp = current_identity.totps.build
     
-    render layout: request.headers["HX-Request"] ? "htmx" : false
-  end
-
-  def create
-    @totp = current_identity.totps.build
-    
     if @totp.save
       render :show, layout: request.headers["HX-Request"] ? "htmx" : false
     else
-      render :new, layout: request.headers["HX-Request"] ? "htmx" : false, status: :unprocessable_entity
+      render :index, layout: request.headers["HX-Request"] ? "htmx" : false, status: :unprocessable_entity
     end
   end
 
@@ -44,8 +38,9 @@ class IdentityTotpsController < ApplicationController
         redirect_to security_path, notice: "TOTP setup complete! Enable 2FA enforcement to require it on login."
       end
     else
-      flash.now[:error] = "Invalid code, please try again"
-      render :show, layout: request.headers["HX-Request"] ? "htmx" : false, status: :unprocessable_entity
+      flash.now[:error] = "Invalid code, please try again."
+      status = request.headers["HX-Request"] ? :ok : :unprocessable_entity
+      render :show, layout: request.headers["HX-Request"] ? "htmx" : false, status: status
     end
   rescue ActiveRecord::RecordNotFound
     if request.headers["HX-Request"]

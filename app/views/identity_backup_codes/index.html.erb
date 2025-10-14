@@ -1,27 +1,29 @@
 <% if @backup_codes.any? %>
   <div class="backup-codes-section">
     <% if @newly_generated_codes.present? %>
-      <div class="backup-codes-display">
-        <h4><%= t ".created_heading" %></h4>
-        <%= render Components::Banner.new(kind: :warning) do %>
-          <b><%= t "identity_backup_codes.save_em" %></b> <br/>
-          <%= t "identity_backup_codes.never_again" %>
-        <% end %>
-        <div class="codes-grid">
-          <% @newly_generated_codes.each do |code| %>
-            <code class="backup-code"><%= code %></code>
-          <% end %>
-        </div>
-        <button onclick="navigator.clipboard.writeText('<%= @newly_generated_codes.join('\n') %>')">
-          <%= t "identity_backup_codes.copy_all" %>
-        </button>
-      </div>
+      <%= render Components::BackupCodesDisplay.new(
+        codes: @newly_generated_codes,
+        warning_title: t("identity_backup_codes.save_warning_title"),
+        warning_detail: t("identity_backup_codes.save_warning_detail"),
+        show_confirmation: true,
+        confirmation_button_block: -> {
+          button_tag(t("identity_backup_codes.index.activate_codes"),
+            id: "finish-setup-btn",
+            disabled: true,
+            data: {
+              "hx-patch": confirm_identity_backup_codes_path,
+              "hx-target": "#backup-codes-container",
+              "hx-swap": "innerHTML"
+            }
+          )
+        }
+      ) %>
     <% else %>
       <div class="backup-codes-status">
         <div class="status-info">
           <strong><%= t ".heading" %></strong>
           <p class="status-detail">
-             <%= t ".status", remaining: pluralize(@backup_codes.count, 'backup code') %>
+             <%== t ".status", remaining: pluralize(@backup_codes.count, 'backup code') %>
           </p>
         </div>
         <%= button_to t(".regenerate"),

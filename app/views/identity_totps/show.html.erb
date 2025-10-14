@@ -1,39 +1,78 @@
-<div class="totp-setup-verify">
+<div class="totp-setup-verify" x-data="{
+  codeValue: '',
+  get isComplete() {
+    return this.codeValue.replace(/\D/g, '').length === 6;
+  }
+}">
+  <div class="totp-setup-header">
+    <h3><%= t(".heading") %></h3>
+    <p class="step-indicator"><%= t(".step_indicator") %></p>
+  </div>
+
+  <% if flash.now[:error].present? %>
+    <div class="banner danger" role="status" aria-live="polite">
+      <%= inline_icon("important-fill", size: 16) %>
+      <%= flash.now[:error] %>
+    </div>
+  <% end %>
+
+  <p class="setup-instructions"><%= t(".instructions") %></p>
+
   <div class="qr-code-section">
     <p><%= t(".scan_qr") %></p>
     <%= render_qr_code(@totp.provisioning_uri) %>
-    
+
     <details>
       <summary><%= t(".manual_entry") %></summary>
-      <code><%= @totp.secret %></code>
+      <div class="banner warning">
+        <%= t(".secret_warning") %>
+      </div>
+      <code>
+        <%= copy_to_clipboard(@totp.secret, tooltip_direction: "s") do %>
+          <%= @totp.secret %>
+          <%= inline_icon "copy", size: 20 %>
+        <% end %>
+      </code>
     </details>
   </div>
 
   <%= form_with url: verify_identity_totp_path(@totp), method: :post, data: {
     "hx-post": verify_identity_totp_path(@totp),
     "hx-target": "#totp-container",
-    "hx-swap": "innerHTML"
+    "hx-swap": "innerHTML swap:0.2s",
+    "hx-target-error": "#totp-container"
   } do |f| %>
     <%= f.label :code, t(".code_label") %>
-    <%= f.text_field :code, 
-        required: true, 
-        autocomplete: "one-time-code",
-        inputmode: "numeric",
-        pattern: "[0-9]{6}",
-        maxlength: 6,
-        placeholder: "000000",
-        autofocus: true %>
+    <small id="code-hint" class="input-hint"><%= t(".code_hint") %></small>
+    <%= f.text_field :code,
+                     autocomplete: "one-time-code",
+                     inputmode: "numeric",
+                     maxlength: 6,
+                     minlength: 6,
+                     placeholder: "000000",
+                     spellcheck: "false",
+                     autofocus: true,
+                     "x-model": "codeValue",
+                     "aria-describedby": "code-hint"
+    %>
 
-    <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
-      <%= f.submit t(".verify_enable") %>
-      <button type="button" 
+    <div class="form-actions">
+      <%= f.submit t(".verify_enable"), "x-bind:disabled": "!isComplete" %>
+      <button type="button"
               class="secondary"
               hx-delete="<%= identity_totp_path(@totp) %>"
               hx-target="#totp-container"
               hx-swap="innerHTML"
               hx-confirm="<%= t('.cancel_confirm') %>">
-        <%= t(".cancel") %>
+        <%= t(".cancel_setup") %>
       </button>
     </div>
   <% end %>
+
+  <div class="totp-help">
+    <details>
+      <summary><%= inline_icon("help", size: 14) %> <%= t(".help_title") %></summary>
+      <p><%= t(".help_text") %></p>
+    </details>
+  </div>
 </div>

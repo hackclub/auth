@@ -249,22 +249,24 @@ en:
       mfa: 2-Factor Authentication
       backup_codes: Backup Codes
   identity_backup_codes:
-    totp_heading: "Save your backup codes:"
-    save_em: Save these codes now!
-    never_again: You won't be able to see them again. Each code can only be used once.
-    copy_all: Copy to Clipboard
+    totp_heading: "Save your backup codes"
+    save_warning_title: Save these codes now!
+    save_warning_detail: "These codes are shown only once. Store them in a secure password manager. Anyone with these codes can access your account. Each code can only be used once."
+    copy_all: Copy All
+    copied: Copied!
+    download: Download .txt
+    print: Print
+    confirmation_label: I've saved these codes securely
+    finish: Finish Setup
     index:
       heading: Backup codes
       created_heading: Your backup codes
       regenerate: Regenerate codes
-      regenerate_confirmation: This will invalidate your current backup codes. Are you sure?
-      status: You have %{remaining} available. Each code can be used once if you lose access to your second factor.
+      regenerate_confirmation: This will generate new backup codes. You'll need to confirm you've saved them before your current codes are invalidated.
+      activate_codes: Activate New Codes
+      status: You have %{remaining} available. <br/>Each code can be used once if you lose access to your second factor.
       none: No backup codes available. Set up 2FA first to generate backup codes.
   identity_totps:
-    new:
-      instructions: Set up two-factor authentication using an authenticator app like Google Authenticator, Authy, or 1Password.
-      continue: Continue
-      cancel: Cancel
     index:
       totp_title: Authenticator App (TOTP)
       totp_description: You can use your authenticator app to sign in.
@@ -273,15 +275,26 @@ en:
       require_2fa_description: When enabled, you must use a second factor (authenticator app or backup code) to sign in.
       disable_requirement: Disable Requirement
       enable_requirement: Enable Requirement
-      setup_description: Add an extra layer of security by requiring a second factor in addition to your password.
-      setup_authenticator: Set up Authenticator App
+      setup_description: Add an extra layer of security by requiring a second factor in addition to your email.
+      setup_authenticator: Set up two-factor authentication
     show:
-      scan_qr: Scan this QR code with your authenticator app
+      heading: Set up two-factor authentication
+      step_indicator: Step 1 of 2
+      instructions: "Scan the QR code with an authenticator app (1Password, Google Authenticator, Authy, Microsoft Authenticator)."
+      scan_qr: Scan this QR code
       manual_entry: Can't scan? Enter manually
-      code_label: Enter the 6-digit code from your app
-      verify_enable: Verify & Enable
-      cancel_confirm: Cancel 2FA setup?
-      cancel: Cancel
+      secret_warning: "Treat this secret like a password. Don't share or store it insecurely."
+      copy_secret: Copy Secret
+      copied: Copied!
+      code_label: Enter the 6-digit code
+      code_hint: Enter the 6-digit code from your authenticator app
+      verify_enable: Verify and Enable
+      cancel_setup: Cancel Setup
+      cancel_confirm: "Cancel 2FA setup? This will remove the unverified authenticator."
+      help_title: Not working?
+      help_text: "TOTP codes change every 30 seconds. Make sure your device's time is accurate. If it still doesn't work, try re-scanning the QR code."
+    backup_codes:
+      step_indicator: Step 2 of 2
   identity_sessions:
     index:
       blank_slate: No active sessions # never, right?

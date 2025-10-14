@@ -298,7 +298,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :identity_totps, only: [:index, :new, :create, :destroy] do
+  resources :identity_totps, only: [:index, :new, :destroy] do
     member do
       post :verify
     end
@@ -308,7 +308,9 @@ Rails.application.routes.draw do
   get "/step_up", to: "step_up#new", as: :new_step_up
   post "/step_up/verify", to: "step_up#verify", as: :verify_step_up
 
-  resources :identity_backup_codes, only: [:index, :create]
+  resources :identity_backup_codes, only: [:index, :create] do
+    patch :confirm, on: :collection
+  end
 
   resources :authorized_applications, only: [:index, :destroy]
 
