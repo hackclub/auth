@@ -15,7 +15,7 @@
             autocomplete: "off",
             placeholder: t(".placeholder") %>
       </fieldset>
-      <%= form.submit t(".verify") → %>
+      <%= form.submit t(".verify") %>
     <% end %>
 
     <% if @attempt.totp_available? %>
