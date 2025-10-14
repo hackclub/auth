@@ -56,7 +56,7 @@ en:
       client_secret: Client Secret
       click_to_copy_client_secret: click to copy client secret
       redirect_uris: Redirect URIs
-      test_auth: Test Auth →
+      test_auth: Test Auth
       auth_link_hint: Right click auth links to copy URL
       configuration: Configuration
       scopes: Scopes

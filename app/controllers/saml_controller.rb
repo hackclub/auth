@@ -1,7 +1,7 @@
 class SAMLController < ApplicationController
   include SAMLHelper
   
-  skip_before_action :authenticate_identity!, only: [:metadata]
+  skip_before_action :authenticate_identity!, only: [:metadata, :sp_initiated_get, :idp_initiated, :welcome]
 
   AUTHN_REQUEST_TTL = 5.minutes
   SSO_ENDPOINT_PATH = '/saml/auth'
@@ -17,6 +17,11 @@ class SAMLController < ApplicationController
     unless @sp_config[:allow_idp_initiated]
       @error = "This SP is not configured for IdP-initiated authentication"
       render :error and return
+    end
+
+    unless current_identity
+      session[:saml_return_to] = request.original_url
+      redirect_to saml_welcome_path and return
     end
 
     response = build_saml_response(

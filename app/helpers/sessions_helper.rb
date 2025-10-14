@@ -9,7 +9,15 @@ module SessionsHelper
     # Preserve fingerprint info from session if not passed
     fingerprint_info = session[:fingerprint_info] if fingerprint_info.blank? && session[:fingerprint_info].present?
     
+    # Preserve OAuth flow data before resetting session
+    oauth_return_to = session[:oauth_return_to]
+    stashed_data = session[:stashed_data]
+    
     reset_session
+    
+    # Restore OAuth flow data after session reset
+    session[:oauth_return_to] = oauth_return_to if oauth_return_to.present?
+    session[:stashed_data] = stashed_data if stashed_data.present?
 
     session_token = SecureRandom.urlsafe_base64
     session_duration = 1.month

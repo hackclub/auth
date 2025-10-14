@@ -1,0 +1,4 @@
+<%= render Components::AuthWelcome.new(
+  service_name: @sp_config&.dig(:display_name) || @sp_config&.dig(:entity_id),
+  return_to: @saml_return_to
+) %>

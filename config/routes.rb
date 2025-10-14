@@ -347,6 +347,7 @@ Rails.application.routes.draw do
 
   scope :saml do
     get "/metadata", to: "saml#metadata"
+    get "/welcome", to: "saml#welcome", as: :saml_welcome
     post "/idp_initiated/:slug", to: "saml#idp_initiated", as: :idp_initiated_saml
     get "/auth", to: "saml#sp_initiated_get"
   end
