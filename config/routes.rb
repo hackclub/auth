@@ -338,9 +338,6 @@ Rails.application.routes.draw do
     post "/aadhaar/:secret_key", to: "aadhaar#create", as: :aadhaar_callback
   end
 
-  # Slack account linking routes
-  get "/slack/link", to: "slack_accounts#new", as: :link_slack_account
-  get "/slack/callback", to: "slack_accounts#create", as: :slack_account_callback
 
   # Slack interactivity routes
   namespace :slack do
