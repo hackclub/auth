@@ -9,7 +9,7 @@ class Components::ProfileCompletion < ApplicationComponent
 
   def build_tasks
     tasks = []
-    
+
     # Verification task
     verification_item = Components::VerificationStatusItem.new(identity: @identity)
     if verification_item.show?
@@ -83,7 +83,7 @@ class Components::ProfileCompletion < ApplicationComponent
           end
 
           # Handle regular tasks - show all tasks, style differently based on completion
-          task_classes = ["profile-task"]
+          task_classes = [ "profile-task" ]
           task_classes << "completed" if task[:completed]
 
           a(href: task[:url].call, class: task_classes.join(" ")) do

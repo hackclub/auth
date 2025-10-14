@@ -39,7 +39,7 @@ class Identity < ApplicationRecord
   acts_as_paranoid
   include PublicActivity::Model
 
-  tracked owner: ->(controller, model) { controller&.user_for_public_activity }, only: [:create, :admin_update]
+  tracked owner: ->(controller, model) { controller&.user_for_public_activity }, only: [ :create, :admin_update ]
 
   include CountryEnumable
 
@@ -303,7 +303,7 @@ class Identity < ApplicationRecord
   # Generic 2FA method helpers
   def two_factor_methods
     [
-      totps.verified,
+      totps.verified
       # Future: sms_two_factors.verified,
     ].flatten.compact
   end

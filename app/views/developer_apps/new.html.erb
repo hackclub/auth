@@ -40,8 +40,8 @@
     <% end %>
     <small class="usn"><%= t ".scopes_hint", scopes: Program::COMMUNITY_ALLOWED_SCOPES.join(", ") %></small>
   </div>
-  <br/>
-  <br/>
+  <br>
+  <br>
   <%= render Components::Banner.new(kind: :info) do %>
     <%= t(".trust_level_note_html").html_safe %>
   <% end %>

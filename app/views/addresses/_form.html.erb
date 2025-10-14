@@ -2,7 +2,7 @@
   <% if local_assigns[:from_program] %>
     <%= f.hidden_field :from_program, value: true %>
   <% end %>
-  
+
   <% if address.errors.any? %>
     <div class="banner danger" style="margin-bottom: 1.5rem;">
       <h4 style="color: var(--error-fg); margin: 0 0 0.5rem;"><%= pluralize(address.errors.count, "issue") %> prevented this from being saved:</h4>
@@ -21,12 +21,12 @@
 
   <%= f.text_field :line_1, placeholder: t("addresses.line_1"), required: true %>
   <%= f.text_field :line_2, placeholder: "#{t("addresses.line_2")} (optional)" %>
-  
+
   <div class="grid">
     <%= f.text_field :city, placeholder: t("addresses.city"), required: true %>
     <%= f.text_field :state, placeholder: t("addresses.state"), required: true %>
   </div>
-  
+
   <div class="grid">
     <%= f.text_field :postal_code, placeholder: t("addresses.postal_code"), required: true %>
     <%= f.collection_select :country, Address.countries_for_select,

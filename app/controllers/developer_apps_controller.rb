@@ -1,6 +1,6 @@
 class DeveloperAppsController < ApplicationController
   before_action :require_developer_mode
-  before_action :set_app, only: [:show, :edit, :update, :destroy]
+  before_action :set_app, only: [ :show, :edit, :update, :destroy ]
 
   def index
     @apps = current_identity.owned_developer_apps.order(created_at: :desc)

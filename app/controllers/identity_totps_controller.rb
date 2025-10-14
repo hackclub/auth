@@ -1,13 +1,13 @@
 class IdentityTotpsController < ApplicationController
   def index
     @totp = current_identity.totp
-    
+
     render layout: request.headers["HX-Request"] ? "htmx" : false
   end
 
   def new
     @totp = current_identity.totps.build
-    
+
     if @totp.save
       render :show, layout: request.headers["HX-Request"] ? "htmx" : false
     else
@@ -18,16 +18,16 @@ class IdentityTotpsController < ApplicationController
   def verify
     @totp = current_identity.totps.find(params[:id])
     code = params[:code]
-    
+
     if @totp.verify(code, drift_behind: 1, drift_ahead: 1)
       @totp.mark_verified!
-      
+
       # Generate backup codes if this is their first 2FA method
       codes_generated = []
       if current_identity.backup_codes.active.empty?
         codes_generated = generate_backup_codes_for_identity(current_identity)
       end
-      
+
       if codes_generated.any?
         @newly_generated_codes = codes_generated
         render :backup_codes, layout: request.headers["HX-Request"] ? "htmx" : false

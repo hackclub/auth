@@ -1,7 +1,7 @@
 class LoginsController < ApplicationController
   layout "logged_out"
     include SAMLHelper
-    
+
     skip_before_action :authenticate_identity!
     before_action :set_return_to, only: [ :new, :create ]
     before_action :set_attempt, except: [ :new, :create ]
@@ -26,7 +26,7 @@ class LoginsController < ApplicationController
             provenance: "login",
             next_action: "home"
         )
-        
+
         # Store fingerprint info in session for later use
         fp_info = fingerprint_info
         Rails.logger.info "Fingerprint info: #{fp_info.inspect}"
@@ -83,7 +83,7 @@ class LoginsController < ApplicationController
             ip_address: request.remote_ip.to_s,
             user_agent: request.user_agent
         )
-        
+
         unless updated == 1
             flash.now[:error] = "This code has already been used"
             render :email, status: :unprocessable_entity
@@ -118,7 +118,7 @@ class LoginsController < ApplicationController
     def verify_totp
         flash.clear
         code = params[:code].to_s.strip.gsub(/[^0-9]/, "")
-        
+
         totp_instance = @identity.totp
         unless totp_instance&.verify(code, drift_behind: 1, drift_ahead: 1)
             flash.now[:error] = "Invalid TOTP code, please try again"
@@ -140,7 +140,7 @@ class LoginsController < ApplicationController
     def verify_backup_code
         flash.clear
         code = params[:code].to_s.strip
-        
+
         backup = @identity.backup_codes.active.find { |bc| bc.authenticate_code(code) }
         unless backup
             flash.now[:error] = "Invalid backup code"
@@ -212,13 +212,13 @@ class LoginsController < ApplicationController
 
     def fingerprint_info
         browser_info = Browser.new(request.user_agent)
-        
+
         # Parse browser with version
         browser = "#{browser_info.name} #{browser_info.full_version}"
-        
+
         # Parse OS with version
         os = "#{browser_info.platform.name} #{browser_info.platform.version}"
-        
+
         {
             fingerprint: params[:fingerprint],
             device_info: browser,
@@ -237,19 +237,19 @@ class LoginsController < ApplicationController
         # Only create session if authentication requirements are met
         LoginAttempt.transaction do
             @attempt.lock!
-            
+
             if @attempt.session_id.present?
                 flash[:error] = "This login has already been completed"
                 return redirect_to login_attempt_path(id: @attempt.to_param)
             end
-            
+
             @attempt.mark_complete! if @attempt.may_mark_complete?
-            
+
             unless @attempt.complete?
                 # Need more factors - redirect to next available factor
                 return redirect_to_next_factor
             end
-            
+
             session = sign_in(identity: @identity, fingerprint_info: fingerprint_info)
             @attempt.update!(session: session)
         end
@@ -282,11 +282,11 @@ class LoginsController < ApplicationController
         if slack_result[:success]
             @identity.update(slack_id: slack_result[:slack_id])
             Rails.logger.info "Slack provisioning successful for #{@identity.id}: #{slack_result[:message]}"
-            
+
             if scenario.slack_onboarding_flow == :internal_tutorial
                 Tutorial::BeginJob.perform_later(@identity)
             end
-            
+
             slack_result
         else
             Rails.logger.error "Slack provisioning failed for #{@identity.id}: #{slack_result[:error]}"

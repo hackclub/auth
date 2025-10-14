@@ -4,5 +4,3 @@ class AddProvenanceToLoginAttempts < ActiveRecord::Migration[8.0]
     add_column :login_attempts, :next_action, :string
   end
 end
-
-

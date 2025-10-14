@@ -1,7 +1,7 @@
 class IdentitySession < ApplicationRecord
   LAST_SEEN_AT_COOLDOWN = 5.minutes
 
-  has_paper_trail skip: [:session_token]
+  has_paper_trail skip: [ :session_token ]
   has_encrypted :session_token
   blind_index :session_token
 
@@ -9,7 +9,7 @@ class IdentitySession < ApplicationRecord
   has_one :login_attempt, foreign_key: :session_id
 
   include PublicActivity::Model
-  tracked owner: proc{ |controller, record| record.identity }, recipient: proc { |controller, record| record.identity }, only: [:create]
+  tracked owner: proc { |controller, record| record.identity }, recipient: proc { |controller, record| record.identity }, only: [ :create ]
 
   scope :expired, -> { where("expires_at <= ?", Time.now) }
   scope :not_expired, -> { where("expires_at > ?", Time.now) }
@@ -25,7 +25,7 @@ class IdentitySession < ApplicationRecord
 
   extend Geocoder::Model::ActiveRecord
   geocoded_by :ip
-  after_validation :geocode, if: ->(session){ session.ip.present? and session.ip_changed? }
+  after_validation :geocode, if: ->(session) { session.ip.present? and session.ip_changed? }
 
   validate :identity_is_unlocked, on: :create
 

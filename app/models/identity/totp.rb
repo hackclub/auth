@@ -7,7 +7,7 @@ class Identity::TOTP < ApplicationRecord
   validates :secret, presence: true
 
   include PublicActivity::Model
-  tracked owner: proc{ |controller, record| record.identity }, recipient: proc { |controller, record| record.identity }, only: [:create]
+  tracked owner: proc { |controller, record| record.identity }, recipient: proc { |controller, record| record.identity }, only: [ :create ]
 
   before_validation do
     self.secret ||= ROTP::Base32.random

@@ -20,38 +20,38 @@ class Components::BackupCodesDisplay < Components::Base
             margin: 1cm;
             size: A4;
           }
-          
+        #{'  '}
           html, body {
             height: 100vh !important;
             max-height: 100vh !important;
             overflow: hidden !important;
           }
-          
+        #{'  '}
           body {
             margin: 0 !important;
             padding: 0 !important;
           }
-          
+        #{'  '}
           body::after {
             content: none !important;
             display: none !important;
           }
-          
+        #{'  '}
           body * {
             visibility: hidden !important;
           }
-          
+        #{'  '}
           .backup-codes-display,
           .backup-codes-display * {
             visibility: visible !important;
           }
-          
+        #{'  '}
           .backup-codes-actions,
           .backup-codes-confirmation,
           .banner {
             display: none !important;
           }
-          
+        #{'  '}
           .print-only-banner {
             display: block !important;
             font-size: 10pt !important;
@@ -60,7 +60,7 @@ class Components::BackupCodesDisplay < Components::Base
             border: 1px solid #000 !important;
             background: white !important;
           }
-          
+        #{'  '}
           .backup-codes-display {
             position: absolute !important;
             top: 0 !important;
@@ -71,25 +71,25 @@ class Components::BackupCodesDisplay < Components::Base
             break-inside: avoid-page;
             page-break-inside: avoid;
           }
-          
+        #{'  '}
           .totp-setup-header {
             margin-bottom: 12pt !important;
           }
-          
+        #{'  '}
           .totp-setup-header h3 {
             font-size: 14pt !important;
             margin: 0 0 4pt !important;
           }
-          
+        #{'  '}
           .totp-setup-header .step-indicator {
             font-size: 10pt !important;
           }
-          
+        #{'  '}
           .backup-codes-display h4 {
             font-size: 12pt !important;
             margin: 0 0 8pt !important;
           }
-          
+        #{'  '}
           .codes-grid {
             background: white !important;
             border: 1px solid #000 !important;
@@ -99,7 +99,7 @@ class Components::BackupCodesDisplay < Components::Base
             gap: 6pt !important;
             margin: 0 !important;
           }
-          
+        #{'  '}
           .backup-code {
             background: white !important;
             border: 1px solid #000 !important;
@@ -114,7 +114,7 @@ class Components::BackupCodesDisplay < Components::Base
     style do
       raw safe ".print-only-banner { display: none; }"
     end
-    
+
     div(class: "backup-codes-display") do
       if @heading && @header_block
         div(class: "totp-setup-header") do
@@ -127,7 +127,7 @@ class Components::BackupCodesDisplay < Components::Base
         br
         plain @warning_detail
       end
-      
+
       div(class: "print-only-banner") do
         if @identity
           b { "Hack Club Account recovery codes for " }
@@ -174,7 +174,7 @@ class Components::BackupCodesDisplay < Components::Base
             input(type: "checkbox", id: "codes-saved-check", required: true)
             plain t("identity_backup_codes.confirmation_label")
           end
-          
+
           render_block(@confirmation_button_block) if @confirmation_button_block
         end
 

@@ -14,7 +14,7 @@ class LoginAttempt < ApplicationRecord
 
   scope :active, -> { where(created_at: EXPIRATION.ago..) }
 
-  has_paper_trail skip: [:browser_token]
+  has_paper_trail skip: [ :browser_token ]
 
   validate do
     if session.present? && !complete?
@@ -90,5 +90,4 @@ class LoginAttempt < ApplicationRecord
       1
     end
   end
-
 end

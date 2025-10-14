@@ -20,7 +20,7 @@ module SlackService
       user_client.admin_users_assign(
         user_id:,
         team_id:,
-        channel_ids: channel_ids.join(','),
+        channel_ids: channel_ids.join(","),
         is_restricted:,
         is_ultra_restricted:
       )

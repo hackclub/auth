@@ -42,7 +42,7 @@ class Rack::Attack
     }
 
     message = "slow your roll!"
-    
-    [429, headers, [message]]
+
+    [ 429, headers, [ message ] ]
   end
 end

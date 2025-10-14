@@ -18,7 +18,7 @@
     <%= address.city %>, <%= address.state %> <%= address.postal_code %><br>
     <%= address.country %>
   </div>
-  
+
   <div class="form-actions" style="gap: 0.5rem;">
     <%= link_to t("addresses.index.edit"), edit_address_path(address), role: "button", class: "secondary" %>
     <% unless current_identity.primary_address == address %>

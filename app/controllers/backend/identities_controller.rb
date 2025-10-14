@@ -140,7 +140,7 @@ module Backend
 
     def promote_to_full_user
       authorize @identity
-      
+
       unless @identity.slack_id.present?
         flash[:error] = "Identity has no Slack account to promote"
         redirect_to backend_identity_path(@identity)
@@ -156,7 +156,7 @@ module Backend
       else
         flash[:error] = "Failed to promote Slack user"
       end
-      
+
       redirect_to backend_identity_path(@identity)
     end
 

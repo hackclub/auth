@@ -4,10 +4,10 @@ module SCIMService
 
     def find_or_create_user(identity:, scenario:)
       email = identity.primary_email
-      
+
       # First check if user already exists by email via Slack Web API
       existing_slack_id = SlackService.find_by_email(email)
-      
+
       if existing_slack_id
         Rails.logger.info "Slack user already exists for #{email}: #{existing_slack_id}"
         return {
@@ -17,7 +17,7 @@ module SCIMService
           message: "Linked existing Slack account"
         }
       end
-      
+
       Rails.logger.info "No existing Slack user found for #{email}, proceeding to create"
 
       create_user(identity: identity, scenario: scenario)
@@ -26,7 +26,7 @@ module SCIMService
     def create_user(identity:, scenario:)
       username = generate_unique_username(identity.primary_email)
       user_type = scenario.slack_user_type
-      
+
       user_payload = build_user_payload(
         identity: identity,
         username: username,
@@ -39,7 +39,7 @@ module SCIMService
       unless response.success?
         error_msg = response.body.dig("Errors", 0, "description") || response.body["detail"] || "Unknown error"
         Rails.logger.error "Failed to create Slack user: #{error_msg}. Full response: #{response.body.inspect}"
-        
+
         # Check for email_taken error with existing_user ID
         if error_msg =~ /email_taken.*existing_user=(U[A-Z0-9]+)/i
           existing_slack_id = $1
@@ -51,7 +51,7 @@ module SCIMService
             message: "Linked existing Slack account (from error response)"
           }
         end
-        
+
         # Check if user already exists but wasn't found by email lookup
         if error_msg.include?("already") || error_msg.include?("duplicate") || error_msg.include?("exists")
           # Try to find the existing user by email using SCIM
@@ -66,7 +66,7 @@ module SCIMService
             }
           end
         end
-        
+
         return {
           success: false,
           error: error_msg,
@@ -75,7 +75,7 @@ module SCIMService
       end
 
       slack_id = response.body["id"]
-      
+
       if user_type == :multi_channel_guest
         channel_ids = scenario.slack_channels if scenario.slack_channels.any?
         SlackService.assign_to_workspace(user_id: slack_id, user_type:, channel_ids:)
@@ -93,7 +93,7 @@ module SCIMService
     rescue => e
       Rails.logger.error "Error creating Slack user: #{e.message}"
       Honeybadger.notify(e, context: { identity_id: identity.id, email: identity.primary_email })
-      
+
       {
         success: false,
         error: e.message,
@@ -107,7 +107,7 @@ module SCIMService
       response = client.get("Users") do |req|
         req.params["filter"] = "emails eq \"#{email}\""
       end
-      
+
       response.body.dig("Resources", 0, "id")
     rescue => e
       Rails.logger.warn "Error finding existing user by email via SCIM: #{e.message}"
@@ -129,7 +129,7 @@ module SCIMService
       response = client.get("Users") do |req|
         req.params["filter"] = "userName eq \"#{username}\""
       end
-      
+
       response.body["Resources"]&.any? || false
     rescue => e
       Rails.logger.warn "Error checking username existence: #{e.message}"

@@ -1,10 +1,10 @@
 class SAMLController < ApplicationController
   include SAMLHelper
-  
-  skip_before_action :authenticate_identity!, only: [:metadata, :sp_initiated_get, :idp_initiated, :welcome]
+
+  skip_before_action :authenticate_identity!, only: [ :metadata, :sp_initiated_get, :idp_initiated, :welcome ]
 
   AUTHN_REQUEST_TTL = 5.minutes
-  SSO_ENDPOINT_PATH = '/saml/auth'
+  SSO_ENDPOINT_PATH = "/saml/auth"
 
   def metadata
     xml = SAMLService::Entities.metadata_xml
@@ -61,8 +61,8 @@ class SAMLController < ApplicationController
 
     query_string = URI(request.url).query
     query_params = Rack::Utils.parse_query(query_string)
-    
-    unless query_params['Signature'].present?
+
+    unless query_params["Signature"].present?
       @error = "AuthnRequest signature required but not provided"
       render :error, status: :unauthorized and return false
     end
@@ -71,19 +71,19 @@ class SAMLController < ApplicationController
       cert = OpenSSL::X509::Certificate.new(
         "-----BEGIN CERTIFICATE-----\n#{@sp_config[:signing_certificate]}\n-----END CERTIFICATE-----"
       )
-      
-      signed_query = query_string.split('&Signature=').first
-      signature_bytes = Base64.decode64(query_params['Signature'])
-      
-      digest = case query_params['SigAlg']
-      when 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
+
+      signed_query = query_string.split("&Signature=").first
+      signature_bytes = Base64.decode64(query_params["Signature"])
+
+      digest = case query_params["SigAlg"]
+      when "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
         OpenSSL::Digest::SHA256.new
-      when 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
+      when "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
         OpenSSL::Digest::SHA1.new
       else
         raise "Unsupported signature algorithm: #{query_params['SigAlg']}"
       end
-      
+
       verified = cert.public_key.verify(digest, signature_bytes, signed_query)
 
       unless verified
@@ -102,7 +102,7 @@ class SAMLController < ApplicationController
   def check_replay!
     request_id = @authn_request.id
     cache_key = "saml:authn_request:#{request_id}"
-    
+
     if Rails.cache.exist?(cache_key)
       @error = "AuthnRequest has already been processed (replay detected)"
       render :error, status: :bad_request and return false
@@ -144,12 +144,12 @@ class SAMLController < ApplicationController
     if @authn_request.issue_instant
       issue_time = @authn_request.issue_instant
       now = Time.now.utc
-      
+
       if issue_time > now + 1.minute # Allow 1 min clock skew forward
         @error = "AuthnRequest IssueInstant is in the future"
         render :error, status: :bad_request and return false
       end
-      
+
       if issue_time < now - AUTHN_REQUEST_TTL
         @error = "AuthnRequest has expired"
         render :error, status: :bad_request and return false
@@ -175,5 +175,4 @@ class SAMLController < ApplicationController
 
     true
   end
-
 end

@@ -42,7 +42,7 @@ class Slack::InteractivityController < ActionController::API
     unless @current_identity
       Rails.logger.warn "Slack interactivity from unknown user: #{slack_id}"
       head :unauthorized
-      return
+      nil
     end
   end
 

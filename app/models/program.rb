@@ -93,7 +93,7 @@ class Program < ApplicationRecord
 
   def validate_community_scopes
     return if hq_official?
-    
+
     invalid_scopes = scopes_array - COMMUNITY_ALLOWED_SCOPES
     if invalid_scopes.any?
       errors.add(:scopes, "Community apps can only use these scopes: #{COMMUNITY_ALLOWED_SCOPES.join(', ')}")

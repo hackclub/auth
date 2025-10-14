@@ -11,7 +11,7 @@ module RalseiEngine
 
       if identity.promote_click_count == 0
         SlackService.promote_user(identity.slack_id)
-        
+
         promotion_channels = identity.onboarding_scenario_instance.promotion_channels
         if promotion_channels.present?
           SlackService.add_to_channels(user_id: identity.slack_id, channel_ids: promotion_channels)
@@ -27,7 +27,7 @@ module RalseiEngine
       return unless identity.slack_id.present?
 
       payload = render_template("slack/#{template_name}", identity)
-      
+
       client.chat_postMessage(
         channel: identity.slack_id,
         username: "Ralsei",
@@ -48,7 +48,7 @@ module RalseiEngine
     def render_template(template_name, identity)
       Slack::InteractivityController.render(
         template: template_name,
-        formats: [:slack_message],
+        formats: [ :slack_message ],
         assigns: { identity: identity }
       )
     end

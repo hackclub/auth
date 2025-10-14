@@ -11,7 +11,7 @@ class VerificationsController < ApplicationController
       redirect_to verification_status_path
       return
     end
-    
+
     redirect_to verification_step_path(:document)
   end
 
@@ -23,14 +23,14 @@ class VerificationsController < ApplicationController
 
   def show
     @identity = current_identity
-    
+
     # Redirect to status page if they shouldn't be filling out the form
     status = @identity.verification_status
     if status == "pending" || status == "verified" || status == "ineligible"
       redirect_to verification_status_path
       return
     end
-    
+
     case step
     when :document
       setup_document_step
@@ -41,7 +41,7 @@ class VerificationsController < ApplicationController
 
   def update
     @identity = current_identity
-    
+
     case step
     when :document
       handle_document_submission
@@ -67,7 +67,7 @@ class VerificationsController < ApplicationController
     # Update legal name if different from preferred name
     legal_first = params[:legal_first_name]
     legal_last = params[:legal_last_name]
-    
+
     if legal_first.present? && legal_last.present?
       # Only save legal name if it's different from preferred name
       if legal_first != @identity.first_name || legal_last != @identity.last_name
@@ -78,7 +78,7 @@ class VerificationsController < ApplicationController
         @identity.legal_first_name = nil
         @identity.legal_last_name = nil
       end
-      
+
       unless @identity.save
         @is_resubmission = @identity.needs_resubmission?
         @rejected_verifications = @identity.rejected_verifications_needing_resubmission if @is_resubmission

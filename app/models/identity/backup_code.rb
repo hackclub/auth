@@ -30,5 +30,4 @@ class Identity::BackupCode < ApplicationRecord
       transitions from: :active, to: :discarded
     end
   end
-
 end

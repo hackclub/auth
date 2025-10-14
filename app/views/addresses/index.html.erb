@@ -7,7 +7,7 @@
     <% @addresses.each do |address| %>
       <%= render 'address', address: address %>
     <% end %>
-    
+
     <section class="section-card" style="text-align: center; padding: 2rem;">
       <%= link_to "Add New Address", new_address_path, role: "button" %>
     </section>

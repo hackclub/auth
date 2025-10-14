@@ -5,12 +5,12 @@
   heading: true,
   show_confirmation: true,
   identity: current_identity,
-  header_block: -> { 
+  header_block: -> {
     content_tag(:h3, t("identity_backup_codes.totp_heading")) +
     content_tag(:p, t("identity_totps.backup_codes.step_indicator"), class: "step-indicator")
   },
   confirmation_button_block: -> {
-    link_to(t("identity_backup_codes.finish"), 
+    link_to(t("identity_backup_codes.finish"),
       security_path,
       id: "finish-setup-btn",
       class: "button",

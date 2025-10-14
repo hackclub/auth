@@ -98,7 +98,7 @@ module SAMLService
 
         def x509_certificate
             @cert ||= begin
-                return nil unless (cert_path = ENV['SAML_IDP_CERT_PATH'])
+                return nil unless (cert_path = ENV["SAML_IDP_CERT_PATH"])
                 File.read(cert_path)
                     .gsub(/-----(BEGIN|END) CERTIFICATE-----/, "")
                     .gsub(/\n/, "")
@@ -107,7 +107,7 @@ module SAMLService
 
         def private_key
             @key ||= begin
-                return nil unless (key_path = ENV['SAML_IDP_KEY_PATH'])
+                return nil unless (key_path = ENV["SAML_IDP_KEY_PATH"])
                 File.read(key_path)
             end
         end
@@ -142,8 +142,8 @@ module SAMLService
         def load_sp_certificate(cert_config)
             return nil unless cert_config.present?
 
-            if cert_config.is_a?(String) && cert_config.start_with?('file://')
-              path = cert_config.sub('file://', '')
+            if cert_config.is_a?(String) && cert_config.start_with?("file://")
+              path = cert_config.sub("file://", "")
               File.read(path).gsub(/-----(BEGIN|END) CERTIFICATE-----/, "").gsub(/\n/, "")
             elsif cert_config.is_a?(String)
               cert_config.gsub(/-----(BEGIN|END) CERTIFICATE-----/, "").gsub(/\n/, "")

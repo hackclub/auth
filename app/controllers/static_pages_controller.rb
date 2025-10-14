@@ -18,7 +18,7 @@ class StaticPagesController < ApplicationController
       client_id = params_hash["client_id"]
       @program = Program.find_by(uid: client_id) if client_id
     end
-    
+
     @program ||= nil
     render layout: "logged_out"
   end

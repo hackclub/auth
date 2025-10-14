@@ -1,5 +1,5 @@
 ident = {
-  id: identity.public_id,
+  id: identity.public_id
 }
 
 scope "basic_info" do

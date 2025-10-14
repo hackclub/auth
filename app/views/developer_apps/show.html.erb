@@ -8,7 +8,7 @@
 <% end %>
 <section class="section-card" style="margin-bottom: 1.5rem;">
   <h3><%= t ".oauth_credentials" %></h3>
-  
+
   <div style="display: grid; gap: 1rem; margin-top: 1rem;">
     <div>
       <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;"><%= t ".client_id" %></label>
@@ -29,7 +29,7 @@
       <% @app.redirect_uri.split.each do |uri| %>
         <div style="margin-bottom: 0.5rem; display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; align-items: center;">
           <%= text_field_tag "redirect_uri_#{uri.hash}", uri, readonly: true, style: "font-family: monospace; font-size: 0.9rem;" %>
-          <%= link_to oauth_authorization_path(client_id: @app.uid, redirect_uri: uri, response_type: 'code', scope: @app.scopes), 
+          <%= link_to oauth_authorization_path(client_id: @app.uid, redirect_uri: uri, response_type: 'code', scope: @app.scopes),
               class: "button-secondary", style: "font-size: 0.85rem; padding: 0.5rem 0.75rem; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.4rem;", target: "_blank" do %>
             <%= t(".test_auth") %> <%= inline_icon("external", size: 14) %>
           <% end %>
@@ -42,7 +42,7 @@
 
 <section class="section-card" style="margin-bottom: 1.5rem;">
   <h3><%= t ".configuration" %></h3>
-  
+
   <div style="display: grid; gap: 1rem; margin-top: 1rem;">
     <div>
       <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;"><%= t ".scopes" %></label>
@@ -64,6 +64,6 @@
 
 <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
   <%= link_to t(".edit_app"), edit_developer_app_path(@app), class: "button" %>
-  <%= button_to t(".delete_app"), developer_app_path(@app), method: :delete, class: "button-danger", 
+  <%= button_to t(".delete_app"), developer_app_path(@app), method: :delete, class: "button-danger",
       data: { confirm: t(".delete_confirm") } %>
 </div>

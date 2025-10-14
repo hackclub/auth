@@ -16,13 +16,13 @@ class Components::SSOAppCard < Components::Base
               span { @app[:friendly_name][0] }
             end
           end
-          
+
           div(class: "app-info") do
             h3 { @app[:friendly_name] }
             p(class: "app-tagline") { @app[:tagline] }
           end
         end
-        
+
         div(class: "card-footer") do
           span(class: "launch-text") do
             plain t("home.apps.launch")

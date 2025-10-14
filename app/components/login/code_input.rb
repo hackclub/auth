@@ -28,4 +28,3 @@ class Components::Login::CodeInput < Components::Base
     end
   end
 end
-

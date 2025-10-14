@@ -1,5 +1,5 @@
 class IdentitiesController < ApplicationController
-  layout "logged_out", only: [:new, :create]
+  layout "logged_out", only: [ :new, :create ]
     skip_before_action :authenticate_identity!, only: [ :new, :create ]
     before_action :set_identity, except: [ :new, :create ]
     before_action :set_onboarding_scenario, only: [ :new, :create ]
@@ -76,9 +76,9 @@ class IdentitiesController < ApplicationController
           if age < 13 && !@onboarding_scenario.accepts_under13
             age_diff = (13 - age).round
             diff_text = case age_diff
-              when 0 then "once you're 13"
-              when 1 then "in a year"
-              else "in #{age_diff} years"
+            when 0 then "once you're 13"
+            when 1 then "in a year"
+            else "in #{age_diff} years"
             end
             @age_restriction = "Hi there. <br/> Unfortunately, for regulatory reasons outside of our control, we can't accept users under 13. We're sorry, we would if we could.<br/>Please come back #{diff_text}, we'd love to have you as a member of our community!".html_safe
             @identity = Identity.new(@prefill_attributes.merge(attrs))
@@ -209,11 +209,11 @@ class IdentitiesController < ApplicationController
             if Identity.exists?(primary_email: email, legacy_migrated_at: ..Time.current)
                 flash[:info] = "that email address has already been migrated"
                 redirect_to login_path(email: email, return_to: @return_to)
-                return
+                nil
             end
         rescue StandardError
             redirect_to signup_path(return_to: @return_to)
-            return
+            nil
         end
     end
 

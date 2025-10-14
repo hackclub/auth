@@ -24,12 +24,12 @@ module ApplicationHelper
   end
 
   def render_qr_code(data, size: 200)
-    require 'rqrcode'
-    
+    require "rqrcode"
+
     qr = RQRCode::QRCode.new(data)
     svg = qr.as_svg(
-      color: '000',
-      shape_rendering: 'crispEdges',
+      color: "000",
+      shape_rendering: "crispEdges",
       module_size: 3,
       standalone: true,
       viewbox: true,

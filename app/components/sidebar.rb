@@ -3,7 +3,7 @@
 class Components::Sidebar < Components::Base
   include Phlex::Rails::Helpers::LinkTo
   include Phlex::Rails::Helpers::CurrentPage
-  
+
   register_value_helper :current_identity
   register_value_helper :signed_in?
   register_value_helper :root_path
@@ -34,29 +34,29 @@ class Components::Sidebar < Components::Base
     items = [
       { label: t("sidebar.home"), path: root_path, icon: "home" }
     ]
-    
+
     items << { label: t("sidebar.edit_info"), path: edit_identity_path, icon: "person" }
-    
+
     # Add verification link if user needs to submit or resubmit
     if current_identity.present?
       status = current_identity.verification_status
       if status == "needs_submission" || status == "pending"
-        items << { 
+        items << {
           label: t("sidebar.verification"),
-          path: new_verifications_path, 
+          path: new_verifications_path,
           icon: status == "pending" ? "clock" : "card-id"
         }
       end
     end
-    
+
     items << { label: t("sidebar.addresses"), path: addresses_path, icon: "email" }
     items << { label: t("sidebar.security"), path: security_path, icon: "private" }
-    
+
     # Add developer link if developer mode is enabled
     if current_identity.present? && current_identity.developer_mode?
       items << { label: t("sidebar.developer"), path: developer_apps_path, icon: "code" }
     end
-    
+
     items
   end
 
@@ -94,7 +94,7 @@ class Components::Sidebar < Components::Base
   def render_nav_item(label:, path:, icon: nil)
     is_active = @current_path == path
 
-    link_to(path, class: ["sidebar-nav-item", ("active" if is_active)].compact.join(" ")) do
+    link_to(path, class: [ "sidebar-nav-item", ("active" if is_active) ].compact.join(" ")) do
       span(class: "nav-icon") { helpers.inline_icon(icon, size: 24) } if icon
       span(class: "nav-label") { label }
     end
@@ -144,7 +144,6 @@ class Components::Sidebar < Components::Base
       end
     end
     render Components::EnvironmentBanner.new
-    
   end
 
   def render_toggle_script

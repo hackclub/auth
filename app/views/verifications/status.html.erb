@@ -11,10 +11,10 @@
         <h3><%= t(".pending.title") %></h3>
         <p><%= t(".pending.subtitle") %></p>
       </div>
-      
+
       <div class="status-content">
         <p><%= t(".pending.description", email: @identity.primary_email) %></p>
-        
+
         <% if @latest_verification.present? %>
           <div class="meta">
             <%= t(".pending.submitted_ago", time: time_ago_in_words(@latest_verification.created_at)) %>
@@ -33,7 +33,7 @@
         <h3><%= @identity.ysws_eligible ? t(".verified.title_ysws") : t(".verified.title_verified") %></h3>
         <p><%= @identity.ysws_eligible ? t(".verified.subtitle_ysws") : t(".verified.subtitle_verified") %></p>
       </div>
-      
+
       <% if @latest_verification.present? && @latest_verification.approved_at.present? %>
         <div class="status-content">
           <div class="meta"><%= t(".verified.verified_ago", time: time_ago_in_words(@latest_verification.approved_at)) %></div>
@@ -68,7 +68,7 @@
           <% end %>
         </p>
       </div>
-      
+
       <% if @latest_verification.present? && @latest_verification.rejection_reason.present? %>
         <div class="status-content">
           <div class="rejection-info">
@@ -94,7 +94,7 @@
           <h3><%= t(".needs_submission.resubmission.title") %></h3>
           <p><%= t(".needs_submission.resubmission.subtitle") %></p>
         </div>
-        
+
         <div class="status-content">
           <p><strong><%= t(".needs_submission.resubmission.issues_to_fix") %>:</strong></p>
           <% @identity.rejected_verifications_needing_resubmission.each do |verification| %>

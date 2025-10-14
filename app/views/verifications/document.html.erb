@@ -36,10 +36,10 @@
                   "x-data" => "{ selectedType: '#{ @document.document_type }', transcriptFileCount: 0, studentIdFileCount: 0, governmentIdFileCount: 0, get canSubmit() { return this.selectedType === 'transcript' ? (this.transcriptFileCount >= 1 && this.studentIdFileCount >= 1) : this.governmentIdFileCount >= 1; }, submitted: false }",
                   "x-on:submit" => "submitted = true"
                 } do |form| %>
-    
+
     <section class="section-card">
       <h3><%= t(".name_verification") %></h3>
-      <p class="section-description"><%= t(".legal_name_help") %><br/> <%= t(".preferred_name_note") %></p>
+      <p class="section-description"><%= t(".legal_name_help") %><br> <%= t(".preferred_name_note") %></p>
       <div class="grid">
         <div>
           <%= label_tag "legal_first_name", t(".legal_first_name") %>
@@ -54,7 +54,7 @@
 
     <section class="section-card">
       <h3><%= t(".what_we_accept") %></h3>
-      
+
       <% case @identity.country %>
       <% when "US", "AU", "CA", "SG", "UK" %>
         <div class="requirement-group">
@@ -63,14 +63,14 @@
             <li><%= t("verifications.document.requirements.drivers_license_passport_or", country_id: t(".country_specific_ids.#{@identity.country.presence || 'default'}")) %></li>
           </ul>
         </div>
-        
+
         <div class="requirement-group">
           <strong><%= t(".requirements.school_documents") %></strong>
           <ul>
             <li><%= t(".requirements.student_id_and_transcript") %></li>
           </ul>
         </div>
-        
+
       <% when "IN" %>
         <div class="requirement-group">
           <strong><%= t(".requirements.e_aadhaar") %></strong>
@@ -79,7 +79,7 @@
             <li><%= link_to t(".requirements.get_e_aadhaar"), "https://hack.club/aadhaar", target: "_blank" %></li>
           </ul>
         </div>
-        
+
       <% else %>
         <div class="requirement-group">
           <strong><%= t(".requirements.government_id") %></strong>
@@ -108,7 +108,7 @@
             <li><%= t(".photo_tips.avoid_glare") %></li>
           </ul>
         </div>
-        
+
         <div class="upload-field">
           <%= form.label :files, t(".upload_government_id") %>
           <%= file_field_tag "identity_document[files][]",
@@ -128,7 +128,7 @@
                              "x-on:change" => 'transcriptFileCount = $event.target.files.length' %>
           <small><%= t(".transcript_help") %></small>
         </div>
-        
+
         <div class="upload-field">
           <%= label_tag "identity_document_files", t(".upload_student_id") %>
           <%= file_field_tag "identity_document[files][]",

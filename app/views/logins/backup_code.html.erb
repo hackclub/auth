@@ -4,7 +4,7 @@
       <h1><%= t(".title") %></h1>
       <small><%= t(".description") %></small>
     </header>
-    
+
     <%= form_with url: verify_backup_code_login_attempt_path(@attempt), method: :post, local: true do |form| %>
       <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
       <fieldset>
@@ -17,7 +17,7 @@
       </fieldset>
       <%= form.submit t(".verify") → %>
     <% end %>
-    
+
     <% if @attempt.totp_available? %>
       <footer>
         <p>
@@ -27,4 +27,3 @@
     <% end %>
   </div>
 </div>
-

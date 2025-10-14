@@ -6,12 +6,12 @@
         <strong><%= t(".totp_title") %></strong>
         <p class="status-detail"><%= t(".totp_description") %></p>
       </div>
-      <%= button_to t(".remove"), 
-          identity_totp_path(@totp), 
+      <%= button_to t(".remove"),
+          identity_totp_path(@totp),
           method: :delete,
           class: "danger small-btn" %>
     </div>
-    
+
     <% if current_identity.has_two_factor_method? %>
       <div class="totp-status" style="margin-top: 1rem;">
         <div class="status-info" style="flex: 1;">
@@ -41,9 +41,9 @@
   <div class="totp-disabled">
     <p class="totp-description"><%= t(".setup_description") %></p>
     <%= link_to t(".setup_authenticator"),
-        new_identity_totp_path, 
+        new_identity_totp_path,
         class: "totp-enable-btn",
-        data: { 
+        data: {
           "hx-get": new_identity_totp_path,
           "hx-target": "#totp-container",
           "hx-swap": "innerHTML"

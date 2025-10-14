@@ -8,7 +8,7 @@
       <h1><%= t(".title") %></h1>
       <small><%= t(".subtitle") %></small>
     </header>
-    
+
     <%= form_with url: login_path, method: :post, local: true do |form| %>
       <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
       <%= hidden_field_tag :fingerprint, nil, id: 'fingerprint' %>
@@ -19,7 +19,7 @@
       </fieldset>
       <%= form.submit "#{t('.continue')} →" %>
     <% end %>
-    
+
     <footer>
       <p>
         <%= t(".no_account") %>
@@ -28,5 +28,3 @@
     </footer>
   </div>
 </div>
-
-

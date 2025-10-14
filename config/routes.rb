@@ -249,7 +249,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resource :identity, only: [:edit, :update] do
+  resource :identity, only: [ :edit, :update ] do
     collection do
       post :toggle_2fa
     get :confirm_disable_2fa
@@ -268,7 +268,7 @@ Rails.application.routes.draw do
   get "/login/:id", to: "logins#show", as: :login_attempt
   post "/login/:id/verify", to: "logins#verify", as: :verify_login_attempt
   post "/login/:id/resend", to: "logins#resend", as: :resend_login_attempt
-  
+
   get "/login/:id/totp", to: "logins#totp", as: :totp_login_attempt
   post "/login/:id/totp", to: "logins#verify_totp", as: :verify_totp_login_attempt
   get "/login/:id/backup_code", to: "logins#backup_code", as: :backup_code_login_attempt
@@ -292,27 +292,27 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :identity_sessions, only: [:index, :destroy] do
+  resources :identity_sessions, only: [ :index, :destroy ] do
     collection do
       delete :destroy_all
     end
   end
 
-  resources :identity_totps, only: [:index, :new, :destroy] do
+  resources :identity_totps, only: [ :index, :new, :destroy ] do
     member do
       post :verify
     end
   end
-  
+
   # Step-up authentication flow
   get "/step_up", to: "step_up#new", as: :new_step_up
   post "/step_up/verify", to: "step_up#verify", as: :verify_step_up
 
-  resources :identity_backup_codes, only: [:index, :create] do
+  resources :identity_backup_codes, only: [ :index, :create ] do
     patch :confirm, on: :collection
   end
 
-  resources :authorized_applications, only: [:index, :destroy]
+  resources :authorized_applications, only: [ :index, :destroy ]
 
   resources :developer_apps, path: "developer/apps"
 
@@ -341,7 +341,7 @@ Rails.application.routes.draw do
   # Slack account linking routes
   get "/slack/link", to: "slack_accounts#new", as: :link_slack_account
   get "/slack/callback", to: "slack_accounts#create", as: :slack_account_callback
-  
+
   # Slack interactivity routes
   namespace :slack do
     post "/interactivity", to: "interactivity#create"
