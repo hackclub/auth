@@ -59,13 +59,13 @@ class Components::VerificationStatusItem < Components::Base
   def icon
     case status
     when "needs_submission"
-      @identity.needs_resubmission? ? "reply" : "card-id"
+      @identity.needs_resubmission? ? "reply" : "docs"
     when "pending"
       "clock"
     when "ineligible"
       "forbidden"
     else
-      "card-id"
+      "docs"
     end
   end
 
