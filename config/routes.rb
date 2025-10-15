@@ -276,11 +276,6 @@ Rails.application.routes.draw do
 
   delete "/logout", to: "sessions#logout", as: :logout
 
-  resource :aadhaar, only: [], controller: "aadhaar" do
-    get :async_digilocker_link
-    get :digilocker_redirect
-  end
-
   get "/verifications/new", to: "verifications#new", as: :new_verifications
   get "/verifications/status", to: "verifications#status", as: :verification_status
   get "/verifications/:id", to: "verifications#show", as: :verification_step
@@ -333,10 +328,6 @@ Rails.application.routes.draw do
   end
 
   get "/api/external", to: "static_pages#external_api_docs"
-
-  namespace :webhooks do
-    post "/aadhaar/:secret_key", to: "aadhaar#create", as: :aadhaar_callback
-  end
 
   get "/slack_staging", to: "static_pages#slack_staging" if Rails.env.staging?
 
