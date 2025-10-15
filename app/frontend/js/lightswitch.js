@@ -1,5 +1,7 @@
 // Get the current theme that was already set in the head
-const savedTheme = localStorage.getItem("theme") || "light";
+const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const defaultTheme = systemPrefersDark ? "dark" : "light";
+const savedTheme = localStorage.getItem("theme") || defaultTheme;
 
 function updateIcon(theme) {
     const buttons = document.querySelectorAll(".lightswitch-btn");

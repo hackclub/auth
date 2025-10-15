@@ -10,7 +10,9 @@
     <%= yield :head %>
     <script>
       (function() {
-        const savedTheme = localStorage.getItem("theme") || "light";
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const defaultTheme = systemPrefersDark ? "dark" : "light";
+        const savedTheme = localStorage.getItem("theme") || defaultTheme;
         document.documentElement.dataset.theme = savedTheme;
       })();
     </script>
