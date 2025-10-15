@@ -54,26 +54,6 @@ module Backend
       redirect_to backend_root_path, notice: "welcome aboard!"
     end
 
-    def impersonate
-      unless current_user.superadmin?
-        redirect_to backend_root_path, alert: "you are not authorized to impersonate users. this incident has been reported :-P"
-        Honeybadger.notify("Impersonation attempt by #{current_user.username} to #{params[:id]}")
-        return
-      end
-
-      session[:impersonator_user_id] ||= current_user.id
-      user = User.find(params[:id])
-      session[:user_id] = user.id
-      flash[:success] = "hey #{user.username}! how's it going? nice 'stache and glasses!"
-      redirect_to backend_root_path
-    end
-
-    def stop_impersonating
-      session[:user_id] = session[:impersonator_user_id]
-      session[:impersonator_user_id] = nil
-      redirect_to backend_root_path, notice: "welcome back, 007!"
-    end
-
     def destroy
       session[:user_id] = nil
       redirect_to backend_root_path, notice: "bye, see you next time!"
