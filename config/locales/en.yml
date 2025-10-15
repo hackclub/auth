@@ -194,6 +194,14 @@ en:
       not_necessarily_legal_name: not necessarily your legal name, what do people usually call you?
       email_code: We'll send a one-time code to this address.
       continue: Continue
+    update:
+      success: saved changes!
+    create:
+      account_exists: You already have an account, please log in!
+      birthday_in_future: I'm sorry, I may be gullible but I'm not willing to believe you were born in the future.
+      email_already_migrated: that email address has already been migrated
+    toggle_2fa:
+      must_setup_method: You must set up a two-factor authentication method before requiring 2FA
   auth_type:
     email: Email
     totp: TOTP

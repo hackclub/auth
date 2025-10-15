@@ -14,7 +14,7 @@ class IdentitiesController < ApplicationController
     def update
         @identity = current_identity
         if @identity.update(identity_params)
-            flash[:success] = "saved changes!"
+            flash[:success] = t(".success")
             redirect_to edit_identity_path
         else
             render :edit
@@ -50,7 +50,7 @@ class IdentitiesController < ApplicationController
         if attrs[:primary_email].present?
             existing_identity = Identity.find_by(primary_email: attrs[:primary_email])
             if existing_identity.present?
-              flash[:info] = "You already have an account, please log in!"
+              flash[:info] = t(".account_exists")
               return redirect_to login_path(email: attrs[:primary_email], return_to: @return_to)
             end
         end
@@ -58,7 +58,7 @@ class IdentitiesController < ApplicationController
         if attrs[:birthday].present?
           birthday = attrs[:birthday].is_a?(String) ? Date.parse(attrs[:birthday]) : attrs[:birthday]
           if birthday > Date.today
-            flash[:error] = "I'm sorry, I may be gullible but I'm not willing to believe you were born in the future."
+            flash[:error] = t(".birthday_in_future")
             @identity = Identity.new(@prefill_attributes.merge(attrs))
             render :new, status: :unprocessable_entity
             return
@@ -207,7 +207,7 @@ class IdentitiesController < ApplicationController
         begin
             email = Rails.application.message_verifier(:legacy_email).verify(token)
             if Identity.exists?(primary_email: email, legacy_migrated_at: ..Time.current)
-                flash[:info] = "that email address has already been migrated"
+                flash[:info] = t(".email_already_migrated")
                 redirect_to login_path(email: email, return_to: @return_to)
                 nil
             end
@@ -228,7 +228,7 @@ class IdentitiesController < ApplicationController
         if !current_identity.use_two_factor_authentication?
             # Can only enable 2FA if at least one 2FA method is set up
             if !current_identity.has_two_factor_method?
-                flash[:error] = "You must set up a two-factor authentication method before requiring 2FA"
+                flash[:error] = t(".must_setup_method")
                 redirect_to security_path
                 return
             end
