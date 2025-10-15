@@ -25,7 +25,7 @@
       <%= button_to t("addresses.index.make_primary"), address_path(address, make_primary: true), method: :patch, class: "" %>
     <% end %>
     <%= button_to t("addresses.index.delete"), address, method: :delete,
-                  form: { "hx-confirm": t("addresses.index.delete_confirmation") },
+                  form: { data: { "hx-confirm": t("addresses.index.delete_confirmation") } },
                   class: "secondary" %>
   </div>
 </section>
