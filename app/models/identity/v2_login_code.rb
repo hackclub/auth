@@ -4,7 +4,6 @@ class Identity::V2LoginCode < ApplicationRecord
   scope :active, -> { where(used_at: nil, created_at: EXPIRATION.ago..) }
 
   belongs_to :identity, class_name: "Identity"
-  belongs_to :login_attempt, optional: true
 
   after_initialize :generate_code
   validates :code, presence: true, uniqueness: { conditions: -> { active } }

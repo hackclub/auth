@@ -63,7 +63,7 @@ class LoginsController < ApplicationController
         flash.clear
 
         code = params[:code].to_s.strip.gsub(/[^0-9]/, "")
-        login_code = Identity::V2LoginCode.active.find_by(identity: @identity, login_attempt: @attempt, code: code)
+        login_code = Identity::V2LoginCode.active.find_by(identity: @identity, code: code)
 
         unless login_code
             flash.now[:error] = "Invalid or expired code, please try again"
@@ -230,7 +230,7 @@ class LoginsController < ApplicationController
     end
 
     def send_v2_login_code(identity, attempt = nil)
-        code = Identity::V2LoginCode.create!(identity: identity, login_attempt: attempt, ip_address: request.remote_ip, user_agent: request.user_agent)
+        code = Identity::V2LoginCode.create!(identity: identity, ip_address: request.remote_ip, user_agent: request.user_agent)
         IdentityMailer.v2_login_code(code).deliver_later if defined?(IdentityMailer)
     end
 
