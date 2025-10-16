@@ -46,6 +46,7 @@ en:
         title: No OAuth apps yet
         cta: Create an app to start authenticating with Hack Club!
         create: app me up.
+      not_found: "App not found (or you're unauthorized?)"
     show:
       back_to_apps: ← Back to Apps
       security_warning_title: Keep your credentials secure!
