@@ -50,11 +50,11 @@ class AddressesController < ApplicationController
   def destroy
     if current_identity.primary_address == @address
       if Rails.env.production?
-        current_identity.update(primary_address: nil)
-      else
         flash[:alert] = "can't delete your primary address..."
         redirect_to addresses_path
         return
+      else
+        current_identity.update(primary_address: nil)
       end
     end
     @address.destroy
