@@ -64,6 +64,6 @@
 
 <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
   <%= link_to t(".edit_app"), edit_developer_app_path(@app), class: "button" %>
-  <%= button_to t(".delete_app"), developer_app_path(@app), method: :delete, class: "button-danger",
+  <%= button_to t(".delete_app"), developer_app_path(@app), method: :delete, class: "danger small-btn",
       data: { confirm: t(".delete_confirm") } %>
 </div>

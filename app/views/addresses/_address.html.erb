@@ -26,6 +26,6 @@
     <% end %>
     <%= button_to t("addresses.index.delete"), address, method: :delete,
                   form: { data: { "hx-confirm": t("addresses.index.delete_confirmation") } },
-                  class: "secondary" %>
+                  class: "danger small-btn" %>
   </div>
 </section>
