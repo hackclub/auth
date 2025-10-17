@@ -20,6 +20,8 @@
 #  fk_rails_...  (program_id => programs.id)
 #
 class IdentityProgram < ApplicationRecord
+  has_paper_trail
+
   belongs_to :identity
   belongs_to :program
 

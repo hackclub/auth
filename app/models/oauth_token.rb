@@ -42,6 +42,8 @@ class OAuthToken < ApplicationRecord
   has_encrypted :token
   blind_index :token
 
+  has_paper_trail skip: [ :token ]
+
   belongs_to :resource_owner, class_name: "Identity"
 
   def generate_token
