@@ -1,0 +1,10 @@
+<%= render Components::PublicActivity::Snippet.new(activity, owner: activity.trackable&.identity) do %>
+  <%
+    session = activity.trackable
+    device_parts = []
+    device_parts << session&.device_info if session&.device_info.present?
+    device_parts << session&.os_info if session&.os_info.present?
+    device_str = device_parts.any? ? " on #{device_parts.join(", ")}" : ""
+  %>
+  signed out of a session<%= device_str %>.
+<% end %>

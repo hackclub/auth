@@ -81,10 +81,14 @@ module SessionsHelper
   end
 
   def sign_out
-    current_identity
+    session = current_identity
       &.sessions
       &.find_by(session_token: cookies.encrypted[:session_token])
-      &.update(signed_out_at: Time.now, expires_at: Time.now)
+    
+    if session
+      session.update(signed_out_at: Time.now, expires_at: Time.now)
+      session.create_activity :sign_out, owner: current_identity, recipient: current_identity
+    end
 
     cookies.delete(:session_token)
     self.current_identity = nil

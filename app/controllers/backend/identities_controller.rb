@@ -42,20 +42,16 @@ module Backend
 
       @all_programs = @identity.all_programs.distinct
 
-      identity_activities = @identity.activities.includes(:owner)
-
-      verification_activities = PublicActivity::Activity
-        .where(trackable_type: "Verification", trackable_id: @identity.verifications.pluck(:id))
-        .includes(:trackable, :owner)
-
+      verification_ids = @identity.verifications.pluck(:id)
       document_ids = @identity.documents.pluck(:id)
       break_glass_record_ids = BreakGlassRecord.where(break_glassable_type: "Identity::Document", break_glassable_id: document_ids).pluck(:id)
-      break_glass_activities = PublicActivity::Activity
-        .where(trackable_type: "BreakGlassRecord", trackable_id: break_glass_record_ids)
-        .includes(:trackable, :owner)
 
-      @activities = (identity_activities + verification_activities + break_glass_activities)
-        .sort_by(&:created_at).reverse
+      @activities = PublicActivity::Activity
+        .where("(recipient_id = ? AND recipient_type = ?) OR (owner_id = ? AND owner_type = ?) OR (trackable_id = ? AND trackable_type = ?) OR (trackable_type = ? AND trackable_id IN (?)) OR (trackable_type = ? AND trackable_id IN (?))",
+               @identity.id, "Identity", @identity.id, "Identity", @identity.id, "Identity",
+               "Verification", verification_ids, "BreakGlassRecord", break_glass_record_ids)
+        .includes(:owner, :trackable)
+        .order(created_at: :desc)
     end
 
     def edit

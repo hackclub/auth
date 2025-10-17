@@ -1,0 +1,7 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <% if defined?(current_identity) && activity.trackable&.identity == current_identity %>
+    updated address.
+  <% else %>
+    updated address for <%= render activity.trackable&.identity, capitalize: false if activity.trackable&.identity %>.
+  <% end %>
+<% end %>

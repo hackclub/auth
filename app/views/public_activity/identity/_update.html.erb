@@ -1,3 +1,6 @@
 <%= render Components::PublicActivity::Snippet.new(activity) do %>
-  edited <%= render activity.trackable %>'s identity.
+  <%
+    is_current = defined?(current_identity) && activity.trackable == current_identity
+  %>
+  updated <%= is_current ? "profile" : "#{activity.trackable.first_name} #{activity.trackable.last_name}'s profile" %>.
 <% end %>

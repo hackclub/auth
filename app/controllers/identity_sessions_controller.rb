@@ -12,6 +12,7 @@ class IdentitySessionsController < ApplicationController
   def destroy
     session = current_identity.sessions.not_expired.find(params[:id])
     session.update!(signed_out_at: Time.now, expires_at: Time.now)
+    session.create_activity :revoke, owner: current_identity, recipient: current_identity
 
     if request.headers["HX-Request"]
       @sessions = current_identity.sessions
@@ -29,11 +30,17 @@ class IdentitySessionsController < ApplicationController
   end
 
   def destroy_all
-    current_identity.sessions
+    revoked_sessions = current_identity.sessions
       .where(signed_out_at: nil)
       .not_expired
       .where.not(id: current_session&.id)
-      .update_all(signed_out_at: Time.current, expires_at: Time.now)
+    
+    count = revoked_sessions.count
+    revoked_sessions.update_all(signed_out_at: Time.current, expires_at: Time.now)
+    
+    if count > 0
+      current_identity.create_activity :revoke_all_sessions, owner: current_identity, recipient: current_identity, parameters: { count: count }
+    end
 
     if request.headers["HX-Request"]
       @sessions = current_identity.sessions

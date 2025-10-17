@@ -22,6 +22,7 @@ class Identity::BackupCode < ApplicationRecord
       transitions from: :active, to: :used
 
       after do
+        identity.create_activity :use_backup_code, owner: identity, recipient: identity
         # TODO: write this mailer
         # User::BackupCodeMailer.with(user_id: user.id).code_used.deliver_now
       end

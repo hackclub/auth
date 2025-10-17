@@ -65,6 +65,7 @@ class IdentityTotpsController < ApplicationController
       identity.backup_codes.create!(code: backup_code, aasm_state: :previewed)
     end
     identity.backup_codes.previewed.each(&:mark_active!)
+    identity.create_activity :generate_backup_codes, owner: identity, recipient: identity
     codes_generated
   end
 end

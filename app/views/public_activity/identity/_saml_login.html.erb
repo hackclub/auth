@@ -1,3 +1,3 @@
 <%= render Components::PublicActivity::Snippet.new(activity, owner: activity.trackable) do %>
-  signed up.
+  logged in to <%= activity.parameters[:name] || activity.parameters[:service_provider] %> via SAML.
 <% end %>

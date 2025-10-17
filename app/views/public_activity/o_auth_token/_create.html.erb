@@ -1,0 +1,17 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <%
+    app_name = activity.trackable&.application&.name
+    app_link = if defined?(current_user) && current_user.is_a?(Backend::User)
+      link_to app_name, backend_program_path(activity.trackable.application)
+    else
+      app_name
+    end
+    scopes = activity.trackable&.scopes
+    scopes_str = scopes.present? ? " (scopes: #{scopes})" : ""
+  %>
+  <% if defined?(current_identity) && activity.trackable&.resource_owner == current_identity %>
+    signed into <%= app_link if activity.trackable&.application %><%= scopes_str %>.
+  <% else %>
+    signed into <%= app_link if activity.trackable&.application %><%= scopes_str %> as <%= render activity.trackable&.resource_owner, capitalize: false if activity.trackable&.resource_owner %>.
+  <% end %>
+<% end %>

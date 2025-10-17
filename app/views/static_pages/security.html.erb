@@ -24,4 +24,10 @@
     <%= render Components::BootlegTurbo.new(identity_backup_codes_path, id: "backup-codes-container", hx_swap: "innerHTML") %>
   </section>
 
+  <section class="section-card">
+    <h3>Activity Log</h3>
+    <p>View your recent account activity and security events.</p>
+    <%= link_to "View Activity Log", audit_logs_path, class: "button" %>
+  </section>
+
 </div>

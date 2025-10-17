@@ -37,6 +37,11 @@ module SAMLHelper
       render :error, status: :bad_request and return
     end
 
+    if current_identity
+      current_identity.create_activity :saml_login, owner: current_identity, recipient: current_identity, 
+        parameters: { service_provider: sp_config[:slug], name: sp_config[:friendly_name] }
+    end
+
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
     response.headers["Pragma"] = "no-cache"
 

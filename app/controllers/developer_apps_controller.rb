@@ -37,7 +37,9 @@ class DeveloperAppsController < ApplicationController
   end
 
   def destroy
+    app_name = @app.name
     @app.destroy
+    @app.create_activity :destroy, owner: current_identity, parameters: { name: app_name }
     redirect_to developer_apps_path, notice: t(".success")
   end
 

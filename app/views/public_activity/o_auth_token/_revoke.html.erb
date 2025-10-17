@@ -1,0 +1,15 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <%
+    app_name = activity.trackable&.application&.name
+    app_link = if defined?(current_user) && current_user.is_a?(Backend::User)
+      link_to app_name, backend_program_path(activity.trackable.application)
+    else
+      app_name
+    end
+  %>
+  <% if defined?(current_identity) && activity.trackable&.resource_owner == current_identity %>
+    revoked access for <%= app_link if activity.trackable&.application %>.
+  <% else %>
+    revoked <%= render activity.trackable&.resource_owner, capitalize: false if activity.trackable&.resource_owner %>'s access for <%= app_link if activity.trackable&.application %>.
+  <% end %>
+<% end %>
