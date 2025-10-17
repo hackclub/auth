@@ -82,7 +82,7 @@ gem "public_activity", "~> 3.0"
 
 gem "paper_trail", "~> 16.0"
 
-gem "good_job", "~> 4.10"
+gem "good_job", "~> 4.12"
 
 group :development do
   gem "letter_opener_web", "~> 3.0"
