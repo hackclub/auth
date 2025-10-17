@@ -2,7 +2,7 @@
   <%
     identity = activity.trackable&.break_glassable&.identity
     is_current = defined?(current_identity) && identity == current_identity
-    
+
     verification_text = if defined?(current_user) && current_user.is_a?(Backend::User)
       link_to "verification", backend_verification_path(activity.trackable.break_glassable.verification)
     else

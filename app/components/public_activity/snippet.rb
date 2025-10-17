@@ -13,7 +13,7 @@ class Components::PublicActivity::Snippet < Components::Base
         # Only render backend users as links if current user is a backend user
         # Check if we're in the backend context by looking for current_user helper
         is_backend = helpers.respond_to?(:current_user) && helpers.current_user.is_a?(Backend::User)
-        
+
         if owner.is_a?(Backend::User) && !is_backend
           plain owner.username
         else

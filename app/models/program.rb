@@ -22,10 +22,10 @@
 #
 class Program < ApplicationRecord
   self.table_name = "oauth_applications"
-  
+
   include PublicActivity::Model
   tracked owner: ->(controller, model) { model.owner_identity }, recipient: ->(controller, model) { model.owner_identity }, only: [ :create, :update, :destroy ]
-  
+
   has_paper_trail
 
   include ::Doorkeeper::Orm::ActiveRecord::Mixins::Application

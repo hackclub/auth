@@ -2,7 +2,7 @@
   <%
     session = activity.trackable
     login_attempt = session&.login_attempt
-    
+
     # Determine authentication methods used
     methods = []
     if login_attempt
@@ -10,9 +10,9 @@
       methods << "TOTP" if login_attempt.authenticated_with_totp
       methods << "backup code" if login_attempt.authenticated_with_backup_code
     end
-    
+
     method_str = methods.any? ? "via #{methods.join(" + ")}" : ""
-    
+
     # Determine device/OS info
     device_parts = []
     device_parts << session&.device_info if session&.device_info.present?

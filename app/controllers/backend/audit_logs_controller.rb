@@ -4,7 +4,7 @@ module Backend
 
     def index
       scope = PublicActivity::Activity.order(created_at: :desc)
-      
+
       if params[:admin_actions_only]
         scope = scope.where(owner_type: "Backend::User")
       else

@@ -5,12 +5,12 @@
     else
       "verification"
     end
-    
+
     is_current = defined?(current_identity) && activity.trackable&.identity == current_identity
   %>
   approved <%= is_current ? "your" : "#{activity.trackable.identity.first_name} #{activity.trackable.identity.last_name}'s" %> <%= verification_text %><%
   unless activity.parameters[:ysws_eligible].nil?
-  %> as YSWS <%= activity.parameters[:ysws_eligible] ? "eligible" : "ineligible" %><%
+                                                                                                                                                       %> as YSWS <%= activity.parameters[:ysws_eligible] ? "eligible" : "ineligible" %><%
   end
-  %>.
+                                                                                                                                                                                                                                        %>.
 <% end %>

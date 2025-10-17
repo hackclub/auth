@@ -34,10 +34,10 @@ class IdentitySessionsController < ApplicationController
       .where(signed_out_at: nil)
       .not_expired
       .where.not(id: current_session&.id)
-    
+
     count = revoked_sessions.count
     revoked_sessions.update_all(signed_out_at: Time.current, expires_at: Time.now)
-    
+
     if count > 0
       current_identity.create_activity :revoke_all_sessions, owner: current_identity, recipient: current_identity, parameters: { count: count }
     end
