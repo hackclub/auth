@@ -14,6 +14,7 @@ class IdentitiesController < ApplicationController
     def update
         @identity = current_identity
         if @identity.update(identity_params)
+            @identity.create_activity :update, owner: current_identity, recipient: current_identity
             flash[:success] = t(".success")
             redirect_to edit_identity_path
         else

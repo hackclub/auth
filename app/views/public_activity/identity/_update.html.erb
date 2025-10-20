@@ -2,5 +2,5 @@
   <%
     is_current = defined?(current_identity) && activity.trackable == current_identity
   %>
-  updated <%= is_current ? "profile" : "#{activity.trackable.first_name} #{activity.trackable.last_name}'s profile" %>.
+  updated <%= is_current ? "your profile" : "#{activity.trackable.first_name} #{activity.trackable.last_name}'s profile" %>.
 <% end %>
