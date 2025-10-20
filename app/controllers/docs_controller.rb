@@ -13,23 +13,13 @@ class DocsController < ApplicationController
   end
 
   def show
-    unless File.exist?(@doc_file_path)
-      raise ActionController::RoutingError, "Documentation not found"
-    end
+    raise ActionController::RoutingError, "Documentation not found" unless File.exist?(@doc_file_path)
 
-    content = File.read(@doc_file_path)
-    parsed = FrontMatterParser::Parser.new(:md).call(content)
-
-    @doc = {
-      slug: params[:slug],
-      title: parsed["title"] || "Untitled",
-      description: parsed["description"],
-      category: parsed["category"],
-      order: parsed["order"] || 999,
-      content: render_markdown(parsed.content)
-    }
+    @doc = parse_doc_file(@doc_file_path, params[:slug])
     render :show
-  rescue FrontMatterParser::SyntaxError => e
+  rescue StandardError => e
+    raise if e.is_a?(ActionController::RoutingError)
+
     Rails.logger.error("Error parsing frontmatter for #{params[:slug]}: #{e.message}")
     @doc = {
       slug: params[:slug],
@@ -53,24 +43,51 @@ class DocsController < ApplicationController
   end
 
   def load_all_docs
-    docs_dir = Rails.root.join("app", "views", "docs")
-    return @all_docs = [] unless Dir.exist?(docs_dir)
+    @all_docs ||= begin
+      docs_dir = Rails.root.join("app", "views", "docs")
+      return [] unless Dir.exist?(docs_dir)
 
-    @all_docs = Dir.glob(docs_dir.join("*.md")).map do |file_path|
+      Dir.glob(docs_dir.join("*.md")).map do |file_path|
+        parsed = parse_frontmatter(file_path)
+        next unless parsed
+
+        {
+          slug: File.basename(file_path, ".md"),
+          title: parsed["title"] || File.basename(file_path, ".md").titleize,
+          category: parsed["category"],
+          order: parsed["order"] || 999,
+          hidden: parsed["hidden"] || false
+        }
+      rescue => e
+        Rails.logger.error("Error parsing doc #{file_path}: #{e.message}")
+        nil
+      end.compact.reject { |doc| doc[:hidden] }.sort_by { |doc| doc[:order] }
+    end
+  end
+
+  def parse_frontmatter(file_path)
+    cache_key = "doc_frontmatter:#{file_path}:#{File.mtime(file_path).to_i}"
+    Rails.cache.fetch(cache_key, expires_in: 1.hour) do
+      content = File.read(file_path)
+      FrontMatterParser::Parser.new(:md).call(content)
+    end
+  end
+
+  def parse_doc_file(file_path, slug)
+    cache_key = "doc_content:#{file_path}:#{File.mtime(file_path).to_i}"
+    Rails.cache.fetch(cache_key, expires_in: 1.hour) do
       content = File.read(file_path)
       parsed = FrontMatterParser::Parser.new(:md).call(content)
 
       {
-        slug: File.basename(file_path, ".md"),
-        title: parsed["title"] || File.basename(file_path, ".md").titleize,
+        slug: slug,
+        title: parsed["title"] || "Untitled",
+        description: parsed["description"],
         category: parsed["category"],
         order: parsed["order"] || 999,
-        hidden: parsed["hidden"] || false
+        content: render_markdown(parsed.content)
       }
-    rescue => e
-      Rails.logger.error("Error parsing doc #{file_path}: #{e.message}")
-      nil
-    end.compact.reject { |doc| doc[:hidden] }.sort_by { |doc| doc[:order] }
+    end
   end
 
   def render_markdown(text)
