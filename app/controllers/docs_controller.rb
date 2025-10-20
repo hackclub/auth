@@ -39,7 +39,10 @@ class DocsController < ApplicationController
       raise ActionController::RoutingError, "Invalid documentation path"
     end
 
-    @doc_file_path = Rails.root.join("app", "views", "docs", "#{slug}.md")
+    erb_path = Rails.root.join("app", "views", "docs", "#{slug}.md.erb")
+    md_path = Rails.root.join("app", "views", "docs", "#{slug}.md")
+    
+    @doc_file_path = File.exist?(erb_path) ? erb_path : md_path
   end
 
   def load_all_docs
@@ -47,13 +50,16 @@ class DocsController < ApplicationController
       docs_dir = Rails.root.join("app", "views", "docs")
       return [] unless Dir.exist?(docs_dir)
 
-      Dir.glob(docs_dir.join("*.md")).map do |file_path|
+      Dir.glob(docs_dir.join("*.md{,.erb}")).map do |file_path|
         parsed = parse_frontmatter(file_path)
         next unless parsed
 
+        slug = File.basename(file_path, ".*")
+        slug = File.basename(slug, ".*") if file_path.end_with?(".md.erb")
+
         {
-          slug: File.basename(file_path, ".md"),
-          title: parsed["title"] || File.basename(file_path, ".md").titleize,
+          slug: slug,
+          title: parsed["title"] || slug.titleize,
           category: parsed["category"],
           order: parsed["order"] || 999,
           hidden: parsed["hidden"] || false
@@ -68,7 +74,7 @@ class DocsController < ApplicationController
   def parse_frontmatter(file_path)
     cache_key = "doc_frontmatter:#{file_path}:#{File.mtime(file_path).to_i}"
     Rails.cache.fetch(cache_key, expires_in: 1.hour) do
-      content = File.read(file_path)
+      content = read_doc_content(file_path)
       FrontMatterParser::Parser.new(:md).call(content)
     end
   end
@@ -76,7 +82,7 @@ class DocsController < ApplicationController
   def parse_doc_file(file_path, slug)
     cache_key = "doc_content:#{file_path}:#{File.mtime(file_path).to_i}"
     Rails.cache.fetch(cache_key, expires_in: 1.hour) do
-      content = File.read(file_path)
+      content = read_doc_content(file_path)
       parsed = FrontMatterParser::Parser.new(:md).call(content)
 
       {
@@ -87,6 +93,16 @@ class DocsController < ApplicationController
         order: parsed["order"] || 999,
         content: render_markdown(parsed.content)
       }
+    end
+  end
+
+  def read_doc_content(file_path)
+    content = File.read(file_path)
+    if file_path.to_s.end_with?(".erb")
+      template = ERB.new(content)
+      template.result(view_context.instance_eval { binding })
+    else
+      content
     end
   end
 
