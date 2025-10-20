@@ -1,0 +1,10 @@
+---
+title: Welcome
+description: Getting started with Hack Club Account
+category: Getting Started
+order: 1
+---
+
+# eeby deeby.
+
+i'm kinda like if okta had pronouns.

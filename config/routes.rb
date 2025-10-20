@@ -332,6 +332,10 @@ Rails.application.routes.draw do
 
   get "/slack_staging", to: "static_pages#slack_staging" if Rails.env.staging?
 
+  # Documentation routes
+  get "/docs", to: "docs#index", as: :docs
+  get "/docs/:slug", to: "docs#show", as: :doc
+
   # Slack interactivity routes
   namespace :slack do
     post "/interactivity", to: "interactivity#create"

@@ -57,6 +57,8 @@ class Components::Sidebar < Components::Base
       items << { label: t("sidebar.developer"), path: developer_apps_path, icon: "code" }
     end
 
+    items << { label: t("sidebar.docs"), path: docs_path, icon: "docs" }
+
     items
   end
 

@@ -113,6 +113,7 @@ gem "ruby-vips", "~> 2.2"
 gem "slack-ruby-client", "~> 2.6"
 
 gem "redcarpet", "~> 3.6"
+gem "front_matter_parser", "~> 1.0"
 
 gem "flipper", "~> 1.3"
 gem "flipper-ui", "~> 1.3"
