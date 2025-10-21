@@ -15,8 +15,12 @@ module SCIMService
 
       email = identity.primary_email
 
-      # First check if user already exists by email via Slack Web API
-      existing_slack_id = SlackService.find_by_email(email)
+      # Check if user exists - use Web API if not enterprise, SCIM API if enterprise
+      existing_slack_id = if Rails.application.config.are_we_enterprise_yet
+        find_existing_user_by_email(email)
+      else
+        SlackService.find_by_email(email)
+      end
 
       if existing_slack_id
         Rails.logger.info "Slack user already exists for #{email}: #{existing_slack_id}"
