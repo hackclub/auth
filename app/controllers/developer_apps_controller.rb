@@ -47,7 +47,7 @@ class DeveloperAppsController < ApplicationController
 
   def require_developer_mode
     unless current_identity.developer_mode?
-      flash[:error] = t(".developer_mode_required")
+      flash[:error] = t(".require_developer_mode")
       redirect_to root_path
     end
   end
