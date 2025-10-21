@@ -128,6 +128,8 @@ staging:
         - location: https://samltool.io
           binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
 uat:
+  idp_metadata:
+    entity_id: https://identity-uat.hackclub.dev
   service_providers:
     - slug: slack
       friendly_name: Hack Club Slack
