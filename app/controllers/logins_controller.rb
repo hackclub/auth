@@ -266,7 +266,12 @@ class LoginsController < ApplicationController
         case (@attempt.next_action || "home").to_sym
         when :slack
             return redirect_to slack_staging_path if Rails.env.staging?
-            render_saml_response_for("slack")
+            if Rails.application.config.are_we_enterprise_yet
+                render_saml_response_for("slack")
+            else
+                flash[:success] = "Logged in!"
+                redirect_to root_path
+            end
         else
             flash[:success] = "Logged in!"
             safe_return_to = url_from(params[:return_to])
@@ -285,7 +290,7 @@ class LoginsController < ApplicationController
             @identity.update(slack_id: slack_result[:slack_id])
             Rails.logger.info "Slack provisioning successful for #{@identity.id}: #{slack_result[:message]}"
 
-            if scenario.slack_onboarding_flow == :internal_tutorial
+            if Rails.application.config.are_we_enterprise_yet && scenario.slack_onboarding_flow == :internal_tutorial
                 Tutorial::BeginJob.perform_later(@identity)
             end
 
@@ -300,7 +305,7 @@ class LoginsController < ApplicationController
                     error: slack_result[:error]
                 }
             )
-            flash[:warning] = "We couldn't set up your Slack account. Please contact support for help."
+            flash[:warning] = "We couldn't link your Slack account. Make sure you have a Slack account with the email #{@identity.primary_email}."
             @attempt.update!(next_action: "home")
             slack_result
         end

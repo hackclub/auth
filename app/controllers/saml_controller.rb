@@ -2,6 +2,7 @@ class SAMLController < ApplicationController
   include SAMLHelper
 
   skip_before_action :authenticate_identity!, only: [ :metadata, :sp_initiated_get, :idp_initiated, :welcome ]
+  before_action :check_enterprise_features!, except: [ :welcome ]
 
   AUTHN_REQUEST_TTL = 5.minutes
   SSO_ENDPOINT_PATH = "/saml/auth"
@@ -54,6 +55,13 @@ class SAMLController < ApplicationController
   end
 
   private
+
+  def check_enterprise_features!
+    unless Rails.application.config.are_we_enterprise_yet
+      @error = "SAML authentication is not available"
+      render :error, status: :forbidden and return false
+    end
+  end
 
   def verify_authn_request_signature!
     return true if @sp_config[:allow_unsigned_requests]

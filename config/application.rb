@@ -76,6 +76,9 @@ module IdentityVault
 
     config.saml = config_for(:saml)
 
+    # Slack E+ stuff (SAML, SCIM, etc.)
+    config.are_we_enterprise_yet = false
+
     # Use ImageMagick for image processing instead of VIPS
     config.active_storage.variant_processor = :mini_magick
   end

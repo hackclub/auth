@@ -28,6 +28,15 @@ module SCIMService
         }
       end
 
+      unless Rails.application.config.are_we_enterprise_yet
+        Rails.logger.info "SCIM user creation disabled (not enterprise yet) for #{email}"
+        return {
+          success: false,
+          error: "No existing Slack account found for #{email}",
+          created: false
+        }
+      end
+
       Rails.logger.info "No existing Slack user found for #{email}, proceeding to create"
 
       create_user(identity: identity, scenario: scenario)

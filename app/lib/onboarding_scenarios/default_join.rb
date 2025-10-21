@@ -6,7 +6,7 @@ module OnboardingScenarios
 
         def form_fields = %i[ first_name last_name primary_email birthday country ]
 
-        def next_action = :slack
+        def next_action = Rails.application.config.are_we_enterprise_yet ? :slack : :home
 
         def slack_user_type = :multi_channel_guest
         def slack_channels = if Rails.env.production?
