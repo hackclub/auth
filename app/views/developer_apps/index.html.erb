@@ -1,6 +1,6 @@
 <div class="page-header">
   <h1><%= t ".title" %></h1>
-
+  <i>How?..Just <%= link_to "Watch The Free Video", doc_path("tldr"), target: "_blank" %> > </i>
   <% if @apps.any? %>
     <div class="header-actions">
       <%= link_to t(".create_new"), new_developer_app_path, role: "button" %>

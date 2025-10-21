@@ -5,7 +5,7 @@ class Components::APIExample < Components::Base
   prop :path_only, _Boolean?
 
   def view_template
-    div style: { margin: "10px 0" } do
+    # div style: { margin: "10px 0" } do
       code style: { background: "black", padding: "0.2em", color: "white" } do
         span style: { color: "cyan" } do
           @method
@@ -19,6 +19,6 @@ class Components::APIExample < Components::Base
           end
         end
       end
-    end
+    # end
   end
 end
