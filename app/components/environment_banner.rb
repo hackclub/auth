@@ -9,6 +9,10 @@ class Components::EnvironmentBanner < Components::Base
       div(class: "banner success") do
         plain "you're in dev! go nuts :3"
       end
+    when "uat"
+      div(class: "banner info") do
+        plain "UAT env. c'est la vie."
+      end
     end
   end
 end

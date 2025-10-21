@@ -21,5 +21,9 @@
   "staging": {
     "publicOutputDir": "",
     "port": 3039
+  },
+  "uat": {
+    "publicOutputDir": "",
+    "port": 3040
   }
 }

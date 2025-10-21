@@ -67,6 +67,10 @@
     &.production {
       @include badge(var(--pico-color-green-600), white);
     }
+
+    &.uat {
+      @include badge(var(--pico-color-blue-600), white);
+    }
   }
 
   @include down(768px) {
