@@ -75,10 +75,10 @@ class Identity < ApplicationRecord
   has_many :owned_developer_apps, class_name: "Program", foreign_key: :owner_identity_id, dependent: :nullify
 
   validates :first_name, :last_name, :country, :primary_email, :birthday, presence: true
-  validates :primary_email, uniqueness: true
+  validates :primary_email, uniqueness: { conditions: -> { where(deleted_at: nil) } }
   validates :primary_email, 'valid_email_2/email': { mx: true, disposable: true }
 
-  validates :slack_id, uniqueness: true, allow_blank: true
+  validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, allow_blank: true
   validates :aadhaar_number, uniqueness: true, allow_blank: true
   validates :aadhaar_number, format: { with: /\A\d{12}\z/, message: "must be 12 digits" }, if: -> { aadhaar_number.present? }
 
