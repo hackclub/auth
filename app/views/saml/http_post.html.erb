@@ -1,9 +1,12 @@
 <% content_for :title, t(".title") %>
-
-<% content_for :head do %>
-<script type="text/javascript">
-  document.addEventListener("DOMContentLoaded", () => {document.forms[0].submit()})
-</script>
+<% unless current_identity.saml_debug? %>
+  <% content_for :head do %>
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", () => {
+            document.forms[0].submit()
+        })
+    </script>
+  <% end %>
 <% end %>
 
 <%
@@ -13,10 +16,22 @@
   message = Base64.encode64(message.to_s) unless message.is_a?(String)
 %>
 
-<i style="vertical-align: bottom;"><%= t ".text" %></i> <br>
 
-<%= vite_image_tag "images/loader.gif", style: "image-rendering: pixelated; display: inline-block;" %>
-<div style="display: none;">
+<% if current_identity.saml_debug? %>
+  we're about to assert to <code><%= target %></code> that...<br/>
+  <% if @saml_request %>
+    SAMLRequest: <pre><%= pretty_xml(Base64.decode64(@saml_request)) rescue @saml_request %></pre> <br/>
+  <% end %>
+  <% if @saml_response %>
+    SAMLResponse: <pre><%= pretty_xml(Base64.decode64(@saml_response)) rescue @saml_response %></pre><br/>
+  <% end %>
+  <b>does this sound true to you?</b>
+  <div>
+<% else %>
+  <i style="vertical-align: bottom;"><%= t ".text" %></i> <br>
+  <%= vite_image_tag "images/loader.gif", style: "image-rendering: pixelated; display: inline-block;" %>
+  <div style="display: none;">
+<% end %>
 <br>
 <br>
 <%= form_tag(target) do %>

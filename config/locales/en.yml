@@ -190,6 +190,8 @@ en:
       developer_mode_description: Wanna OAuth some OAuth? Check this box.
       save: Save changes
       no_email_change_yet: Changing your email will be available in a future release.
+      super_secret_settings: "Super secret settings"
+      saml_debug: "debug your SAML assertions?"
     new:
       already_have: Already have a Hack Club account?
       log_in: Log in here

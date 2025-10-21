@@ -48,6 +48,19 @@ module SAMLHelper
     render template: "saml/http_post", layout: "minimal"
   end
 
+  def pretty_xml(xml_string)
+    return 'nil' if xml_string.nil?
+    require 'rexml/document'
+    doc = REXML::Document.new(xml_string)
+    formatter = REXML::Formatters::Pretty.new(2)
+    formatter.compact = true
+    out = ''
+    formatter.write(doc, out)
+    out
+  rescue
+    xml_string
+  end
+
   private
 
   def saml_issuer

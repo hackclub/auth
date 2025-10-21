@@ -67,4 +67,20 @@
       </div>
     </section>
   <% end %>
+  <% if params["sss"] == "yeah" %>
+    <%= form_with model: @identity, url: identity_path, method: :patch, local: true do |f| %>
+      <section class="section-card">
+        <h3><%= t(".super_secret_settings") %></h3>
+
+        <label class="developer-mode-toggle">
+          <%= f.check_box :saml_debug %>
+          <span><%= t(".saml_debug") %></span>
+        </label>
+
+        <div class="form-actions">
+          <%= f.submit t(".save") %>
+        </div>
+      </section>
+    <% end %>
+  <% end %>
 </div>
