@@ -101,6 +101,7 @@ module SCIMService
 
       if user_type == :multi_channel_guest
         channel_ids = scenario.slack_channels if scenario.slack_channels.any?
+        sleep(2)
         SlackService.assign_to_workspace(user_id: slack_id, user_type:, channel_ids:)
       end
 
