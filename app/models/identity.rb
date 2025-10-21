@@ -39,7 +39,7 @@ class Identity < ApplicationRecord
   acts_as_paranoid
   include PublicActivity::Model
 
-  tracked owner: ->(controller, model) { controller&.user_for_public_activity }, only: [ :create, :admin_update ]
+  tracked owner: ->(controller, model) { controller&.user_for_public_activity }, only: [:create, :admin_update]
 
   include CountryEnumable
 
@@ -286,8 +286,6 @@ class Identity < ApplicationRecord
 
   def age = (Date.today - birthday).days.in_years
 
-
-
   def totp = totps.verified.first
 
   def backup_codes_enabled? = backup_codes.active.any?
@@ -304,7 +302,7 @@ class Identity < ApplicationRecord
   def two_factor_methods
     [
       totps.verified
-      # Future: sms_two_factors.verified,
+    # Future: sms_two_factors.verified,
     ].flatten.compact
   end
 

@@ -4,7 +4,6 @@ class IdentitiesController < ApplicationController
     before_action :set_identity, except: [ :new, :create ]
     before_action :set_onboarding_scenario, only: [ :new, :create ]
     before_action :set_return_to, only: [ :new, :create ]
-    before_action :ensure_migration_token_present, only: [ :new, :create ]
     before_action :ensure_no_user!, only: [ :new, :create ]
 
     def edit
@@ -24,8 +23,10 @@ class IdentitiesController < ApplicationController
 
     def new
         @prefill_attributes = scenario_prefill_attributes
-        # Allow email to be prefilled from login redirect
+        # Allow fields to be prefilled from URL params
         @prefill_attributes[:primary_email] ||= params[:email] if params[:email].present?
+        @prefill_attributes[:first_name] ||= params[:first_name] if params[:first_name].present?
+        @prefill_attributes[:last_name] ||= params[:last_name] if params[:last_name].present?
         # Prefill country from GeoIP if not provided
         @prefill_attributes[:country] ||= detected_country_alpha2
         @identity = Identity.new(@prefill_attributes)
@@ -94,54 +95,25 @@ class IdentitiesController < ApplicationController
         @identity = Identity.new(attrs)
 
         if @identity.save
-            if @onboarding_scenario.is_a?(OnboardingScenarios::LegacyMigration)
-                # Migration flow: skip email code, trust signed token and mark email factor complete
-                login_attempt = LoginAttempt.create!(
-                    identity: @identity,
-                    authentication_factors: { legacy_email: true },
-                    provenance: "signup_legacy",
-                    next_action: @onboarding_scenario.next_action.to_s
-                )
+            login_attempt = LoginAttempt.create!(
+                identity: @identity,
+                authentication_factors: {},
+                provenance: "signup",
+                next_action: @onboarding_scenario.next_action.to_s
+            )
 
-                # If no additional factors are required, sign in immediately
-                if login_attempt.may_mark_complete?
-                    login_attempt.mark_complete!
-                    session_rec = sign_in(identity: @identity, fingerprint_info: { ip: request.remote_ip })
-                    @identity.update!(legacy_migrated_at: Time.current)
-                    login_attempt.update!(session: session_rec)
-                    redirect_to @return_to.presence || root_path, status: :see_other
-                    return
-                end
+            # Set browser token cookie for security
+            cookies.signed["browser_token_#{login_attempt.to_param}"] = {
+                value: login_attempt.browser_token,
+                expires: LoginAttempt::EXPIRATION.from_now
+            }
 
-                # Additional factor required (e.g., TOTP/SMS). Set browser token and send user to next factor.
-                cookies.signed["browser_token_#{login_attempt.to_param}"] = {
-                    value: login_attempt.browser_token,
-                    expires: LoginAttempt::EXPIRATION.from_now
-                }
-
-                redirect_to login_attempt_path(id: login_attempt.to_param, return_to: @return_to), status: :see_other
-            else
-                provenance = "signup"
-                login_attempt = LoginAttempt.create!(
-                    identity: @identity,
-                    authentication_factors: {},
-                    provenance: provenance,
-                    next_action: @onboarding_scenario.next_action.to_s
-                )
-
-                # Set browser token cookie for security
-                cookies.signed["browser_token_#{login_attempt.to_param}"] = {
-                    value: login_attempt.browser_token,
-                    expires: LoginAttempt::EXPIRATION.from_now
-                }
-
-                login_code = Identity::V2LoginCode.create!(identity: @identity)
-                if defined?(IdentityMailer)
-                    IdentityMailer.v2_login_code(login_code).deliver_later
-                end
-
-                redirect_to login_attempt_path(id: login_attempt.to_param, return_to: @return_to), status: :see_other
+            login_code = Identity::V2LoginCode.create!(identity: @identity)
+            if defined?(IdentityMailer)
+                IdentityMailer.v2_login_code(login_code).deliver_later
             end
+
+            redirect_to login_attempt_path(id: login_attempt.to_param, return_to: @return_to), status: :see_other
         else
             render :new, status: :unprocessable_entity
         end
@@ -196,30 +168,10 @@ class IdentitiesController < ApplicationController
         nil
     end
 
-    def ensure_migration_token_present
-        return unless params[:route_context] == "migrate"
 
-        token = params[:email_token]
-        if token.blank?
-            redirect_to signup_path(return_to: @return_to)
-            return
-        end
-
-        begin
-            email = Rails.application.message_verifier(:legacy_email).verify(token)
-            if Identity.exists?(primary_email: email, legacy_migrated_at: ..Time.current)
-                flash[:info] = t(".email_already_migrated")
-                redirect_to login_path(email: email, return_to: @return_to)
-                nil
-            end
-        rescue StandardError
-            redirect_to signup_path(return_to: @return_to)
-            nil
-        end
-    end
 
     def identity_params
-        params.require(:identity).permit(:first_name, :last_name, :phone_number, :developer_mode)
+        params.require(:identity).permit(:first_name, :last_name, :phone_number, :developer_mode, :saml_debug)
     end
 
     public

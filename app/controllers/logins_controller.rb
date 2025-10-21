@@ -50,7 +50,7 @@ class LoginsController < ApplicationController
     end
 
     def show
-        # If email is already satisfied (including legacy_email), skip code entry
+        # If email is already satisfied, skip code entry
         if !@attempt.email_available?
             redirect_to_next_factor
         else
@@ -92,9 +92,7 @@ class LoginsController < ApplicationController
         end
 
         factors = (@attempt.authentication_factors || {}).dup
-        # Use special factor for legacy provenance, else standard email factor
-        factor_key = @attempt.provenance == "signup_legacy" ? :legacy_email : :email
-        factors[factor_key] = true
+        factors[:email] = true
         @attempt.update!(authentication_factors: factors)
 
         # Check if authentication is complete
@@ -257,10 +255,6 @@ class LoginsController < ApplicationController
 
         if @identity.slack_id.blank?
             provision_slack_on_first_login
-        end
-
-        if @attempt.provenance == "signup_legacy" && !@identity.legacy_migrated?
-            @identity.update!(legacy_migrated_at: Time.current)
         end
 
         case (@attempt.next_action || "home").to_sym

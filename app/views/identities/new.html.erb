@@ -69,20 +69,18 @@
     <% if (@onboarding_scenario.form_fields & [:primary_email, :phone_number, :country]).any? || @identity.primary_email.present? %>
       <fieldset>
         <div class="grid">
-          <% if @onboarding_scenario.form_fields.include?(:primary_email) %>
+          <% if @identity.primary_email.present? %>
+            <%# When email is prefilled from URL, show it as read-only %>
+            <%= form.hidden_field :primary_email, value: @identity.primary_email %>
+            <div>
+              <%= form.label :primary_email, t("identities.email") %>
+              <input type="text" value="<%= @identity.primary_email %>" disabled aria-disabled="true" autocomplete="email">
+            </div>
+          <% elsif @onboarding_scenario.form_fields.include?(:primary_email) %>
             <div>
               <%= form.label :primary_email, t("identities.email") %>
               <%= form.email_field :primary_email, required: true, placeholder: t("identities.email_placeholder"), autocomplete: "email", "aria-describedby": "emailHelp" %>
             </div>
-          <% else %>
-            <%# When email is provided from scenario, lock it in as hidden %>
-            <% if @identity.primary_email.present? %>
-              <%= form.hidden_field :primary_email, value: @identity.primary_email %>
-              <div>
-                <label>Email</label>
-                <input type="text" value="<%= @identity.primary_email %>" disabled aria-disabled="true" autocomplete="email">
-              </div>
-            <% end %>
           <% end %>
 
           <% if @onboarding_scenario.form_fields.include?(:phone_number) %>
@@ -102,7 +100,12 @@
             </div>
           <% end %>
         </div>
-        <small id="emailHelp"><%= t ".email_code" %></small>
+        <small id="emailHelp">
+          <%= t ".email_code" %>
+          <% if @onboarding_scenario.is_a?(OnboardingScenarios::LegacyMigration) %>
+            <br>This needs to be the same email your Slack account is registered under.
+          <% end %>
+        </small>
       </fieldset>
     <% end %>
 
