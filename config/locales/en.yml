@@ -36,7 +36,7 @@ en:
   developer_apps:
     index:
       title: Developers' corner
-      create_new: Create New App
+      create_new: app me up!
       no_scopes: No scopes
       edit: Edit
       delete: Delete

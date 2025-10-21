@@ -1,0 +1,101 @@
+---
+title: OAuth Guide
+description: Integrate Hack Club Account authentication into your app
+category: Developer
+order: 9
+---
+
+This guide will walk you through implementing OAuth 2.0 authentication with Hack Club Accounts.
+
+### Step 1: Create an OAuth application
+
+1. Navigate to the [Developer Apps](https://hca.dinosaurbbq.org/developer_apps) page
+2. Click "<%= t("developer_apps.index.create_new") %>"
+3. Fill out the form with your app details and click "<%= t("developer_apps.new.create") %>"
+4. Copy your Client ID and Client Secret and store them securely
+
+<div class="banner info">
+<b>A note on trust levels:</b>
+<p>
+    Your app will be created with a default trust level of <code>community_untrusted</code>. <br/>
+    This means your users will see a slightly scarier consent screen when authorizing your app. <br/>
+    Once you've developed your integration, poke Nora to promote it to <code>community_trusted</code>.
+
+    <br/><br/>
+    If you work for Hack Club HQ and are building an official program, you'll be able to select the <code>hq_official</code> trust level.
+    This means no warning banner will be shown when your users authorize your app.
+</p>
+</div>
+
+### Step 2: Redirect users to authorize your app
+
+Construct an authorization URL with these parameters:
+
+- `client_id`: Your Client ID from Step 1
+- `redirect_uri`: One of the redirect URIs you configured
+- `response_type`: `code`
+- `scope`: Space-separated list of requested scopes
+
+**Example authorization URL:**
+
+<%= render Components::APIExample.new(method: "GET", url: oauth_authorization_url(client_id: "client_id", redirect_uri: "redirect_uri", response_type: 'code', scope: "email")) %>
+
+<div class="banner info">
+<b>An aside about scopes:</b>
+<p>
+    The scopes you request will determine what user information your app will be able to access. <br/>
+    If you're a community member, you can request the following scopes: <code><%= Program::COMMUNITY_ALLOWED_SCOPES.join(" ") %></code>. <br/>
+    If you work for Hack Club HQ and are building an official program, you will have access to additional scopes, like <code>basic_info</code> and <code>addresses</code>.
+    <br/>
+    Talk to Nora if you need anything scarier than those.
+</p>
+</div>
+
+### Step 3: Handle the authorization callback
+
+After the user authorizes your app, they'll be redirected to your redirect URI with an authorization code:
+
+```
+https://yourapp.com/callback?code=abc123def456
+```
+
+### Step 4: Exchange the code for an access token
+
+Make a POST request to exchange the authorization code for an access token:
+
+<%= render Components::APIExample.new(method: "POST", url: oauth_token_url) %>
+
+**Request body:**
+
+```json
+{
+  "client_id": "your_client_id",
+  "client_secret": "your_client_secret",
+  "redirect_uri": "https://yourapp.com/callback",
+  "code": "abc123def456",
+  "grant_type": "authorization_code"
+}
+```
+
+**Response:**
+
+```json
+{
+  "access_token": "idntk.mraowj2z72e1x8i2a60o88j3h7d0f1"
+}
+```
+
+Store this access token securely - you'll use it to authenticate API requests.
+
+### Step 5: Make authenticated API requests
+
+Include the access token in the `Authorization` header when making requests to the <a href="/docs/api">Hack Club Account API</a>:
+
+```
+Authorization: Bearer idntk.mraowj2z72e1x8i2a60o88j3h7d0f1
+```
+
+Your first endpoint will probably be <%= render Components::APIExample.new(method: "GET", url: api_v1_me_url, path_only: true) %>
+This is analogous to `users.info` if you're coming from a Slack API background.
+
+Happy hacking!

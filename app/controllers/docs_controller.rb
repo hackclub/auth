@@ -8,7 +8,7 @@ class DocsController < ApplicationController
   def index
     first_doc = @all_docs.first
     return render plain: "No documentation found" if first_doc.nil?
-    
+
     redirect_to doc_path(slug: first_doc[:slug])
   end
 
@@ -41,7 +41,7 @@ class DocsController < ApplicationController
 
     erb_path = Rails.root.join("app", "views", "docs", "#{slug}.md.erb")
     md_path = Rails.root.join("app", "views", "docs", "#{slug}.md")
-    
+
     @doc_file_path = File.exist?(erb_path) ? erb_path : md_path
   end
 
@@ -82,8 +82,28 @@ class DocsController < ApplicationController
   def parse_doc_file(file_path, slug)
     cache_key = "doc_content:#{file_path}:#{File.mtime(file_path).to_i}"
     Rails.cache.fetch(cache_key, expires_in: 1.hour) do
-      content = read_doc_content(file_path)
+      content = File.read(file_path)
       parsed = FrontMatterParser::Parser.new(:md).call(content)
+
+      # this is DISGUSTING, i'm sorry...
+      if file_path.to_s.end_with?(".erb")
+        erb_tags = []
+        content_with_placeholders = parsed.content.gsub(/<%=?.*?%>/m) do |match|
+          erb_tags << match
+          "ERB_PLACEHOLDER_#{erb_tags.length - 1}_PLACEHOLDER"
+        end
+
+        markdown_content = render_markdown(content_with_placeholders)
+
+        erb_tags.each_with_index do |erb_tag, index|
+          markdown_content = markdown_content.gsub("ERB_PLACEHOLDER_#{index}_PLACEHOLDER", erb_tag)
+        end
+
+        template = ERB.new(markdown_content)
+        final_content = template.result(view_context.instance_eval { binding })
+      else
+        final_content = render_markdown(parsed.content)
+      end
 
       {
         slug: slug,
@@ -91,7 +111,7 @@ class DocsController < ApplicationController
         description: parsed["description"],
         category: parsed["category"],
         order: parsed["order"] || 999,
-        content: render_markdown(parsed.content)
+        content: final_content.html_safe
       }
     end
   end
@@ -114,13 +134,15 @@ class DocsController < ApplicationController
 
     markdown = Redcarpet::Markdown.new(
       renderer,
-      autolink: true,
+      autolink: false,
       tables: true,
       fenced_code_blocks: true,
       strikethrough: true,
       superscript: true,
       highlight: true,
-      footnotes: true
+      footnotes: true,
+      no_intra_emphasis: true,
+      disable_indented_code_blocks: true
     )
 
     markdown.render(text).html_safe
