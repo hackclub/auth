@@ -25,8 +25,7 @@ class SAMLController < ApplicationController
     end
 
     unless current_identity
-      session[:saml_return_to] = request.original_url
-      redirect_to saml_welcome_path and return
+      redirect_to saml_welcome_path(return_to: request.original_url) and return
     end
 
     response = build_saml_response(
@@ -45,6 +44,10 @@ class SAMLController < ApplicationController
     return unless verify_authn_request_signature!
     return unless check_replay!
 
+    unless current_identity
+      redirect_to saml_welcome_path(return_to: request.original_url) and return
+    end
+
     response = build_saml_response(
       identity: current_identity,
       sp_config: @sp_config,
@@ -52,6 +55,24 @@ class SAMLController < ApplicationController
     )
 
     render_saml_response(saml_response: response, sp_config: @sp_config)
+  end
+
+  def welcome
+    @saml_return_to = params[:return_to]
+    
+    if @saml_return_to.present?
+      # Extract SP info from the return URL
+      uri = URI.parse(@saml_return_to)
+      query_params = Rack::Utils.parse_query(uri.query)
+      
+      if query_params["SAMLRequest"].present?
+        authn_request, _ = SAML2::Bindings::HTTPRedirect.decode(@saml_return_to)
+        @sp_config = SAMLService::Entities.sp_by_entity_id(authn_request.issuer.id) if authn_request
+      elsif @saml_return_to.match?(/\/saml\/idp_initiated\/([^\/\?]+)/)
+        slug = $1
+        @sp_config = SAMLService::Entities.sp_by_slug(slug)
+      end
+    end
   end
 
   private
