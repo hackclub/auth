@@ -127,3 +127,31 @@ staging:
       assertion_consumer_services:
         - location: https://samltool.io
           binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+uat:
+  service_providers:
+    - slug: slack
+      friendly_name: Hack Club Slack
+      tagline: where most of the magic happens!
+      icon: slack.png
+      entity_id: https://slack.com
+      assertion_consumer_services:
+        - location: https://hackclub-sandbox.enterprise.slack.com/sso/saml
+          binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+      attribute_consuming_services:
+        - name: Slack User Profile
+          requested_attributes:
+            - name: User.Email
+              friendly_name: Email Address
+              is_required: true
+            - name: User.Username
+              friendly_name: Username
+              is_required: false
+            - name: User.FirstName
+              friendly_name: First Name
+              is_required: false
+            - name: User.LastName
+              friendly_name: Last Name
+              is_required: false
+      allow_idp_initiated: true
+      attribute_format: slack
+      allow_unsigned_requests: true
