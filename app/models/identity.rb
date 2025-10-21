@@ -49,30 +49,30 @@ class Identity < ApplicationRecord
   has_country_enum
 
   has_many :sessions, class_name: "IdentitySession", dependent: :destroy
-  has_many :login_attempts
+  has_many :login_attempts, dependent: :destroy
   has_many :login_codes, class_name: "Identity::LoginCode", dependent: :destroy
   has_many :v2_login_codes, class_name: "Identity::V2LoginCode", dependent: :destroy
   has_many :totps, class_name: "Identity::TOTP", dependent: :destroy
   has_many :backup_codes, class_name: "Identity::BackupCode", dependent: :destroy
 
-  has_many :documents, class_name: "Identity::Document"
-  has_many :verifications, class_name: "Verification"
+  has_many :documents, class_name: "Identity::Document", dependent: :destroy
+  has_many :verifications, class_name: "Verification", dependent: :destroy
   has_many :document_verifications, class_name: "Verification::DocumentVerification", dependent: :destroy
-  has_many :aadhaar_verifications, class_name: "Verification::AadhaarVerification"
+  has_many :aadhaar_verifications, class_name: "Verification::AadhaarVerification", dependent: :destroy
   has_many :vouch_verifications, class_name: "Verification::VouchVerification", dependent: :destroy
-  has_many :addresses, class_name: "Address"
+  has_many :addresses, class_name: "Address", dependent: :destroy
   belongs_to :primary_address, class_name: "Address", optional: true
 
   has_many :access_tokens, -> { where(revoked_at: nil) }, class_name: "OAuthToken", foreign_key: :resource_owner_id
   has_many :programs, through: :access_tokens, source: :application
 
-  has_many :resemblances, class_name: "Identity::Resemblance"
+  has_many :resemblances, class_name: "Identity::Resemblance", dependent: :destroy
   has_many :break_glass_records, as: :break_glassable, dependent: :destroy
 
-  has_many :all_access_tokens, class_name: "Doorkeeper::AccessToken", foreign_key: :resource_owner_id
+  has_many :all_access_tokens, class_name: "Doorkeeper::AccessToken", foreign_key: :resource_owner_id, dependent: :destroy
   has_many :all_programs, through: :all_access_tokens, source: :application
 
-  has_many :owned_developer_apps, class_name: "Program", foreign_key: :owner_identity_id
+  has_many :owned_developer_apps, class_name: "Program", foreign_key: :owner_identity_id, dependent: :nullify
 
   validates :first_name, :last_name, :country, :primary_email, :birthday, presence: true
   validates :primary_email, uniqueness: true
