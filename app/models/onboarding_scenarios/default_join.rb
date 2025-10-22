@@ -13,6 +13,8 @@ module OnboardingScenarios
 
         def next_action = :slack
 
+        def slack_onboarding_flow = :internal_tutorial
+
         def slack_channels = Rails.configuration.slack_channels.slice(:announcements).values
 
         def promotion_channels = Rails.configuration.slack_channels.slice(:welcome, :ship, :neighbourhood, :library, :lounge).values
