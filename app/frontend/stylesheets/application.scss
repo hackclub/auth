@@ -12,19 +12,19 @@ $theme-color: "red";
     --pico-border-radius: 10px !important;
     --pico-typography-spacing-vertical: 1.25rem !important;
     
-    // Use danger button red colors
-    --pico-primary: #dc2626;
-    --pico-primary-rgb: 220, 38, 38;
-    --pico-primary-hover: #b91c1c;
-    --pico-primary-focus: rgba(220, 38, 38, 0.125);
+    // Brand red with skeumorphic depth
+    --pico-primary: #ec3750;
+    --pico-primary-rgb: 236, 55, 80;
+    --pico-primary-hover: #d92d46;
+    --pico-primary-focus: rgba(236, 55, 80, 0.15);
     --pico-primary-inverse: #fff;
 }
 
 [data-theme="dark"] {
-    --pico-primary: #ef4444;
-    --pico-primary-rgb: 239, 68, 68;
-    --pico-primary-hover: #dc2626;
-    --pico-primary-focus: rgba(239, 68, 68, 0.25);
+    --pico-primary: #f03d58;
+    --pico-primary-rgb: 240, 61, 88;
+    --pico-primary-hover: #ff4d68;
+    --pico-primary-focus: rgba(240, 61, 88, 0.25);
     --pico-primary-inverse: #fff;
 }
 

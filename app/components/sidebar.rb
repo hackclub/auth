@@ -129,7 +129,7 @@ class Components::Sidebar < Components::Base
 
   def render_logout_button
     form_with(url: logout_path, method: :delete, class: "logout-form") do
-      button(type: "submit", class: "logout-button") do
+      button(type: "submit", class: "logout-button secondary") do
         plain t "sidebar.logout"
         span(class: "logout-icon") { inline_icon("door-leave", size: 18) }
       end

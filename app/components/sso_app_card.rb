@@ -7,7 +7,7 @@ class Components::SSOAppCard < Components::Base
 
   def view_template
     form_with(url: idp_initiated_saml_path(slug: @app[:slug]), method: :post, html: { class: "sso-app-card-form", target: "_blank" }) do
-      button(type: "submit", class: "sso-app-card") do
+      button(type: "submit", class: "sso-app-card secondary") do
         div(class: "card-header") do
           div(class: "app-icon") do
             if @app[:icon].present?
