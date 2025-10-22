@@ -11,8 +11,8 @@ module OnboardingScenarios
 
         def slack_user_type = :multi_channel_guest
 
-        def slack_channels = Rails.configuration.slack_channels.slice(:announcements).keys
+        def slack_channels = Rails.configuration.slack_channels.slice(:announcements).values
 
-        def promotion_channels = Rails.configuration.slack_channels.slice(:welcome, :ship, :neighbourhood, :library, :lounge).keys
+        def promotion_channels = Rails.configuration.slack_channels.slice(:welcome, :ship, :neighbourhood, :library, :lounge).values
     end
 end
