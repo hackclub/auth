@@ -50,13 +50,10 @@ module SCIMService
       username = generate_unique_username(identity.primary_email)
       user_type = scenario.slack_user_type
 
-      channel_ids = user_type == :multi_channel_guest ? scenario.slack_channels : []
-      
       user_payload = build_user_payload(
         identity: identity,
         username: username,
-        user_type: user_type,
-        channel_ids: channel_ids
+        user_type: user_type
       )
 
       Rails.logger.info "Creating Slack user with payload: #{user_payload.inspect}"
@@ -101,6 +98,11 @@ module SCIMService
       end
 
       slack_id = response.body["id"]
+
+      if user_type == :multi_channel_guest
+        channel_ids = scenario.slack_channels if scenario.slack_channels.any?
+        assign_with_retry(slack_id:, user_type:, channel_ids:)
+      end
 
       Rails.logger.info "Successfully created Slack user #{slack_id} for #{identity.primary_email}"
 
@@ -189,7 +191,7 @@ module SCIMService
       username
     end
 
-    def build_user_payload(identity:, username:, user_type:, channel_ids: [])
+    def build_user_payload(identity:, username:, user_type:)
       payload = {
         schemas: %w[urn:ietf:params:scim:schemas:core:2.0:User urn:ietf:params:scim:schemas:extension:enterprise:2.0:User urn:ietf:params:scim:schemas:extension:slack:profile:2.0:User],
         userName: username,
@@ -211,9 +213,7 @@ module SCIMService
       # Add guest extension for multi-channel guests
       if user_type == :multi_channel_guest
         payload[:schemas] << "urn:ietf:params:scim:schemas:extension:slack:guest:2.0:User"
-        guest_payload = { type: "multi" }
-        guest_payload[:channels] = channel_ids.map { |id| { value: id } } if channel_ids.any?
-        payload[:"urn:ietf:params:scim:schemas:extension:slack:guest:2.0:User"] = guest_payload
+        payload[:"urn:ietf:params:scim:schemas:extension:slack:guest:2.0:User"] = { type: "multi" }
       end
 
       payload
