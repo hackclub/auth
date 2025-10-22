@@ -101,7 +101,8 @@ module SCIMService
 
       if user_type == :multi_channel_guest
         channel_ids = scenario.slack_channels if scenario.slack_channels.any?
-        assign_with_retry(slack_id:, user_type:, channel_ids:)
+        sleep(2)
+        SlackService.assign_to_workspace(user_id: slack_id, user_type:, channel_ids:)
       end
 
       Rails.logger.info "Successfully created Slack user #{slack_id} for #{identity.primary_email}"
@@ -138,23 +139,6 @@ module SCIMService
     end
 
     private
-
-    def assign_with_retry(slack_id:, user_type:, channel_ids:, max_attempts: 4)
-      wait_time = 3
-      max_attempts.times do |attempt|
-        sleep(wait_time)
-        
-        success = SlackService.assign_to_workspace(user_id: slack_id, user_type:, channel_ids:)
-        return true if success
-        
-        break if attempt == max_attempts - 1
-        wait_time *= 2
-        Rails.logger.info "Retrying workspace assignment for #{slack_id} in #{wait_time}s (attempt #{attempt + 2}/#{max_attempts})"
-      end
-      
-      Rails.logger.error "Failed to assign #{slack_id} to workspace after #{max_attempts} attempts"
-      false
-    end
 
     def client
       @client ||= Faraday.new(url: SCIM_BASE_URL) do |f|
