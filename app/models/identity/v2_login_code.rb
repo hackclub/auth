@@ -8,7 +8,7 @@ class Identity::V2LoginCode < ApplicationRecord
   after_initialize :generate_code
   validates :code, presence: true, uniqueness: { conditions: -> { active } }
 
-  def pretty = "H#{code&.scan(/.../)&.join("-")}"
+  def pretty = code&.scan(/.../)&.join("-")
 
   private
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Components::Login::CodeInput < Components::Base
-  def initialize(form:, field_name: :code, prefix: "H", placeholder: "XXX-XXX", alpine_model: "codeValue", input_id: nil)
+  def initialize(form:, field_name: :code, prefix: nil, placeholder: "XXX-XXX", alpine_model: "codeValue", input_id: nil)
     @form = form
     @field_name = field_name
     @prefix = prefix
@@ -12,7 +12,7 @@ class Components::Login::CodeInput < Components::Base
 
   def view_template
     div(class: "code-input-container", onclick: safe("document.getElementById('#{@input_id}').focus()")) do
-      span(class: "code-prefix") { @prefix }
+      span(class: "code-prefix") { @prefix } if @prefix
       raw @form.text_field @field_name,
         required: true,
         inputmode: "numeric",

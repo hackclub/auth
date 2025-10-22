@@ -14,7 +14,7 @@
       <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
       <fieldset>
         <%= form.label :code, t(".code_label") %>
-        <%= render Components::Login::CodeInput.new(form: form, prefix: "H", alpine_model: "codeValue") %>
+        <%= render Components::Login::CodeInput.new(form: form, alpine_model: "codeValue") %>
       </fieldset>
       <%= form.submit "#{t('.verify')} →", "x-bind:disabled": "!isComplete" %>
     <% end %>
