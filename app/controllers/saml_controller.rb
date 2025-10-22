@@ -44,11 +44,14 @@ class SAMLController < ApplicationController
     return unless ensure_sp_configured!(entity_id: @authn_request.issuer.id)
     return unless ensure_authn_request_valid!
     return unless verify_authn_request_signature!
-    return unless check_replay!
 
     unless current_identity
       redirect_to saml_welcome_path(return_to: request.fullpath) and return
     end
+
+    # Only check replay after authentication, since unauthenticated users will be redirected
+    # back to this same URL after login
+    return unless check_replay!
 
     response = build_saml_response(
       identity: current_identity,
