@@ -1,7 +1,7 @@
 class IdentitiesController < ApplicationController
   layout "logged_out", only: [ :new, :create ]
     include SafeUrlValidation
-    
+
     skip_before_action :authenticate_identity!, only: [ :new, :create ]
     before_action :set_identity, except: [ :new, :create ]
     before_action :set_onboarding_scenario, only: [ :new, :create ]

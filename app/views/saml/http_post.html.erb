@@ -16,14 +16,13 @@
   message = Base64.encode64(message.to_s) unless message.is_a?(String)
 %>
 
-
 <% if current_identity.saml_debug? %>
-  we're about to assert to <code><%= target %></code> that...<br/>
+  we're about to assert to <code><%= target %></code> that...<br>
   <% if @saml_request %>
-    SAMLRequest: <pre><%= pretty_xml(Base64.decode64(@saml_request)) rescue @saml_request %></pre> <br/>
+    SAMLRequest: <pre><%= pretty_xml(Base64.decode64(@saml_request)) rescue @saml_request %></pre> <br>
   <% end %>
   <% if @saml_response %>
-    SAMLResponse: <pre><%= pretty_xml(Base64.decode64(@saml_response)) rescue @saml_response %></pre><br/>
+    SAMLResponse: <pre><%= pretty_xml(Base64.decode64(@saml_response)) rescue @saml_response %></pre><br>
   <% end %>
   <b>does this sound true to you?</b>
   <div>

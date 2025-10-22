@@ -263,7 +263,7 @@ class LoginsController < ApplicationController
         rescue ActionController::Redirecting::UnsafeRedirectError
           redirect_to root_path
         end
-      end
+        end
     end
 
     def provision_slack_on_first_login

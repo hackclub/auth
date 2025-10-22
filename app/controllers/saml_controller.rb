@@ -64,14 +64,14 @@ class SAMLController < ApplicationController
 
   def welcome
     @saml_return_to = params[:return_to]
-    
+
     # Only SP-initiated flows need the welcome page (users come from external SP with SAMLRequest)
     # IdP-initiated flows assume the user is already logged in, so they never hit this page
     if @saml_return_to.present?
       begin
         uri = URI.parse(@saml_return_to)
         query_params = Rack::Utils.parse_query(uri.query)
-        
+
         if query_params["SAMLRequest"].present?
           # Ensure the path starts with /
           path = @saml_return_to.start_with?("/") ? @saml_return_to : "/#{@saml_return_to}"

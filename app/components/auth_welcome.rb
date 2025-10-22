@@ -28,14 +28,14 @@ class Components::AuthWelcome < Components::Base
 
   def render_actions
     login_url = @return_to ? "/login?return_to=#{CGI.escape(@return_to)}" : "/login"
-    
+
     div(style: "margin: 3rem 0;") do
       form(
         action: login_url,
         method: "post"
       ) do
         input(type: "hidden", name: "authenticity_token", value: helpers.form_authenticity_token)
-        
+
         div(style: "margin-bottom: 1rem;") do
           input(
             type: "email",
@@ -45,12 +45,12 @@ class Components::AuthWelcome < Components::Base
             autocomplete: "email",
             style: "width: 100%;"
           )
-          
+
           small(style: "color: var(--muted-color); display: block; margin-top: 0.5rem;") do
             plain helpers.t("logins.welcome.email_help")
           end
         end
-        
+
         button(
           type: "submit",
           class: "primary",
