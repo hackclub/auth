@@ -68,7 +68,7 @@ class IdentitiesController < ApplicationController
 
           age = (Date.today - birthday).days.in_years
 
-          if age > 18 && !@onboarding_scenario.accepts_adults
+          if age >= 19 && !@onboarding_scenario.accepts_adults
             @age_restriction = "Hack Club is a community for teenagers. <br/>Unfortunately, you are not eligible to join.".html_safe
             @identity = Identity.new(@prefill_attributes.merge(attrs))
             render :new, status: :unprocessable_entity
