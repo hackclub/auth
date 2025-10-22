@@ -198,6 +198,7 @@ en:
       not_necessarily_legal_name: not necessarily your legal name, what do people usually call you?
       email_code: We'll send a one-time code to this address.
       continue: Continue
+      wrong_email: "← Wrong email? Go back"
     update:
       success: saved changes!
     create:
@@ -219,6 +220,9 @@ en:
       no_account: Don't have an account?
       signup: Make one
       free: ", it's free!"
+    welcome:
+      email_help: "This'll be the email you use across Hack Club. We recommend using your personal email. If you already have a Hack Club account, just put your existing email in here :-)"
+      continue: Continue
     email:
       title: Check your email...
       sent_to: We sent a code to
@@ -253,7 +257,6 @@ en:
       cta_create: Create Your Account →
       cta_signin: Sign In
       security_link: Security
-      faq_link: FAQ
     security:
       heading: Security
       sessions: Active sessions

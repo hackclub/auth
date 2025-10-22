@@ -70,11 +70,11 @@
       <fieldset>
         <div class="grid">
           <% if @identity.primary_email.present? %>
-            <%# When email is prefilled from URL, show it as read-only %>
             <%= form.hidden_field :primary_email, value: @identity.primary_email %>
             <div>
               <%= form.label :primary_email, t("identities.email") %>
               <input type="text" value="<%= @identity.primary_email %>" disabled aria-disabled="true" autocomplete="email">
+              <small><a href="#" onclick="history.back(); return false;"><%= t("identities.new.wrong_email") %></a></small>
             </div>
           <% elsif @onboarding_scenario.form_fields.include?(:primary_email) %>
             <div>

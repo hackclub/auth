@@ -1,5 +1,5 @@
 class StaticPagesController < ApplicationController
-  skip_before_action :authenticate_identity!, only: [ :faq, :external_api_docs, :welcome, :oauth_welcome ]
+  skip_before_action :authenticate_identity!, only: [ :external_api_docs, :welcome, :oauth_welcome ]
 
   def home
     @sso_apps = SAMLService::Entities.service_providers.values.select { |sp| sp[:allow_idp_initiated] }
@@ -21,9 +21,6 @@ class StaticPagesController < ApplicationController
 
     @program ||= nil
     render layout: "logged_out"
-  end
-
-  def faq
   end
 
   def external_api_docs
