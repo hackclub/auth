@@ -6,7 +6,7 @@ production:
   hq_eng: C05SVRTCDGV
   neighbourhood: C01AS1YEM8A
   lounge: C0266FRGV
-uat:
+shared:
   announcements: C09N763H20Z
   library: C09MMSJSUKV
   ship: C09MS75D9NJ

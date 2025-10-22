@@ -284,6 +284,15 @@ class LoginsController < ApplicationController
             @identity.update(slack_id: slack_result[:slack_id])
             Rails.logger.info "Slack provisioning successful for #{@identity.id}: #{slack_result[:message]}"
 
+            # Assign workspace/channels after SAML login completes (user is now activated)
+            if slack_result[:user_type] == :multi_channel_guest && scenario.slack_channels.any?
+                AssignSlackWorkspaceJob.perform_later(
+                    slack_id: slack_result[:slack_id],
+                    user_type: slack_result[:user_type],
+                    channel_ids: scenario.slack_channels
+                )
+            end
+
             if Rails.application.config.are_we_enterprise_yet && scenario.slack_onboarding_flow == :internal_tutorial
                 Tutorial::BeginJob.perform_later(@identity)
             end
