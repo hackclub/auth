@@ -1,9 +1,9 @@
-chan_announcements = "C0266FRGT"
-chan_library = "C078Q8PBD4G"
-chan_ship = "C0M8PUPU6"
-chan_welcome = "C75M7C0SY"
-chan_hq_eng = "C05SVRTCDGV"
-chan_neighbourhood = "C01AS1YEM8A"
+chan_announcements = Rails.configuration.slack_channels.announcements
+chan_library = Rails.configuration.slack_channels.library
+chan_ship = Rails.configuration.slack_channels.ship
+chan_welcome = Rails.configuration.slack_channels.welcome
+chan_hq_eng = Rails.configuration.slack_channels.hq_eng
+chan_neighbourhood = Rails.configuration.slack_channels.neighbourhood
 
 case @identity.promote_click_count
 when 0

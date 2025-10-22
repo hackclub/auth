@@ -76,6 +76,8 @@ module IdentityVault
 
     config.saml = config_for(:saml)
 
+    config.slack_channels = config_for(:slack_channels)
+
     # Slack E+ stuff (SAML, SCIM, etc.)
     config.are_we_enterprise_yet = false
 
