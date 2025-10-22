@@ -1,6 +1,7 @@
 class LoginsController < ApplicationController
   layout "logged_out"
     include SAMLHelper
+    include SafeUrlValidation
 
     skip_before_action :authenticate_identity!
     before_action :set_return_to, only: [ :new, :create ]
@@ -196,17 +197,6 @@ class LoginsController < ApplicationController
 
     def set_return_to
         @return_to = url_from(params[:return_to]) if params[:return_to].present?
-    end
-
-    def url_from(param)
-        # Basic sanitization - only allow relative paths or approved hosts
-        return nil if param.blank?
-        uri = URI.parse(param)
-        return param if uri.relative?
-        # Add allowed hosts check here if needed
-        nil
-    rescue URI::InvalidURIError
-        nil
     end
 
     def fingerprint_info

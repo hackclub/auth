@@ -14,11 +14,14 @@ class Components::Base < Phlex::HTML
   register_value_helper :dev_tool
   register_output_helper :vite_image_tag
   register_value_helper :ap
-  register_output_helper :inline_icon
   register_output_helper :copy_to_clipboard
   register_output_helper :button_tag
   register_output_helper :content_tag
   register_output_helper :link_to
+  register_value_helper :url_for
+  register_value_helper :user_signed_in?
+  register_value_helper :current_user
+  register_output_helper :inline_icon
 
   if Rails.env.development?
     def before_template

@@ -87,12 +87,12 @@ class Components::ProfileCompletion < ApplicationComponent
           task_classes << "completed" if task[:completed]
 
           a(href: task[:url].call, class: task_classes.join(" ")) do
-            div(class: "task-icon") { helpers.inline_icon(task[:icon], size: 24) }
+            div(class: "task-icon") { inline_icon(task[:icon], size: 24) }
             div(class: "task-content") do
               div(class: "task-title") { task[:title] }
               div(class: "task-description") { task[:description] }
             end
-            div(class: "task-action") { task[:completed] ? helpers.inline_icon("check", size: 16) : "→" }
+            div(class: "task-action") { task[:completed] ? inline_icon("check", size: 16) : "→" }
           end
         end
       end

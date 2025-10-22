@@ -78,10 +78,12 @@ module SAMLService
             ent.instance_variable_set(:@roles, [ sp ])
 
             hash[sp_config[:entity_id]] = {
+                display_name: sp_config[:friendly_name],
                 friendly_name: sp_config[:friendly_name],
                 tagline: sp_config[:tagline],
                 icon: sp_config[:icon],
                 entity: ent,
+                entity_id: sp_config[:entity_id],
                 allow_idp_initiated: sp_config[:allow_idp_initiated],
                 allow_unsigned_requests: sp_config[:allow_unsigned_requests] || false,
                 attribute_format: sp_config[:attribute_format]&.to_sym || :default,

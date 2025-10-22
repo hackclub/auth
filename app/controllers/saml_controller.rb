@@ -1,6 +1,8 @@
 class SAMLController < ApplicationController
   include SAMLHelper
 
+  layout "logged_out", only: [ :welcome ]
+
   skip_before_action :authenticate_identity!, only: [ :metadata, :sp_initiated_get, :idp_initiated, :welcome ]
   before_action :check_enterprise_features!, except: [ :welcome ]
 
@@ -25,7 +27,7 @@ class SAMLController < ApplicationController
     end
 
     unless current_identity
-      redirect_to saml_welcome_path(return_to: request.original_url) and return
+      redirect_to saml_welcome_path(return_to: request.fullpath) and return
     end
 
     response = build_saml_response(
@@ -45,7 +47,7 @@ class SAMLController < ApplicationController
     return unless check_replay!
 
     unless current_identity
-      redirect_to saml_welcome_path(return_to: request.original_url) and return
+      redirect_to saml_welcome_path(return_to: request.fullpath) and return
     end
 
     response = build_saml_response(
@@ -60,17 +62,22 @@ class SAMLController < ApplicationController
   def welcome
     @saml_return_to = params[:return_to]
     
+    # Only SP-initiated flows need the welcome page (users come from external SP with SAMLRequest)
+    # IdP-initiated flows assume the user is already logged in, so they never hit this page
     if @saml_return_to.present?
-      # Extract SP info from the return URL
-      uri = URI.parse(@saml_return_to)
-      query_params = Rack::Utils.parse_query(uri.query)
-      
-      if query_params["SAMLRequest"].present?
-        authn_request, _ = SAML2::Bindings::HTTPRedirect.decode(@saml_return_to)
-        @sp_config = SAMLService::Entities.sp_by_entity_id(authn_request.issuer.id) if authn_request
-      elsif @saml_return_to.match?(/\/saml\/idp_initiated\/([^\/\?]+)/)
-        slug = $1
-        @sp_config = SAMLService::Entities.sp_by_slug(slug)
+      begin
+        uri = URI.parse(@saml_return_to)
+        query_params = Rack::Utils.parse_query(uri.query)
+        
+        if query_params["SAMLRequest"].present?
+          # Ensure the path starts with /
+          path = @saml_return_to.start_with?("/") ? @saml_return_to : "/#{@saml_return_to}"
+          full_url = "#{request.base_url}#{path}"
+          authn_request, _ = SAML2::Bindings::HTTPRedirect.decode(full_url)
+          @sp_config = SAMLService::Entities.sp_by_entity_id(authn_request.issuer.id) if authn_request&.issuer&.id
+        end
+      rescue => e
+        Rails.logger.error "SAML welcome: error parsing return_to: #{e.class} - #{e.message}"
       end
     end
   end

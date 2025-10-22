@@ -97,7 +97,7 @@ class Components::Sidebar < Components::Base
     is_active = @current_path == path
 
     link_to(path, class: [ "sidebar-nav-item", ("active" if is_active) ].compact.join(" ")) do
-      span(class: "nav-icon") { helpers.inline_icon(icon, size: 24) } if icon
+      span(class: "nav-icon") { inline_icon(icon, size: 24) } if icon
       span(class: "nav-label") { label }
     end
   end
@@ -131,7 +131,7 @@ class Components::Sidebar < Components::Base
     form_with(url: logout_path, method: :delete, class: "logout-form") do
       button(type: "submit", class: "logout-button") do
         plain t "sidebar.logout"
-        span(class: "logout-icon") { helpers.inline_icon("door-leave", size: 18) }
+        span(class: "logout-icon") { inline_icon("door-leave", size: 18) }
       end
     end
   end
@@ -141,8 +141,8 @@ class Components::Sidebar < Components::Base
       vite_image_tag("images/hc-square.png", alt: "Hack Club logo", class: "brand-logo")
       h1 { I18n.t(".brand") }
       button(id: "lightswitch", class: "lightswitch-btn", type: "button", "aria-label": "Toggle theme") do
-        span(class: "lightswitch-moon") { helpers.inline_icon("moon-fill", size: 16) }
-        span(class: "lightswitch-sun", style: "display: none;") { helpers.inline_icon("sun", size: 16) }
+        span(class: "lightswitch-moon") { inline_icon("moon-fill", size: 16) }
+        span(class: "lightswitch-sun", style: "display: none;") { inline_icon("sun", size: 16) }
       end
     end
     render Components::EnvironmentBanner.new

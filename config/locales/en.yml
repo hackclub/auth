@@ -441,3 +441,5 @@ en:
           title: Get verified for YSWS
           subtitle: Verify your age and identity to participate in programs and compete for prizes
           start_verification: Start Verification
+  auth:
+    sign_in_or_create: "Sign in or create a Hack Club account to continue"

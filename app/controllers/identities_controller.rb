@@ -1,5 +1,7 @@
 class IdentitiesController < ApplicationController
   layout "logged_out", only: [ :new, :create ]
+    include SafeUrlValidation
+    
     skip_before_action :authenticate_identity!, only: [ :new, :create ]
     before_action :set_identity, except: [ :new, :create ]
     before_action :set_onboarding_scenario, only: [ :new, :create ]
@@ -156,19 +158,6 @@ class IdentitiesController < ApplicationController
     def set_return_to
         @return_to = url_from(params[:return_to]) if params[:return_to].present?
     end
-
-    def url_from(param)
-        # Basic sanitization - only allow relative paths or approved hosts
-        return nil if param.blank?
-        uri = URI.parse(param)
-        return param if uri.relative?
-        # Add allowed hosts check here if needed
-        nil
-    rescue URI::InvalidURIError
-        nil
-    end
-
-
 
     def identity_params
         params.require(:identity).permit(:first_name, :last_name, :phone_number, :developer_mode, :saml_debug)

@@ -19,10 +19,10 @@ class Components::BreakTheGlass < Components::Base
   private
 
   def glass_broken?
-    return false unless helpers.user_signed_in?
+    return false unless user_signed_in?
 
     # Check if a recent break glass record already exists
-    existing_record = BreakGlassRecord.for_user_and_document(helpers.current_user, @break_glassable)
+    existing_record = BreakGlassRecord.for_user_and_document(current_user, @break_glassable)
                                       .recent
                                       .exists?
 
@@ -31,7 +31,7 @@ class Components::BreakTheGlass < Components::Base
     # If auto_break_glass is enabled, automatically create a break glass record
     if @auto_break_glass
       BreakGlassRecord.create!(
-        backend_user: helpers.current_user,
+        backend_user: current_user,
         break_glassable: @break_glassable,
         reason: @auto_break_glass,
         accessed_at: Time.current,
