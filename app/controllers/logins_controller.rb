@@ -196,10 +196,7 @@ class LoginsController < ApplicationController
     end
 
     def set_return_to
-        if params[:return_to].present?
-            safe_url = url_from(params[:return_to])
-            session[:return_to] = safe_url if safe_url.present?
-        end
+        session[:return_to] = params[:return_to] if params[:return_to].present?
         @return_to = session[:return_to]
     end
 
@@ -260,10 +257,14 @@ class LoginsController < ApplicationController
                 redirect_to root_path
             end
         else
-            flash[:success] = "Logged in!"
-            safe_return_to = session.delete(:return_to)
-            redirect_to safe_return_to.presence || root_path, allow_other_host: true
+        flash[:success] = "Logged in!"
+        safe_return_to = session.delete(:return_to)
+        begin
+          redirect_to safe_return_to.presence || root_path
+        rescue ActionController::Redirecting::UnsafeRedirectError
+          redirect_to root_path
         end
+      end
     end
 
     def provision_slack_on_first_login
