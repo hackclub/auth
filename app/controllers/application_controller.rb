@@ -29,7 +29,7 @@ class ApplicationController < ActionController::Base
 
   def authenticate_identity!
     unless identity_signed_in?
-      session[:oauth_return_to] = request.original_url unless request.xhr?
+      session[:return_to] = request.original_url unless request.xhr?
       # JANK ALERT
       hide_some_data_away
 

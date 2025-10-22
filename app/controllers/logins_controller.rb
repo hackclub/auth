@@ -196,7 +196,11 @@ class LoginsController < ApplicationController
     end
 
     def set_return_to
-        @return_to = url_from(params[:return_to]) if params[:return_to].present?
+        if params[:return_to].present?
+            safe_url = url_from(params[:return_to])
+            session[:return_to] = safe_url if safe_url.present?
+        end
+        @return_to = session[:return_to]
     end
 
     def fingerprint_info
@@ -247,8 +251,7 @@ class LoginsController < ApplicationController
             provision_slack_on_first_login
         end
 
-        case (@attempt.next_action || "home").to_sym
-        when :slack
+        if @attempt.next_action == "slack"
             return redirect_to slack_staging_path if Rails.env.staging?
             if Rails.application.config.are_we_enterprise_yet
                 render_saml_response_for("slack")
@@ -258,8 +261,8 @@ class LoginsController < ApplicationController
             end
         else
             flash[:success] = "Logged in!"
-            safe_return_to = url_from(params[:return_to])
-            redirect_to safe_return_to.presence || root_path
+            safe_return_to = session.delete(:return_to)
+            redirect_to safe_return_to.presence || root_path, allow_other_host: true
         end
     end
 

@@ -10,10 +10,10 @@ class StaticPagesController < ApplicationController
   end
 
   def oauth_welcome
-    # Extract client_id from the oauth_return_to URL
-    @oauth_return_to = session[:oauth_return_to]
-    if @oauth_return_to.present?
-      uri = URI.parse(@oauth_return_to)
+    # Extract client_id from the return_to URL
+    @return_to = session[:return_to]
+    if @return_to.present?
+      uri = URI.parse(@return_to)
       params_hash = URI.decode_www_form(uri.query || "").to_h
       client_id = params_hash["client_id"]
       @program = Program.find_by(uid: client_id) if client_id

@@ -156,7 +156,11 @@ class IdentitiesController < ApplicationController
     end
 
     def set_return_to
-        @return_to = url_from(params[:return_to]) if params[:return_to].present?
+        if params[:return_to].present?
+            safe_url = url_from(params[:return_to])
+            session[:return_to] = safe_url if safe_url.present?
+        end
+        @return_to = session[:return_to]
     end
 
     def identity_params
