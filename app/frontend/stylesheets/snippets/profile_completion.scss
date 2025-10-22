@@ -1,4 +1,12 @@
 .profile-completion {
+  --completion-green: #84cc16;
+  --completion-green-dark: #65a30d;
+  
+  [data-theme="dark"] & {
+    --completion-green: #a3e635;
+    --completion-green-dark: #84cc16;
+  }
+  
   background: linear-gradient(165deg, var(--pico-card-background-color) 0%, var(--surface-2) 100%);
   border: 1px solid var(--pico-card-border-color);
   border-radius: 12px;
@@ -50,13 +58,9 @@
 
       .progress-bar {
         height: 100%;
-        background: #10b981;
+        background: var(--completion-green);
         border-radius: 3px;
         transition: width 0.4s ease;
-
-        @media (prefers-color-scheme: dark) {
-          background: #059669;
-        }
       }
     }
   }
@@ -78,18 +82,10 @@
     cursor: pointer;
 
     &:hover {
-      border-color: #10b981;
-
-      @media (prefers-color-scheme: dark) {
-        border-color: #059669;
-      }
+      border-color: var(--completion-green);
 
       .task-action {
-        color: #10b981;
-
-        @media (prefers-color-scheme: dark) {
-          color: #059669;
-        }
+        color: var(--completion-green);
       }
     }
 
@@ -118,12 +114,8 @@
       }
 
       .task-action {
-        color: #10b981;
+        color: var(--completion-green);
         font-weight: 600;
-
-        @media (prefers-color-scheme: dark) {
-          color: #059669;
-        }
       }
 
       &:hover {
@@ -141,9 +133,10 @@
       align-items: center;
       justify-content: center;
       font-size: 1.25rem;
+      color: var(--completion-green-dark);
 
       @media (prefers-color-scheme: dark) {
-        background: rgba(16, 185, 129, 0.1);
+        background: rgba(132, 204, 22, 0.1);
       }
     }
 
@@ -154,7 +147,7 @@
       .task-title {
         font-size: 0.9375rem;
         font-weight: 500;
-        color: var(--pico-color);
+        color: var(--completion-green-dark);
         margin-bottom: 0.125rem;
       }
 

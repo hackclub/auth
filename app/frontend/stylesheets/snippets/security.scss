@@ -257,7 +257,7 @@
   
   [data-theme="dark"] & {
     background: linear-gradient(135deg, rgba(132, 204, 22, 0.15), rgba(132, 204, 22, 0.08));
-    border-color: var(--pico-primary);
+    border-color: #84cc16;
     box-shadow: 
       0 2px 8px rgba(0, 0, 0, 0.3),
       0 1px 4px rgba(0, 0, 0, 0.2);
@@ -296,7 +296,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   
   [data-theme="dark"] & {
-    background: var(--pico-primary);
+    background: #84cc16;
     color: #1a1d23;
     box-shadow: 
       0 1px 3px rgba(132, 204, 22, 0.3),
