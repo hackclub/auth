@@ -2,6 +2,11 @@ ident = {
   id: identity.public_id
 }
 
+scope "verification_status" do
+  ident[:ysws_eligible] = identity.ysws_eligible
+  ident[:verification_status] = identity.verification_status
+end
+
 scope "basic_info" do
   ident[:first_name] = identity.first_name
   ident[:last_name] = identity.last_name

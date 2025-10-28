@@ -5,6 +5,7 @@ category: Developer
 order: 10
 ---
 
+
 The Hack Club Account API allows you to retrieve user identity information after they've authorized your app via OAuth.
 
 You may want to read the <%= link_to "OAuth Guide", doc_path("oauth-guide") %> first to get access tokens.
@@ -37,7 +38,7 @@ Get the authenticated user's identity information based on granted scopes.
 
 <pre><code class="language-json"><%
   identity = stub_identity_with_address(FactoryBot.build_stubbed(:identity))
-  scopes = ["email", "name", "slack_id", "basic_info", "address", "legal_name"]
+  scopes = ["email", "name", "verification_status", "slack_id", "basic_info", "address", "legal_name"]
 %><%= render_api_example(template: "api/v1/identities/me", identity: identity, scopes: scopes, color_by_scope: true).html_safe %></code></pre>
 
 **Verification status values:**
@@ -84,6 +85,7 @@ When requesting OAuth authorization, you can request the following scopes:
 | `email` | Access to email address | ✅                   |
 | `name` | Access to first and last name | ✅                   |
 | `slack_id` | Access to Slack ID | ✅                   |
+| `verification_status` | Verification status and YSWS eligibility | ✅                   |
 | `basic_info` | Email, name, verification status, birthday, phone | HQ only             |
 | `legal_name` | Legal first and last name | HQ only             |
 | `address` | Mailing addresses | HQ only             |

@@ -33,6 +33,7 @@ class Program < ApplicationRecord
   enum :trust_level, { hq_official: 0, community_untrusted: 1, community_trusted: 2 }, default: :hq_official
 
   AVAILABLE_SCOPES = [
+    { name: "verification_status", description: "See your verification status and YSWS eligibility" },
     { name: "basic_info", description: "See basic information about you (email, name, verification status)" },
     { name: "email", description: "See your email address" },
     { name: "name", description: "See your name" },
@@ -42,7 +43,7 @@ class Program < ApplicationRecord
     { name: "set_slack_id", description: "associate Slack IDs with identities" }
   ].freeze
 
-  COMMUNITY_ALLOWED_SCOPES = %w[email name slack_id].freeze
+  COMMUNITY_ALLOWED_SCOPES = %w[email name slack_id verification_status].freeze
 
   has_many :access_grants, class_name: "Doorkeeper::AccessGrant", foreign_key: :application_id, dependent: :delete_all
   has_many :identities, through: :access_grants, source: :resource_owner, source_type: "Identity"

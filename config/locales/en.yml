@@ -163,6 +163,10 @@ en:
             title: See your Slack ID
             slack_id_label: "Slack ID:"
             not_set: Not set
+          verification_status:
+            title: See your verification status
+            verification_status_label: "Verification status:"
+            ysws_eligible_label: "YSWS eligible:"
   authorized_applications:
     none: You haven't authorized any apps yet.
     created_at: Authorized
