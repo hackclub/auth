@@ -35,25 +35,12 @@ Get the authenticated user's identity information based on granted scopes.
 
 **Response:**
 
-```json
-<%
+<pre><code class="language-json"><%
   identity = stub_identity_with_address(FactoryBot.build_stubbed(:identity))
-  scopes = ["email", "name", "basic_info", "address", "legal_name"]
-%><%= render_api_example(template: "api/v1/identities/me", identity: identity, scopes: scopes) %>
-```
+  scopes = ["email", "name", "slack_id", "basic_info", "address", "legal_name"]
+%><%= render_api_example(template: "api/v1/identities/me", identity: identity, scopes: scopes, color_by_scope: true).html_safe %></code></pre>
 
-<div class="banner info">
-<b>Fields returned by scope:</b>
-<ul>
-<li><code>id</code> - Always included</li>
-<li><code>email</code> scope: <code>primary_email</code></li>
-<li><code>name</code> scope: <code>first_name</code>, <code>last_name</code></li>
-<li><code>slack_id</code> scope: <code>slack_id</code></li>
-<li><code>legal_name</code> scope: <code>legal_first_name</code>, <code>legal_last_name</code></li>
-<li><code>basic_info</code> scope: <code>first_name</code>, <code>last_name</code>, <code>primary_email</code>, <code>slack_id</code>, <code>phone_number</code>, <code>ysws_eligible</code>, <code>verification_status</code>, <code>verification_status_reason</code>, <code>rejection_reason</code>, <code>rejection_reason_details</code>, <code>birthday</code></li>
-<li><code>address</code> scope: <code>addresses</code> (array of address objects)</li>
-</ul>
-</div>
+<%= scope_legend(scopes) %>
 
 **Verification status values:**
 - `needs_submission` - User hasn't started verification

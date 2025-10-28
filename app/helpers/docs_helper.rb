@@ -15,7 +15,7 @@ module DocsHelper
     identity
   end
 
-  def render_api_example(template:, identity: nil, identities: nil, scopes: ["name"])
+  def render_api_example(template:, identity: nil, identities: nil, scopes: ["name"], color_by_scope: false)
     require "factory_bot_rails"
     
     controller = API::V1::IdentitiesController.new
@@ -35,6 +35,161 @@ module DocsHelper
       formats: [:json]
     )
     
-    JSON.pretty_generate(JSON.parse(json_result))
+    pretty_json = JSON.pretty_generate(JSON.parse(json_result))
+    
+    if color_by_scope && identity
+      colorize_json_by_scope(template, identity, scopes, pretty_json)
+    else
+      pretty_json
+    end
   end
+
+  def scope_legend(scopes)
+    scope_colors = {
+      "email" => "#3b82f6",
+      "name" => "#8b5cf6",
+      "slack_id" => "#ec4899",
+      "basic_info" => "#10b981",
+      "legal_name" => "#f59e0b",
+      "address" => "#ef4444"
+    }
+
+    legend_items = scopes.map do |scope|
+      color = scope_colors[scope]
+      next unless color
+      "<span style=\"color: #{color};\">● #{scope}</span>"
+    end.compact
+
+    %(<p style="font-size: 0.875rem; margin-top: 0.5rem; opacity: 0.7;">
+  #{legend_items.join(" &nbsp;\n  ")}
+</p>).html_safe
+  end
+
+  private
+
+  def colorize_json_by_scope(template, identity, all_scopes, base_json)
+    # Map of scope to color
+    scope_colors = {
+      "email" => "#3b82f6",       # blue
+      "name" => "#8b5cf6",        # purple
+      "slack_id" => "#ec4899",    # pink
+      "basic_info" => "#10b981",  # green
+      "legal_name" => "#f59e0b",  # amber
+      "address" => "#ef4444"      # red
+    }
+
+    # Priority order for scopes (most specific first)
+    # Community scopes (email, name, slack_id) are prioritized over HQ-only scopes
+    # If a line appears in multiple scopes, use the first one in this list
+    scope_priority = ["email", "name", "slack_id", "legal_name", "address", "basic_info"]
+
+    # Helper to normalize line for comparison (strip trailing comma)
+    normalize_line = ->(line) { line.sub(/,\s*$/, '') }
+    
+    # Generate JSON for each individual scope and collect lines
+    scope_to_lines = {}
+    
+    all_scopes.each do |scope|
+      controller = API::V1::IdentitiesController.new
+      controller.instance_variable_set(:@identity, identity)
+      controller.define_singleton_method(:current_scopes) { [scope] }
+      
+      json_result = controller.render_to_string(template: template, formats: [:json])
+      pretty = JSON.pretty_generate(JSON.parse(json_result))
+      
+      scope_to_lines[scope] = pretty.lines.map(&:rstrip)
+    end
+
+    # Generate baseline (no scopes) to identify always-present lines
+    controller = API::V1::IdentitiesController.new
+    controller.instance_variable_set(:@identity, identity)
+    controller.define_singleton_method(:current_scopes) { [] }
+    baseline_json = controller.render_to_string(template: template, formats: [:json])
+    baseline_pretty = JSON.pretty_generate(JSON.parse(baseline_json))
+    baseline_lines = baseline_pretty.lines.map(&:rstrip)
+
+    # Colorize each line based on text diff
+    lines = base_json.lines
+    inside_identity = false
+    inside_scopes = false
+    identity_depth = 0
+    scopes_depth = 0
+    
+    colored_lines = lines.map do |line|
+      stripped = line.rstrip
+      
+      # Track if we're inside the identity object
+      is_identity_line = stripped.match?(/["']identity["']/)
+      
+      if is_identity_line
+        inside_identity = true
+        identity_depth = 0
+      end
+      
+      if inside_identity
+        identity_depth += stripped.count('{')
+        identity_depth -= stripped.count('}')
+        
+        if identity_depth <= 0
+          inside_identity = false
+        end
+      end
+      
+      # Track if we're inside the scopes array
+      if stripped.match?(/["']scopes["']/)
+        inside_scopes = true
+        scopes_depth = 0
+      end
+      
+      if inside_scopes
+        scopes_depth += stripped.count('[{')
+        scopes_depth -= stripped.count(']}')
+        
+        if scopes_depth <= 0 && stripped.match?(/[\]}]/)
+          inside_scopes = false
+        end
+      end
+      
+      # Colorize scopes array as a legend
+      if inside_scopes
+        # Find which scope this line mentions
+        scope_name = all_scopes.find { |s| stripped.include?("\"#{s}\"") }
+        if scope_name && scope_colors[scope_name]
+          color = scope_colors[scope_name]
+          next "<span class=\"tooltipped tooltipped--e\" aria-label=\"#{scope_name} scope\" style=\"color: #{color};\">#{ERB::Util.html_escape(line)}</span>"
+        else
+          next ERB::Util.html_escape(line)
+        end
+      end
+      
+      # Only colorize lines inside identity object (but not the "identity": line itself)
+      if !inside_identity || is_identity_line
+        next ERB::Util.html_escape(line)
+      end
+      
+      # Skip lines that match the baseline (like "id" field)
+      normalized = normalize_line.call(stripped)
+      if baseline_lines.any? { |bl| normalize_line.call(bl) == normalized && normalized.include?('"id"') }
+        next ERB::Util.html_escape(line)
+      end
+      
+      # Find which scopes have this line (in priority order, normalize for comparison)
+      scopes_with_line = scope_priority.select do |scope|
+        scope_to_lines[scope]&.any? { |scope_line| normalize_line.call(scope_line) == normalized }
+      end
+      
+      if scopes_with_line.any?
+        primary_scope = scopes_with_line.first
+        color = scope_colors[primary_scope]
+        tooltip = scopes_with_line.join(", ")
+        "<span class=\"tooltipped tooltipped--e\" aria-label=\"#{ERB::Util.html_escape(tooltip)}\" style=\"color: #{color};\">#{ERB::Util.html_escape(line)}</span>"
+      else
+        ERB::Util.html_escape(line)
+      end
+    end
+
+    colored_lines.join
+  end
+
+
 end
