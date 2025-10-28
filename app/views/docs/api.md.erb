@@ -36,36 +36,10 @@ Get the authenticated user's identity information based on granted scopes.
 **Response:**
 
 ```json
-{
-  "identity": {
-    "id": "ident!abc123",
-    "first_name": "Orpheus",
-    "last_name": "Hacker",
-    "primary_email": "orpheus@hackclub.com",
-    "slack_id": "U123456",
-    "phone_number": "+1234567890",
-    "ysws_eligible": true,
-    "verification_status": "verified",
-    "verification_status_reason": null,
-    "rejection_reason": null,
-    "rejection_reason_details": null,
-    "birthday": "2005-06-15",
-    "legal_first_name": "Orpheus",
-    "legal_last_name": "Hacker",
-    "addresses": [
-      {
-        "id": 123,
-        "line_1": "123 Main St",
-        "line_2": "Apt 4",
-        "city": "Burlington",
-        "state_code": "VT",
-        "postal_code": "05401",
-        "country_code": "US"
-      }
-    ]
-  },
-  "scopes": ["email", "name", "basic_info", "address"]
-}
+<%
+  identity = stub_identity_with_address(FactoryBot.build_stubbed(:identity))
+  scopes = ["email", "name", "basic_info", "address", "legal_name"]
+%><%= render_api_example(template: "api/v1/identities/me", identity: identity, scopes: scopes) %>
 ```
 
 <div class="banner info">
@@ -184,13 +158,9 @@ Get a specific user's identity by their public ID.
 **Response:**
 
 ```json
-{
-  "identity": {
-    "id": "ident!abc123",
-    "first_name": "Orpheus",
-    "last_name": "Hacksworth"
-  }
-}
+<%
+  identity = FactoryBot.build_stubbed(:identity, last_name: "Hacksworth")
+%><%= render_api_example(template: "api/v1/identities/show", identity: identity) %>
 ```
 
 Fields returned depend on your program's configured scopes.
@@ -206,18 +176,10 @@ List all identities that have authorized your application.
 **Response:**
 
 ```json
-{
-  "identities": [
-    {
-      "id": "ident!abc123",
-      "first_name": "Heidi",
-      "last_name": "Latta"
-    },
-    {
-      "id": "ident!def456",
-      "first_name": "Orpheus",
-      "last_name": "Wofford"
-    }
+<%
+  identities = [
+    FactoryBot.build_stubbed(:identity, first_name: "Heidi", last_name: "Latta"),
+    FactoryBot.build_stubbed(:identity, last_name: "Wofford")
   ]
-}
+%><%= render_api_example(template: "api/v1/identities/index", identities: identities) %>
 ```
