@@ -40,8 +40,6 @@ Get the authenticated user's identity information based on granted scopes.
   scopes = ["email", "name", "slack_id", "basic_info", "address", "legal_name"]
 %><%= render_api_example(template: "api/v1/identities/me", identity: identity, scopes: scopes, color_by_scope: true).html_safe %></code></pre>
 
-<%= scope_legend(scopes) %>
-
 **Verification status values:**
 - `needs_submission` - User hasn't started verification
 - `pending` - Verification is being reviewed

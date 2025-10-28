@@ -43,28 +43,7 @@ module DocsHelper
       pretty_json
     end
   end
-
-  def scope_legend(scopes)
-    scope_colors = {
-      "email" => "#3b82f6",
-      "name" => "#8b5cf6",
-      "slack_id" => "#ec4899",
-      "basic_info" => "#10b981",
-      "legal_name" => "#f59e0b",
-      "address" => "#ef4444"
-    }
-
-    legend_items = scopes.map do |scope|
-      color = scope_colors[scope]
-      next unless color
-      "<span style=\"color: #{color};\">● #{scope}</span>"
-    end.compact
-
-    %(<p style="font-size: 0.875rem; margin-top: 0.5rem; opacity: 0.7;">
-  #{legend_items.join(" &nbsp;\n  ")}
-</p>).html_safe
-  end
-
+  
   private
 
   def colorize_json_by_scope(template, identity, all_scopes, base_json)
@@ -156,7 +135,7 @@ module DocsHelper
         scope_name = all_scopes.find { |s| stripped.include?("\"#{s}\"") }
         if scope_name && scope_colors[scope_name]
           color = scope_colors[scope_name]
-          next "<span class=\"tooltipped tooltipped--e\" aria-label=\"#{scope_name} scope\" style=\"color: #{color};\">#{ERB::Util.html_escape(line)}</span>"
+          next "<span style=\"color: #{color};\">#{ERB::Util.html_escape(line)}</span>"
         else
           next ERB::Util.html_escape(line)
         end
