@@ -4,6 +4,9 @@ class ApplicationController < ActionController::Base
   include SessionsHelper
 
   helper_method :current_identity, :identity_signed_in?, :current_onboarding_step
+
+  def current_user = nil # TODO: this is a temp hack to fix partials until /backend auth is replaced
+
   helper_method :detected_country_alpha2
 
   before_action :invalidate_v1_sessions, :authenticate_identity!, :set_honeybadger_context
