@@ -12,7 +12,7 @@ You may want to read the <%= link_to "OAuth Guide", doc_path("oauth-guide") %> f
 ### Authentication
 
 <div class="banner info">
-All API endpoints (except health check and HCB endpoints) require an OAuth access token. Include it in the <code>Authorization</code> header:
+Most API endpoints require an OAuth access token. Include it in the <code>Authorization</code> header:
 
 <pre>Authorization: Bearer idntk.mraowj2z72e1x8i2a60o88j3h7d0f1</pre>
 </div>
@@ -116,38 +116,6 @@ Check the verification status of a user by their ID, email, or Slack ID. This is
 - `rejected` - Verification was rejected
 - `not_found` - No user found with the provided identifier
 
-### GET /api/v1/hcb
-
-Get the count of pending verifications. Public endpoint used by HCB.
-
-<%= render Components::APIExample.new(method: "GET", url: api_v1_hcb_url, path_only: true) %>
-
-**Authentication:** Not required
-
-**Response:**
-
-```json
-{
-  "pending": 42
-}
-```
-
-### GET /api/v1/health_check
-
-Health check endpoint to verify the API is operational.
-
-<%= render Components::APIExample.new(method: "GET", url: api_v1_health_check_url, path_only: true) %>
-
-**Authentication:** Not required
-
-**Response:**
-
-```json
-{
-  "status": "ok"
-}
-```
-
 ## Available Scopes
 
 When requesting OAuth authorization, you can request the following scopes:
@@ -196,10 +164,9 @@ If you think you need a <code>prgmk</code>, think harder about it. You probably 
 </div>
 
 <div class="banner warning">
-<b>HQ official programs only</b>
+<b>HQ official programs only: </b>
 <p>
 These endpoints are only available when using a program key.<br/>
-They allow machine-to-machine API calls to manage identities across your application.
 </p>
 </div>
 

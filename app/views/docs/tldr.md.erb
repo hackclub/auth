@@ -11,6 +11,6 @@ order: 8
    - get code at your redirect URI
    - exchange code at <%= render Components::APIExample.new(url: oauth_token_url, path_only: true, method: "POST") %> like any other OAuth provider
    - read more at [OAuth Guide](<%= doc_path "oauth-guide" %>) if you need help figuring it out
-3. CALL <%= render Components::APIExample.new(url: api_v1_me_path, method: "GET", path_only: true) %> with that bearer token.
+3. CALL <%= render Components::APIExample.new(url: api_v1_me_url, method: "GET", path_only: true) %> with that bearer token.
    - use the data returned to populate your user profile
    - read more at [API](<%= doc_path "api" %>) if you need help figuring it out
