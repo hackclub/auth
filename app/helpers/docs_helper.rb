@@ -4,46 +4,46 @@ module DocsHelper
   end
 
   def doc_nav_link(doc)
-    link_to doc[:title], doc_path(slug: doc[:slug]), 
+    link_to doc[:title], doc_path(slug: doc[:slug]),
             class: "docs-nav-link #{'active' if @doc && @doc[:slug] == doc[:slug]}"
   end
 
   def stub_identity_with_address(identity)
     address = FactoryBot.build_stubbed(:address, identity: identity)
-    identity.define_singleton_method(:addresses) { [address] }
+    identity.define_singleton_method(:addresses) { [ address ] }
     identity.define_singleton_method(:primary_address) { address }
     identity
   end
 
-  def render_api_example(template:, identity: nil, identities: nil, scopes: ["name"], color_by_scope: false)
+  def render_api_example(template:, identity: nil, identities: nil, scopes: [ "name" ], color_by_scope: false)
     require "factory_bot_rails"
-    
+
     controller = API::V1::IdentitiesController.new
-    
+
     if identity
       controller.instance_variable_set(:@identity, identity)
     end
-    
+
     if identities
       controller.instance_variable_set(:@identities, identities)
     end
-    
+
     controller.define_singleton_method(:current_scopes) { scopes }
-    
+
     json_result = controller.render_to_string(
       template: template,
-      formats: [:json]
+      formats: [ :json ]
     )
-    
+
     pretty_json = JSON.pretty_generate(JSON.parse(json_result))
-    
+
     if color_by_scope && identity
       colorize_json_by_scope(template, identity, scopes, pretty_json)
     else
       pretty_json
     end
   end
-  
+
   private
 
   def colorize_json_by_scope(template, identity, all_scopes, base_json)
@@ -61,22 +61,22 @@ module DocsHelper
     # Priority order for scopes (most specific first)
     # Community scopes (email, name, slack_id) are prioritized over HQ-only scopes
     # If a line appears in multiple scopes, use the first one in this list
-    scope_priority = ["email", "name", "slack_id", "verification_status", "legal_name", "address", "basic_info"]
+    scope_priority = [ "email", "name", "slack_id", "verification_status", "legal_name", "address", "basic_info" ]
 
     # Helper to normalize line for comparison (strip trailing comma)
-    normalize_line = ->(line) { line.sub(/,\s*$/, '') }
-    
+    normalize_line = ->(line) { line.sub(/,\s*$/, "") }
+
     # Generate JSON for each individual scope and collect lines
     scope_to_lines = {}
-    
+
     all_scopes.each do |scope|
       controller = API::V1::IdentitiesController.new
       controller.instance_variable_set(:@identity, identity)
-      controller.define_singleton_method(:current_scopes) { [scope] }
-      
-      json_result = controller.render_to_string(template: template, formats: [:json])
+      controller.define_singleton_method(:current_scopes) { [ scope ] }
+
+      json_result = controller.render_to_string(template: template, formats: [ :json ])
       pretty = JSON.pretty_generate(JSON.parse(json_result))
-      
+
       scope_to_lines[scope] = pretty.lines.map(&:rstrip)
     end
 
@@ -84,7 +84,7 @@ module DocsHelper
     controller = API::V1::IdentitiesController.new
     controller.instance_variable_set(:@identity, identity)
     controller.define_singleton_method(:current_scopes) { [] }
-    baseline_json = controller.render_to_string(template: template, formats: [:json])
+    baseline_json = controller.render_to_string(template: template, formats: [ :json ])
     baseline_pretty = JSON.pretty_generate(JSON.parse(baseline_json))
     baseline_lines = baseline_pretty.lines.map(&:rstrip)
 
@@ -94,42 +94,42 @@ module DocsHelper
     inside_scopes = false
     identity_depth = 0
     scopes_depth = 0
-    
+
     colored_lines = lines.map do |line|
       stripped = line.rstrip
-      
+
       # Track if we're inside the identity object
       is_identity_line = stripped.match?(/["']identity["']/)
-      
+
       if is_identity_line
         inside_identity = true
         identity_depth = 0
       end
-      
+
       if inside_identity
-        identity_depth += stripped.count('{')
-        identity_depth -= stripped.count('}')
-        
+        identity_depth += stripped.count("{")
+        identity_depth -= stripped.count("}")
+
         if identity_depth <= 0
           inside_identity = false
         end
       end
-      
+
       # Track if we're inside the scopes array
       if stripped.match?(/["']scopes["']/)
         inside_scopes = true
         scopes_depth = 0
       end
-      
+
       if inside_scopes
-        scopes_depth += stripped.count('[{')
-        scopes_depth -= stripped.count(']}')
-        
+        scopes_depth += stripped.count("[{")
+        scopes_depth -= stripped.count("]}")
+
         if scopes_depth <= 0 && stripped.match?(/[\]}]/)
           inside_scopes = false
         end
       end
-      
+
       # Colorize scopes array as a legend
       if inside_scopes
         # Find which scope this line mentions
@@ -141,23 +141,23 @@ module DocsHelper
           next ERB::Util.html_escape(line)
         end
       end
-      
+
       # Only colorize lines inside identity object (but not the "identity": line itself)
       if !inside_identity || is_identity_line
         next ERB::Util.html_escape(line)
       end
-      
+
       # Skip lines that match the baseline (like "id" field)
       normalized = normalize_line.call(stripped)
       if baseline_lines.any? { |bl| normalize_line.call(bl) == normalized && normalized.include?('"id"') }
         next ERB::Util.html_escape(line)
       end
-      
+
       # Find which scopes have this line (in priority order, normalize for comparison)
       scopes_with_line = scope_priority.select do |scope|
         scope_to_lines[scope]&.any? { |scope_line| normalize_line.call(scope_line) == normalized }
       end
-      
+
       if scopes_with_line.any?
         primary_scope = scopes_with_line.first
         color = scope_colors[primary_scope]
@@ -170,6 +170,4 @@ module DocsHelper
 
     colored_lines.join
   end
-
-
 end
