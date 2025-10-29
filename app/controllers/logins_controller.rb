@@ -249,7 +249,7 @@ class LoginsController < ApplicationController
 
         if @attempt.next_action == "slack"
             return redirect_to slack_staging_path if Rails.env.staging?
-            if Rails.application.config.are_we_enterprise_yet
+            if Flipper.enabled?(:are_we_enterprise_yet, current_identity)
                 render_saml_response_for("slack")
             else
                 flash[:success] = "Logged in!"
@@ -286,7 +286,7 @@ class LoginsController < ApplicationController
                 )
             end
 
-            if Rails.application.config.are_we_enterprise_yet && scenario.slack_onboarding_flow == :internal_tutorial
+            if Flipper.enabled?(:are_we_enterprise_yet, current_identity) && scenario.slack_onboarding_flow == :internal_tutorial
                 Tutorial::BeginJob.perform_later(@identity)
             end
 

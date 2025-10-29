@@ -88,7 +88,7 @@ class SAMLController < ApplicationController
   private
 
   def check_enterprise_features!
-    unless Rails.application.config.are_we_enterprise_yet
+    unless Flipper.enabled?(:are_we_enterprise_yet, current_identity)
       @error = "SAML authentication is not available"
       render :error, status: :forbidden and return false
     end
