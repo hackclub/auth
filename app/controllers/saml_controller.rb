@@ -30,6 +30,11 @@ class SAMLController < ApplicationController
       redirect_to saml_welcome_path(return_to: request.fullpath) and return
     end
 
+    # Try to assign to Slack workspace if not yet done
+    if params[:slug] == "slack" && !current_identity.is_in_workspace
+      try_assign_to_slack_workspace
+    end
+
     response = build_saml_response(
       identity: current_identity,
       sp_config: @sp_config,
@@ -86,6 +91,26 @@ class SAMLController < ApplicationController
   end
 
   private
+
+  def try_assign_to_slack_workspace
+    return unless current_identity.slack_id.present?
+    
+    # Check if user is already in workspace
+    if SlackService.user_in_workspace?(user_id: current_identity.slack_id)
+      current_identity.update(is_in_workspace: true) unless current_identity.is_in_workspace
+      return
+    end
+    
+    scenario = current_identity.onboarding_scenario_instance
+    return unless scenario.slack_channels.any?
+    
+    AssignSlackWorkspaceJob.perform_later(
+      slack_id: current_identity.slack_id,
+      user_type: :multi_channel_guest,
+      channel_ids: scenario.slack_channels,
+      identity_id: current_identity.id
+    )
+  end
 
   def check_enterprise_features!
     unless Flipper.enabled?(:are_we_enterprise_yet, current_identity)

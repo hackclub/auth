@@ -51,5 +51,19 @@ module SlackService
       Rails.logger.error "Failed to add user to channels: #{e.message}"
       false
     end
+
+    def user_in_workspace?(user_id:)
+      response = client.users_info(user: user_id)
+      user = response.dig("user")
+      
+      return false unless user
+      return false if user["deleted"]
+      
+      teams = user["teams"] || []
+      teams.include?(team_id)
+    rescue => e
+      Rails.logger.warn "Could not check if user #{user_id} is in workspace: #{e.message}"
+      false
+    end
   end
 end

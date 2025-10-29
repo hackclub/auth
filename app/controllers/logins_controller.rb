@@ -282,7 +282,8 @@ class LoginsController < ApplicationController
                 AssignSlackWorkspaceJob.perform_later(
                     slack_id: slack_result[:slack_id],
                     user_type: slack_result[:user_type],
-                    channel_ids: scenario.slack_channels
+                    channel_ids: scenario.slack_channels,
+                    identity_id: @identity.id
                 )
             end
 

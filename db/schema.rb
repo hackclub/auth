@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_21_223312) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_29_180141) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -297,6 +297,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_21_223312) do
     t.integer "promote_click_count", default: 0
     t.boolean "developer_mode", default: false, null: false
     t.boolean "saml_debug"
+    t.boolean "is_in_workspace", default: false, null: false
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
     t.index ["legacy_migrated_at"], name: "index_identities_on_legacy_migrated_at"
@@ -414,6 +415,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_21_223312) do
     t.datetime "updated_at", null: false
     t.string "provenance"
     t.string "next_action"
+    t.string "return_to"
     t.index ["identity_id"], name: "index_login_attempts_on_identity_id"
     t.index ["session_id"], name: "index_login_attempts_on_session_id"
   end
