@@ -3,7 +3,7 @@ class ApplicationController < ActionController::Base
   include IsSneaky
   include SessionsHelper
 
-  helper_method :current_identity, :identity_signed_in?, :current_onboarding_step
+  helper_method :current_identity, :identity_signed_in?, :current_onboarding_step, :current_user
 
   def current_user = nil # TODO: this is a temp hack to fix partials until /backend auth is replaced
 
