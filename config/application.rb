@@ -79,7 +79,7 @@ module IdentityVault
     config.slack_channels = config_for(:slack_channels)
 
     # Slack E+ stuff (SAML, SCIM, etc.)
-    
+
 
     # Use ImageMagick for image processing instead of VIPS
     config.active_storage.variant_processor = :mini_magick

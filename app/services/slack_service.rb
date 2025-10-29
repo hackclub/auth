@@ -55,10 +55,10 @@ module SlackService
     def user_in_workspace?(user_id:)
       response = client.users_info(user: user_id)
       user = response.dig("user")
-      
+
       return false unless user
       return false if user["deleted"]
-      
+
       teams = user["teams"] || []
       teams.include?(team_id)
     rescue => e

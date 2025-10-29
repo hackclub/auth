@@ -95,14 +95,14 @@ class SAMLController < ApplicationController
 
   def provision_slack_via_scim_if_needed
     return if current_identity.slack_id.present?
-    
+
     scenario = current_identity.onboarding_scenario_instance
-    
+
     slack_result = SCIMService.find_or_create_user(
       identity: current_identity,
       scenario: scenario
     )
-    
+
     if slack_result[:success]
       current_identity.update(slack_id: slack_result[:slack_id])
       Rails.logger.info "Slack provisioning successful via SCIM for #{current_identity.id}: #{slack_result[:message]}"
@@ -122,16 +122,16 @@ class SAMLController < ApplicationController
 
   def try_assign_to_slack_workspace
     return unless current_identity.slack_id.present?
-    
+
     # Check if user is already in workspace
     if SlackService.user_in_workspace?(user_id: current_identity.slack_id)
       current_identity.update(is_in_workspace: true) unless current_identity.is_in_workspace
       return
     end
-    
+
     scenario = current_identity.onboarding_scenario_instance
     return unless scenario.slack_channels.any?
-    
+
     AssignSlackWorkspaceJob.perform_later(
       slack_id: current_identity.slack_id,
       user_type: :multi_channel_guest,
