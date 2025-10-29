@@ -9,7 +9,7 @@ module SlackService
     def find_by_email(email)
       client.users_lookupByEmail(email:).dig("user", "id")
     rescue => e
-      Rails.logger.warn "Could not find Slack user by email #{email}: #{e.message}"
+      Rails.logger.warn "Could not find Slack user by email #{email}: #{e.message}" unless e.message == "users_not_found"
       nil
     end
 

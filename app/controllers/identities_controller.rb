@@ -59,6 +59,8 @@ class IdentitiesController < ApplicationController
             end
         end
 
+        slack_user_id = attrs[:primary_email].present? ? SlackService.find_by_email(attrs[:primary_email]) : nil
+
         if attrs[:birthday].present?
           birthday = attrs[:birthday].is_a?(String) ? Date.parse(attrs[:birthday]) : attrs[:birthday]
           if birthday > Date.today
@@ -68,26 +70,28 @@ class IdentitiesController < ApplicationController
             return
           end
 
-          age = (Date.today - birthday).days.in_years
+          unless slack_user_id.present?
+            age = (Date.today - birthday).days.in_years
 
-          if age >= 19 && !@onboarding_scenario.accepts_adults
-            @age_restriction = "Hack Club is a community for teenagers. <br/>Unfortunately, you are not eligible to join.".html_safe
-            @identity = Identity.new(@prefill_attributes.merge(attrs))
-            render :new, status: :unprocessable_entity
-            return
-          end
-
-          if age < 13 && !@onboarding_scenario.accepts_under13
-            age_diff = (13 - age).round
-            diff_text = case age_diff
-            when 0 then "once you're 13"
-            when 1 then "in a year"
-            else "in #{age_diff} years"
+            if age >= 19 && !@onboarding_scenario.accepts_adults
+              @age_restriction = "Hack Club is a community for teenagers. <br/>Unfortunately, you are not eligible to join.".html_safe
+              @identity = Identity.new(@prefill_attributes.merge(attrs))
+              render :new, status: :unprocessable_entity
+              return
             end
-            @age_restriction = "Hi there. <br/> Unfortunately, for regulatory reasons outside of our control, we can't accept users under 13. We're sorry, we would if we could.<br/>Please come back #{diff_text}, we'd love to have you as a member of our community!".html_safe
-            @identity = Identity.new(@prefill_attributes.merge(attrs))
-            render :new, status: :unprocessable_entity
-            return
+
+            if age < 13 && !@onboarding_scenario.accepts_under13
+              age_diff = (13 - age).round
+              diff_text = case age_diff
+              when 0 then "once you're 13"
+              when 1 then "in a year"
+              else "in #{age_diff} years"
+              end
+              @age_restriction = "Hi there. <br/> Unfortunately, for regulatory reasons outside of our control, we can't accept users under 13. We're sorry, we would if we could.<br/>Please come back #{diff_text}, we'd love to have you as a member of our community!".html_safe
+              @identity = Identity.new(@prefill_attributes.merge(attrs))
+              render :new, status: :unprocessable_entity
+              return
+            end
           end
         end
 
