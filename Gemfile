@@ -34,7 +34,6 @@ group :development, :test do
 
   # Testing framework
   gem "rspec-rails", "~> 7.1"
-  gem "factory_bot_rails", "~> 6.4"
 end
 
 group :development do
@@ -141,3 +140,5 @@ gem "rack-attack", "~> 6.7"
 gem "browser", "~> 6.0"
 
 gem "slocks", "~> 0.1.0"
+
+gem "factory_bot_rails", "~> 6.4"
