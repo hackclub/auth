@@ -56,10 +56,17 @@ module SCIMService
         user_type: user_type
       )
 
-      Rails.logger.info "Creating Slack user with payload: #{user_payload.inspect}"
-      response = client.post("Users", user_payload)
+      retries = 0
+      max_retries = 1
 
-      unless response.success?
+      loop do
+        Rails.logger.info "Creating Slack user with payload: #{user_payload.inspect}"
+        response = client.post("Users", user_payload)
+
+        if response.success?
+          break
+        end
+
         error_msg = response.body.dig("Errors", 0, "description") || response.body["detail"] || "Unknown error"
         Rails.logger.error "Failed to create Slack user: #{error_msg}. Full response: #{response.body.inspect}"
 
@@ -90,6 +97,14 @@ module SCIMService
           end
         end
 
+        # Retry once after 1 second if we get invited_user_not_created error
+        if error_msg.include?("invited_user_not_created") && retries < max_retries
+          Rails.logger.info "Got invited_user_not_created error, retrying after 1 second..."
+          sleep(1)
+          retries += 1
+          next
+        end
+
         return {
           success: false,
           error: error_msg,
@@ -112,6 +127,7 @@ module SCIMService
         slack_id:,
         created: true,
         username:,
+        user_type:,
         message: "Created new Slack account"
       }
     rescue => e

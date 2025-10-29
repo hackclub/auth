@@ -1,6 +1,6 @@
 <h1> Hello <%= current_identity.first_name %>!</h1>
 
-<% if current_identity.slack_id.blank? %>
+<% if current_identity.slack_id.blank? && current_identity.onboarding_scenario_instance.should_create_slack? %>
   <div class="banner warning">
     <strong>!! Account Setup Incomplete !!</strong> <br>
     We couldn't find or provision you a Slack account. <br>

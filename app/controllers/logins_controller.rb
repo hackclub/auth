@@ -243,8 +243,9 @@ class LoginsController < ApplicationController
             @attempt.update!(session: session)
         end
 
-        if @identity.slack_id.blank?
-            provision_slack_on_first_login
+        scenario = scenario_for_identity(@identity)
+        if @identity.slack_id.blank? && (scenario.should_create_slack? || @attempt.next_action == "slack")
+            provision_slack_on_first_login(scenario)
         end
 
         if @attempt.next_action == "slack"
@@ -266,8 +267,7 @@ class LoginsController < ApplicationController
         end
     end
 
-    def provision_slack_on_first_login
-        scenario = scenario_for_identity(@identity)
+    def provision_slack_on_first_login(scenario)
         slack_result = SCIMService.find_or_create_user(
             identity: @identity,
             scenario: scenario
@@ -302,7 +302,9 @@ class LoginsController < ApplicationController
                     error: slack_result[:error]
                 }
             )
-            flash[:warning] = "We couldn't link your Slack account. Make sure you have a Slack account with the email #{@identity.primary_email}."
+            if scenario.should_create_slack? || @attempt.next_action == "slack"
+                flash[:warning] = "We couldn't create your Slack account. Please contact support."
+            end
             @attempt.update!(next_action: "home")
             slack_result
         end

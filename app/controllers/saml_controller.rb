@@ -31,8 +31,9 @@ class SAMLController < ApplicationController
     end
 
     # Try to assign to Slack workspace if not yet done
-    if params[:slug] == "slack" && !current_identity.is_in_workspace
-      try_assign_to_slack_workspace
+    if params[:slug] == "slack"
+      provision_slack_via_scim_if_needed
+      try_assign_to_slack_workspace if !current_identity.is_in_workspace
     end
 
     response = build_saml_response(
@@ -91,6 +92,33 @@ class SAMLController < ApplicationController
   end
 
   private
+
+  def provision_slack_via_scim_if_needed
+    return if current_identity.slack_id.present?
+    
+    scenario = current_identity.onboarding_scenario_instance
+    
+    slack_result = SCIMService.find_or_create_user(
+      identity: current_identity,
+      scenario: scenario
+    )
+    
+    if slack_result[:success]
+      current_identity.update(slack_id: slack_result[:slack_id])
+      Rails.logger.info "Slack provisioning successful via SCIM for #{current_identity.id}: #{slack_result[:message]}"
+    else
+      Rails.logger.error "Slack provisioning failed via SCIM for #{current_identity.id}: #{slack_result[:error]}"
+      Honeybadger.notify(
+        "Slack provisioning failed via SCIM",
+        context: {
+          identity_id: current_identity.id,
+          email: current_identity.primary_email,
+          error: slack_result[:error]
+        }
+      )
+      flash[:error] = "We couldn't create your Slack account. Please contact support."
+    end
+  end
 
   def try_assign_to_slack_workspace
     return unless current_identity.slack_id.present?

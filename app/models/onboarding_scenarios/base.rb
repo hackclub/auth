@@ -48,5 +48,8 @@ module OnboardingScenarios
 
     # Returns :internal_tutorial or :external_program
     def slack_onboarding_flow = :external_program
+
+    # Whether this scenario should provision a Slack account
+    def should_create_slack? = true
   end
 end
