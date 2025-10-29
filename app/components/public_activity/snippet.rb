@@ -14,7 +14,9 @@ class Components::PublicActivity::Snippet < Components::Base
         # Check if we're in the backend context by looking for current_user helper
         is_backend = respond_to?(:current_user) && current_user.is_a?(Backend::User)
 
-        if owner.is_a?(Backend::User) && !is_backend
+        if owner.nil?
+          em { "unknown" }
+        elsif owner.is_a?(Backend::User) && !is_backend
           plain owner.username
         else
           render owner
