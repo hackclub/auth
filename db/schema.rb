@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_29_180141) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_20_195531) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -112,6 +112,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_29_180141) do
     t.boolean "active"
     t.string "credential_id"
     t.boolean "can_break_glass"
+    t.bigint "identity_id"
+    t.index ["identity_id"], name: "index_backend_users_on_identity_id"
     t.index ["slack_id"], name: "index_backend_users_on_slack_id"
   end
 
@@ -482,6 +484,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_29_180141) do
     t.index ["key"], name: "index_settings_on_key", unique: true
   end
 
+  create_table "slack_idp_groups", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "slack_group_id"
+    t.string "slug", null: false
+    t.datetime "synced_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slack_group_id"], name: "index_slack_idp_groups_on_slack_group_id", unique: true
+    t.index ["slug"], name: "index_slack_idp_groups_on_slug", unique: true
+  end
+
   create_table "verifications", force: :cascade do |t|
     t.bigint "identity_id", null: false
     t.bigint "identity_document_id"
@@ -529,6 +542,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_29_180141) do
   add_foreign_key "addresses", "identities"
   add_foreign_key "backend_organizer_positions", "backend_users"
   add_foreign_key "backend_organizer_positions", "oauth_applications", column: "program_id"
+  add_foreign_key "backend_users", "identities"
   add_foreign_key "break_glass_records", "backend_users"
   add_foreign_key "identities", "addresses", column: "primary_address_id"
   add_foreign_key "identity_aadhaar_records", "identities"

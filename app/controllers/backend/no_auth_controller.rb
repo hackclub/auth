@@ -1,5 +1,5 @@
 module Backend
-  class NoAuthController < ApplicationController
+  class NoAuthController < Backend::ApplicationController
     skip_before_action :authenticate_user!
   end
 end

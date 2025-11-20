@@ -55,6 +55,16 @@ class Identity < ApplicationRecord
   has_many :totps, class_name: "Identity::TOTP", dependent: :destroy
   has_many :backup_codes, class_name: "Identity::BackupCode", dependent: :destroy
 
+  has_one :backend_user, class_name: "Backend::User", dependent: :destroy
+
+  def active_for_backend?
+    backend_user&.active?
+  end
+
+
+
+
+
   has_many :documents, class_name: "Identity::Document", dependent: :destroy
   has_many :verifications, class_name: "Verification", dependent: :destroy
   has_many :document_verifications, class_name: "Verification::DocumentVerification", dependent: :destroy
