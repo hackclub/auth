@@ -9,6 +9,8 @@ module Backend
 
     validates :username, presence: true, uniqueness: true
 
+    delegate :email, :first_name, :last_name, :slack_id, to: :identity, allow_nil: true
+
     def active? = active
     def activate! = update!(active: true)
     def deactivate! = update!(active: false)
