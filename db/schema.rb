@@ -113,6 +113,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
     t.boolean "active"
     t.string "credential_id"
     t.boolean "can_break_glass"
+    t.bigint "identity_id"
+    t.index ["identity_id"], name: "index_backend_users_on_identity_id"
     t.index ["slack_id"], name: "index_backend_users_on_slack_id"
   end
 
@@ -537,6 +539,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
   add_foreign_key "addresses", "identities"
   add_foreign_key "backend_organizer_positions", "backend_users"
   add_foreign_key "backend_organizer_positions", "oauth_applications", column: "program_id"
+  add_foreign_key "backend_users", "identities"
   add_foreign_key "break_glass_records", "backend_users"
   add_foreign_key "identities", "addresses", column: "primary_address_id"
   add_foreign_key "identity_aadhaar_records", "identities"

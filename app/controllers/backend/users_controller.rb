@@ -27,6 +27,16 @@ module Backend
     def create
       authorize User
       @user = User.new(new_user_params.merge(active: true))
+      
+      if @user.slack_id.present?
+        identity = Identity.find_by(slack_id: @user.slack_id)
+        if identity
+          @user.identity = identity
+        else
+          flash.now[:warning] = "No Identity found with Slack ID #{@user.slack_id}. User will not be able to log in until linked."
+        end
+      end
+
       if @user.save
         redirect_to backend_users_path, notice: "User created!"
       else
