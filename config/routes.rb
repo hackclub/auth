@@ -159,10 +159,13 @@
 
 class SuperAdminConstraint
   def self.matches?(request)
-    return false unless request.session[:user_id]
+    session_token = request.cookie_jar.encrypted[:session_token]
+    return false unless session_token
 
-    user = Backend::User.find_by(id: request.session[:user_id])
-    user&.super_admin?
+    session = IdentitySession.not_expired.find_by(session_token: session_token)
+    return false unless session&.identity
+
+    session.identity.backend_user&.super_admin?
   end
 end
 
