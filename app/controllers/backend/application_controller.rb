@@ -2,7 +2,7 @@ module Backend
   class ApplicationController < ActionController::Base
     include PublicActivity::StoreController
     include Pundit::Authorization
-    include SessionsHelper
+    include ::SessionsHelper
 
     layout "backend"
 
