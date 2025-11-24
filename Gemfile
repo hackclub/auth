@@ -47,7 +47,7 @@ gem "vite_rails"
 
 gem "pundit", "~> 2.5"
 
-gem "honeybadger", "~> 5.28"
+gem "honeybadger", "~> 6.1"
 
 gem "http", "~> 5.2"
 
