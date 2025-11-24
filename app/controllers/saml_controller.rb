@@ -66,6 +66,11 @@ class SAMLController < ApplicationController
     )
 
     render_saml_response(saml_response: response, sp_config: @sp_config)
+
+  rescue SAML2::MissingMessage
+    # hotfix for zach email
+    @missing_message = true
+    render :error and return
   end
 
   def welcome

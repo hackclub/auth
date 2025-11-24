@@ -1,4 +1,4 @@
-<% if Flipper.enabled?(:are_we_enterprise_yet, current_identity) %><%= @error %>
+<% if Flipper.enabled?(:are_we_enterprise_yet, current_identity) && !@missing_message %><%= @error %>
   <%= @error %>
 <% else %>
   <b>Hack Club is currently migrating to Slack Enterprise Grid.</b> <br/>
