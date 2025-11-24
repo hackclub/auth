@@ -158,63 +158,69 @@ uat:
       attribute_format: slack
       allow_unsigned_requests: true
 production:
-  - slug: slack
-    friendly_name: Hack Club Slack
-    tagline: where most of the magic happens!
-    icon: slack.png
-    entity_id: https://slack.com
-    assertion_consumer_services:
-      - location: https://hackclub.enterprise.slack.com/sso/saml
+  idp_metadata:
+    entity_id: https://identity.hackclub.com
+    single_sign_on_services:
+      - location: https://identity.hackclub.com/saml/auth
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
-    attribute_consuming_services:
-      - name: Slack User Profile
-        requested_attributes:
-          - name: User.Email
-            friendly_name: Email Address
-            is_required: true
-          - name: User.Username
-            friendly_name: Username
-            is_required: false
-          - name: User.FirstName
-            friendly_name: First Name
-            is_required: false
-          - name: User.LastName
-            friendly_name: Last Name
-            is_required: false
-    allow_idp_initiated: true
-    signing_certificate: |
-      -----BEGIN CERTIFICATE-----
-      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
-      Nw==
-      -----END CERTIFICATE-----
-    attribute_format: slack
+  service_providers:
+    - slug: slack
+      friendly_name: Hack Club Slack
+      tagline: where most of the magic happens!
+      icon: slack.png
+      entity_id: https://slack.com
+      assertion_consumer_services:
+        - location: https://hackclub.enterprise.slack.com/sso/saml
+          binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+      attribute_consuming_services:
+        - name: Slack User Profile
+          requested_attributes:
+            - name: User.Email
+              friendly_name: Email Address
+              is_required: true
+            - name: User.Username
+              friendly_name: Username
+              is_required: false
+            - name: User.FirstName
+              friendly_name: First Name
+              is_required: false
+            - name: User.LastName
+              friendly_name: Last Name
+              is_required: false
+      allow_idp_initiated: true
+      signing_certificate: |
+        -----BEGIN CERTIFICATE-----
+        MIIFzTCCA7WgAwIBAgIUV7W+/NfhUZytc/VxCyx+/Xxi7dMwDQYJKoZIhvcNAQEN
+        BQAwdjELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFjAUBgNVBAcM
+        DVNhbiBGcmFuY2lzY28xITAfBgNVBAoMGFNsYWNrIFRlY2hub2xvZ2llcywgSW5j
+        LjEXMBUGA1UEAwwOc2xhY2stc2FtbC5jb20wHhcNMjIwMzMwMjMwNzM5WhcNMjcw
+        NzA3MjMwNzM5WjB2MQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEW
+        MBQGA1UEBwwNU2FuIEZyYW5jaXNjbzEhMB8GA1UECgwYU2xhY2sgVGVjaG5vbG9n
+        aWVzLCBJbmMuMRcwFQYDVQQDDA5zbGFjay1zYW1sLmNvbTCCAiIwDQYJKoZIhvcN
+        AQEBBQADggIPADCCAgoCggIBAKWm+XPExKDq4BvdgRt1CyjR3NYmgaroC5wFCvb6
+        YaBN1mM+gbbwAFm0Hd0I44hN64wtVCdGEG6M4yYmUE2RafyMmkSUgJrkSiOZFO2E
+        GNPTR9HdDsAkc883XIUI4moLyFmb8VJRsm7Hhy6K4sRQT63p8vCMoGk4vtga2xo2
+        /y3os0wfjAFmaCkBdeIKwNhBkeqsXWUTljO/f9OHHztKK05Z1F3+bHWVAKIHwLwX
+        tK30kQVoi2Q+Nw36PpdWHfk3e8knytfepz3ytE3xepcd9v4bFMTI+DMJiAXIJwE0
+        WlYvNibto/3W2ZQoadVKms+npbjMD2hoFSy+Y1Wge/27Cd9JzXZMgSaIDIMewWJ6
+        4526+3qHmgtHxX4xwo+UbdFp6jUZoqQPyHRjVS0gh89EKE2WZqFThO7CNXzjFwBg
+        E0WxnUu4arCqRf3kD4yWAr/aeeeYOm4q8Z8xKSFPYvwoaI0yBk9AyLzeg3NWeVzu
+        KjOTw5NmjLDzKSZN/Mwd3+VIhtc74yNdomMto0St6o5wx47zWrDz5fCNjM9pxWZX
+        NDsiN4coQdZ26U2idYTBytqD2K7rLqGpnpcMwQ8HWw82M+U5DbwGxGYl54vTZx0f
+        iUHXsMfCwKrTT2ttl0MysyNFHZyHaZzHiEriKe1/9IqKSg0E2RrwdYKi83DzyBLV
+        juyPAgMBAAGjUzBRMB0GA1UdDgQWBBRRZ1EbkiWDaHtZ7SSmsOej8NlpHjAfBgNV
+        HSMEGDAWgBRRZ1EbkiWDaHtZ7SSmsOej8NlpHjAPBgNVHRMBAf8EBTADAQH/MA0G
+        CSqGSIb3DQEBDQUAA4ICAQArClLOgjUeGYY0hDhKPSkPH4GJ84nm2zGTDVsbQt6j
+        w4T6V4AJaPati6UV/bAax22zvc2YoNjkB9mKc1R6aW+Hej3Zo9CXj3LWszdIlwa1
+        H3gHfpIvCs/HdJ5W5mzD97BSrL0ZLDggczFn6MRK52OePke3o3bRZzxh6srvzzC5
+        Ok8uPRAn+mMz4m3rR3bxW3hke/ZVvIYvYA8nefbuNJiwv82bp9M4s2HvbxTE1fn8
+        JGh37nWpb4kvcxli7KIBhyFEWzeO48/6eD2gzK8aEHANC3WEcNpOSltP+lLBLyzZ
+        BXOxXFZWhqk/xfL4u/e1hhzY0zvOfkSCMu2613oMTfQ3Qa7v6Cus0AYoexRgSzeA
+        mVnRWY+M/ytXxZNJiLTnOplwPiINJRPzBDtIPiuWIA74VQdB+SrTvZ+Ds3Eb3eRW
+        EHTZTxtXxJZqAvJ0TY3zqU5bs6HVd9W5izZrl4D7POQGzwZPWms9jUqoMWcmLBd9
+        Ew9fI73bji8pUmlFRPyHc2ysjo8yElSi51WWiJmljQDyO9UE7EMzvtmmD7/koUuj
+        Hs5DCYaT9zp64EpHpEAS/jD+UyEnpisx8MVJYzdOJF0GEDTst6lV+kb1umydP9SQ
+        C56u/2oKdWjG164F6eacYVvVUXM4hF/0P/SQLyMtJDRJ2osHUAeh66rtDU9ZaloJ
+        Nw==
+        -----END CERTIFICATE-----
+      attribute_format: slack
