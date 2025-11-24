@@ -91,7 +91,7 @@ group :development do
   gem "letter_opener_web", "~> 3.0"
 end
 
-gem "aws-sdk-s3", "~> 1.189"
+gem "aws-sdk-s3", "~> 1.205"
 
 gem "lz_string", "~> 0.3.0"
 
