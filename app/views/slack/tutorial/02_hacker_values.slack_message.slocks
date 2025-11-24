@@ -1,0 +1,13 @@
+section <<~EOFD, markdown: true
+  _you can see I care very much about the wellbeing of everyone here._
+  if you ever have problems or concerns with another member of the community, please reach out to our confidential moderation team (made up primarily of teens!):
+  email conduct@hackclub.com or DM <@U07K4TS9HQE>.
+EOFD
+context [
+          mrkdwn_text("For posterity, you already agreed to Slack's <https://slack.com/main-services-agreement|Terms of Service> & <https://slack.com/trust/privacy/privacy-policy|Privacy Policy> on the way in.")
+        ]
+
+section '_Ralsei leans in._ "Do you vow to uphold the hacker values?"', markdown: true
+actions [
+          button("hack yeah!", "tutorial_agree", style: "primary")
+        ]

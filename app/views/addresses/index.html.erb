@@ -1,38 +1,22 @@
-<h1>your addresses</h1>
-<%= render Components::HomeButton.new %> <br>
- <br>
-<%= link_to "add a new address", new_address_path, class: "primary" %>
+<div class="page-header">
+  <h1><%= t('.title') %></h1>
+</div>
+
 <% if @addresses.any? %>
-  <div class="addresses-list">
+  <div class="info-sections">
     <% @addresses.each do |address| %>
-      <article class="card">
-        <div class="address-details">
-          <h3><%= address.first_name %> <%= address.last_name %>
-            <% if current_identity.primary_address == address %>
-              <abbr title="primary address">🏠</abbr>
-            <% end %>
-          </h3>
-          <p>
-            <%= address.line_1 %><br>
-            <% if address.line_2.present? %>
-              <%= address.line_2 %><br>
-            <% end %>
-            <%= address.city %>, <%= address.state %> <%= address.postal_code %><br>
-            <%= address.country %>
-          </p>
-        </div>
-        <div class="inline-buttons">
-          <%= button_to "edit", edit_address_path(address), method: :get, style: "display: inline;" %>
-          <%= button_to "delete", address, method: :delete,
-                      data: { confirm: "Are you sure?" }, style: "display: inline;" %>
-          <% unless current_identity.primary_address == address %>
-            <%= button_to "make primary", address_path(address, make_primary: true),
-                        method: :patch, style: "display: inline;" %>
-          <% end %>
-        </div>
-      </article>
+      <%= render 'address', address: address %>
     <% end %>
+
+    <section class="section-card" style="text-align: center; padding: 2rem;">
+      <%= link_to "Add New Address", new_address_path, role: "button" %>
+    </section>
   </div>
 <% else %>
-  <p>You haven't added any addresses yet.</p>
+  <div class="empty-state">
+    <div class="empty-icon"><%= inline_icon("email", size: 48) %></div>
+    <h3><%= t ".blank_slate.title" %></h3>
+    <p><%= t ".blank_slate.cta" %></p>
+    <%= link_to t(".blank_slate.create"), new_address_path, role: "button" %>
+  </div>
 <% end %>

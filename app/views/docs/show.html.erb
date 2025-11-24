@@ -1,0 +1,67 @@
+<% content_for :title, @doc[:title] %>
+
+<div class="docs-layout">
+  <button class="docs-sidebar-toggle" onclick="toggleDocsSidebar()" aria-label="Toggle sidebar">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="4" y1="6" x2="20" y2="6"></line>
+      <line x1="4" y1="12" x2="20" y2="12"></line>
+      <line x1="4" y1="18" x2="20" y2="18"></line>
+    </svg>
+  </button>
+  <div class="docs-sidebar-overlay" onclick="toggleDocsSidebar()"></div>
+
+  <button class="lightswitch-btn" type="button" aria-label="Toggle theme">
+    <span class="lightswitch-moon"><%= inline_icon("moon-fill", size: 16) %></span>
+    <span class="lightswitch-sun" style="display: none;"><%= inline_icon("sun", size: 16) %></span>
+  </button>
+
+  <aside class="docs-sidebar" id="docs-sidebar">
+    <div class="docs-sidebar-brand">
+      <%= vite_image_tag("images/hc-square.png", alt: "Hack Club logo", class: "brand-logo") %>
+      <h1>Hack Club Account Docs</h1>
+    </div>
+
+    <nav class="docs-nav">
+      <% docs_by_category.each do |category, docs| %>
+        <div class="docs-nav-section">
+          <h3 class="docs-nav-category"><%= category %></h3>
+          <ul class="docs-nav-list">
+            <% docs.each do |doc| %>
+              <li><%= doc_nav_link(doc) %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </nav>
+
+    <div class="docs-sidebar-footer">
+      <%= link_to "← Back to App", root_path, class: "docs-back-link secondary" %>
+    </div>
+  </aside>
+
+  <main class="docs-content">
+    <div class="docs-content-inner">
+    <article class="docs-article">
+      <header class="docs-article-header">
+        <h1><%= @doc[:title] %></h1>
+        <% if @doc[:description].present? %>
+          <p class="docs-article-description"><%= @doc[:description] %></p>
+        <% end %>
+      </header>
+
+      <div class="docs-article-body">
+        <%= @doc[:content] %>
+      </div>
+    </article>
+    </div>
+  </main>
+</div>
+
+<script>
+  function toggleDocsSidebar() {
+    const sidebar = document.getElementById('docs-sidebar');
+    const overlay = document.querySelector('.docs-sidebar-overlay');
+    sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('active');
+  }
+</script>

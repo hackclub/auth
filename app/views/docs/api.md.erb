@@ -1,0 +1,172 @@
+---
+title: API
+description: Integrate with Hack Club Account's REST API
+category: Developer
+order: 10
+---
+
+
+The Hack Club Account API allows you to retrieve user identity information after they've authorized your app via OAuth.
+
+You may want to read the <%= link_to "OAuth Guide", doc_path("oauth-guide") %> first to get access tokens.
+
+### Authentication
+
+<div class="banner info">
+Most API endpoints require an OAuth access token. Include it in the <code>Authorization</code> header:
+
+<pre>Authorization: Bearer idntk.mraowj2z72e1x8i2a60o88j3h7d0f1</pre>
+</div>
+
+### Base URL
+
+```
+<%= root_url.chomp("/") %>
+```
+
+## Endpoints
+
+### GET /api/v1/me
+
+Get the authenticated user's identity information based on granted scopes.
+
+<%= render Components::APIExample.new(method: "GET", url: api_v1_me_url, path_only: true) %>
+
+**Authentication:** Required
+
+**Response:**
+
+<pre><code class="language-json"><%
+  identity = stub_identity_with_address(FactoryBot.build_stubbed(:identity))
+  scopes = ["email", "name", "verification_status", "slack_id", "basic_info", "address", "legal_name"]
+%><%= render_api_example(template: "api/v1/identities/me", identity: identity, scopes: scopes, color_by_scope: true).html_safe %></code></pre>
+
+**Verification status values:**
+- `needs_submission` - User hasn't started verification
+- `pending` - Verification is being reviewed
+- `verified` - Successfully verified
+- `ineligible` - Verification was rejected
+
+### GET /api/external/check
+
+Check the verification status of a user by their ID, email, or Slack ID. This is a public endpoint that doesn't require authentication.
+
+<%= render Components::APIExample.new(method: "GET", url: api_external_check_url(email: "orpheus@hackclub.com"), path_only: true) %>
+
+**Authentication:** Not required
+
+**Parameters (provide one):**
+- `idv_id` - User's public ID (format: `ident!xxxxx`)
+- `email` - User's email address
+- `slack_id` - User's Slack ID
+
+**Response:**
+
+```json
+{
+  "result": "verified_eligible"
+}
+```
+
+**Possible result values:**
+- `needs_submission` - User hasn't started verification
+- `pending` - Verification is being reviewed
+- `verified_eligible` - Verified and eligible for YSWS (under 18)
+- `verified_but_over_18` - Verified but over 18
+- `rejected` - Verification was rejected
+- `not_found` - No user found with the provided identifier
+
+## Available Scopes
+
+When requesting OAuth authorization, you can request the following scopes:
+
+| Scope | Description | Community Access    |
+|-------|-------------|---------------------|
+| `email` | Access to email address | ✅                   |
+| `name` | Access to first and last name | ✅                   |
+| `slack_id` | Access to Slack ID | ✅                   |
+| `verification_status` | Verification status and YSWS eligibility | ✅                   |
+| `basic_info` | Email, name, verification status, birthday, phone | HQ only             |
+| `legal_name` | Legal first and last name | HQ only             |
+| `address` | Mailing addresses | HQ only             |
+| `set_slack_id` | Ability to associate Slack IDs | HQ only, deprecated |
+## Error Responses
+
+<div class="banner info">
+All API endpoints return standard HTTP status codes:
+<ul>
+<li><code>200</code> - Success</li>
+<li><code>401</code> - Unauthorized (missing or invalid token)</li>
+<li><code>403</code> - Forbidden (insufficient permissions/scopes)</li>
+<li><code>404</code> - Not found</li>
+<li><code>422</code> - Invalid parameters</li>
+</ul>
+
+Error responses include a JSON body with details:
+
+<pre>{
+  "error": "Unauthorized",
+  "message": "Invalid or expired token"
+}</pre>
+</div>
+
+## Program-wide endpoints
+
+<div class="banner info">
+<b>About program keys:</b>
+<p>
+In addition to user OAuth tokens, HQ official programs can use a program key for machine-to-machine API calls. Program keys start with <code>prgmk.</code> and can be used in the Authorization header:
+
+<pre>Authorization: Bearer prgmk.abc123def456...</pre>
+
+Program keys have access to all identities that have authorized your application, not just a single user. Avoid using them. Protect them with your life. <br/>
+If you think you need a <code>prgmk</code>, think harder about it. You probably don't.
+</p>
+</div>
+
+<div class="banner warning">
+<b>HQ official programs only: </b>
+<p>
+These endpoints are only available when using a program key.<br/>
+</p>
+</div>
+
+### GET /api/v1/identities/:id
+
+Get a specific user's identity by their public ID.
+
+<%= render Components::APIExample.new(method: "GET", url: api_v1_identity_url(id: "ident!abc123"), path_only: true) %>
+
+**Authentication:** Program key required
+
+**Parameters:**
+- `id` (path) - The user's public ID (e.g., `ident!abc123`)
+
+**Response:**
+
+```json
+<%
+  identity = FactoryBot.build_stubbed(:identity, last_name: "Hacksworth")
+%><%= render_api_example(template: "api/v1/identities/show", identity: identity) %>
+```
+
+Fields returned depend on your program's configured scopes.
+
+### GET /api/v1/identities
+
+List all identities that have authorized your application.
+
+<%= render Components::APIExample.new(method: "GET", url: api_v1_identities_url, path_only: true) %>
+
+**Authentication:** Program key required
+
+**Response:**
+
+```json
+<%
+  identities = [
+    FactoryBot.build_stubbed(:identity, first_name: "Heidi", last_name: "Latta"),
+    FactoryBot.build_stubbed(:identity, last_name: "Wofford")
+  ]
+%><%= render_api_example(template: "api/v1/identities/index", identities: identities) %>
+```

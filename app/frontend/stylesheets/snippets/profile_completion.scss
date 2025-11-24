@@ -1,0 +1,193 @@
+.profile-completion {
+  --completion-green: #84cc16;
+  --completion-green-dark: #65a30d;
+  
+  [data-theme="dark"] & {
+    --completion-green: #a3e635;
+    --completion-green-dark: #84cc16;
+  }
+  
+  background: linear-gradient(165deg, var(--pico-card-background-color) 0%, var(--surface-2) 100%);
+  border: 1px solid var(--pico-card-border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 
+    4px 4px 16px rgba(0, 0, 0, 0.04),
+    2px 2px 8px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  
+  [data-theme="dark"] & {
+    background: linear-gradient(165deg, #252932 0%, #1f2329 100%);
+    box-shadow: 
+      4px 4px 16px rgba(0, 0, 0, 0.3),
+      2px 2px 8px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .profile-completion-header {
+    margin-bottom: 1.25rem;
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+
+      h2 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--pico-color);
+        margin: 0;
+      }
+
+      .completion-stats {
+        .stats-text {
+          font-size: 0.8125rem;
+          font-weight: 500;
+          color: var(--pico-muted-color);
+        }
+      }
+    }
+
+    .progress-bar-container {
+      height: 6px;
+      background: var(--pico-card-border-color);
+      border-radius: 3px;
+      overflow: hidden;
+
+      .progress-bar {
+        height: 100%;
+        background: var(--completion-green);
+        border-radius: 3px;
+        transition: width 0.4s ease;
+      }
+    }
+  }
+
+  .profile-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .profile-task {
+    @include card($padding: 1rem, $radius: $radius-md, $shadow: false);
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    text-decoration: none;
+    color: var(--pico-color);
+    transition: all 0.15s ease;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--completion-green);
+
+      .task-action {
+        color: var(--completion-green);
+      }
+    }
+
+    &.completed {
+      opacity: 0.6;
+      background: var(--pico-card-background-color);
+
+      .task-title {
+        text-decoration: line-through;
+        text-decoration-thickness: 2px;
+        color: var(--pico-muted-color);
+      }
+
+      .task-description {
+        text-decoration: line-through;
+        text-decoration-thickness: 1px;
+        opacity: 0.7;
+      }
+
+      .task-icon {
+        background: #d1fae5;
+
+        @media (prefers-color-scheme: dark) {
+          background: rgba(16, 185, 129, 0.15);
+        }
+      }
+
+      .task-action {
+        color: var(--completion-green);
+        font-weight: 600;
+      }
+
+      &:hover {
+        opacity: 0.85;
+      }
+    }
+
+    .task-icon {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      background: #f0fdf4;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: var(--completion-green-dark);
+
+      @media (prefers-color-scheme: dark) {
+        background: rgba(132, 204, 22, 0.1);
+      }
+    }
+
+    .task-content {
+      flex: 1;
+      min-width: 0;
+
+      .task-title {
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: var(--completion-green-dark);
+        margin-bottom: 0.125rem;
+      }
+
+      .task-description {
+        font-size: 0.8125rem;
+        color: var(--pico-muted-color);
+        line-height: 1.4;
+      }
+    }
+
+    .task-action {
+      flex-shrink: 0;
+      font-size: 1.25rem;
+      color: var(--pico-muted-color);
+      transition: color 0.15s ease;
+    }
+  }
+}
+
+@include down(640px) {
+  .profile-completion {
+    padding: 1.25rem;
+
+    .profile-completion-header {
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
+
+    .profile-task {
+      padding: 0.875rem;
+      gap: $space-2;
+
+      .task-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.125rem;
+      }
+    }
+  }
+}

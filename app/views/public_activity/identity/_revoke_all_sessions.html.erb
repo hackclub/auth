@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity, owner: activity.trackable) do %>
+  revoked <%= pluralize(activity.parameters[:count], 'session') %>.
+<% end %>

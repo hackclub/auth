@@ -69,7 +69,7 @@ class Backend::ProgramsController < Backend::ApplicationController
     permitted_params = [ :name, :redirect_uri ]
 
     if policy(@program).update_scopes?
-      permitted_params += [ :description, :active, scopes_array: [] ]
+      permitted_params += [ :description, :active, :trust_level, scopes_array: [] ]
     end
 
     params.require(:program).permit(permitted_params)

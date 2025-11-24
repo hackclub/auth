@@ -1,5 +1,5 @@
-<article>
-  <header>
+<div class="container-sm">
+  <div class="page-header-centered">
     <h1>Mailing Address</h1>
     <% case session.dig(:stashed_data, "context") %>
     <% when "stickers" %>
@@ -7,7 +7,9 @@
     <% else %>
       <p>Please provide your current mailing address.</p>
     <% end %>
-  </header>
+  </div>
 
-  <%= render 'addresses/form', address: @address, url: address_onboarding_path, submit: "Continue →" %>
-</article>
+  <div class="card address-form">
+    <%= render 'addresses/form', address: @address, url: address_onboarding_path, submit: "Continue →" %>
+  </div>
+</div>

@@ -1,0 +1,23 @@
+---
+title: Security
+category: Technical
+order: 11
+---
+
+## Bug bounty:
+
+This platform participates in Hack Club's [security bounty program](https://security.hackclub.com/).
+Please report any issues you find there for a possible reward.
+Please _don't_ report security bugs in public Slack channels or GitHub issues.
+
+## Infrastructure Security
+
+The identity platform runs on a dedicated Hetzner server that is isolated from other Hack Club infrastructure. Server access is restricted to two individuals (Nora and Zach), both of whom use physical second-factor authentication tokens.
+
+All production console access is [logged](https://github.com/basecamp/console1984) and [audited](https://github.com/basecamp/audits1984/).
+
+Identity documents are encrypted at rest with a unique AES-256-GCM key per file via [SSE-C](https://docs.aws.amazon.com/AmazonS3/latest/userguide/serv-side-encryption.html) in Cloudflare R2 storage.
+
+## Questions?
+
+For security concerns or questions, contact [@nora](https://hackclub.slack.com/team/U06QK6AG3RD) on Slack or email nora@hackclub.com.

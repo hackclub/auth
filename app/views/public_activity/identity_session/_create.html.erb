@@ -1,0 +1,23 @@
+<%= render Components::PublicActivity::Snippet.new(activity, owner: activity.trackable&.identity) do %>
+  <%
+    session = activity.trackable
+    login_attempt = session&.login_attempt
+
+    # Determine authentication methods used
+    methods = []
+    if login_attempt
+      methods << "email" if login_attempt.authenticated_with_email || login_attempt.authenticated_with_legacy_email
+      methods << "TOTP" if login_attempt.authenticated_with_totp
+      methods << "backup code" if login_attempt.authenticated_with_backup_code
+    end
+
+    method_str = methods.any? ? "via #{methods.join(" + ")}" : ""
+
+    # Determine device/OS info
+    device_parts = []
+    device_parts << session&.device_info if session&.device_info.present?
+    device_parts << session&.os_info if session&.os_info.present?
+    device_str = device_parts.any? ? " on #{device_parts.join(", ")}" : ""
+  %>
+  logged in <%= method_str %><%= device_str %>.
+<% end %>

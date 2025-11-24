@@ -1,0 +1,30 @@
+<% content_for :head do %>
+  <%= vite_javascript_tag 'fingerprint' %>
+<% end %>
+
+<div class="auth-container">
+  <div class="auth-card">
+    <header>
+      <h1><%= t(".title") %></h1>
+      <small><%= t(".subtitle") %></small>
+    </header>
+
+    <%= form_with url: login_path, method: :post, local: true do |form| %>
+      <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
+      <%= hidden_field_tag :fingerprint, nil, id: 'fingerprint' %>
+      <%= hidden_field_tag :timezone, nil, id: 'timezone' %>
+      <fieldset>
+        <%= form.label :email, t(".email_label") %>
+        <%= form.email_field :email, required: true, value: @prefill_email, autofocus: true, placeholder: t("identities.email_placeholder"), autocomplete: "email" %>
+      </fieldset>
+      <%= form.submit "#{t('.continue')} →" %>
+    <% end %>
+
+    <footer>
+      <p>
+        <%= t(".no_account") %>
+        <%= link_to t(".signup"), signup_path %><%= t(".free") %>
+      </p>
+    </footer>
+  </div>
+</div>

@@ -60,7 +60,7 @@
         <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 2rem;">
           <!-- Approve YSWS Eligible -->
           <div>
-            <h3 style="color: #059669;">✅ Approve (YSWS Eligible)</h3>
+            <h3 style="color: #059669;"><%= inline_icon("check", size: 20) %> Approve (YSWS Eligible)</h3>
             <p>Document approved and identity is YSWS eligible.</p>
             <%= form_with url: approve_backend_verification_path(@verification), method: :patch, local: true do |form| %>
               <%= form.hidden_field :ysws_eligible, value: true %>
@@ -68,10 +68,10 @@
                 <%= form.submit "Approve (YSWS Eligible)",
                              class: "button",
                              style: "width: 100%;",
-                             data: { confirm: "Are you sure you want to approve this document and mark as YSWS eligible?" } %>
+                             form: { "hx-confirm": "Are you sure you want to approve this document and mark as YSWS eligible?" } %>
                 <% if @verification.identity.birthday < 19.years.ago %>
                   <p style="color: #f59e0b;">
-                    ⚠️ Warning: <%= @verification.identity.birthday %> is more than 19 years ago.
+                    <%= inline_icon("important", size: 16) %> Warning: <%= @verification.identity.birthday %> is more than 19 years ago.
                   </p>
                 <% end %>
               <% end %>
@@ -79,7 +79,7 @@
           </div>
           <!-- Approve YSWS Ineligible -->
           <div>
-            <h3 style="color: #f59e0b;">✅ Approve (YSWS Ineligible)</h3>
+            <h3 style="color: #f59e0b;"><%= inline_icon("check", size: 20) %> Approve (YSWS Ineligible)</h3>
             <p>Document approved but identity is not YSWS eligible.</p>
             <%= form_with url: approve_backend_verification_path(@verification), method: :patch, local: true do |form| %>
               <%= form.hidden_field :ysws_eligible, value: false %>
@@ -87,17 +87,17 @@
                 <%= form.submit "Approve (YSWS Ineligible)",
                              class: "button",
                              style: "width: 100%;",
-                             data: { confirm: "Are you sure you want to approve this document and mark as YSWS ineligible?" } %>
+                             form: { "hx-confirm": "Are you sure you want to approve this document and mark as YSWS ineligible?" } %>
               <% end %>
             <% end %>
           </div>
           <!-- Reject -->
           <div>
-            <h3 style="color: #dc2626;">❌ Reject Document</h3>
+            <h3 style="color: #dc2626;"><%= inline_icon("cancel", size: 20) %> Reject Document</h3>
             <%= form_with url: reject_backend_verification_path(@verification), method: :patch, local: true do |form| %>
               <% if @verification.identity.under_13? %>
                 <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-                  ⚠️ <strong>Warning:</strong> The submitted identity is under 13 years old (age <%= @verification.identity.age.round(2) %>). Consider selecting "Submitter is under 13 years old" as the rejection reason.
+                  <%= inline_icon("important", size: 16) %> <strong>Warning:</strong> The submitted identity is under 13 years old (age <%= @verification.identity.age.round(2) %>). Consider selecting "Submitter is under 13 years old" as the rejection reason.
                 </div>
               <% end %>
               <%= form.label :rejection_reason, "Rejection Reason:" %>
@@ -148,7 +148,7 @@
                                { include_blank: "Select a reason",
                                required: true, style: "width: 100%; margin-bottom: 1rem;" } %>
               <% elsif @verification.is_a?(Verification::VouchVerification) %>
-                <p style="color: #059669;">✅ This document has been automatically approved.</p>
+                <p style="color: #059669;"><%= inline_icon("check", size: 16) %> This document has been automatically approved.</p>
               <% end %>
               <%= form.label :rejection_reason_details, "Additional Details (optional):" %>
               <%= form.text_area :rejection_reason_details,
@@ -164,7 +164,7 @@
                 <%= form.submit "Reject Document",
                                  class: "button",
                                  style: "width: 100%;",
-                                 data: { confirm: "Are you sure you want to reject this document?" } %>
+                                 form: { "hx-confirm": "Are you sure you want to reject this document?" } %>
               <% end %>
             <% end %>
           </div>
@@ -204,7 +204,7 @@
     <% if @verification.ignored_at.blank? %>
       <% super_admin_tool do %>
         <div class="lowered padding" style="margin-top: 2rem;">
-          <h3 style="margin-top: 0;">⚠️ Super Admin: Ignore Verification</h3>
+          <h3 style="margin-top: 0;"><%= inline_icon("important", size: 20) %> Super Admin: Ignore Verification</h3>
           <p>
             This will permanently ignore this verification and exclude it from identity status calculations. This action cannot be undone.
           </p>
@@ -213,13 +213,13 @@
               <%= f.label :reason, "Reason for ignoring (required):" %>
               <%= f.text_area :reason, placeholder: "Please provide a detailed reason for ignoring this verification. This will be logged in the audit trail.", rows: 4 %>
             </div>
-            <%= f.submit "Ignore Verification", class: "button", data: { confirm: "Are you sure you want to ignore this verification? This action cannot be undone." } %>
+            <%= f.submit "Ignore Verification", class: "button", form: { "hx-confirm": "Are you sure you want to ignore this verification? This action cannot be undone." } %>
           <% end %>
         </div>
       <% end %>
     <% elsif @verification.ignored_at.present? %>
       <div class="lowered padding" style="margin-top: 2rem;">
-        <h3 style="margin-top: 0;">🚫 Verification Ignored</h3>
+        <h3 style="margin-top: 0;"><%= inline_icon("forbidden", size: 20) %> Verification Ignored</h3>
         <p style="margin-bottom: 0;">
           <strong>Ignored on:</strong> <%= @verification.ignored_at.strftime("%B %d, %Y at %I:%M %p") %><br>
           <strong>Reason:</strong> <%= @verification.ignored_reason %>

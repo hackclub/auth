@@ -1,0 +1,52 @@
+<% if @totp.present? %>
+  <div class="totp-enabled">
+    <div class="totp-status">
+      <span class="status-icon"><%= inline_icon("check", size: 16) %></span>
+      <div class="status-info">
+        <strong><%= t(".totp_title") %></strong>
+        <p class="status-detail"><%= t(".totp_description") %></p>
+      </div>
+      <%= button_to t(".remove"),
+          identity_totp_path(@totp),
+          method: :delete,
+          class: "danger small-btn" %>
+    </div>
+
+    <% if current_identity.has_two_factor_method? %>
+      <div class="totp-status" style="margin-top: 1rem;">
+        <div class="status-info" style="flex: 1;">
+          <strong><%= t(".require_2fa_title") %></strong>
+          <p class="status-detail"><%= t(".require_2fa_description") %></p>
+        </div>
+        <% if current_identity.use_two_factor_authentication? %>
+          <%= button_to t(".disable_requirement"),
+              toggle_2fa_identity_path,
+              method: :post,
+              class: "danger small-btn" %>
+        <% else %>
+          <%= button_to t(".enable_requirement"),
+              toggle_2fa_identity_path,
+              method: :post,
+              class: "primary small-btn",
+              data: {
+                "hx-post": toggle_2fa_identity_path,
+                "hx-target": "#totp-container",
+                "hx-swap": "innerHTML"
+              } %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="totp-disabled">
+    <p class="totp-description"><%= t(".setup_description") %></p>
+    <%= link_to t(".setup_authenticator"),
+        new_identity_totp_path,
+        class: "totp-enable-btn",
+        data: {
+          "hx-get": new_identity_totp_path,
+          "hx-target": "#totp-container",
+          "hx-swap": "innerHTML"
+        } %>
+  </div>
+<% end %>

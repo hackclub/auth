@@ -1,39 +1,58 @@
 .lightswitch-btn {
+  @include icon-button;
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: var(--bg-secondary, #f8f9fa);
-  border: 1px solid var(--border-color, #dee2e6);
-  width: 3rem;
-  height: 3rem;
-  padding: 0;
+  z-index: 1001;
+  display: none;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  opacity: 0;
-  transition: opacity 0.15s ease-in-out;
-
-  &:active {
-    transform: scale(0.95);
+  color: #444;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  
+  [data-theme="dark"] & {
+    color: #d0d0d0;
   }
 
-  .lightswitch-icon {
-    font-size: 1.2rem;
-    display: block;
+  .lightswitch-moon,
+  .lightswitch-sun {
+    font-size: 1.25rem;
     transition: transform 0.2s ease;
+    line-height: 0;
+    
+    svg {
+      display: block;
+      margin: 0;
+    }
   }
 
   &.theme-loaded {
-    opacity: 1;
+    display: flex;
   }
-}
-
-[data-theme="dark"] .lightswitch-btn {
-  background: var(--bg-secondary, #374151);
-  border-color: var(--border-color, #4b5563);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  
+  // Override for sidebar
+  .sidebar-brand & {
+    position: static;
+    margin: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    
+    .lightswitch-moon,
+    .lightswitch-sun {
+      font-size: 1.1rem;
+    }
+  }
+  
+  // Mobile visibility
+  @media (max-width: 768px) {
+    &.theme-loaded {
+      display: flex;
+    }
+    
+    .sidebar-brand & {
+      display: none;
+    }
   }
 }

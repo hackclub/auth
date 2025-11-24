@@ -1,0 +1,108 @@
+<div style="max-width: 600px; margin: 4rem auto; padding: 0 1rem;">
+  <div class="auth-card">
+    <% method = params[:method]&.to_sym %>
+
+    <% if method.nil? %>
+      <%# Show method selection %>
+      <header>
+        <h1><%= t ".title" %></h1>
+        <small><%= t ".choose_method" %></small>
+      </header>
+
+      <div style="display: flex; flex-direction: column; gap: 1rem; margin: 2rem 0;">
+        <% if @available_methods.include?(:totp) %>
+          <%= link_to new_step_up_path(action_type: @action, method: :totp),
+              class: "step-up-method-option" do %>
+            <div><%= inline_icon("private", size: 32) %></div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600;"><%= t(".methods.totp.title") %></div>
+              <small><%= t(".methods.totp.description") %></small>
+            </div>
+          <% end %>
+        <% end %>
+
+        <% if @available_methods.include?(:backup_code) %>
+          <%= link_to new_step_up_path(action_type: @action, method: :backup_code),
+              class: "step-up-method-option" do %>
+            <div><%= inline_icon("private", size: 32) %></div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600;"><%= t(".methods.backup_code.title") %></div>
+              <small><%= t(".methods.backup_code.description") %></small>
+            </div>
+          <% end %>
+        <% end %>
+
+        <% if @available_methods.include?(:sms) %>
+          <%= link_to new_step_up_path(action_type: @action, method: :sms),
+              class: "step-up-method-option" do %>
+            <div><%= inline_icon("message", size: 32) %></div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600;"><%= t(".methods.sms.title") %></div>
+              <small><%= t(".methods.sms.description") %></small>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+
+      <style>
+        .step-up-method-option {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem;
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
+          text-decoration: none;
+          color: inherit;
+          transition: all 0.2s;
+        }
+        .step-up-method-option:hover {
+          border-color: var(--primary-color);
+          background-color: var(--bg-secondary);
+        }
+      </style>
+
+      <footer>
+        <p><%= link_to t(".cancel"), security_path %></p>
+      </footer>
+
+    <% else %>
+      <%# Show form for selected method %>
+      <header>
+        <h1><%= t(".enter_code_labels.#{method}") %></h1>
+        <small><%= t(".enter_code_descriptions.#{method}") %></small>
+      </header>
+
+      <%= form_with url: verify_step_up_path, method: :post, local: true do |f| %>
+        <%= f.hidden_field :action_type, value: @action %>
+        <%= f.hidden_field :method, value: method %>
+
+        <fieldset>
+          <%= f.label :code, t(".code_label") %>
+          <% if method == :backup_code %>
+            <%= f.text_field :code,
+                required: true,
+                autocomplete: "one-time-code",
+                autofocus: true,
+                placeholder: t(".backup_placeholder") %>
+          <% else %>
+            <%= f.text_field :code,
+                required: true,
+                autocomplete: "one-time-code",
+                autofocus: true,
+                placeholder: t(".totp_placeholder"),
+                maxlength: 6,
+                inputmode: "numeric",
+                pattern: "[0-9]{6}" %>
+          <% end %>
+        </fieldset>
+
+        <%= f.submit "#{t('.verify')} →" %>
+      <% end %>
+
+      <footer>
+        <p><%= link_to t(".use_different_method"), new_step_up_path(action_type: @action) %></p>
+      </footer>
+    <% end %>
+  </div>
+</div>

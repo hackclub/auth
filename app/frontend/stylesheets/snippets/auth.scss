@@ -1,0 +1,170 @@
+// Unifi-inspired auth layout with skeumorphic touches
+
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background: #f5f5f5;
+  
+  [data-theme="dark"] & {
+    background: #1a1d23;
+  }
+}
+
+.auth-card {
+  background: linear-gradient(165deg, #fafafa 0%, #f5f5f5 100%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: $radius-xl;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 610px;
+  box-shadow: 
+    4px 4px 16px rgba(0, 0, 0, 0.04),
+    2px 2px 8px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  
+  [data-theme="dark"] & {
+    background: linear-gradient(165deg, #252932 0%, #1f2329 100%);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 
+      4px 4px 16px rgba(0, 0, 0, 0.3),
+      2px 2px 8px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  
+  header {
+    text-align: center;
+    margin-bottom: $space-7;
+    
+    h1 {
+      font-size: 1.85rem;
+      font-weight: 600;
+      margin: 0 0 0.75rem;
+      color: var(--text-strong);
+      letter-spacing: -0.02em;
+    }
+    
+    small {
+      font-size: 0.95rem;
+      color: var(--text-muted-strong);
+      display: block;
+      line-height: 1.5;
+      
+      a {
+        color: var(--pico-primary);
+        text-decoration: none;
+        font-weight: 500;
+        @include transition-default(color);
+        
+        &:hover {
+          color: var(--pico-primary-hover);
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+  
+  fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 1.75rem;
+    
+    legend {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--pico-color);
+      margin-bottom: $space-4;
+      padding: 0;
+    }
+    
+    label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 0.625rem;
+      display: block;
+      color: var(--pico-color);
+    }
+    
+    input, select, textarea {
+      margin-bottom: $space-1;
+      border-radius: $radius-md;
+      background: var(--surface-2);
+      @include transition-default(background);
+      
+      &:focus {
+        background: var(--surface-1);
+      }
+    }
+    
+    small {
+      font-size: 0.85rem;
+      color: var(--text-muted-strong);
+      margin-top: 0.375rem;
+      display: block;
+    }
+  }
+  
+  .grid {
+    gap: 1rem;
+  }
+  
+  button[type="submit"],
+  input[type="submit"] {
+    width: 100%;
+    margin-top: $space-1;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+  }
+  
+  footer {
+    text-align: center;
+    margin-top: $space-7;
+    padding-top: $space-6;
+    border-top: 1px solid var(--surface-2-border);
+    
+    p {
+      margin: $space-1 0;
+      font-size: 0.9rem;
+      color: var(--text-muted-strong);
+    }
+    
+    a {
+      color: var(--pico-primary);
+      text-decoration: none;
+      font-weight: 500;
+      @include transition-default(color);
+      
+      &:hover {
+        color: var(--pico-primary-hover);
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// Hide brand component in auth layout
+.auth-layout {
+  .brand {
+    display: none;
+  }
+  
+  // Flash wrapper for auth layout
+  .auth-flash-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 2rem 1rem 0;
+    pointer-events: none;
+    
+    .banner {
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: auto;
+      pointer-events: auto;
+    }
+  }
+}

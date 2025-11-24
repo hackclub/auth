@@ -1,0 +1,161 @@
+<div class="page-header">
+  <h1><%= t(".title.#{@is_resubmission ? 'resubmit' : 'initial'}") %></h1>
+  <p><%= t(".subtitle.#{@is_resubmission ? 'resubmit' : 'initial'}") %></p>
+</div>
+
+<div class="verification-form-sections">
+  <% if @is_resubmission %>
+    <div class="resubmission-alert">
+      <h3><%= t(".issues_to_fix") %></h3>
+      <ul>
+        <% @rejected_verifications.each do |verification| %>
+          <li>
+            <strong><%= verification.rejection_reason_name %></strong>
+            <% if verification.rejection_reason_details.present? %>
+              <small><%= verification.rejection_reason_details %></small>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if @document.errors.any? %>
+    <div class="error-alert">
+      <h4><%= t(".errors_prevented#{@document.errors.count == 1 ? '' : '_plural'}", count: @document.errors.count) %></h4>
+      <ul>
+        <% @document.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= form_with model: @document, url: update_verification_step_path(:document), method: :put, local: true, multipart: true,
+                html: {
+                  "x-data" => "{ selectedType: '#{ @document.document_type }', transcriptFileCount: 0, studentIdFileCount: 0, governmentIdFileCount: 0, get canSubmit() { return this.selectedType === 'transcript' ? (this.transcriptFileCount >= 1 && this.studentIdFileCount >= 1) : this.governmentIdFileCount >= 1; }, submitted: false }",
+                  "x-on:submit" => "submitted = true"
+                } do |form| %>
+
+    <section class="section-card">
+      <h3><%= t(".name_verification") %></h3>
+      <p class="section-description"><%= t(".legal_name_help") %><br> <%= t(".preferred_name_note") %></p>
+      <div class="grid">
+        <div>
+          <%= label_tag "legal_first_name", t(".legal_first_name") %>
+          <%= text_field_tag "legal_first_name", @identity.legal_first_name.presence || @identity.first_name, required: true,  autocomplete: "off" %>
+        </div>
+        <div>
+          <%= label_tag "legal_last_name", t(".legal_last_name") %>
+          <%= text_field_tag "legal_last_name", @identity.legal_last_name.presence || @identity.last_name, required: true,  autocomplete: "off" %>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <h3><%= t(".what_we_accept") %></h3>
+
+      <% case @identity.country %>
+      <% when "US", "AU", "CA", "SG", "UK" %>
+        <div class="requirement-group">
+          <strong><%= t(".requirements.government_id_option") %></strong>
+          <ul>
+            <li><%= t("verifications.document.requirements.drivers_license_passport_or", country_id: t(".country_specific_ids.#{@identity.country.presence || 'default'}")) %></li>
+          </ul>
+        </div>
+
+        <div class="requirement-group">
+          <strong><%= t(".requirements.school_documents") %></strong>
+          <ul>
+            <li><%= t(".requirements.student_id_and_transcript") %></li>
+          </ul>
+        </div>
+
+      <% when "IN" %>
+        <div class="requirement-group">
+          <strong><%= t(".requirements.e_aadhaar") %></strong>
+          <ul>
+            <li><%= t(".requirements.digitally_verified") %></li>
+            <li><%= link_to t(".requirements.get_e_aadhaar"), "https://hack.club/aadhaar", target: "_blank" %></li>
+          </ul>
+        </div>
+
+      <% else %>
+        <div class="requirement-group">
+          <strong><%= t(".requirements.government_id") %></strong>
+          <ul>
+            <li><%= t(".requirements.must_include") %></li>
+            <li><%= t(".requirements.id_examples") %></li>
+          </ul>
+        </div>
+      <% end %>
+    </section>
+
+    <section class="section-card">
+      <%= form.label :document_type, t(".document_type_label") %>
+      <%= form.select :document_type,
+                      Identity::Document.collection_select_options_for_country(@identity.country),
+                      { include_blank: t(".choose_document_type") },
+                      { required: true, "x-model": "selectedType" } %>
+
+      <div x-show="selectedType === 'government_id'" x-transition x-cloak>
+        <div class="photo-tips">
+          <h4><%= t(".photo_tips_title") %></h4>
+          <ul>
+            <li><%= t(".photo_tips.clear_photo") %></li>
+            <li><%= t(".photo_tips.all_corners") %></li>
+            <li><%= t(".photo_tips.name_and_dob") %></li>
+            <li><%= t(".photo_tips.avoid_glare") %></li>
+          </ul>
+        </div>
+
+        <div class="upload-field">
+          <%= form.label :files, t(".upload_government_id") %>
+          <%= file_field_tag "identity_document[files][]",
+                             required: false,
+                             accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"),
+                             "x-on:change" => 'governmentIdFileCount = $event.target.files.length' %>
+          <small><%= t(".accepted_formats") %> <%= @identity.country == "IN" ? t(".formats_india") : t(".formats_other") %></small>
+        </div>
+      </div>
+
+      <div x-show="selectedType === 'transcript'" x-transition x-cloak>
+        <div class="upload-field">
+          <%= label_tag "identity_document_files", t(".upload_transcript") %>
+          <%= file_field_tag "identity_document[files][]",
+                             required: false,
+                             accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"),
+                             "x-on:change" => 'transcriptFileCount = $event.target.files.length' %>
+          <small><%= t(".transcript_help") %></small>
+        </div>
+
+        <div class="upload-field">
+          <%= label_tag "identity_document_files", t(".upload_student_id") %>
+          <%= file_field_tag "identity_document[files][]",
+                             required: false,
+                             accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"),
+                             "x-on:change" => 'studentIdFileCount = $event.target.files.length' %>
+          <small><%= t(".student_id_help") %></small>
+        </div>
+      </div>
+
+      <div x-cloak x-show="submitted" class="uploading-state" x-cloak>
+        <p><%= t(".uploading") %></p>
+        <%= vite_image_tag "images/loader.gif" %>
+      </div>
+    </section>
+
+    <section class="section-card privacy-section">
+      <p><strong><%= t(".privacy_info.review_time") %></strong></p>
+      <p><strong><%= t(".privacy_info.privacy") %></strong></p>
+      <p><strong><%= t(".privacy_info.purpose") %></strong></p>
+    </section>
+
+    <div class="form-actions">
+      <%= form.submit t(".submit_documents"),
+                      ":disabled" => "!canSubmit",
+                      disabled: true,
+                      "x-bind:class" => "!canSubmit ? 'opacity-50 cursor-not-allowed' : ''" %>
+    </div>
+  <% end %>
+</div>

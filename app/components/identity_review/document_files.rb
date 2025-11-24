@@ -14,9 +14,9 @@ class Components::IdentityReview::DocumentFiles < Components::Base
           if file.content_type.start_with?("image/")
             # Display image files (use variants for format conversion)
             image_src = if file.content_type.in?(%w[image/heic image/heif])
-                helpers.url_for(file.variant(format: :png))
+                url_for(file.variant(format: :png))
             else
-                helpers.url_for(file)
+                url_for(file)
             end
 
             div(style: "position: relative; display: inline-block;") do
@@ -56,16 +56,16 @@ class Components::IdentityReview::DocumentFiles < Components::Base
             # Display PDF files inline
             div(style: "border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;") do
               div(style: "padding: 1rem; border-bottom: 1px solid #ddd; background: #f5f5f5;") do
-                span(style: "font-weight: bold;") { "📄 #{file.filename}" }
+                span(style: "font-weight: bold;") { "#{inline_icon("docs", size: 16)} #{file.filename}" }
                 a(
-                  href: helpers.url_for(file),
+                  href: url_for(file),
                   target: "_blank",
                   style: "color: #0066cc; text-decoration: underline; margin-left: 1rem;",
                 ) { "Open in new tab" }
               end
               # Embed PDF using iframe
               iframe(
-                src: helpers.url_for(file),
+                src: url_for(file),
                 width: "100%",
                 height: "600",
                 style: "border: none; display: block;",
@@ -75,7 +75,7 @@ class Components::IdentityReview::DocumentFiles < Components::Base
                 p(style: "padding: 2rem; text-align: center;") do
                   plain "Your browser doesn't support PDF embedding. "
                   a(
-                    href: helpers.url_for(file),
+                    href: url_for(file),
                     target: "_blank",
                     style: "color: #0066cc; text-decoration: underline;",
                   ) { "Click here to view the PDF" }
@@ -85,11 +85,11 @@ class Components::IdentityReview::DocumentFiles < Components::Base
           else
             # Display other file types
             div(style: "border: 1px solid #ddd; border-radius: 4px; padding: 1rem; background: #f9f9f9;") do
-              p { "📁 File: #{file.filename}" }
+              p { "#{inline_icon("attachment", size: 16)} File: #{file.filename}" }
               p { "Type: #{file.content_type}" }
               p do
                 a(
-                  href: helpers.url_for(file),
+                  href: url_for(file),
                   target: "_blank",
                   style: "color: #0066cc; text-decoration: underline;",
                 ) { "Download File" }

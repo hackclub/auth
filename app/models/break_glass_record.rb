@@ -27,7 +27,9 @@
 #
 class BreakGlassRecord < ApplicationRecord
   include PublicActivity::Model
-  tracked owner: ->(controller, model) { controller&.user_for_public_activity }, only: [ :create ]
+  tracked owner: ->(controller, model) { controller&.user_for_public_activity }, recipient: proc { |controller, record| record.break_glassable.is_a?(Identity) ? record.break_glassable : record.break_glassable&.identity }, only: [ :create ]
+
+  has_paper_trail
 
   belongs_to :backend_user, class_name: "Backend::User"
   belongs_to :break_glassable, polymorphic: true

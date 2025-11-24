@@ -1,7 +1,17 @@
 <%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <%
+    identity = activity.trackable&.break_glassable&.identity
+    is_current = defined?(current_identity) && identity == current_identity
+
+    verification_text = if defined?(current_user) && current_user.is_a?(Backend::User)
+      link_to "verification", backend_verification_path(activity.trackable.break_glassable.verification)
+    else
+      "verification"
+    end
+  %>
   <% if activity.trackable&.automatic? %>
     automatically
   <% end %>
-  broke the glass on <%= render activity.trackable&.break_glassable&.identity if activity.trackable&.break_glassable&.identity %>'s <%= link_to "verification", backend_verification_path(activity.trackable.break_glassable.verification) if activity.trackable.present? %>
+  broke the glass on <%= is_current ? "your" : "#{identity.first_name} #{identity.last_name}'s" if identity %> <%= verification_text if activity.trackable.present? %>
   <%= activity.trackable&.reason %>.
 <% end %>

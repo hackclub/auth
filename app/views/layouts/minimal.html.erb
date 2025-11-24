@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html data-theme="light">
+  <head>
+    <title><%= content_for(:title) || "Hack Club Account" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+    <script>
+      (function() {
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const defaultTheme = systemPrefersDark ? "dark" : "light";
+        const savedTheme = localStorage.getItem("theme") || defaultTheme;
+        document.documentElement.dataset.theme = savedTheme;
+      })();
+    </script>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%= vite_client_tag %>
+    <%= vite_stylesheet_tag "application.css" %>
+    <%= vite_javascript_tag 'application' %>
+  </head>
+  <body>
+    <main class="container" style="margin-top: 1rem">
+      <%= render "shared/flash" %>
+      <%= yield %>
+    </main>
+    <% unless Rails.env.production? %>
+      <div class="environment <%= Rails.env %>" />
+      <% end %>
+    </body>
+  </html>

@@ -1,0 +1,35 @@
+.info-sections {
+  max-width: 900px;
+  margin: $space-6 auto 0;
+}
+
+
+
+.developer-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  cursor: pointer;
+  
+  input[type="checkbox"] {
+    margin: 0;
+  }
+  
+  span {
+    color: var(--text-muted-strong);
+    font-size: 0.95rem;
+  }
+}
+
+.form-actions {
+  margin-top: $space-5;
+  display: flex;
+  gap: $space-3;
+  align-items: center;
+  
+  button, input[type="submit"] {
+    width: auto !important;
+    margin: 0 !important;
+    padding: $space-1 $space-5 !important;
+  }
+}

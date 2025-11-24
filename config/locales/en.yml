@@ -1,34 +1,452 @@
-# Files in the config/locales directory are used for internationalization and
-# are automatically loaded by Rails. If you want to use locales other than
-# English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more about the API, please read the Rails Internationalization guide
-# at https://guides.rubyonrails.org/i18n.html.
-#
-# Be aware that YAML interprets the following case-insensitive strings as
-# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
-# must be quoted to be interpreted as strings. For example:
-#
-#     en:
-#       "yes": yup
-#       enabled: "ON"
-
 en:
   activerecord:
     attributes:
       backend_user:
           slack_id: Slack ID
+  brand: Hack Club Account
+  home:
+    apps:
+      heading: Where do you want to go today?
+      none: No apps available...
+      launch: Launch
+    completion_tasks:
+      complete_your_profile: Complete your profile
+      phone_number:
+        title: Add a phone number
+        description: Help international packages reach you?
+      mailing_address:
+        title: Add a mailing address
+        description: Help us send you stickers and swag!
+      idv:
+        verify_your_identity: Verify your identity
+        pending: Identity verification in review
+        ineligible: Identity verification ineligible
+        desc_submit: You don't *have* to... (unless you want prizes?)
+        desc_resubmit: Your previous submission was rejected. Please resubmit your documents.
+        desc_pending: Shouldn't be more than a few business days...
+  sidebar:
+    home: Home
+    edit_info: My Info
+    verification: ID Verification
+    addresses: Mailing Addresses
+    security: Security
+    developer: Developer
+    docs: Docs
+    logout: Sign out
+  developer_apps:
+    index:
+      title: Developers' corner
+      create_new: app me up!
+      no_scopes: No scopes
+      edit: Edit
+      delete: Delete
+      delete_confirm: Are you sure you want to delete this app? This cannot be undone.
+      client_id: Client ID
+      click_to_copy_client_id: click to copy client ID
+      blank_slate:
+        title: No OAuth apps yet
+        cta: Create an app to start authenticating with Hack Club!
+        create: app me up.
+      not_found: "App not found (or you're unauthorized?)"
+    show:
+      back_to_apps: ← Back to Apps
+      security_warning_title: Keep your credentials secure!
+      security_warning_message: Never share your client secret publicly or commit it to version control.
+      oauth_credentials: OAuth Credentials
+      client_id: Client ID
+      click_to_copy_client_id: click to copy client ID
+      client_secret: Client Secret
+      click_to_copy_client_secret: click to copy client secret
+      redirect_uris: Redirect URIs
+      test_auth: Test Auth
+      auth_link_hint: Right click auth links to copy URL
+      configuration: Configuration
+      scopes: Scopes
+      no_scopes: No scopes selected
+      trust_level: Trust Level
+      edit_app: Edit App
+      delete_app: Delete App
+      delete_confirm: Are you sure you want to delete this app? This action cannot be undone and will revoke all existing tokens.
+    new:
+      title: Create New OAuth App
+      back_to_apps: ← Back to Apps
+      errors_header:
+        one: "%{count} issue prevented this from being saved:"
+        other: "%{count} issues prevented this from being saved:"
+      app_name: Application Name
+      app_name_placeholder: Northern California National Bank Online Banking
+      redirect_uri: Redirect URI(s)
+      redirect_uri_placeholder: http://localhost:3000/oauth/callback
+      redirect_uri_hint: Enter one redirect URI per line for OAuth callbacks
+      scopes: Scopes
+      scopes_hint: "Community apps are limited to: %{scopes}"
+      trust_level_note_html: "<strong>Note:</strong> Your app will initially be created with <code>community_untrusted</code> trust level. <br/> This means users will see a scarier consent screen when authorizing your app. <br/> Once you've developed your integration, poke Nora to get it promoted."
+      create: Create App
+      cancel: Cancel
+    edit:
+      title: Edit %{name}
+      back_to_app: ← Back to App
+      errors_header:
+        one: "%{count} issue prevented this from being saved:"
+        other: "%{count} issues prevented this from being saved:"
+      app_name: Application Name
+      redirect_uri: Redirect URI
+      redirect_uri_hint: Enter one redirect URI per line for OAuth callbacks
+      scopes: Scopes
+      scopes_hint: "Community apps are limited to: %{scopes}"
+      update: Update App
+      cancel: Cancel
+    create:
+      success: OAuth app created successfully!
+    update:
+      success: OAuth app updated successfully!
+    destroy:
+      success: OAuth app deleted successfully!
+    require_developer_mode:
+      developer_mode_required: Developer mode is not enabled for your account.
+    set_app:
+      not_found: OAuth app not found.
+  addresses:
+    first_name: First name
+    last_name: Last name
+    line_1: Address line 1
+    line_2: Address line 2
+    city: City
+    state: State/Province
+    postal_code: Postal code
+    save: Save address
+    cancel: Cancel
+    primary: Primary
+    index:
+      title: Your Addresses
+      edit: Edit
+      make_primary: Set as primary
+      delete: Delete
+      delete_confirmation: Are you sure you want to delete this address?
+      blank_slate:
+        title: No addresses yet
+        cta: Add your first mailing address to get started
+        create: Add Your First Address
+    new:
+      title: Add Your Address
+      subtitle: We'll use this address to send you physical items when needed
+    edit:
+      title: Edit Address
+      subtitle: Update your mailing address information
+  doorkeeper:
+    authorizations:
+      new:
+        prompt: Authorize %{client_name} to use your account?
+        able_to: This application will be able to
+        deny: Deny
+        authorize: Authorize →
+        banners:
+          community_untrusted:
+            title: Community Application
+            message_html: This application is created by a community member and has not been officially verified by Hack Club HQ. <br/> Make sure you trust the author with the information below
+          community_trusted:
+            title: Community Application
+            message_html: This application is created by a community member. <br/> Hack Club HQ has reviewed it, but please make sure you trust the author with the information below.
+        scopes:
+          basic_info:
+            title: See basic information about you
+            email_label: "Email:"
+            name_label: "Name:"
+            verification_status_label: "Verification status:"
+          email:
+            title: See your email address
+            email_label: "Email:"
+          name:
+            title: See your name
+            name_label: "Name:"
+          slack_id:
+            title: See your Slack ID
+            slack_id_label: "Slack ID:"
+            not_set: Not set
+          verification_status:
+            title: See your verification status
+            verification_status_label: "Verification status:"
+            ysws_eligible_label: "YSWS eligible:"
+  authorized_applications:
+    none: You haven't authorized any apps yet.
+    created_at: Authorized
+    expires_at: Expires
+    scopes: Permissions
+    revoke_confirmation: Are you sure you want to revoke access for %{app}? This cannot be undone, and things may break if you do.
+    revoke: Revoke
+  identities:
+    first_name: First name
+    last_name: Last name
+    email: Email
+    email_placeholder: orpheus@dino.mail
+    phone_number: Phone number
+    phone_number_placeholder: "+18028675309"
+    birthday: Birthday
+    country: Primary country
+    country_select: Select a country...
+    fiona: Fiona
+    hackworth: Hackworth
+    edit:
+      title: My info
+      info_heading: Personal info
+      legal_name_exists: We also have a different legal name on file. Please contact us if you need to change it.
+      developer_mode: Developer mode
+      developer_mode_description: Wanna OAuth some OAuth? Check this box.
+      save: Save changes
+      no_email_change_yet: Changing your email will be available in a future release.
+      super_secret_settings: "Super secret settings"
+      saml_debug: "debug your SAML assertions?"
+    new:
+      already_have: Already have a Hack Club account?
+      log_in: Log in here
+      not_necessarily_legal_name: not necessarily your legal name, what do people usually call you?
+      email_code: We'll send a one-time code to this address.
+      continue: Continue
+      wrong_email: "← Wrong email? Go back"
+    update:
+      success: saved changes!
+    create:
+      account_exists: You already have an account, please log in!
+      birthday_in_future: I'm sorry, I may be gullible but I'm not willing to believe you were born in the future.
+      email_already_migrated: that email address has already been migrated
+    toggle_2fa:
+      must_setup_method: You must set up a two-factor authentication method before requiring 2FA
+  auth_type:
+    email: Email
+    totp: TOTP
+    backup_code: Backup code
+  logins:
+    new:
+      title: Welcome back!
+      subtitle: Sign in to your Hack Club Account
+      email_label: Email address
+      continue: Continue
+      no_account: Don't have an account?
+      signup: Make one
+      free: ", it's free!"
+    welcome:
+      email_help: "This'll be the email you use across Hack Club. We recommend using your personal email. If you already have a Hack Club account, just put your existing email in here :-)"
+      continue: Continue
+    email:
+      title: Check your email...
+      sent_to: We sent a code to
+      code_label: Enter the 6-digit code
+      verify: Verify
+      resend: Resend code
+      wrong_email: Wrong email?
+      use_different_address: Use a different address
+    backup_code:
+      title: Enter backup code
+      description: Use one of your backup codes to sign in
+      code_label: Backup code
+      placeholder: XXXX-XXXX-XXXX
+      verify: Verify
+      use_authenticator: Use authenticator app instead
+    totp:
+      title: Enter authenticator code
+      subtitle: Enter the 6-digit code from your authenticator app
+      code_label: Enter the 6-digit code
+      placeholder: "000000"
+      verify: Verify
+      lost_authenticator: Lost your authenticator?
+      use_backup_code: Use a backup code instead
+  saml:
+    http_post:
+      title: SAMLing...
+      text: Logging you in...
+  static_pages:
+    welcome:
+      title: Hack Club Account
+      subtitle: One account for Slack, Hack Club, and beyond.
+      cta_create: Create Your Account →
+      cta_signin: Sign In
+      security_link: Security
+    security:
+      heading: Security
+      sessions: Active sessions
+      applications: Linked apps
+      mfa: 2-Factor Authentication
+      backup_codes: Backup Codes
+  identity_backup_codes:
+    totp_heading: "Save your backup codes"
+    save_warning_title: Save these codes now!
+    save_warning_detail: "These codes are shown only once. Store them in a secure password manager. Anyone with these codes can access your account. Each code can only be used once."
+    copy_all: Copy All
+    copied: Copied!
+    download: Download .txt
+    print: Print
+    confirmation_label: I've saved these codes securely
+    finish: Finish Setup
+    index:
+      heading: Backup codes
+      created_heading: Your backup codes
+      regenerate: Regenerate codes
+      regenerate_confirmation: This will generate new backup codes. You'll need to confirm you've saved them before your current codes are invalidated.
+      activate_codes: Activate New Codes
+      status: You have %{remaining} available. <br/>Each code can be used once if you lose access to your second factor.
+      none: No backup codes available. Set up 2FA first to generate backup codes.
+  identity_totps:
+    index:
+      totp_title: Authenticator App (TOTP)
+      totp_description: You can use your authenticator app to sign in.
+      remove: Remove
+      require_2fa_title: Require 2FA on login
+      require_2fa_description: When enabled, you must use a second factor (authenticator app or backup code) to sign in.
+      disable_requirement: Disable Requirement
+      enable_requirement: Enable Requirement
+      setup_description: Add an extra layer of security by requiring a second factor in addition to your email.
+      setup_authenticator: Set up two-factor authentication
+    show:
+      heading: Set up two-factor authentication
+      step_indicator: Step 1 of 2
+      instructions: "Scan the QR code with an authenticator app (1Password, Google Authenticator, Authy, Microsoft Authenticator)."
+      scan_qr: Scan this QR code
+      manual_entry: Can't scan? Enter manually
+      secret_warning: "Treat this secret like a password. Don't share or store it insecurely."
+      copy_secret: Copy Secret
+      copied: Copied!
+      code_label: Enter the 6-digit code
+      code_hint: Enter the 6-digit code from your authenticator app
+      verify_enable: Verify and Enable
+      cancel_setup: Cancel Setup
+      cancel_confirm: "Cancel 2FA setup? This will remove the unverified authenticator."
+      help_title: Not working?
+      help_text: "TOTP codes change every 30 seconds. Make sure your device's time is accurate. If it still doesn't work, try re-scanning the QR code."
+    backup_codes:
+      step_indicator: Step 2 of 2
+  identity_sessions:
+    index:
+      blank_slate: No active sessions # never, right?
+      logout_others: Log out all other sessions
+      logout_others_confirmation: Are you sure you want to log out of all other sessions?
+    current: Current
+    unknown: Unknown
+    unknown_device: Unknown device
+    unknown_os: Unknown OS
+    ip: IP Address
+    created_at: Signed in
+    last_seen: Last active
+    expires_at: Lasts until
+    auth_type: Login method
+    terminate: Log out
+    terminate_confirmation: Log out this session?
+  step_up:
+    new:
+      title: Gotta confirm it's you...
+      choose_method: Choose a verification method to continue
+      methods:
+        totp:
+          title: Authenticator App
+          description: Use your TOTP authenticator app
+        backup_code:
+          title: Backup Code
+          description: Use one of your backup codes
+      cancel: Cancel
+      enter_code_labels:
+        totp: Enter authenticator code
+        backup_code: Enter backup code
+      enter_code_descriptions:
+        totp: Enter the 6-digit code from your authenticator app
+        backup_code: Enter one of your backup codes
+      code_label: Enter code
+      backup_placeholder: XXXXXXXXXX
+      totp_placeholder: "000000"
+      verify: Verify
+      use_different_method: Use a different method
+  verifications:
+    document:
+      title:
+        initial: Upload your documents
+        resubmit: Resubmit your documents
+      subtitle:
+        initial: This helps us verify you're eligible for YSWS
+        resubmit: Fix the issues below and try again
+      issues_to_fix: Issues to fix
+      errors_prevented: "%{count} error prevented submission"
+      errors_prevented_plural: "%{count} errors prevented submission"
+      name_verification: Name verification
+      legal_name_help: Please enter your name as it appears on your legal documents.
+      preferred_name_note: This will not overwrite your preferred name.
+      legal_first_name: Legal first name
+      legal_last_name: Legal last name
+      what_we_accept: What we accept
+      requirements:
+        government_id: Government-issued ID
+        government_id_option: "Option 1: Government-issued ID"
+        school_documents: "Option 2: School documents"
+        e_aadhaar: E-Aadhaar from UIDAI
+        get_e_aadhaar: Get your E-Aadhaar →
+        id_examples: "Examples: National ID card, passport, driver's license"
+        must_include: Must include your name, date of birth, and photo
+        student_id_and_transcript: Student ID and recent report card or transcript
+        digitally_verified: Must be digitally verified or carry a validated digital signature
+        drivers_license_passport_or: "Driver's license, passport, %{country_id} or similar"
+      country_specific_ids:
+        US: state ID
+        SG: FIN/NRIC card
+        UK: PASS card
+        default: national ID
+      document_type_label: Document type
+      choose_document_type: Choose what you're uploading...
+      photo_tips_title: Photo tips
+      photo_tips:
+        clear_photo: Take a clear, well-lit photo—make sure it's in focus
+        all_corners: Include all 4 corners of the document
+        name_and_dob: Your name and date of birth must be clearly visible
+        avoid_glare: Avoid glare or shadows that obscure text
+      upload_government_id: Upload your government-issued ID
+      accepted_formats: "Accepted formats:"
+      formats_india: PDF only
+      formats_other: Images, PDF, HEIC
+      upload_transcript: Upload your transcript
+      transcript_help: Your most recent report card or transcript
+      upload_student_id: Upload your student ID
+      student_id_help: Photo of your school-issued student ID
+      uploading: Uploading your documents...
+      privacy_info:
+        review_time: "Review time: 1–2 business days"
+        privacy: "Privacy: Documents are encrypted and never shared with third parties. Access is limited to HCB staff during review, then core HQ staff for exceptional cases only."
+        purpose: "Purpose: Used only for age verification and preventing duplicate accounts."
+      submit_documents: Submit Documents
+    status:
+      badges:
+        under_review: Under review
+        verified: Verified
+        not_eligible: Not eligible
+        needs_resubmission: Needs resubmission
+        not_started: Not started
+      pending:
+        title: We're checking your documents
+        subtitle: You'll hear from us in 1–2 business days
+        description: Our team is reviewing your submission. We'll email %{email} when we're done.
+        submitted_ago: Submitted %{time} ago
+      verified:
+        title_ysws: You're all set for YSWS
+        title_verified: You're verified
+        subtitle_ysws: You can now participate in programs and compete for prizes
+        subtitle_verified: Your account is verified and ready to go
+        verified_ago: Verified %{time} ago
+        back_to_home: Back to Home
+      ineligible:
+        titles:
+          rejected: Verification rejected
+          restricted: Account restricted
+          unable: Unable to verify
+        subtitles:
+          rejected: Your verification was permanently rejected
+          restricted: This account is not eligible for verification
+          unable: You're not eligible for verification at this time
+        contact: Questions? Email identity@hackclub.com
+        back_to_home: Back to Home
+      needs_submission:
+        resubmission:
+          title: Please resubmit your documents
+          subtitle: We found some issues with your previous submission that you can fix
+          issues_to_fix: Issues to fix
+          resubmit_documents: Resubmit Documents
+        initial:
+          title: Get verified for YSWS
+          subtitle: Verify your age and identity to participate in programs and compete for prizes
+          start_verification: Start Verification
+  auth:
+    sign_in_or_create: "Sign in or create a Hack Club account to continue"

@@ -1,0 +1,163 @@
+.address-card {
+  @include card($padding: $space-4, $radius: $radius-lg);
+  @include transition-default();
+  
+  [data-theme="dark"] & {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.1),
+      0 2px 6px rgba(0, 0, 0, 0.06);
+    
+    [data-theme="dark"] & {
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+.address-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: $space-3;
+  margin-bottom: $space-3;
+}
+
+.address-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.address-info {
+  min-width: 0;
+}
+
+.address-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--pico-color);
+}
+
+.primary-badge {
+  @include badge(var(--pico-primary-background), var(--pico-primary), $radius-sm);
+  font-weight: 500;
+  padding: 0.25rem 0.625rem;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+.address-details {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--pico-muted-color);
+  margin-bottom: $space-4;
+}
+
+.address-actions {
+  display: flex;
+  gap: $space-2;
+  flex-wrap: wrap;
+
+  button {
+    margin: 0;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: $space-8 $space-6;
+  background: var(--pico-card-background-color);
+  border: 1px dashed var(--pico-card-border-color);
+  border-radius: $radius-lg;
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: $space-3;
+    opacity: 0.5;
+  }
+
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--pico-color);
+    margin: 0 0 $space-2;
+  }
+
+  p {
+    font-size: 0.9375rem;
+    margin: 0 0 $space-5;
+    color: var(--pico-muted-color);
+    line-height: 1.5;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  a[role="button"] {
+    margin: 0;
+    font-size: 0.9375rem;
+    padding: 0.625rem $space-5;
+  }
+}
+
+.address-form {
+  fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 $space-5;
+
+    legend {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--pico-color);
+      margin-bottom: $space-3;
+      padding: 0;
+    }
+
+    label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.375rem;
+      display: block;
+      color: var(--pico-color);
+    }
+
+    input, select, textarea {
+      margin-bottom: $space-3;
+      border-radius: $radius-md;
+      font-size: 0.9375rem;
+    }
+
+    .grid {
+      gap: $space-3;
+    }
+  }
+
+  footer {
+    margin-top: $space-5;
+    display: flex;
+    gap: $space-2;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    button, input[type="submit"] {
+      margin: 0;
+      font-weight: 500;
+      font-size: 0.9375rem;
+      padding: 0.625rem $space-5;
+      border-radius: $radius-md;
+    }
+
+    a {
+      margin: 0;
+      padding: 0.625rem $space-5;
+      font-size: 0.9375rem;
+    }
+  }
+}

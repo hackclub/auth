@@ -216,8 +216,10 @@ Rails.application.routes.draw do
     resources :identities do
       member do
         post :clear_slack_id
+        post :reprovision_slack
         get :new_vouch
         post :create_vouch
+        post :promote_to_full_user
       end
     end
 
@@ -231,9 +233,12 @@ Rails.application.routes.draw do
     end
   end
 
-  root "static_pages#index"
+  root "static_pages#home"
 
-  get "/faq", to: "static_pages#faq", as: :faq
+  get "/welcome", to: "static_pages#welcome", as: :welcome
+  get "/oauth/welcome", to: "static_pages#oauth_welcome", as: :oauth_welcome
+  get "/security", to: "static_pages#security", as: :security
+  get "/activity", to: "audit_logs#index", as: :audit_logs
 
   # Login system routes
   resource :sessions, only: [ :new, :create, :destroy ] do
@@ -244,32 +249,67 @@ Rails.application.routes.draw do
     end
   end
 
-  resource :onboarding, only: [ :show ] do
-    get :welcome
-    get :signin
-    get :basic_info
-    post :basic_info, to: "onboardings#create_basic_info"
-    get :document
-    post :document, to: "onboardings#create_document"
-    get :aadhaar
-    post :aadhaar, to: "onboardings#submit_aadhaar"
-    get :aadhaar_step_2, to: "onboardings#aadhaar_step_2"
-    get :address
-    post :address, to: "onboardings#create_address"
-    get :submitted
-    get :continue
+  resource :identity, only: [ :edit, :update ] do
+    collection do
+      post :toggle_2fa
+    get :confirm_disable_2fa
+    end
   end
 
-  resource :aadhaar, only: [], controller: "aadhaar" do
-    get :async_digilocker_link
-    get :digilocker_redirect
-  end
+  get "/signup", to: "identities#new", defaults: { route_context: "signup" }, as: :signup
+  post "/signup", to: "identities#create", defaults: { route_context: "signup" }
+  get "/migrate", to: "identities#new", defaults: { route_context: "migrate" }, as: :migrate
+  post "/migrate", to: "identities#create", defaults: { route_context: "migrate" }
+  get "/join/:slug", to: "identities#new", defaults: { route_context: "join" }, as: :join
+  post "/join/:slug", to: "identities#create", defaults: { route_context: "join" }
+
+  get "/login", to: "logins#new", as: :login
+  post "/login", to: "logins#create"
+  get "/login/:id", to: "logins#show", as: :login_attempt
+  post "/login/:id/verify", to: "logins#verify", as: :verify_login_attempt
+  post "/login/:id/resend", to: "logins#resend", as: :resend_login_attempt
+
+  get "/login/:id/totp", to: "logins#totp", as: :totp_login_attempt
+  post "/login/:id/totp", to: "logins#verify_totp", as: :verify_totp_login_attempt
+  get "/login/:id/backup_code", to: "logins#backup_code", as: :backup_code_login_attempt
+  post "/login/:id/backup_code", to: "logins#verify_backup_code", as: :verify_backup_code_login_attempt
+
+  delete "/logout", to: "sessions#logout", as: :logout
+
+  get "/verifications/new", to: "verifications#new", as: :new_verifications
+  get "/verifications/status", to: "verifications#status", as: :verification_status
+  get "/verifications/:id", to: "verifications#show", as: :verification_step
+  put "/verifications/:id", to: "verifications#update", as: :update_verification_step
 
   resources :addresses do
     collection do
       get :program_create_address
     end
   end
+
+  resources :identity_sessions, only: [ :index, :destroy ] do
+    collection do
+      delete :destroy_all
+    end
+  end
+
+  resources :identity_totps, only: [ :index, :new, :destroy ] do
+    member do
+      post :verify
+    end
+  end
+
+  # Step-up authentication flow
+  get "/step_up", to: "step_up#new", as: :new_step_up
+  post "/step_up/verify", to: "step_up#verify", as: :verify_step_up
+
+  resources :identity_backup_codes, only: [ :index, :create ] do
+    patch :confirm, on: :collection
+  end
+
+  resources :authorized_applications, only: [ :index, :destroy ]
+
+  resources :developer_apps, path: "developer/apps"
 
   namespace :api do
     namespace :v1 do
@@ -289,15 +329,23 @@ Rails.application.routes.draw do
 
   get "/api/external", to: "static_pages#external_api_docs"
 
-  namespace :webhooks do
-    post "/aadhaar/:secret_key", to: "aadhaar#create", as: :aadhaar_callback
+  get "/slack_staging", to: "static_pages#slack_staging" if Rails.env.staging?
+
+  # Documentation routes
+  get "/docs", to: "docs#index", as: :docs
+  get "/docs/:slug", to: "docs#show", as: :doc
+
+  # Slack interactivity routes
+  namespace :slack do
+    post "/interactivity", to: "interactivity#create"
   end
 
-  # Slack account linking routes
-  get "/slack/link", to: "slack_accounts#new", as: :link_slack_account
-  get "/slack/callback", to: "slack_accounts#create", as: :slack_account_callback
-
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  scope :saml do
+    get "/metadata", to: "saml#metadata"
+    get "/welcome", to: "saml#welcome", as: :saml_welcome
+    post "/idp_initiated/:slug", to: "saml#idp_initiated", as: :idp_initiated_saml
+    get "/auth", to: "saml#sp_initiated_get"
+  end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

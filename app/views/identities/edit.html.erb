@@ -1,0 +1,86 @@
+<div class="page-header">
+  <h1><%= t ".title" %></h1>
+</div>
+
+<div class="info-sections">
+  <%= form_with model: @identity, url: identity_path, method: :patch, local: true do |f| %>
+    <% if @identity.errors.any? %>
+      <div class="banner danger" aria-live="polite" style="margin-bottom: 1.5rem;">
+        <h4 style="color: var(--error-fg);"><%= pluralize(@identity.errors.count, "issue") %> prevented this from being saved:</h4>
+        <ul>
+          <% @identity.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <section class="section-card">
+      <h3><%= t ".info_heading" %></h3>
+
+      <div class="grid">
+        <div>
+          <%= f.label :first_name, t("identities.first_name") %>
+          <%= f.text_field :first_name, required: true, placeholder: t("identities.fiona") %>
+        </div>
+
+        <div>
+          <%= f.label :last_name, t("identities.last_name") %>
+          <%= f.text_field :last_name, required: true, placeholder: t("identities.hackworth") %>
+        </div>
+      </div>
+
+      <div>
+        <%= f.label :phone_number, "Phone Number" %>
+        <%= f.text_field :phone_number, placeholder: "+1 (555) 123-4567" %>
+      </div>
+
+      <% if @identity.legal_first_name.present? && @identity.legal_last_name.present? %>
+        <div class="banner info" style="margin-top: 1rem;">
+          <%= t ".legal_name_exists" %>
+        </div>
+      <% end %>
+
+      <div class="form-actions">
+        <%= f.submit t(".save") %>
+      </div>
+    </section>
+  <% end %>
+
+  <section class="section-card">
+    <h3><%= t "identities.email" %></h3>
+    <%= text_field_tag :primary_email, @identity.primary_email, readonly: true, autocomplete: "off" %>
+    <small class="usn"><%= t ".no_email_change_yet" %></small>
+  </section>
+
+  <%= form_with model: @identity, url: identity_path, method: :patch, local: true do |f| %>
+    <section class="section-card">
+      <h3><%= t(".developer_mode") %></h3>
+
+      <label class="developer-mode-toggle">
+        <%= f.check_box :developer_mode %>
+        <span><%= t(".developer_mode_description") %></span>
+      </label>
+
+      <div class="form-actions">
+        <%= f.submit t(".save") %>
+      </div>
+    </section>
+  <% end %>
+  <% if params["sss"] == "yeah" %>
+    <%= form_with model: @identity, url: identity_path, method: :patch, local: true do |f| %>
+      <section class="section-card">
+        <h3><%= t(".super_secret_settings") %></h3>
+
+        <label class="developer-mode-toggle">
+          <%= f.check_box :saml_debug %>
+          <span><%= t(".saml_debug") %></span>
+        </label>
+
+        <div class="form-actions">
+          <%= f.submit t(".save") %>
+        </div>
+      </section>
+    <% end %>
+  <% end %>
+</div>

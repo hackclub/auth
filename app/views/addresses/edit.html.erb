@@ -1,6 +1,10 @@
-<h1>Edit Address</h1>
+<div class="page-header">
+  <h1><%= t '.title' %></h1>
+</div>
 
-<%= render 'form', address: @address %>
-
-<%= link_to "Show", @address %> |
-<%= link_to "Back", addresses_path %>
+<div class="info-sections">
+  <section class="section-card">
+    <h3><%= t '.subtitle' %></h3>
+    <%= render 'form', address: @address %>
+  </section>
+</div>

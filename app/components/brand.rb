@@ -5,30 +5,18 @@ class Components::Brand < Components::Base
 
   def view_template
     div(class: "brand") do
-      if @identity.present?
-        copy_to_clipboard @identity.public_id, tooltip_direction: "e", label: "click to copy your internal ID" do
-          logo
-        end
-      else
-        logo
-      end
-      h1 { "Hack Club Identity" }
+      logo
+      h1 { t "brand" }
     end
     button id: "lightswitch", class: "lightswitch-btn", type: "button", "aria-label": "Toggle theme" do
-      span class: "lightswitch-icon" do
-        "🌙"
+      span class: "lightswitch-moon" do
+        inline_icon("moon-fill", size: 16)
+      end
+      span class: "lightswitch-sun", style: "display: none;" do
+        inline_icon("sun", size: 16)
       end
     end
-    case Rails.env
-    when "staging"
-      div(class: "banner purple") do
-        safe "this is a staging environment. <b>do not upload any actual personal information here.<b>"
-      end
-    when "development"
-      div(class: "banner success") do
-        plain "you're in dev! go nuts :3"
-      end
-    end
+    render Components::EnvironmentBanner.new
   end
 
   def logo

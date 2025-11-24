@@ -1,16 +1,18 @@
 class ApplicationController < ActionController::Base
   include PublicActivity::StoreController
   include IsSneaky
+  include SessionsHelper
 
-  helper_method :current_identity, :identity_signed_in?, :current_onboarding_step
+  helper_method :current_identity, :identity_signed_in?, :current_onboarding_step, :current_user
+
+  def current_user = nil # TODO: this is a temp hack to fix partials until /backend auth is replaced
+
+  helper_method :detected_country_alpha2
 
   before_action :invalidate_v1_sessions, :authenticate_identity!, :set_honeybadger_context
 
   before_action :set_paper_trail_whodunnit
-
-  def current_identity
-    @current_identity ||= Identity.find_by(id: session[:identity_id]) if session[:identity_id]
-  end
+  before_action :touch_session_last_seen_at
 
   alias_method :user_for_public_activity, :current_identity
 
@@ -30,14 +32,14 @@ class ApplicationController < ActionController::Base
 
   def authenticate_identity!
     unless identity_signed_in?
-      session[:oauth_return_to] = request.original_url unless request.xhr?
+      session[:return_to] = request.original_url unless request.xhr?
       # JANK ALERT
       hide_some_data_away
 
       # EW
       return if controller_name == "onboardings"
 
-      redirect_to welcome_onboarding_path
+      redirect_to welcome_path
     end
   end
 
@@ -45,6 +47,27 @@ class ApplicationController < ActionController::Base
     Honeybadger.context({
       identity_id: current_identity&.id
     })
+  end
+
+  # Best-effort country detection from request IP; returns ISO3166 alpha-2.
+  # Falls back to "US" if detection fails or result is not in our enum.
+  def detected_country_alpha2
+    ip = request.remote_ip
+    return nil if ip.blank?
+
+    begin
+      result = Geocoder.search(ip).first
+      code = result&.country_code&.upcase
+      # Ensure the code maps to a known enum key
+      if code.present? && Identity.send(:country_enum_list).key?(code.to_sym)
+        code
+      else
+        "US"
+      end
+    rescue => e
+      Rails.logger.info("geoip failed: #{e.class}: #{e.message}")
+      "US"
+    end
   end
 
   def current_onboarding_step
@@ -62,5 +85,11 @@ class ApplicationController < ActionController::Base
   rescue_from ActiveRecord::RecordNotFound do |e|
     flash[:error] = "sorry, couldn't find that object... (404)"
     redirect_to root_path
+  end
+
+  private
+
+  def touch_session_last_seen_at
+    current_session&.touch_last_seen_at
   end
 end

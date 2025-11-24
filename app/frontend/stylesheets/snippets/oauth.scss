@@ -1,0 +1,99 @@
+// OAuth consent screen styling - extends auth.scss
+
+.oauth-consent {
+  max-width: 580px;
+  
+  .oauth-permissions {
+    margin: $space-6 0;
+    
+    fieldset {
+      margin: 0;
+      
+      legend {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-muted-strong);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 1rem;
+      }
+    }
+  }
+  
+  .permissions-list {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    
+    > li {
+      margin-bottom: 0.75rem;
+      list-style: none !important;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      &::before {
+        display: none !important;
+      }
+    }
+  }
+  
+  .permission-item {
+    background: var(--surface-2);
+    border: 1px solid var(--surface-2-border);
+    border-radius: $radius-md;
+    padding: 1rem 1.25rem;
+    
+    > strong {
+      display: block;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text-strong);
+      margin-bottom: 0.5rem;
+    }
+  }
+  
+  .permission-details {
+    list-style: none !important;
+    padding: $space-2 0 0 !important;
+    margin: 0 !important;
+    border-top: 1px solid var(--surface-2-border);
+    
+    li {
+      font-size: 0.875rem;
+      color: var(--pico-muted-color);
+      padding: 0.375rem 0;
+      display: flex;
+      align-items: baseline;
+      list-style: none !important;
+      
+      &::before {
+        display: none !important;
+      }
+      
+      span {
+        font-weight: 500;
+        color: var(--text-muted-strong);
+        min-width: 140px;
+        flex-shrink: 0;
+      }
+    }
+  }
+  
+  .oauth-actions {
+    display: flex;
+    gap: $space-2;
+    margin-top: $space-6;
+    
+    form {
+      flex: 1;
+      margin: 0;
+      
+      input[type="submit"] {
+        width: 100%;
+        margin: 0;
+      }
+    }
+  }
+}

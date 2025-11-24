@@ -48,50 +48,57 @@ class Identity < ApplicationRecord
 
   has_country_enum
 
-  has_many :documents, class_name: "Identity::Document"
-  has_many :verifications, class_name: "Verification"
+  has_many :sessions, class_name: "IdentitySession", dependent: :destroy
+  has_many :login_attempts, dependent: :destroy
+  has_many :login_codes, class_name: "Identity::LoginCode", dependent: :destroy
+  has_many :v2_login_codes, class_name: "Identity::V2LoginCode", dependent: :destroy
+  has_many :totps, class_name: "Identity::TOTP", dependent: :destroy
+  has_many :backup_codes, class_name: "Identity::BackupCode", dependent: :destroy
+
+  has_many :documents, class_name: "Identity::Document", dependent: :destroy
+  has_many :verifications, class_name: "Verification", dependent: :destroy
   has_many :document_verifications, class_name: "Verification::DocumentVerification", dependent: :destroy
-  has_many :aadhaar_verifications, class_name: "Verification::AadhaarVerification"
+  has_many :aadhaar_verifications, class_name: "Verification::AadhaarVerification", dependent: :destroy
   has_many :vouch_verifications, class_name: "Verification::VouchVerification", dependent: :destroy
-  has_many :login_codes, class_name: "Identity::LoginCode"
-  has_many :addresses, class_name: "Address"
+  has_many :addresses, class_name: "Address", dependent: :destroy
   belongs_to :primary_address, class_name: "Address", optional: true
 
-  has_many :access_tokens, -> { where(revoked_at: nil) }, class_name: "Doorkeeper::AccessToken", foreign_key: :resource_owner_id
+  has_many :access_tokens, -> { where(revoked_at: nil) }, class_name: "OAuthToken", foreign_key: :resource_owner_id
   has_many :programs, through: :access_tokens, source: :application
 
-  has_many :resemblances, class_name: "Identity::Resemblance"
+  has_many :resemblances, class_name: "Identity::Resemblance", dependent: :destroy
   has_many :break_glass_records, as: :break_glassable, dependent: :destroy
 
-  has_many :all_access_tokens, class_name: "Doorkeeper::AccessToken", foreign_key: :resource_owner_id
+  has_many :all_access_tokens, class_name: "Doorkeeper::AccessToken", foreign_key: :resource_owner_id, dependent: :destroy
   has_many :all_programs, through: :all_access_tokens, source: :application
 
+  has_many :owned_developer_apps, class_name: "Program", foreign_key: :owner_identity_id, dependent: :nullify
+
   validates :first_name, :last_name, :country, :primary_email, :birthday, presence: true
-  validates :phone_number, presence: true, on: :create
-  validates :primary_email, uniqueness: true
+  validates :primary_email, uniqueness: { conditions: -> { where(deleted_at: nil) } }
   validates :primary_email, 'valid_email_2/email': { mx: true, disposable: true }
 
-  validates :slack_id, uniqueness: true, allow_blank: true
+  validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, allow_blank: true
   validates :aadhaar_number, uniqueness: true, allow_blank: true
   validates :aadhaar_number, format: { with: /\A\d{12}\z/, message: "must be 12 digits" }, if: -> { aadhaar_number.present? }
 
   scope :search, ->(term) {
-          return all if term.blank?
+    return all if term.blank?
 
-          sanitized_term = "%#{term}%"
-          where(
-            "first_name ILIKE ? OR last_name ILIKE ? OR primary_email ILIKE ? OR slack_id ILIKE ?",
-            sanitized_term, sanitized_term, sanitized_term, sanitized_term
-          )
-        }
+    sanitized_term = "%#{term}%"
+    where(
+      "first_name ILIKE ? OR last_name ILIKE ? OR primary_email ILIKE ? OR slack_id ILIKE ?",
+      sanitized_term, sanitized_term, sanitized_term, sanitized_term
+    )
+  }
 
   scope :with_fatal_rejections, -> {
-          joins(:verifications).where(verifications: { fatal: true, ignored_at: nil })
-        }
+    joins(:verifications).where(verifications: { fatal: true, ignored_at: nil })
+  }
 
   scope :verified_but_ysws_ineligible, -> {
-          joins(:verifications).where(verifications: { status: "approved", ignored_at: nil }).where(ysws_eligible: false)
-        }
+    joins(:verifications).where(verifications: { status: "approved", ignored_at: nil }).where(ysws_eligible: false)
+  }
 
   validate :birthday_must_be_at_least_six_years_ago
 
@@ -100,6 +107,7 @@ class Identity < ApplicationRecord
 
   validate :legal_names_must_be_complete
 
+  before_validation :downcase_email
   before_commit :copy_legal_name_if_needed, on: :create
 
   def self.slack_authorize_url(redirect_uri)
@@ -115,11 +123,11 @@ class Identity < ApplicationRecord
 
   def self.link_slack_account(code, redirect_uri, current_identity)
     response = HTTP.post("https://slack.com/api/oauth.v2.access", form: {
-                                                                    client_id: ENV["SLACK_CLIENT_ID"],
-                                                                    client_secret: ENV["SLACK_CLIENT_SECRET"],
-                                                                    code: code,
-                                                                    redirect_uri: redirect_uri
-                                                                  })
+      client_id: ENV["SLACK_CLIENT_ID"],
+      client_secret: ENV["SLACK_CLIENT_SECRET"],
+      code: code,
+      redirect_uri: redirect_uri
+    })
 
     data = JSON.parse(response.body.to_s)
 
@@ -146,6 +154,12 @@ class Identity < ApplicationRecord
   end
 
   def slack_linked? = slack_id.present?
+
+  def onboarding_scenario_instance
+    scenario_slug = onboarding_scenario || "default"
+    scenario_class = OnboardingScenarios::Base.find_by_slug(scenario_slug) || OnboardingScenarios::DefaultJoin
+    scenario_class.new(self)
+  end
 
   def onboarding_step
     return :basic_info unless persisted?
@@ -261,16 +275,84 @@ class Identity < ApplicationRecord
 
   def under_13? = age <= 13
 
+  def locked? = locked_at.present?
+
+  def unlock! = update!(locked_at: nil)
+
+  def lock!
+    update!(locked_at: Time.now)
+    sessions.destroy_all
+  end
+
   def age = (Date.today - birthday).days.in_years
+
+  def totp = totps.verified.first
+
+  def backup_codes_enabled? = backup_codes.active.any?
+
+  def available_step_up_methods
+    methods = []
+    methods << :totp if totp.present?
+    methods << :backup_code if backup_codes_enabled?
+    # Future: methods << :sms if sms_verified?
+    methods
+  end
+
+  # Generic 2FA method helpers
+  def two_factor_methods
+    [
+      totps.verified
+      # Future: sms_two_factors.verified,
+    ].flatten.compact
+  end
+
+  def has_two_factor_method?
+    two_factor_methods.any?
+  end
+
+  def primary_two_factor_method
+    two_factor_methods.first
+  end
+
+  def requires_two_factor?
+    use_two_factor_authentication? && has_two_factor_method?
+  end
+
+  def legacy_migrated? = legacy_migrated_at.present?
 
   def suggested_aadhaar_password
     name = "#{legal_first_name}#{legal_last_name}".presence || "#{first_name}#{last_name}"
     "#{name.gsub(" ", "")[...4].upcase}#{birthday.year}"
   end
 
+  def to_saml_nameid(options = {})
+    SAML2::NameID.new(
+      "HCID_#{Rails.env.development? ? "DEV" : "PROD"}_#{hashid}",
+      SAML2::NameID::Format::PERSISTENT,
+      **options
+    )
+  end
+
+  # spray & pray - SAML2 gem will only pull the attrs an SP asks for in its metadata
+  def to_saml_attributes
+    attrs = []
+
+    attrs << SAML2::Attribute.new("User.Email", primary_email, "User Email", SAML2::Attribute::NameFormats::UNSPECIFIED)
+    attrs << SAML2::Attribute.new("User.FirstName", first_name, "User First Name", SAML2::Attribute::NameFormats::UNSPECIFIED)
+    attrs << SAML2::Attribute.new("User.LastName", last_name, "User Last Name", SAML2::Attribute::NameFormats::UNSPECIFIED)
+    attrs << SAML2::Attribute.new("email", primary_email, "User Email", SAML2::Attribute::NameFormats::UNSPECIFIED)
+    attrs << SAML2::Attribute.new("firstName", first_name, "User First Name", SAML2::Attribute::NameFormats::UNSPECIFIED)
+    attrs << SAML2::Attribute.new("lastName", last_name, "User Last Name", SAML2::Attribute::NameFormats::UNSPECIFIED)
+    attrs
+  end
+
   alias_method :to_param, :public_id
 
   private
+
+  def downcase_email
+    self.primary_email = primary_email&.downcase
+  end
 
   def copy_legal_name_if_needed
     self.legal_first_name = first_name if legal_first_name.blank?

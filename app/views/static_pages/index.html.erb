@@ -4,11 +4,11 @@
     <li>
       <% case current_identity.verification_status %>
       <% when "verified" %>
-        ✅ your identity is <strong>verified</strong>
+        <%= inline_icon("check", size: 16) %> your identity is <strong>verified</strong>
       <% when "pending" %>
-        ⏳ your identity verification is <strong>pending review</strong>
+        <%= inline_icon("clock", size: 16) %> your identity verification is <strong>pending review</strong>
       <% when "ineligible" %>
-        ❌ your identity verification has been <strong>rejected</strong>
+        <%= inline_icon("cancel", size: 16) %> your identity verification has been <strong>rejected</strong>
         <% rejected_verifications = current_identity.verifications.rejected %>
         <% fatal_rejections = rejected_verifications.fatal_rejections %>
         <% if fatal_rejections.any? %>
@@ -44,18 +44,29 @@
             you can fix this by <%= link_to "resubmitting your documents", document_onboarding_path %>.
           </div>
         <% else %>
-          📋 <%= link_to "complete your identity verification", basic_info_onboarding_path %>
+          <%= inline_icon("docs", size: 16) %> <%= link_to "complete your identity verification", basic_info_onboarding_path %>
         <% end %>
       <% end %>
     </li>
     <li><%= link_to "see the programs", oauth_authorized_applications_path %> you've given access to?</li>
     <li>
       <% if current_identity.slack_linked? %>
-        🔗 your Slack account is linked (<code><%= current_identity.slack_id %></code>)
+        <%= inline_icon("link", size: 16) %> your Slack account is linked (<code><%= current_identity.slack_id %></code>)
       <% else %>
         <%= link_to "link your Slack account", link_slack_account_path %>?
       <% end %>
     </li>
     <li><%= link_to "manage your addresses", addresses_path %>?</li>
   </ul>
+<% end %>
+
+<%= form_with url: idp_initiated_saml_path(slug: "iam_showcase"), id: "idp_initiated_saml_form" do |f| %>
+  <%= f.submit "iam showcase" %>
+<% end %>
+
+<%= form_with url: idp_initiated_saml_path(slug: "samltool"), id: "idp_initiated_saml_form" do |f| %>
+  <%= f.submit "samltool" %>
+<% end %>
+<%= form_with url: idp_initiated_saml_path(slug: "slack"), id: "idp_initiated_saml_form" do |f| %>
+  <%= f.submit "slack" %>
 <% end %>

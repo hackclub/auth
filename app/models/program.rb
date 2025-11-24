@@ -22,16 +22,28 @@
 #
 class Program < ApplicationRecord
   self.table_name = "oauth_applications"
+
+  include PublicActivity::Model
+  tracked owner: ->(controller, model) { model.owner_identity }, recipient: ->(controller, model) { model.owner_identity }, only: [ :create, :update, :destroy ]
+
   has_paper_trail
 
   include ::Doorkeeper::Orm::ActiveRecord::Mixins::Application
 
+  enum :trust_level, { hq_official: 0, community_untrusted: 1, community_trusted: 2 }, default: :hq_official
+
   AVAILABLE_SCOPES = [
+    { name: "verification_status", description: "See your verification status and YSWS eligibility" },
     { name: "basic_info", description: "See basic information about you (email, name, verification status)" },
+    { name: "email", description: "See your email address" },
+    { name: "name", description: "See your name" },
+    { name: "slack_id", description: "See your Slack ID" },
     { name: "legal_name", description: "See your legal name" },
     { name: "address", description: "View your mailing address(es)" },
     { name: "set_slack_id", description: "associate Slack IDs with identities" }
   ].freeze
+
+  COMMUNITY_ALLOWED_SCOPES = %w[email name slack_id verification_status].freeze
 
   has_many :access_grants, class_name: "Doorkeeper::AccessGrant", foreign_key: :application_id, dependent: :delete_all
   has_many :identities, through: :access_grants, source: :resource_owner, source_type: "Identity"
@@ -39,11 +51,15 @@ class Program < ApplicationRecord
   has_many :organizer_positions, class_name: "Backend::OrganizerPosition", foreign_key: :program_id, dependent: :destroy
   has_many :organizers, through: :organizer_positions, source: :backend_user, class_name: "Backend::User"
 
+  belongs_to :owner_identity, class_name: "Identity", optional: true
+
   validates :name, presence: true
   validates :uid, presence: true, uniqueness: true
   validates :secret, presence: true
   validates :redirect_uri, presence: true
   validates :scopes, presence: true
+  validate :validate_community_scopes
+  validate :validate_developer_owned_apps
 
   before_validation :generate_uid, on: :create
   before_validation :generate_secret, on: :create
@@ -67,7 +83,7 @@ class Program < ApplicationRecord
 
   def scopes_array
     return [] if scopes.blank?
-    scopes.split(" ").reject(&:blank?)
+    scopes.to_a
   end
 
   def scopes_array=(array)
@@ -79,6 +95,19 @@ class Program < ApplicationRecord
   def authorized_for_identity?(identity) = authorized_tokens.exists?(resource_owner: identity)
 
   private
+
+  def validate_community_scopes
+    return if hq_official?
+
+    invalid_scopes = scopes_array - COMMUNITY_ALLOWED_SCOPES
+    if invalid_scopes.any?
+      errors.add(:scopes, "Community apps can only use these scopes: #{COMMUNITY_ALLOWED_SCOPES.join(', ')}")
+    end
+  end
+
+  def validate_developer_owned_apps
+    # No restrictions - admins can set developer apps to any trust level
+  end
 
   def generate_uid
     self.uid = SecureRandom.hex(16) if uid.blank?

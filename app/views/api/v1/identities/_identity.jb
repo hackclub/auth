@@ -1,12 +1,11 @@
 ident = {
-  id: identity.public_id,
-  ysws_eligible: identity.ysws_eligible,
-  verification_status: identity.verification_status,
-  verification_status_reason: identity.verification_status_reason,
-  rejection_reason: identity.verification_status_reason,
-  rejection_reason_details: identity.verification_status_reason_details,
-  birthday: identity.birthday
+  id: identity.public_id
 }
+
+scope "verification_status" do
+  ident[:ysws_eligible] = identity.ysws_eligible
+  ident[:verification_status] = identity.verification_status
+end
 
 scope "basic_info" do
   ident[:first_name] = identity.first_name
@@ -15,6 +14,25 @@ scope "basic_info" do
   ident[:slack_id] = identity.slack_id
   ident[:primary_email] = identity.primary_email
   ident[:phone_number] = identity.phone_number
+  ident[:ysws_eligible] = identity.ysws_eligible
+  ident[:verification_status] = identity.verification_status
+  ident[:verification_status_reason] = identity.verification_status_reason
+  ident[:rejection_reason] = identity.verification_status_reason
+  ident[:rejection_reason_details] = identity.verification_status_reason_details
+  ident[:birthday] = identity.birthday
+end
+
+scope "email" do
+  ident[:primary_email] = identity.primary_email
+end
+
+scope "name" do
+  ident[:first_name] = identity.first_name
+  ident[:last_name] = identity.last_name
+end
+
+scope "slack_id" do
+  ident[:slack_id] = identity.slack_id
 end
 
 scope "legal_name" do

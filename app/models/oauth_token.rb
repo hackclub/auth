@@ -30,6 +30,8 @@
 #
 class OAuthToken < ApplicationRecord
   include ::Doorkeeper::Orm::ActiveRecord::Mixins::AccessToken
+  include PublicActivity::Model
+  tracked owner: proc { |controller, record| record.resource_owner }, recipient: proc { |controller, record| record.resource_owner }, only: [ :create, :revoke ]
 
   PREFIX = "idntk."
   SIZE = 32
@@ -41,6 +43,8 @@ class OAuthToken < ApplicationRecord
 
   has_encrypted :token
   blind_index :token
+
+  has_paper_trail skip: [ :token ]
 
   belongs_to :resource_owner, class_name: "Identity"
 

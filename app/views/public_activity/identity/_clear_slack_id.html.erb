@@ -1,3 +1,6 @@
 <%= render Components::PublicActivity::Snippet.new(activity) do %>
-  cleared <%= render activity.trackable %>'s linked Slack ID
+  <%
+    is_current = defined?(current_identity) && activity.trackable == current_identity
+  %>
+  cleared <%= is_current ? "your" : "#{activity.trackable.first_name} #{activity.trackable.last_name}'s" %> linked Slack ID.
 <% end %>

@@ -1,0 +1,115 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <header>
+      <h1><%= @onboarding_scenario.title %></h1>
+      <small><%= t ".already_have" %>
+        <%= link_to t(".log_in"), login_path %>
+      </small>
+    </header>
+
+    <% if @age_restriction %>
+      <div class="banner warning">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <%= @age_restriction %>
+      </div>
+      <br>
+    <% end %>
+
+  <%= form_with model: @identity, url: request.path, method: :post, local: true do |form| %>
+    <%# Pass through email_token as hidden for legacy flows %>
+    <% if params[:email_token].present? %>
+      <%= hidden_field_tag :email_token, params[:email_token] %>
+    <% end %>
+    <%# Pass through return_to if present %>
+    <% if params[:return_to].present? %>
+      <%= hidden_field_tag :return_to, params[:return_to] %>
+    <% end %>
+    <% if @identity.errors.any? %>
+      <div class="banner danger" aria-live="polite">
+        <h4 style="color: var(--error-fg);"><%= pluralize(@identity.errors.count, "issue") %> prevented this from being saved:</h4>
+        <ul>
+          <% @identity.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <% if (@onboarding_scenario.form_fields & [:first_name, :last_name, :birthday]).any? %>
+      <fieldset>
+        <div class="grid">
+          <% if @onboarding_scenario.form_fields.include?(:first_name) %>
+            <div>
+              <%= form.label :first_name, t("identities.first_name") %>
+              <%= form.text_field :first_name, required: true, placeholder: t("identities.fiona"), autocomplete: "given-name", "aria-describedby": "nameHelp" %>
+            </div>
+          <% end %>
+
+          <% if @onboarding_scenario.form_fields.include?(:last_name) %>
+            <div>
+              <%= form.label :last_name, t("identities.last_name") %>
+              <%= form.text_field :last_name, required: true, placeholder: t("identities.hackworth"), autocomplete: "family-name", "aria-describedby": "nameHelp" %>
+            </div>
+          <% end %>
+
+          <% if @onboarding_scenario.form_fields.include?(:birthday) %>
+            <div>
+              <%= form.label :birthday, t("identities.birthday") %>
+              <%= form.date_field :birthday, required: true, autocomplete: "bday" %>
+            </div>
+          <% end %>
+        </div>
+          <small id="nameHelp">* <%= t ".not_necessarily_legal_name" %></small>
+
+      </fieldset>
+    <% end %>
+
+    <% if (@onboarding_scenario.form_fields & [:primary_email, :phone_number, :country]).any? || @identity.primary_email.present? %>
+      <fieldset>
+        <div class="grid">
+          <% if @identity.primary_email.present? %>
+            <%= form.hidden_field :primary_email, value: @identity.primary_email %>
+            <div>
+              <%= form.label :primary_email, t("identities.email") %>
+              <input type="text" value="<%= @identity.primary_email %>" disabled aria-disabled="true" autocomplete="email">
+              <small><a href="#" onclick="history.back(); return false;"><%= t("identities.new.wrong_email") %></a></small>
+            </div>
+          <% elsif @onboarding_scenario.form_fields.include?(:primary_email) %>
+            <div>
+              <%= form.label :primary_email, t("identities.email") %>
+              <%= form.email_field :primary_email, required: true, placeholder: t("identities.email_placeholder"), autocomplete: "email", "aria-describedby": "emailHelp" %>
+            </div>
+          <% end %>
+
+          <% if @onboarding_scenario.form_fields.include?(:phone_number) %>
+            <div>
+              <%= form.label :phone_number, t("identities.phone_number") %>
+              <%= form.telephone_field :phone_number, required: true, placeholder: t("identities.phone_number_placeholder"), autocomplete: "tel" %>
+            </div>
+          <% end %>
+
+          <% if @onboarding_scenario.form_fields.include?(:country) %>
+            <div>
+              <%= form.label :country, t("identities.country") %>
+<%= form.collection_select :country, Identity.countries_for_select,
+                             :first, :last,
+                             { include_blank: t("identities.country_select") },
+                             { required: true, autocomplete: "country-name", "x-ref": "countrySelect", "@change": "checkSanctioned()" } %>
+            </div>
+          <% end %>
+        </div>
+        <small id="emailHelp">
+          <%= t ".email_code" %>
+          <% if @onboarding_scenario.is_a?(OnboardingScenarios::LegacyMigration) %>
+            <br>This needs to be the same email your Slack account is registered under.
+          <% end %>
+        </small>
+      </fieldset>
+    <% end %>
+
+    <%= form.submit "#{t ".continue"} →", disabled: @age_restriction.present? %>
+  <% end %>
+  </div>
+</div>

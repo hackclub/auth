@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_02_193412) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_29_180141) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -290,8 +290,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_02_193412) do
     t.boolean "came_in_through_adult_program", default: false
     t.string "phone_number"
     t.boolean "permabanned", default: false
+    t.datetime "locked_at"
+    t.boolean "use_two_factor_authentication"
+    t.datetime "legacy_migrated_at"
+    t.string "onboarding_scenario"
+    t.integer "promote_click_count", default: 0
+    t.boolean "developer_mode", default: false, null: false
+    t.boolean "saml_debug"
+    t.boolean "is_in_workspace", default: false, null: false
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
+    t.index ["legacy_migrated_at"], name: "index_identities_on_legacy_migrated_at"
     t.index ["primary_address_id"], name: "index_identities_on_primary_address_id"
     t.index ["slack_id"], name: "index_identities_on_slack_id"
   end
@@ -305,6 +314,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_02_193412) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["identity_id"], name: "index_identity_aadhaar_records_on_identity_id"
+  end
+
+  create_table "identity_backup_codes", force: :cascade do |t|
+    t.string "aasm_state", default: "previewed", null: false
+    t.text "code_digest", null: false
+    t.bigint "identity_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["identity_id"], name: "index_identity_backup_codes_on_identity_id"
   end
 
   create_table "identity_documents", force: :cascade do |t|
@@ -341,6 +359,65 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_02_193412) do
     t.index ["identity_id"], name: "index_identity_resemblances_on_identity_id"
     t.index ["past_document_id"], name: "index_identity_resemblances_on_past_document_id"
     t.index ["past_identity_id"], name: "index_identity_resemblances_on_past_identity_id"
+  end
+
+  create_table "identity_sessions", force: :cascade do |t|
+    t.string "device_info"
+    t.datetime "expires_at"
+    t.string "fingerprint"
+    t.string "ip"
+    t.datetime "last_seen"
+    t.decimal "latitude"
+    t.decimal "longitude"
+    t.string "os_info"
+    t.string "session_token_bidx"
+    t.text "session_token_ciphertext"
+    t.datetime "signed_out_at"
+    t.string "timezone"
+    t.bigint "identity_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["identity_id"], name: "index_identity_sessions_on_identity_id"
+  end
+
+  create_table "identity_totps", force: :cascade do |t|
+    t.string "aasm_state"
+    t.datetime "deleted_at"
+    t.datetime "last_used_at"
+    t.text "secret_ciphertext"
+    t.bigint "identity_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["identity_id"], name: "index_identity_totps_on_identity_id"
+  end
+
+  create_table "identity_v2_login_codes", force: :cascade do |t|
+    t.text "code"
+    t.inet "ip_address"
+    t.datetime "used_at"
+    t.text "user_agent"
+    t.bigint "identity_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "login_attempt_id"
+    t.index ["identity_id", "login_attempt_id", "code", "used_at"], name: "index_v2_codes_on_identity_attempt_code_used"
+    t.index ["identity_id"], name: "index_identity_v2_login_codes_on_identity_id"
+    t.index ["login_attempt_id"], name: "index_identity_v2_login_codes_on_login_attempt_id"
+  end
+
+  create_table "login_attempts", force: :cascade do |t|
+    t.bigint "identity_id", null: false
+    t.bigint "session_id"
+    t.string "aasm_state"
+    t.jsonb "authentication_factors"
+    t.text "browser_token_ciphertext"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "provenance"
+    t.string "next_action"
+    t.string "return_to"
+    t.index ["identity_id"], name: "index_login_attempts_on_identity_id"
+    t.index ["session_id"], name: "index_login_attempts_on_session_id"
   end
 
   create_table "oauth_access_grants", force: :cascade do |t|
@@ -390,6 +467,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_02_193412) do
     t.string "program_key_bidx"
     t.text "program_key_ciphertext"
     t.boolean "active", default: true
+    t.integer "trust_level", default: 0, null: false
+    t.bigint "owner_identity_id"
+    t.index ["owner_identity_id"], name: "index_oauth_applications_on_owner_identity_id"
     t.index ["program_key_bidx"], name: "index_oauth_applications_on_program_key_bidx", unique: true
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
   end
@@ -452,12 +532,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_02_193412) do
   add_foreign_key "break_glass_records", "backend_users"
   add_foreign_key "identities", "addresses", column: "primary_address_id"
   add_foreign_key "identity_aadhaar_records", "identities"
+  add_foreign_key "identity_backup_codes", "identities"
   add_foreign_key "identity_documents", "identities"
   add_foreign_key "identity_login_codes", "identities"
   add_foreign_key "identity_resemblances", "identities"
   add_foreign_key "identity_resemblances", "identities", column: "past_identity_id"
   add_foreign_key "identity_resemblances", "identity_documents", column: "document_id"
   add_foreign_key "identity_resemblances", "identity_documents", column: "past_document_id"
+  add_foreign_key "identity_sessions", "identities"
+  add_foreign_key "identity_totps", "identities"
+  add_foreign_key "identity_v2_login_codes", "identities"
+  add_foreign_key "identity_v2_login_codes", "login_attempts"
+  add_foreign_key "login_attempts", "identities"
+  add_foreign_key "login_attempts", "identity_sessions", column: "session_id"
   add_foreign_key "oauth_access_grants", "identities", column: "resource_owner_id"
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "identities", column: "resource_owner_id"

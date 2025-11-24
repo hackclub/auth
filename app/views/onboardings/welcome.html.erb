@@ -11,13 +11,13 @@
 <hr>
 <div class="grid welcome-options">
   <article>
-    <h3>✨ I'm new here!</h3>
+    <h3><%= inline_icon("welcome", size: 20) %> I'm new here!</h3>
     <p>Let's get you set up with a new account</p>
     <%= link_to "Get started →", basic_info_onboarding_path,
                 role: "button" %>
   </article>
   <article>
-    <h3>🔑 I've been here before...</h3>
+    <h3><%= inline_icon("private", size: 20) %> I've been here before...</h3>
     <p>Sign in to continue where you left off</p>
     <%= link_to "Sign in →", signin_onboarding_path,
                 role: "button",

@@ -6,14 +6,15 @@
   position: relative;
 }
 
-@media (min-width: 56em) {
+@include up(56em) {
   .tooltipped {
     &:after {
-      background-color: #ccc;
+      background-color: light-dark(rgba(255, 255, 255, 0.95), rgba(0, 0, 0, 0.9));
+      border: 1px solid var(--border);
       box-shadow:
               0 0 2px 0 rgba(0, 0, 0, 0.0625),
               0 4px 8px 0 rgba(0, 0, 0, 0.125);
-      color: var(--window-fg);
+      color: light-dark(black, white);
       content: attr(aria-label);
       font-size: 0.875rem;
       font-weight: 500;
@@ -43,7 +44,6 @@
     &:focus:after {
       opacity: 1;
       z-index: 9;
-      backdrop-filter: blur(2px);
     }
   }
 

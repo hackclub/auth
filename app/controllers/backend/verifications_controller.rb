@@ -64,7 +64,7 @@ module Backend
         flash[:success] = "Document approved successfully!"
       end
 
-      @verification.create_activity(key: "verification.approve", owner: current_user, parameters: { ysws_eligible: ysws_eligible })
+      @verification.create_activity(key: "verification.approve", owner: current_user, recipient: @verification.identity, parameters: { ysws_eligible: ysws_eligible })
 
       redirect_to pending_backend_verifications_path
     end
@@ -86,7 +86,7 @@ module Backend
       @verification.internal_rejection_comment = internal_comment if internal_comment.present?
       @verification.save!
 
-      @verification.create_activity(key: "verification.reject", owner: current_user, parameters: { reason: reason, details: details, internal_comment: internal_comment })
+      @verification.create_activity(key: "verification.reject", owner: current_user, recipient: @verification.identity, parameters: { reason: reason, details: details, internal_comment: internal_comment })
 
       flash[:success] = "Document rejected with feedback"
       redirect_to pending_backend_verifications_path

@@ -1,0 +1,31 @@
+<section class="section-card">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+    <h3>
+      <%= inline_icon("email", size: 16) %> <%= address.first_name %> <%= address.last_name %>
+      <% if current_identity.primary_address == address %>
+        <span style="font-size: 0.875rem; margin-left: 0.5rem; opacity: 0.8;">
+          <%= inline_icon("home", size: 16) %> <%= t "addresses.primary" %>
+        </span>
+      <% end %>
+    </h3>
+  </div>
+
+  <div style="margin-bottom: 1rem; line-height: 1.6;">
+    <%= address.line_1 %><br>
+    <% if address.line_2.present? %>
+      <%= address.line_2 %><br>
+    <% end %>
+    <%= address.city %>, <%= address.state %> <%= address.postal_code %><br>
+    <%= address.country %>
+  </div>
+
+  <div class="form-actions" style="gap: 0.5rem;">
+    <%= link_to t("addresses.index.edit"), edit_address_path(address), role: "button", class: "secondary" %>
+    <% unless current_identity.primary_address == address %>
+      <%= button_to t("addresses.index.make_primary"), address_path(address, make_primary: true), method: :patch, class: "" %>
+    <% end %>
+    <%= button_to t("addresses.index.delete"), address, method: :delete,
+                  form: { data: { "hx-confirm": t("addresses.index.delete_confirmation") } },
+                  class: "danger small-btn" %>
+  </div>
+</section>

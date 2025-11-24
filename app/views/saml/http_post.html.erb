@@ -1,0 +1,42 @@
+<% content_for :title, t(".title") %>
+<% unless current_identity.saml_debug? %>
+  <% content_for :head do %>
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", () => {
+            document.forms[0].submit()
+        })
+    </script>
+  <% end %>
+<% end %>
+
+<%
+  target = @saml_destination || @saml_acs_url
+  message = @saml_request || @saml_response || @saml_message
+  target ||= message.destination if message.is_a?(SAML2::Message)
+  message = Base64.encode64(message.to_s) unless message.is_a?(String)
+%>
+
+<% if current_identity.saml_debug? %>
+  we're about to assert to <code><%= target %></code> that...<br>
+  <% if @saml_request %>
+    SAMLRequest: <pre><%= pretty_xml(Base64.decode64(@saml_request)) rescue @saml_request %></pre> <br>
+  <% end %>
+  <% if @saml_response %>
+    SAMLResponse: <pre><%= pretty_xml(Base64.decode64(@saml_response)) rescue @saml_response %></pre><br>
+  <% end %>
+  <b>does this sound true to you?</b>
+  <div>
+<% else %>
+  <i style="vertical-align: bottom;"><%= t ".text" %></i> <br>
+  <%= vite_image_tag "images/loader.gif", style: "image-rendering: pixelated; display: inline-block;" %>
+  <div style="display: none;">
+<% end %>
+<br>
+<br>
+<%= form_tag(target) do %>
+  <%= hidden_field_tag("SAMLRequest", message) if @saml_request || @saml_message.is_a?(SAML2::Request) %>
+  <%= hidden_field_tag("SAMLResponse", message) if @saml_response || @saml_message.is_a?(SAML2::Response) %>
+  <%= hidden_field_tag("RelayState", @relay_state) if @relay_state %>
+  <%= submit_tag "hit the *SLAY* button" %>
+<% end %>
+</div>

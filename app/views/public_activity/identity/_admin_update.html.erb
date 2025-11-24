@@ -1,3 +1,6 @@
 <%= render Components::PublicActivity::Snippet.new(activity) do %>
-  <abbr title="<%= activity.parameters[:changed_fields].map(&:humanize).join(', ') %>">edited</abbr> <%= render activity.trackable %>'s identity. (<%= activity.parameters[:reason] %>)
+  <%
+    is_current = defined?(current_identity) && activity.trackable == current_identity
+  %>
+  <abbr title="<%= activity.parameters[:changed_fields].map(&:humanize).join(', ') %>">updated</abbr> <%= is_current ? "profile" : "#{activity.trackable.first_name} #{activity.trackable.last_name}'s profile" %>. (<%= activity.parameters[:reason] %>)
 <% end %>

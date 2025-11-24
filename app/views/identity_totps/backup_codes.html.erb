@@ -1,0 +1,23 @@
+<%= render Components::BackupCodesDisplay.new(
+  codes: @newly_generated_codes,
+  warning_title: t("identity_backup_codes.save_warning_title"),
+  warning_detail: t("identity_backup_codes.save_warning_detail"),
+  heading: true,
+  show_confirmation: true,
+  identity: current_identity,
+  header_block: -> {
+    content_tag(:h3, t("identity_backup_codes.totp_heading")) +
+    content_tag(:p, t("identity_totps.backup_codes.step_indicator"), class: "step-indicator")
+  },
+  confirmation_button_block: -> {
+    link_to(t("identity_backup_codes.finish"),
+      security_path,
+      id: "finish-setup-btn",
+      class: "button",
+      style: "pointer-events: none; opacity: 0.5;",
+      data: {
+        "disabled": "true"
+      }
+    )
+  }
+) %>

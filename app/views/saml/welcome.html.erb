@@ -1,0 +1,6 @@
+<% service_name = @sp_config&.dig(:display_name) || @sp_config&.dig(:entity_id) || "the service" %>
+<%= render Components::AuthWelcome.new(
+  headline: "Continue to #{service_name}",
+  subtitle: "Sign in or create an account to continue",
+  return_to: @saml_return_to
+) %>

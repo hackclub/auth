@@ -1,0 +1,7 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <% if defined?(current_identity) && activity.trackable&.identity == current_identity %>
+    removed address.
+  <% else %>
+    removed address for <%= render activity.trackable&.identity, capitalize: false if activity.trackable&.identity %>.
+  <% end %>
+<% end %>

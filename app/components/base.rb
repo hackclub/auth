@@ -7,6 +7,7 @@ class Components::Base < Phlex::HTML
   include Phlex::Rails::Helpers::Routes
   include Phlex::Rails::Helpers::FormWith
   include Phlex::Rails::Helpers::DistanceOfTimeInWords
+  include Phlex::Rails::Helpers::T
 
   # Register Rails form helpers
   register_value_helper :form_authenticity_token
@@ -14,6 +15,13 @@ class Components::Base < Phlex::HTML
   register_output_helper :vite_image_tag
   register_value_helper :ap
   register_output_helper :copy_to_clipboard
+  register_output_helper :button_tag
+  register_output_helper :content_tag
+  register_output_helper :link_to
+  register_value_helper :url_for
+  register_value_helper :user_signed_in?
+  register_value_helper :current_user
+  register_output_helper :inline_icon
 
   if Rails.env.development?
     def before_template

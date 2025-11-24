@@ -1,3 +1,10 @@
-<h1>we'll need your address...</h1>
-<i>(please use a real address, we're going to send you something here!)</i> <br><br>
-<%= render 'form', address: @address, submit: "continue", from_program: true %>
+<div class="container-sm">
+  <div class="page-header-centered">
+    <h1>We'll need your address...</h1>
+    <p><i>Please use a real address — we're going to send you something here!</i></p>
+  </div>
+
+  <div class="card address-form">
+    <%= render 'form', address: @address, submit: "Continue →", from_program: true %>
+  </div>
+</div>

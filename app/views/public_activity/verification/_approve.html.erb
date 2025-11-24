@@ -1,6 +1,16 @@
 <%= render Components::PublicActivity::Snippet.new(activity) do %>
-  approved <%= render activity.trackable.identity %>'s <%= link_to "verification", backend_verification_path(activity.trackable) %>
-  <% unless activity.parameters[:ysws_eligible].nil? %>
-    as YSWS <%= activity.parameters[:ysws_eligible] ? "eligible" : "ineligible" %>.
-  <% end %>
+  <%
+    verification_text = if defined?(current_user) && current_user.is_a?(Backend::User)
+      link_to "verification", backend_verification_path(activity.trackable)
+    else
+      "verification"
+    end
+
+    is_current = defined?(current_identity) && activity.trackable&.identity == current_identity
+  %>
+  approved <%= is_current ? "your" : "#{activity.trackable.identity.first_name} #{activity.trackable.identity.last_name}'s" %> <%= verification_text %><%
+  unless activity.parameters[:ysws_eligible].nil?
+                                                                                                                                                       %> as YSWS <%= activity.parameters[:ysws_eligible] ? "eligible" : "ineligible" %><%
+  end
+                                                                                                                                                                                                                                        %>.
 <% end %>

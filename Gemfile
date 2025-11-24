@@ -31,6 +31,9 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Testing framework
+  gem "rspec-rails", "~> 7.1"
 end
 
 group :development do
@@ -113,6 +116,7 @@ gem "ruby-vips", "~> 2.2"
 gem "slack-ruby-client", "~> 2.6"
 
 gem "redcarpet", "~> 3.6"
+gem "front_matter_parser", "~> 1.0"
 
 gem "flipper", "~> 1.3"
 gem "flipper-ui", "~> 1.3"
@@ -121,3 +125,20 @@ gem "flipper-active_record", "~> 1.3"
 gem "annotaterb", "~> 4.19"
 
 gem "erb_lint", "~> 0.9.0", group: :development
+
+gem "saml2", "~> 3.2"
+
+gem "geocoder", "~> 1.8"
+
+gem "rotp", "~> 6.3"
+gem "rqrcode", "~> 2.0"
+
+gem "bcrypt", "~> 3.1"
+
+gem "rack-attack", "~> 6.7"
+
+gem "browser", "~> 6.0"
+
+gem "slocks", "~> 0.1.0"
+
+gem "factory_bot_rails", "~> 6.4"

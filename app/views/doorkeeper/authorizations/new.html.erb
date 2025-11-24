@@ -1,64 +1,108 @@
-<%# this should be in a controller, but i'd rather not get into doorkeeper's guts right now %>
-<% first_time = current_identity.access_tokens.none? %>
-<main class="container">
-  <% if first_time %>
-    <%= render "shared/verification_status", identity: current_identity %>
+<div class="auth-container">
+  <div class="auth-card oauth-consent">
+    <header>
+      <h1><%= session.dig(:stashed_data, "splash_message") || "Continue to #{@pre_auth.client.name}?" %></h1>
+      <% application = Program.find_by(uid: @pre_auth.client.uid) %>
+      <% case application&.trust_level %>
+      <% when "community_untrusted" %>
+        <%= render Components::Banner.new(kind: :warning) do %>
+          <strong><%= t('.banners.community_untrusted.title') %></strong><br>
+          <%= raw t('.banners.community_untrusted.message_html') %>
+        <% end %>
+      <% when "community_trusted" %>
+        <%= render Components::Banner.new(kind: :info) do %>
+          <strong><%= t('.banners.community_trusted.title') %></strong> <br>
+          <%= raw t('.banners.community_trusted.message_html') %>
+        <% end %>
+      <% end %>
+      <small>
+        <%= raw t('.prompt', client_name: content_tag(:strong) { @pre_auth.client.name }) %>
+      </small>
+    </header>
 
-    <h2><%= session.dig(:stashed_data, "splash_message") || "Continue to #{@pre_auth.client.name}..." %></h2>
-    <%= form_tag oauth_authorization_path, method: :post do %>
-      <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>
-      <%= hidden_field_tag :redirect_uri, @pre_auth.redirect_uri, id: nil %>
-      <%= hidden_field_tag :state, @pre_auth.state, id: nil %>
-      <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
-      <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
-      <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
-      <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
-      <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
-      <%= submit_tag session.dig(:stashed_data, "splash_continue") || "go! →", class: "btn btn-success btn-lg btn-block" %>
-    <% end %>
-  <% else %>
-    <h1 class="page-header" role="banner">
-      <%= session.dig(:stashed_data, "splash_message") || "Continue to #{@pre_auth.client.name}..." %>
-    </h1>
-    <main role="main">
-      <p class="h4">
-        <%= raw t('.prompt', client_name: content_tag(:strong, class: 'text-info') { @pre_auth.client.name }) %>
-      </p>
-      <% if @pre_auth.scopes.count > 0 %>
-        <div id="oauth-permissions">
-          <p><%= t('.able_to') %>:</p>
-          <ul class="text-info">
+    <% if @pre_auth.scopes.count > 0 %>
+      <div class="oauth-permissions">
+        <fieldset>
+          <legend><%= t('.able_to') %></legend>
+          <ul class="permissions-list">
             <% @pre_auth.scopes.each do |scope| %>
               <li>
                 <% case scope %>
                 <% when "basic_info" %>
-                  See basic information about you
-                  <ul>
-                    <li><b>email</b>: <%= current_identity.primary_email %></li>
-                    <li><b>name</b>: <%= current_identity.first_name %> <%= current_identity.last_name %></li>
-                    <li><b>verification status</b>: <%= current_identity.verification_status %></li>
-                  </ul>
+                  <div class="permission-item">
+                    <strong><%= t('.scopes.basic_info.title') %></strong>
+                    <ul class="permission-details">
+                      <li><span><%= t('.scopes.basic_info.email_label') %></span> <%= current_identity.primary_email %></li>
+                      <li><span><%= t('.scopes.basic_info.name_label') %></span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
+                      <li><span><%= t('.scopes.basic_info.verification_status_label') %></span> <%= current_identity.verification_status %></li>
+                    </ul>
+                  </div>
+                <% when "email" %>
+                  <div class="permission-item">
+                    <strong><%= t('.scopes.email.title') %></strong>
+                    <ul class="permission-details">
+                      <li><span><%= t('.scopes.email.email_label') %></span> <%= current_identity.primary_email %></li>
+                    </ul>
+                  </div>
+                <% when "name" %>
+                  <div class="permission-item">
+                    <strong><%= t('.scopes.name.title') %></strong>
+                    <ul class="permission-details">
+                      <li><span><%= t('.scopes.name.name_label') %></span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
+                    </ul>
+                  </div>
+                <% when "slack_id" %>
+                  <div class="permission-item">
+                    <strong><%= t('.scopes.slack_id.title') %></strong>
+                    <ul class="permission-details">
+                      <li><span><%= t('.scopes.slack_id.slack_id_label') %></span> <%= current_identity.slack_id || t('.scopes.slack_id.not_set') %></li>
+                    </ul>
+                  </div>
+                <% when "verification_status" %>
+                  <div class="permission-item">
+                    <strong><%= t('.scopes.verification_status.title') %></strong>
+                    <ul class="permission-details">
+                      <li><span><%= t('.scopes.verification_status.verification_status_label') %></span> <%= current_identity.verification_status %></li>
+                      <li><span><%= t('.scopes.verification_status.ysws_eligible_label') %></span> <%= current_identity.ysws_eligible ? 'Yes' : 'No' %></li>
+                    </ul>
+                  </div>
                 <% else %>
-                  <%= t scope, scope: [:doorkeeper, :scopes] %>
+                  <div class="permission-item">
+                    <strong><%= t scope, scope: [:doorkeeper, :scopes] %></strong>
+                  </div>
                 <% end %>
               </li>
             <% end %>
           </ul>
-        </div>
-      <% end %>
-      <div class="actions">
-        <%= form_tag oauth_authorization_path, method: :post do %>
-          <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>
-          <%= hidden_field_tag :redirect_uri, @pre_auth.redirect_uri, id: nil %>
-          <%= hidden_field_tag :state, @pre_auth.state, id: nil %>
-          <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
-          <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
-          <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
-          <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
-          <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
-          <%= submit_tag session.dig(:stashed_data, "splash_continue") || "authorize →", class: "btn btn-success btn-lg btn-block" %>
-        <% end %>
+        </fieldset>
       </div>
-    </main>
-  </main>
-<% end %>
+    <% end %>
+
+    <% auth_label = t('.authorize') %>
+    <div class="oauth-actions" x-data="{ countdown: <%= application&.hq_official? ? 0 : 3 %>, ready: <%= application&.hq_official? ? true : false %>, authLabel: '<%= auth_label.gsub("'", "\\'") %>' }" x-init="if (countdown > 0) { let interval = setInterval(() => { countdown--; if (countdown <= 0) { ready = true; clearInterval(interval); } }, 1000); }">
+      <%= form_tag oauth_authorization_path, method: :delete do %>
+        <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>
+        <%= hidden_field_tag :redirect_uri, @pre_auth.redirect_uri, id: nil %>
+        <%= hidden_field_tag :state, @pre_auth.state, id: nil %>
+        <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
+        <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
+        <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
+        <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
+        <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
+        <%= submit_tag t('.deny'), class: "secondary" %>
+      <% end %>
+
+      <%= form_tag oauth_authorization_path, method: :post do %>
+        <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>
+        <%= hidden_field_tag :redirect_uri, @pre_auth.redirect_uri, id: nil %>
+        <%= hidden_field_tag :state, @pre_auth.state, id: nil %>
+        <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
+        <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
+        <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
+        <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
+        <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
+        <%= submit_tag auth_label, "x-bind:disabled": "!ready", "x-bind:value": "ready ? authLabel : `Wait ${countdown}s...`" %>
+      <% end %>
+    </div>
+  </div>
+</div>

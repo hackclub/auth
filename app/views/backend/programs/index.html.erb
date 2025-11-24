@@ -5,6 +5,7 @@
         <thead>
           <tr>
             <th>Program Name</th>
+            <th>Owner</th>
             <th>OAuth Application</th>
             <th>Scopes</th>
             <th>Users</th>
@@ -23,6 +24,13 @@
                     <small><%= truncate(program.description, length: 60) %></small>
                   <% end %>
                 </div>
+              </td>
+              <td>
+                <% if program.owner_identity.present? %>
+                  <%= render Components::UserMention.new(program.owner_identity) %>
+                <% else %>
+                  <em style="color: var(--text-secondary);">HQ</em>
+                <% end %>
               </td>
               <td>
                 <small>

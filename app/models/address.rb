@@ -25,6 +25,9 @@
 #
 class Address < ApplicationRecord
   include PublicIdentifiable
+  include PublicActivity::Model
+  tracked owner: ->(controller, model) { controller&.user_for_public_activity }, only: [ :create, :update, :destroy ]
+
   has_paper_trail
   set_public_id_prefix "addr"
 

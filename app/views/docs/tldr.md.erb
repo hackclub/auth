@@ -1,0 +1,16 @@
+---
+title: TL;DR
+category: Developer
+description: you want to Sign in with Hack Club, i won't waste your time.
+order: 8
+---
+
+1. CREATE AN APP. you can do this [here](<%= new_developer_app_path %>) after you [turn on developer mode](<%= edit_identity_path %>).
+2. DO NORMAL OAUTH.
+   - send your users to <%= render Components::APIExample.new(url: oauth_authorization_url) %> with the right params
+   - get code at your redirect URI
+   - exchange code at <%= render Components::APIExample.new(url: oauth_token_url, path_only: true, method: "POST") %> like any other OAuth provider
+   - read more at [OAuth Guide](<%= doc_path "oauth-guide" %>) if you need help figuring it out
+3. CALL <%= render Components::APIExample.new(url: api_v1_me_url, method: "GET", path_only: true) %> with that bearer token.
+   - use the data returned to populate your user profile
+   - read more at [API](<%= doc_path "api" %>) if you need help figuring it out

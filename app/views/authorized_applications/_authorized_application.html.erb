@@ -1,0 +1,41 @@
+<div class="session-card">
+  <div class="session-header">
+    <div class="session-icon"><%= inline_icon("private", size: 20) %></div>
+    <div class="session-info">
+      <div class="session-device">
+        <%= access_token.application.name %>
+      </div>
+    </div>
+  </div>
+
+  <div class="session-details">
+    <div>
+      <span class="detail-label"><%= t "authorized_applications.created_at" %></span>
+      <span><%= access_token.created_at.strftime("%b %d, %Y at %l:%M %p") %></span>
+    </div>
+    <% if access_token.expires_at %>
+      <div>
+        <span class="detail-label"><%= t "authorized_applications.expires_at" %></span>
+        <span><%= access_token.expires_at.strftime("%b %d, %Y") %></span>
+      </div>
+    <% end %>
+    <% unless access_token.scopes.empty? %>
+      <div>
+        <span class="detail-label"><%= t "authorized_applications.scopes" %></span>
+        <span>
+          <% scope_descriptions = access_token.scopes.map { |scope|
+            Program::AVAILABLE_SCOPES.find { |s| s[:name] == scope.to_s }&.dig(:description) || scope.to_s
+          } %>
+          <%= scope_descriptions.join(", ") %>
+        </span>
+      </div>
+    <% end %>
+  </div>
+
+  <button class="danger small-btn"
+          hx-delete="<%= authorized_application_path(access_token) %>"
+          hx-target="#authorized-apps-container"
+          hx-confirm="<%= t "authorized_applications.revoke_confirmation", app: access_token.application.name %>">
+    <%= t "authorized_applications.revoke" %>
+  </button>
+</div>

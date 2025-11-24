@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity, owner: activity.trackable&.owner_identity) do %>
+  updated OAuth application "<%= activity.trackable&.name %>".
+<% end %>

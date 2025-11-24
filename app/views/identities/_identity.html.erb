@@ -1,0 +1,4 @@
+<%
+  is_current = defined?(current_identity) && identity == current_identity
+  capitalize = local_assigns.fetch(:capitalize, false)
+%><%= is_current ? (capitalize ? "You" : "you") : "#{identity.first_name} #{identity.last_name}" %>

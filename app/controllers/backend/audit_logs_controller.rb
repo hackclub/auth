@@ -4,7 +4,12 @@ module Backend
 
     def index
       scope = PublicActivity::Activity.order(created_at: :desc)
-      scope = scope.where(owner_type: "Backend::User") if params[:admin_actions_only]
+
+      if params[:admin_actions_only]
+        scope = scope.where(owner_type: "Backend::User")
+      else
+        scope = scope.where(owner_type: "Backend::User")
+      end
 
       @activities = scope.page(params[:page]).per(50)
     end

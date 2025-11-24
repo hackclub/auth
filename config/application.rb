@@ -60,7 +60,10 @@ module IdentityVault
                          key: "_identity_vault_session_v2",
                          expire_after: 90.days,
                          secure: Rails.env.production?,
-                         httponly: true
+                         httponly: true,
+                         same_site: :lax
+
+    config.middleware.use Rack::Attack
 
     config.audits1984.base_controller_class = "Backend::NoAuthController"
     config.audits1984.auditor_class = "Backend::User"
@@ -70,6 +73,13 @@ module IdentityVault
 
     # Aadhaar verification configuration
     config.sanctioned_countries = config_for(:sanctioned_countries)
+
+    config.saml = config_for(:saml)
+
+    config.slack_channels = config_for(:slack_channels)
+
+    # Slack E+ stuff (SAML, SCIM, etc.)
+
 
     # Use ImageMagick for image processing instead of VIPS
     config.active_storage.variant_processor = :mini_magick

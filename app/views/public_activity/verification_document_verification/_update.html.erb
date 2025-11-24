@@ -1,3 +1,10 @@
 <%= render Components::PublicActivity::Snippet.new(activity) do %>
-  edited a <%= activity.trackable.identity_document.document_type %> <%= link_to "document", backend_verification_path(activity.trackable) %>.
+  <%
+    document_text = if defined?(current_user) && current_user.is_a?(Backend::User)
+      link_to "document", backend_verification_path(activity.trackable)
+    else
+      "document"
+    end
+  %>
+  edited a <%= activity.trackable.identity_document.document_type %> <%= document_text %>.
 <% end %>

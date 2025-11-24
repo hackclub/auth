@@ -1,29 +1,136 @@
 // $theme-color: "amber";
-$theme-color: "lime";
+// $theme-color: "lime";
+$theme-color: "red";
 @import "@picocss/pico/scss/pico";
 
 :root {
     --pico-font-family-sans-serif: Inter, system-ui, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, Helvetica, Arial, "Helvetica Neue", sans-serif, var(--pico-font-family-emoji) !important;
     --pico-font-size: 16px !important;
-    /* Original: 100% */
     --pico-line-height: 1.25 !important;
-    /* Original: 1.5 */
     --pico-form-element-spacing-vertical: 0.5rem !important;
-    /* Original: 1rem */
     --pico-form-element-spacing-horizontal: 1.0rem !important;
-    /* Original: 1.25rem */
-    --pico-border-radius: 0.375rem !important;
-    /* Original: 0.25rem */
+    --pico-border-radius: 10px !important;
+    --pico-typography-spacing-vertical: 1.25rem !important;
+    
+    // Brand red with skeumorphic depth
+    --pico-primary: #ec3750;
+    --pico-primary-rgb: 236, 55, 80;
+    --pico-primary-hover: #d92d46;
+    --pico-primary-focus: rgba(236, 55, 80, 0.15);
+    --pico-primary-inverse: #fff;
 }
 
-[x-cloak] { display: none !important; }
+[data-theme="dark"] {
+    --pico-primary: #f03d58;
+    --pico-primary-rgb: 240, 61, 88;
+    --pico-primary-hover: #ff4d68;
+    --pico-primary-focus: rgba(240, 61, 88, 0.25);
+    --pico-primary-inverse: #fff;
+}
 
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.025em;
+  font-weight: 700;
+  
+  [data-theme="dark"] & {
+    color: #f0f0f0;
+  }
+}
+
+h1 { font-size: 2.25rem; }
+h2 { font-size: 1.875rem; }
+h3 { font-size: 1.5rem; }
+
+[x-cloak] { display: none !important; }
+.pointer { cursor: pointer; }
+.usn {
+  user-select: none;
+}
 @import "./colors.css";
+@import "./snippets/tokens";
+@import "./snippets/breakpoints";
+@import "./snippets/skeumorphic.scss";
+@import "./snippets/utilities";
 @import "./snippets/banners.scss";
 @import "./snippets/admin_tools.scss";
+@import "./snippets/buttons.scss";
 @import "./snippets/forms.scss";
 @import "./snippets/brand.scss";
 @import "./snippets/borders.scss";
 @import "./snippets/lightswitch.scss";
 @import "./snippets/tooltips.scss";
 @import "./snippets/footer.scss";
+@import "./snippets/code_input.scss";
+@import "./snippets/sso_apps.scss";
+@import "./snippets/sidebar.scss";
+@import "./snippets/auth.scss";
+@import "./snippets/oauth.scss";
+@import "./snippets/addresses.scss";
+@import "./snippets/profile_completion.scss";
+@import "./snippets/verifications.scss";
+@import "./snippets/security.scss";
+@import "./snippets/identities.scss";
+@import "./snippets/welcome.scss";
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
+select,
+textarea {
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 10px;
+  
+  [data-theme="dark"] & {
+    box-shadow: 
+      inset 0 1px 2px rgba(0, 0, 0, 0.3),
+      0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+  
+  &:focus {
+    box-shadow: 
+      inset 0 1px 2px rgba(0, 0, 0, 0.06),
+      0 1px 0 rgba(255, 255, 255, 0.4),
+      0 0 0 3px rgba(var(--pico-primary-rgb), 0.25);
+    
+    [data-theme="dark"] & {
+      box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.3),
+        0 1px 0 rgba(255, 255, 255, 0.03),
+        0 0 0 3px rgba(var(--pico-primary-rgb), 0.35);
+    }
+  }
+}
+
+article,
+[role="article"] {
+  @include shadow-card;
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}

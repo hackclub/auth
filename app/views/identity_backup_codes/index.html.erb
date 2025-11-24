@@ -1,0 +1,47 @@
+<% if @backup_codes.any? %>
+  <div class="backup-codes-section">
+    <% if @newly_generated_codes.present? %>
+      <%= render Components::BackupCodesDisplay.new(
+        codes: @newly_generated_codes,
+        warning_title: t("identity_backup_codes.save_warning_title"),
+        warning_detail: t("identity_backup_codes.save_warning_detail"),
+        show_confirmation: true,
+        identity: current_identity,
+        confirmation_button_block: -> {
+          button_tag(t("identity_backup_codes.index.activate_codes"),
+            id: "finish-setup-btn",
+            disabled: true,
+            data: {
+              "hx-patch": confirm_identity_backup_codes_path,
+              "hx-target": "#backup-codes-container",
+              "hx-swap": "innerHTML"
+            }
+          )
+        }
+      ) %>
+    <% else %>
+      <div class="backup-codes-status">
+        <div class="status-info">
+          <strong><%= t ".heading" %></strong>
+          <p class="status-detail">
+             <%== t ".status", remaining: pluralize(@backup_codes.count, 'backup code') %>
+          </p>
+        </div>
+        <%= button_to t(".regenerate"),
+            identity_backup_codes_path,
+            method: :post,
+            class: "primary small-btn",
+            data: {
+              "hx-confirm": t(".regenerate_confirmation"),
+              "hx-post": identity_backup_codes_path,
+              "hx-target": "#backup-codes-container",
+              "hx-swap": "innerHTML"
+            } %>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div>
+    <p class="blank-slate-text"><%= t ".none" %></p>
+  </div>
+<% end %>

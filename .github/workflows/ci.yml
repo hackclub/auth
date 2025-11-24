@@ -13,6 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libxmlsec1-dev libxmlsec1-openssl pkg-config
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -27,6 +30,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libxmlsec1-dev libxmlsec1-openssl pkg-config
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1

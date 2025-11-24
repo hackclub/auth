@@ -1,0 +1,31 @@
+:root {
+  --surface-1: var(--pico-card-background-color);
+  --surface-2: #f9fafb;
+  --surface-2-border: #e5e7eb;
+  --text-strong: #1a1d23;
+  --text-muted-strong: #6b7280;
+}
+
+[data-theme="dark"] {
+  --surface-2: #1f2937;
+  --surface-2-border: #374151;
+  --text-strong: #f5f7fa;
+  --text-muted-strong: #9ca3af;
+}
+
+$radius-sm: 6px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+
+$space-1: 0.5rem;
+$space-2: 0.75rem;
+$space-3: 1rem;
+$space-4: 1.25rem;
+$space-5: 1.5rem;
+$space-6: 2rem;
+$space-7: 2.5rem;
+$space-8: 3rem;
+
+$transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+$font-mono: 'SF Mono', 'Monaco', 'Menlo', 'Courier New', monospace;

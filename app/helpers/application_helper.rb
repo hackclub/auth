@@ -22,4 +22,39 @@ module ApplicationHelper
     css_classes = "pointer tooltipped tooltipped--#{tooltip_direction} #{options.delete(:class)}"
     tag.span "data-copy-to-clipboard": clipboard_value, class: css_classes, "aria-label": options.delete(:label) || "click to copy...", **options, &block
   end
+
+  def render_qr_code(data, size: 200)
+    require "rqrcode"
+
+    qr = RQRCode::QRCode.new(data)
+    svg = qr.as_svg(
+      color: "000",
+      shape_rendering: "crispEdges",
+      module_size: 3,
+      standalone: true,
+      viewbox: true,
+      svg_attributes: { class: "qr" }
+    )
+    svg.html_safe
+  end
+
+  def inline_icon(filename, **options)
+    # cache parsed SVG files to reduce file I/O operations
+    @icon_svg_cache ||= {}
+    if !@icon_svg_cache.key?(filename)
+      file = File.read(Rails.root.join("app", "frontend", "images", "icons", "#{filename}.svg"))
+      @icon_svg_cache[filename] = Nokogiri::HTML::DocumentFragment.parse file
+    end
+
+    doc = @icon_svg_cache[filename].dup
+    svg = doc.at_css "svg"
+    options[:style] ||= "display: inline-flex; vertical-align: middle;"
+    if options[:size]
+      options[:width] ||= options[:size]
+      options[:height] ||= options[:size]
+      options.delete :size
+    end
+    options.each { |key, value| svg[key.to_s] = value }
+    doc.to_html.html_safe
+  end
 end

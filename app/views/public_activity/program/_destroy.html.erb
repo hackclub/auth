@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity, owner: activity.trackable&.owner_identity) do %>
+  deleted OAuth application "<%= activity.parameters[:name] || 'Unknown' %>".
+<% end %>

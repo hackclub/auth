@@ -1,0 +1,6 @@
+<% service_name = @program&.name || "the application" %>
+<%= render Components::AuthWelcome.new(
+  headline: "Continue to #{service_name}",
+  subtitle: "Sign in or create an account to continue",
+  return_to: @return_to
+) %>
