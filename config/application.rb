@@ -65,7 +65,7 @@ module IdentityVault
                          httponly: true,
                          same_site: :lax
 
-    config.middleware.use DomainRedirect
+    config.middleware.use DomainRedirect if Rails.env.production?
 
     config.audits1984.base_controller_class = "Backend::NoAuthController"
     config.audits1984.auditor_class = "Backend::User"
