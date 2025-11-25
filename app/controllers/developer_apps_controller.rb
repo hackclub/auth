@@ -40,7 +40,7 @@ class DeveloperAppsController < ApplicationController
     app_name = @app.name
     @app.create_activity :destroy, owner: current_identity, parameters: { name: app_name }
     @app.destroy
-    redirect_to developer_apps_path, notice: t(".success")
+    redirect_to developer_apps_path, notice: t(".success"), status: :see_other
   end
 
   private
@@ -55,7 +55,7 @@ class DeveloperAppsController < ApplicationController
   def set_app
     @app = current_identity.owned_developer_apps.find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    flash[:error] = t(".not_found")
+    flash[:error] = t("developer_apps.set_app.not_found")
     redirect_to developer_apps_path
   end
 
