@@ -1,6 +1,6 @@
-# Identity Vault
+# Hack Club Account
 
-This is the Rails codebase powering https://identity.hackclub.com!
+This is the Rails codebase powering https://account.hackclub.com!
 
 ## contributing
 
