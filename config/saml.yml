@@ -13,6 +13,9 @@ development:
       tagline: where most of the magic happens!
       icon: slack.png
       entity_id: https://slack.com
+      allowed_attributes:
+        - User.Email
+        - email
       assertion_consumer_services:
         - location: https://wackclub.enterprise.slack.com/sso/saml
           binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
@@ -136,6 +139,9 @@ uat:
       tagline: where most of the magic happens!
       icon: slack.png
       entity_id: https://slack.com
+      allowed_attributes:
+        - User.Email
+        - email
       assertion_consumer_services:
         - location: https://hackclub-sandbox.enterprise.slack.com/sso/saml
           binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
@@ -169,6 +175,9 @@ production:
       tagline: where most of the magic happens!
       icon: slack.png
       entity_id: https://slack.com
+      allowed_attributes:
+        - User.Email
+        - email
       assertion_consumer_services:
         - location: https://hackclub.enterprise.slack.com/sso/saml
           binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
