@@ -225,7 +225,7 @@ en:
       signup: Make one
       free: ", it's free!"
     welcome:
-      email_help: "This'll be the email you use across Hack Club. We recommend using your personal email. If you already have a Hack Club account, just put your existing email in here :-)"
+      email_help: "This will be the email you use across Hack Club. We recommend using your personal email. If you already have a Hack Club account, just put your existing email in here :-)"
       continue: Continue
     email:
       title: Check your email...
