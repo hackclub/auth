@@ -28,6 +28,22 @@ class IdentityMailer < ApplicationMailer
     send_it!
   end
 
+  def step_up_code(identity, login_code)
+    # Reuse the same transactional email template as v2_login_code
+    # The message context is similar - verifying identity via email code
+    @TRANSACTIONAL_ID = "cmgqzc6351kcqzv0i8yrwl1nt"
+
+    @login_code = login_code
+    @recipient = identity.primary_email
+
+    @datavariables = {
+      code: login_code.pretty,
+      first_name: identity.first_name
+    }
+
+    send_it!
+  end
+
   def approved_but_ysws_ineligible(identity)
     @TRANSACTIONAL_ID = "cmbyoymlh0qfpy10i8ixgxj9d"
 

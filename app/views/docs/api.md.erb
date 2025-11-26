@@ -2,7 +2,7 @@
 title: API
 description: Integrate with Hack Club Account's REST API
 category: Developer
-order: 10
+order: 11
 ---
 
 
@@ -78,14 +78,20 @@ Check the verification status of a user by their ID, email, or Slack ID. This is
 
 ## Available Scopes
 
-When requesting OAuth authorization, you can request the following scopes:
+When requesting OAuth authorization, you can request the following scopes.
+
+For OIDC-specific scopes and claims, see the <%= link_to "OpenID Connect guide", doc_path("oidc-guide") %>.
 
 | Scope | Description | Community Access    |
 |-------|-------------|---------------------|
+| `openid` | Enable OpenID Connect authentication | ✅                   |
+| `profile` | Name and profile information (OIDC) | ✅                   |
 | `email` | Access to email address | ✅                   |
 | `name` | Access to first and last name | ✅                   |
 | `slack_id` | Access to Slack ID | ✅                   |
 | `verification_status` | Verification status and YSWS eligibility | ✅                   |
+| `phone` | Phone number (OIDC) | HQ only             |
+| `birthdate` | Date of birth (OIDC) | HQ only             |
 | `basic_info` | Email, name, verification status, birthday, phone | HQ only             |
 | `legal_name` | Legal first and last name | HQ only             |
 | `address` | Mailing addresses | HQ only             |

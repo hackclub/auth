@@ -1,0 +1,185 @@
+---
+title: OpenID Connect
+description: Use OIDC for authentication with Hack Club Account
+category: Developer
+order: 9
+---
+
+OpenID Connect (OIDC) is an identity layer on top of OAuth 2.0 that lets you verify user identity and get basic profile information. If you're building a web app that needs to know *who* the user is, OIDC is the way to go.
+
+<div class="banner info">
+<b>OIDC vs OAuth:</b>
+<p>
+Use <b>OIDC</b> if you just need to authenticate users and get their identity.<br/>
+Use the <%= link_to "REST API", doc_path("api") %> if you need to make ongoing API calls on behalf of the user.
+</p>
+</div>
+
+## Discovery
+
+The OIDC discovery document is available at:
+
+<%= render Components::APIExample.new(method: "GET", url: "#{root_url}.well-known/openid-configuration", path_only: true) %>
+
+This returns all the endpoints and capabilities of our OIDC implementation.
+
+## Quick Start
+
+### 1. Create an OAuth application
+
+Follow Step 1 in the <%= link_to "OAuth Guide", doc_path("oauth-guide") %> to create your app. Make sure to include the `openid` scope.
+
+### 2. Redirect users to authorize
+
+<%= render Components::APIExample.new(method: "GET", url: oauth_authorization_url(client_id: "your_client_id", redirect_uri: "https://yourapp.com/callback", response_type: "code", scope: "openid profile email")) %>
+
+### 3. Exchange the code for tokens
+
+After the user authorizes, exchange the authorization code for tokens:
+
+<%= render Components::APIExample.new(method: "POST", url: oauth_token_url) %>
+
+```json
+{
+  "client_id": "your_client_id",
+  "client_secret": "your_client_secret",
+  "redirect_uri": "https://yourapp.com/callback",
+  "code": "abc123def456",
+  "grant_type": "authorization_code"
+}
+```
+
+**Response:**
+
+```json
+{
+  "access_token": "idntk.abc123...",
+  "token_type": "Bearer",
+  "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+The `id_token` is a signed JWT containing the user's identity claims.
+
+### 4. Validate the ID token
+
+The ID token is a JWT signed with RS256. You can:
+
+1. Decode and validate it using a JWT library
+2. Fetch our public keys from the JWKS endpoint to verify the signature
+
+<%= render Components::APIExample.new(method: "GET", url: "#{root_url}oauth/discovery/keys", path_only: true) %>
+
+### 5. (Optional) Fetch user info
+
+You can also get user claims from the userinfo endpoint:
+
+<%= render Components::APIExample.new(method: "GET", url: "#{root_url}oauth/userinfo", path_only: true) %>
+
+Include the access token in the Authorization header:
+
+```
+Authorization: Bearer idntk.abc123...
+```
+
+## Scopes and Claims
+
+### Standard OIDC Scopes
+
+| Scope | Claims | Description |
+|-------|--------|-------------|
+| `openid` | `sub` | Required for OIDC. Returns the user's public ID (`ident!abc123`) |
+| `profile` | `name`, `given_name`, `family_name`, `nickname`, `updated_at` | Basic profile info |
+| `email` | `email`, `email_verified` | Email address |
+| `phone` | `phone_number`, `phone_number_verified` | Phone number |
+| `address` | `address` | Structured address object |
+| `birthdate` | `birthdate` | Date of birth (ISO 8601) |
+
+<div class="banner info">
+<b>Privacy note:</b>
+<p>
+The <code>birthdate</code> scope is separate from <code>profile</code> intentionally, since date of birth is more sensitive information.
+</p>
+</div>
+
+### Hack Club Custom Scopes
+
+| Scope | Claims | Description |
+|-------|--------|-------------|
+| `slack_id` | `slack_id` | The user's Hack Club Slack ID |
+| `verification_status` | `verification_status`, `ysws_eligible` | Verification status and YSWS eligibility |
+
+### Example ID Token Claims
+
+With scopes `openid profile email verification_status`:
+
+```json
+{
+  "iss": "<%= root_url.chomp('/') %>",
+  "sub": "ident!abc123",
+  "aud": "your_client_id",
+  "exp": 1700000000,
+  "iat": 1699996400,
+  "name": "Orpheus Hacksworth",
+  "given_name": "Orpheus",
+  "family_name": "Hacksworth",
+  "email": "orpheus@hackclub.com",
+  "email_verified": true,
+  "verification_status": "verified",
+  "ysws_eligible": true
+}
+```
+
+### Address Claim Format
+
+When the `address` scope is granted, the address claim follows the OIDC standard format:
+
+```json
+{
+  "address": {
+    "street_address": "123 Hack Street\nApt 4",
+    "locality": "Burlington",
+    "region": "VT",
+    "postal_code": "05401",
+    "country": "US"
+  }
+}
+```
+
+## Reauthentication
+
+If you need to force the user to re-authenticate (for sensitive operations), use the `prompt=login` parameter:
+
+<%= render Components::APIExample.new(method: "GET", url: oauth_authorization_url(client_id: "your_client_id", redirect_uri: "https://yourapp.com/callback", response_type: "code", scope: "openid", prompt: "login")) %>
+
+This will require the user to verify their identity again, even if they have an active session. They can use TOTP, backup codes, or email verification.
+
+You can also use `max_age` to require reauthentication if the user's session is older than a certain number of seconds:
+
+```
+max_age=3600
+```
+
+## Community Apps
+
+<div class="banner warning">
+<b>Scope restrictions:</b>
+<p>
+Community apps can only request: <code>openid <%= Program::COMMUNITY_ALLOWED_SCOPES.join(" ") %></code><br/>
+Other scopes require HQ official status.
+</p>
+</div>
+
+## Using OIDC Libraries
+
+Most languages have OIDC client libraries that handle the complexity for you. Point them at our discovery URL and they'll figure out the rest:
+
+```
+<%= root_url %>.well-known/openid-configuration
+```
+
+Popular libraries:
+- **Ruby:** `omniauth-openid-connect`
+- **Node.js:** `openid-client`
+- **Python:** `Authlib`
+- **Go:** `go-oidc`

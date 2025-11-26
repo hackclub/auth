@@ -87,6 +87,7 @@
         <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
         <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
         <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
+        <%= hidden_field_tag :nonce, @pre_auth.nonce, id: nil %>
         <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
         <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
         <%= submit_tag t('.deny'), class: "secondary" %>
@@ -99,6 +100,7 @@
         <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
         <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
         <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
+        <%= hidden_field_tag :nonce, @pre_auth.nonce, id: nil %>
         <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
         <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
         <%= submit_tag auth_label, "x-bind:disabled": "!ready", "x-bind:value": "ready ? authLabel : `Wait ${countdown}s...`" %>
