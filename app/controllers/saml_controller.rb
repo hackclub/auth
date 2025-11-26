@@ -6,7 +6,7 @@ class SAMLController < ApplicationController
   skip_before_action :authenticate_identity!, only: [ :metadata, :sp_initiated_get, :idp_initiated, :welcome ]
   before_action :check_enterprise_features!, except: [ :welcome ]
 
-  AUTHN_REQUEST_TTL = 5.minutes
+  AUTHN_REQUEST_TTL = 30.minutes
   SSO_ENDPOINT_PATH = "/saml/auth"
 
   def metadata
