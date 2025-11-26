@@ -163,6 +163,10 @@ GEM
     domain_name (0.6.20240107)
     doorkeeper (5.8.2)
       railties (>= 5)
+    doorkeeper-openid_connect (1.8.11)
+      doorkeeper (>= 5.5, < 5.9)
+      jwt (>= 2.5)
+      ostruct (>= 0.5)
     dotenv (3.1.8)
     drb (2.2.3)
     dry-cli (1.2.0)
@@ -265,6 +269,8 @@ GEM
     jb (0.8.2)
     jmespath (1.6.2)
     json (2.12.0)
+    jwt (3.1.2)
+      base64
     kaminari (1.2.2)
       activesupport (>= 4.1.0)
       kaminari-actionview (= 1.2.2)
@@ -601,6 +607,7 @@ DEPENDENCIES
   countries (~> 7.1)
   debug
   doorkeeper (~> 5.8)
+  doorkeeper-openid_connect (~> 1.8)
   dotenv
   erb_lint (~> 0.9.0)
   factory_bot_rails (~> 6.4)
