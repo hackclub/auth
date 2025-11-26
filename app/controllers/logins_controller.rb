@@ -205,23 +205,27 @@ class LoginsController < ApplicationController
 
             webauthn_credential = WebAuthn::Credential.from_get(credential_data)
 
-            credential = @identity.webauthn_credentials.find_by(
-                external_id: Base64.urlsafe_encode64(webauthn_credential.id, padding: false)
-            )
+            # wrap in a transaction with pessimistic locking to prevent race conditions on sign_count
+            Identity::WebauthnCredential.transaction do
+                credential = @identity.webauthn_credentials.lock.find_by(
+                    external_id: Base64.urlsafe_encode64(webauthn_credential.id, padding: false)
+                )
 
-            unless credential
-                flash.now[:error] = "Passkey not found"
-                render :webauthn, status: :unprocessable_entity
-                return
+                unless credential
+                    flash.now[:error] = "Passkey not found"
+                    render :webauthn, status: :unprocessable_entity
+                    return
+                end
+
+                webauthn_credential.verify(
+                    session[:webauthn_authentication_challenge],
+                    public_key: credential.webauthn_public_key,
+                    sign_count: credential.sign_count
+                )
+
+                # Update sign_count within the locked transaction
+                credential.update!(sign_count: webauthn_credential.sign_count)
             end
-
-            webauthn_credential.verify(
-                session[:webauthn_authentication_challenge],
-                public_key: credential.webauthn_public_key,
-                sign_count: credential.sign_count
-            )
-
-            credential.update!(sign_count: webauthn_credential.sign_count)
 
             session.delete(:webauthn_authentication_challenge)
             factors = (@attempt.authentication_factors || {}).dup
