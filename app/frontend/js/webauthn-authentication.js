@@ -55,23 +55,16 @@ export function webauthnAuth() {
                 }
 
                 const credentialJSON = credential.toJSON();
-                const loginAttemptId = this.getLoginAttemptId();
-                const response = await fetch(`/login/${loginAttemptId}/webauthn/verify`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
-                    },
-                    body: JSON.stringify(credentialJSON)
-                });
 
-                if (!response.ok) {
-                    const result = await response.json();
-                    throw new Error(result.error || 'Authentication failed');
+                const credentialDataField = document.getElementById('credential-data');
+                const form = document.getElementById('webauthn-form');
+
+                if (!credentialDataField || !form) {
+                    throw new Error('Form elements not found');
                 }
 
-                // Success! Redirect to the next page (server will handle this via htmx or full page load)
-                window.location.reload();
+                credentialDataField.value = JSON.stringify(credentialJSON);
+                form.submit();
             } catch (error) {
                 console.error('Passkey authentication error:', error);
 

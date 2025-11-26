@@ -198,9 +198,7 @@ class LoginsController < ApplicationController
         flash.clear
 
         begin
-            request_body = request.body.read
-            request.body.rewind
-            credential_data = JSON.parse(request_body)
+            credential_data = JSON.parse(params[:credential_data])
 
             webauthn_credential = WebAuthn::Credential.from_get(credential_data)
 

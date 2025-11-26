@@ -10,6 +10,10 @@
       <p x-text="error"></p>
     </div>
 
+    <%= form_with url: verify_webauthn_login_attempt_path(@attempt), method: :post, local: true, id: "webauthn-form" do |form| %>
+      <%= form.hidden_field :credential_data, id: "credential-data" %>
+    <% end %>
+
     <div class="passkey-prompt">
       <button
         type="button"
