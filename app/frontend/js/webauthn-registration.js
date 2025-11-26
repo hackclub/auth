@@ -1,4 +1,3 @@
-// Alpine.js component for WebAuthn registration
 export function webauthnRegister() {
     return {
         nickname: '',
@@ -7,7 +6,7 @@ export function webauthnRegister() {
         browserSupported: true,
 
         init() {
-            // Check browser support on initialization
+            // let's check browser support on initialization
             const hasJsonSupport = !!globalThis.PublicKeyCredential?.parseCreationOptionsFromJSON;
             this.browserSupported = hasJsonSupport;
         },

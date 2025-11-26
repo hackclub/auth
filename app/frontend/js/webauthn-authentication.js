@@ -1,4 +1,3 @@
-// Alpine.js component for WebAuthn authentication
 export function webauthnAuth() {
     return {
         loading: false,
@@ -6,11 +5,10 @@ export function webauthnAuth() {
         browserSupported: true,
 
         init() {
-            // Check browser support on initialization
+            // let's check browser support on initialization
             const hasJsonSupport = !!globalThis.PublicKeyCredential?.parseRequestOptionsFromJSON;
             this.browserSupported = hasJsonSupport;
 
-            // Auto-trigger authentication on page load if browser is supported
             if (this.browserSupported) {
                 this.authenticate();
             }
