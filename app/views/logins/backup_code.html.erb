@@ -21,7 +21,7 @@
     <% if @attempt.totp_available? %>
       <footer>
         <p>
-          <%= link_to t(".use_authenticator"), totp_login_attempt_path(@attempt, return_to: params[:return_to]) %>
+          <%= link_to t(".use_authenticator"), totp_login_attempt_path(@attempt) %>
         </p>
       </footer>
     <% end %>

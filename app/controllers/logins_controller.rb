@@ -25,7 +25,8 @@ class LoginsController < ApplicationController
             identity: identity,
             authentication_factors: {},
             provenance: "login",
-            next_action: "home"
+            next_action: "home",
+            return_to: @return_to
         )
 
         # Store fingerprint info in session for later use
@@ -43,10 +44,10 @@ class LoginsController < ApplicationController
         }
 
         send_v2_login_code(identity, attempt)
-        redirect_to login_attempt_path(id: attempt.to_param, return_to: @return_to), status: :see_other
+        redirect_to login_attempt_path(id: attempt.to_param), status: :see_other
     rescue => e
         flash[:error] = e.message
-        redirect_to login_path
+        redirect_to login_path(return_to: @return_to)
     end
 
     def show
@@ -105,7 +106,7 @@ class LoginsController < ApplicationController
     def resend
         send_v2_login_code(@attempt.identity, @attempt)
         flash[:notice] = "A new code has been sent to #{@identity.primary_email}"
-        redirect_to login_attempt_path(id: @attempt.to_param, return_to: params[:return_to]), status: :see_other
+        redirect_to login_attempt_path(id: @attempt.to_param), status: :see_other
     end
 
 
@@ -195,8 +196,7 @@ class LoginsController < ApplicationController
     end
 
     def set_return_to
-        session[:return_to] = params[:return_to] if params[:return_to].present?
-        @return_to = session[:return_to]
+        @return_to = params[:return_to] if params[:return_to].present?
     end
 
     def fingerprint_info
@@ -258,7 +258,7 @@ class LoginsController < ApplicationController
             end
         else
         flash[:success] = "Logged in!"
-        safe_return_to = session.delete(:return_to)
+        safe_return_to = @attempt.return_to
         begin
           redirect_to safe_return_to.presence || root_path
         rescue ActionController::Redirecting::UnsafeRedirectError
@@ -312,12 +312,11 @@ class LoginsController < ApplicationController
 
     def redirect_to_next_factor
         available = @attempt.available_factors
-        safe_return_to = url_from(params[:return_to])
 
         if available.include?(:totp)
-            redirect_to totp_login_attempt_path(id: @attempt.to_param, return_to: safe_return_to), status: :see_other
+            redirect_to totp_login_attempt_path(id: @attempt.to_param), status: :see_other
         elsif available.include?(:backup_code)
-            redirect_to backup_code_login_attempt_path(id: @attempt.to_param, return_to: safe_return_to), status: :see_other
+            redirect_to backup_code_login_attempt_path(id: @attempt.to_param), status: :see_other
         else
             # No available factors - this shouldn't happen
             flash[:error] = "Unable to complete authentication"

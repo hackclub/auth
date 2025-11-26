@@ -20,7 +20,7 @@
     <% end %>
 
     <footer>
-      <%= form_with url: resend_login_attempt_path(@attempt, return_to: params[:return_to]), method: :post, style: "margin: 0;" do %>
+      <%= form_with url: resend_login_attempt_path(@attempt), method: :post, style: "margin: 0;" do %>
         <%= button_tag t(".resend"), type: "submit", class: "secondary" %>
       <% end %>
 
@@ -36,10 +36,10 @@
               country: @identity.country,
               primary_email: @identity.primary_email
             },
-            return_to: params[:return_to]
+            return_to: @attempt.return_to
           ) %>
         <% else %>
-          <%= link_to t(".use_different_address"), login_path(email: @identity.primary_email, return_to: params[:return_to]) %>
+          <%= link_to t(".use_different_address"), login_path(email: @identity.primary_email, return_to: @attempt.return_to) %>
         <% end %>
       </p>
 

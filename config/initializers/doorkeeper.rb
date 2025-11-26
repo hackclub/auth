@@ -29,8 +29,8 @@ Doorkeeper.configure do
       params.reject! { |key, _| key == "stash_data" }
       uri.query = URI.encode_www_form(params) unless params.empty?
       # Store only the path + query (relative URL) for security
-      session[:return_to] = uri.request_uri
-      redirect_to "/oauth/welcome"
+      # session[:return_to] = uri.request_uri
+      redirect_to "/oauth/welcome?return_to=#{CGI.escape(uri.request_uri)}"
     end
   end
 
