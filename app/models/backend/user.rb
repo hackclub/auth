@@ -7,9 +7,19 @@ module Backend
     has_many :organizer_positions, class_name: "Backend::OrganizerPosition", foreign_key: "backend_user_id", dependent: :destroy
     has_many :organized_programs, through: :organizer_positions, source: :program, class_name: "Program"
 
-    validates :username, presence: true, uniqueness: true
+    validates :username, presence: true, uniqueness: true, if: :orphaned?
 
     delegate :email, :first_name, :last_name, :slack_id, to: :identity, allow_nil: true
+
+    scope :orphaned, -> { where(identity_id: nil) }
+    scope :linked, -> { where.not(identity_id: nil) }
+
+    def orphaned? = identity_id.nil?
+
+    def display_name
+      return username if orphaned?
+      "#{first_name} #{last_name}".strip.presence || email || username
+    end
 
     def active? = active
     def activate! = update!(active: true)

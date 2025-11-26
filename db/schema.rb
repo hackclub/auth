@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_20_195531) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_20_212350) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -99,7 +99,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_20_195531) do
   end
 
   create_table "backend_users", force: :cascade do |t|
-    t.string "slack_id"
     t.string "username"
     t.string "icon_url"
     t.boolean "super_admin"
@@ -114,7 +113,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_20_195531) do
     t.boolean "can_break_glass"
     t.bigint "identity_id"
     t.index ["identity_id"], name: "index_backend_users_on_identity_id"
-    t.index ["slack_id"], name: "index_backend_users_on_slack_id"
   end
 
   create_table "break_glass_records", force: :cascade do |t|
