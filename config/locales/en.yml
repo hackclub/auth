@@ -388,6 +388,7 @@ en:
       applications: Linked apps
       mfa: 2-Factor Authentication
       backup_codes: Backup Codes
+      webauthn: Passkeys
   identity_backup_codes:
     totp_heading: "Save your backup codes"
     save_warning_title: Save these codes now!
@@ -451,6 +452,10 @@ en:
     auth_type: Login method
     terminate: Log out
     terminate_confirmation: Log out this session?
+  identity_webauthn_credentials:
+    index:
+      setup_description: Sign in securely using a passkey stored on your device - like your phone, laptop, or hardware security key.
+      setup_webauthn: Set up passkey
   step_up:
     new:
       title: Gotta confirm it's you...

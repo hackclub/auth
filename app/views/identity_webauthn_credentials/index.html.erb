@@ -1,0 +1,19 @@
+<div id="webauthn-credentials-container">
+  <% if @webauthn_credentials.empty? %>
+    <div class="webauthn-disabled">
+      <p class="webauthn-description"><%= t(".setup_description") %></p>
+      <%= link_to t(".setup_webauthn"),
+          new_identity_webauthn_credential_path,
+          class: "webauthn-enable-btn",
+          data: {
+            "hx-get": new_identity_webauthn_credential_path,
+            "hx-target": "#webauthn-credentials-container",
+            "hx-swap": "innerHTML"
+          } %>
+    </div>
+  <% else %>
+    <div class="webauthn-credentials-list">
+      <%= render partial: "identity_webauthn_credential", collection: @webauthn_credentials %>
+    </div>
+  <% end %>
+</div>

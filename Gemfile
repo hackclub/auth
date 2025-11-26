@@ -140,6 +140,8 @@ gem "geocoder", "~> 1.8"
 gem "rotp", "~> 6.3"
 gem "rqrcode", "~> 2.0"
 
+gem "webauthn", "~> 3.1"
+
 gem "bcrypt", "~> 3.1"
 
 gem "rack-attack", "~> 6.7"

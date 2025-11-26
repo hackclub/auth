@@ -330,6 +330,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :identity_webauthn_credentials, only: [ :index, :new, :destroy ]
+
   # Step-up authentication flow
   get "/step_up", to: "step_up#new", as: :new_step_up
   post "/step_up/verify", to: "step_up#verify", as: :verify_step_up

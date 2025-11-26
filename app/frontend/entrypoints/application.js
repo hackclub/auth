@@ -2,9 +2,12 @@ import "../js/alpine.js";
 import "../js/lightswitch.js";
 import "../js/click-to-copy";
 import "../js/otp-input.js";
+import { registerWebauthn } from "../js/webauthn-registration.js";
 
 import htmx from "htmx.org"
 window.htmx = htmx
+
+window.registerWebauthn = registerWebauthn;
 
 // Add CSRF token to all HTMX requests
 document.addEventListener('htmx:configRequest', (event) => {
@@ -35,3 +38,11 @@ window.copyErrorId = function(element) {
     console.error('Failed to copy:', err);
   });
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+  registerWebauthn.init();
+});
+
+document.addEventListener('htmx:afterSwap', () => {
+  registerWebauthn.init();
+});

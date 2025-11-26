@@ -20,6 +20,11 @@
   </section>
 
   <section class="section-card">
+    <h3><%= t ".webauthn" %></h3>
+    <%= render Components::BootlegTurbo.new(identity_webauthn_credentials_path, id: "webauthn-container", hx_swap: "innerHTML") %>
+  </section>
+
+  <section class="section-card">
     <h3><%= t ".backup_codes" %></h3>
     <%= render Components::BootlegTurbo.new(identity_backup_codes_path, id: "backup-codes-container", hx_swap: "innerHTML") %>
   </section>
