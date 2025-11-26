@@ -1,10 +1,17 @@
-<%= render Components::Window.new("Users", close_url: backend_root_path, max_width: 600) do %>
+<%= render Components::Window.new("Users", close_url: backend_root_path, max_width: 700) do %>
+  <div class="padding">
+    <%= form_with url: backend_users_path, method: :get, class: "flex gap" do |f| %>
+      <%= f.text_field :search, placeholder: "Search by email or name...", value: params[:search], class: "input flex-1" %>
+      <%= f.submit "Search", class: "button" %>
+    <% end %>
+  </div>
   <div class="padding">
     <div class="list">
       <table class="detailed">
         <thead>
           <tr>
             <th>User</th>
+            <th>Email</th>
             <th>Roles</th>
             <th>Active?</th>
             <th>View</th>
@@ -14,8 +21,12 @@
           <% @users.each do |user| %>
             <tr>
               <td>
-                <%= render user %>
+                <%= user.display_name %>
+                <% if user.orphaned? %>
+                  <span class="badge badge-warning">⚠️ Not Linked</span>
+                <% end %>
               </td>
+              <td><%= user.email || "—" %></td>
               <td><%= user.pretty_roles %></td>
               <td><%= render_checkbox(user.active?) %></td>
               <td><%= link_to "go!", user, class: "link" %></td>
@@ -27,7 +38,7 @@
   </div>
   <div class="padding flex justify-end">
     <%= link_to new_backend_user_path, class: "button w-fit" do %>
-      + create user
+      + grant backend access
     <% end %>
   </div>
 <% end %>

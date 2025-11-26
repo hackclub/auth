@@ -100,7 +100,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
   end
 
   create_table "backend_users", force: :cascade do |t|
-    t.string "slack_id"
     t.string "username"
     t.string "icon_url"
     t.boolean "super_admin"
@@ -115,7 +114,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
     t.boolean "can_break_glass"
     t.bigint "identity_id"
     t.index ["identity_id"], name: "index_backend_users_on_identity_id"
-    t.index ["slack_id"], name: "index_backend_users_on_slack_id"
   end
 
   create_table "break_glass_records", force: :cascade do |t|
@@ -560,7 +558,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "identities", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
-  add_foreign_key "oauth_openid_requests", "oauth_access_grants", column: "access_grant_id", on_delete: :cascade
   add_foreign_key "verifications", "identities"
   add_foreign_key "verifications", "identity_aadhaar_records", column: "aadhaar_record_id"
   add_foreign_key "verifications", "identity_documents"
