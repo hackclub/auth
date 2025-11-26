@@ -8,7 +8,7 @@ class LoginsController < ApplicationController
     before_action :set_return_to, only: [ :new, :create ]
     before_action :set_attempt, except: [ :new, :create ]
     before_action :validate_browser_token, except: [ :new, :create ]
-    before_action :ensure_no_user!
+    before_action :ensure_no_user!, except: [ :verify, :verify_totp, :verify_backup_code, :verify_webauthn, :webauthn_options ]
 
     def new
         @prefill_email = params[:email] if params[:email].present?

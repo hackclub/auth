@@ -15,5 +15,16 @@
     <div class="sessions-list">
       <%= render partial: "identity_webauthn_credential", collection: @webauthn_credentials %>
     </div>
+
+    <div style="margin-top: 1rem;">
+      <%= link_to "Add another passkey",
+          new_identity_webauthn_credential_path,
+          class: "btn btn-secondary",
+          data: {
+            "hx-get": new_identity_webauthn_credential_path,
+            "hx-target": "#webauthn-credentials-container",
+            "hx-swap": "innerHTML"
+          } %>
+    </div>
   <% end %>
 </div>

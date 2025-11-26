@@ -1,156 +1,94 @@
-const authenticateWebauthn = {
-    checkBrowserSupport() {
-        const hasJsonSupport = !!globalThis.PublicKeyCredential?.parseRequestOptionsFromJSON;
+// Alpine.js component for WebAuthn authentication
+export function webauthnAuth() {
+    return {
+        loading: false,
+        error: null,
+        browserSupported: true,
 
-        if (!hasJsonSupport) {
-            this.showBrowserWarning();
-            return false;
-        }
+        init() {
+            // Check browser support on initialization
+            const hasJsonSupport = !!globalThis.PublicKeyCredential?.parseRequestOptionsFromJSON;
+            this.browserSupported = hasJsonSupport;
 
-        return true;
-    },
-
-    showBrowserWarning() {
-        const warning = document.getElementById('browser-support-warning');
-        const authContainer = document.querySelector('.passkey-auth');
-
-        if (warning) warning.style.display = 'block';
-        if (authContainer) authContainer.style.display = 'none';
-    },
-
-    async getAuthenticationOptions() {
-        // Fetch authentication options from the server
-        // The server will generate a cryptographic challenge
-        const loginAttemptId = this.getLoginAttemptId();
-        const response = await fetch(`/login/${loginAttemptId}/webauthn/options`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+            // Auto-trigger authentication on page load if browser is supported
+            if (this.browserSupported) {
+                this.authenticate();
             }
-        });
+        },
 
-        if (!response.ok) {
-            throw new Error('Failed to get authentication options from server');
-        }
-
-        return await response.json();
-    },
-
-    async authenticate() {
-        try {
-            const options = await this.getAuthenticationOptions(); // fetch our options + challenge
-            console.log('Authentication options:', options);
-
-            const publicKey = PublicKeyCredential.parseRequestOptionsFromJSON(options);
-            console.log('Parsed request options:', publicKey);
-
-            const credential = await navigator.credentials.get({ publicKey });
-
-            if (!credential) {
-                throw new Error('Authentication failed - no credential returned');
+        getLoginAttemptId() {
+            const pathParts = window.location.pathname.split('/');
+            const loginIndex = pathParts.indexOf('login');
+            if (loginIndex >= 0 && pathParts.length > loginIndex + 1) {
+                return pathParts[loginIndex + 1];
             }
+            throw new Error('Could not determine login attempt ID');
+        },
 
-            const credentialJSON = credential.toJSON();
+        async getAuthenticationOptions() {
             const loginAttemptId = this.getLoginAttemptId();
-            const response = await fetch(`/login/${loginAttemptId}/webauthn/verify`, {
+            const response = await fetch(`/login/${loginAttemptId}/webauthn/options`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
-                },
-                body: JSON.stringify(credentialJSON)
+                }
             });
 
             if (!response.ok) {
-                const result = await response.json();
-                throw new Error(result.error || 'Authentication failed');
+                throw new Error('Failed to get authentication options from server');
             }
 
-            console.log('Authentication successful');
+            return await response.json();
+        },
 
-            window.location.reload(); // TODO
+        async authenticate() {
+            this.loading = true;
+            this.error = null;
 
-            return {
-                success: true
-            };
-        } catch (error) {
-            console.error('Passkey authentication error:', error);
+            try {
+                const options = await this.getAuthenticationOptions();
+                const publicKey = PublicKeyCredential.parseRequestOptionsFromJSON(options);
+                const credential = await navigator.credentials.get({ publicKey });
 
-            let errorMessage = 'An unexpected error occurred';
+                if (!credential) {
+                    throw new Error('Authentication failed - no credential returned');
+                }
 
-            if (error.name === 'NotAllowedError') {
-                errorMessage = 'Authentication was cancelled or not allowed';
-            } else if (error.name === 'InvalidStateError') {
-                errorMessage = 'No passkey found for this account';
-            } else if (error.name === 'NotSupportedError') {
-                errorMessage = 'Passkeys are not supported on this device';
-            } else if (error.message) {
-                errorMessage = error.message;
+                const credentialJSON = credential.toJSON();
+                const loginAttemptId = this.getLoginAttemptId();
+                const response = await fetch(`/login/${loginAttemptId}/webauthn/verify`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+                    },
+                    body: JSON.stringify(credentialJSON)
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    throw new Error(result.error || 'Authentication failed');
+                }
+
+                // Success! Redirect to the next page (server will handle this via htmx or full page load)
+                window.location.reload();
+            } catch (error) {
+                console.error('Passkey authentication error:', error);
+
+                // Translate error codes to user-friendly messages
+                if (error.name === 'NotAllowedError') {
+                    this.error = 'Authentication was cancelled or not allowed';
+                } else if (error.name === 'InvalidStateError') {
+                    this.error = 'No passkey found for this account';
+                } else if (error.name === 'NotSupportedError') {
+                    this.error = 'Passkeys are not supported on this device';
+                } else {
+                    this.error = error.message || 'An unexpected error occurred';
+                }
+
+                this.loading = false;
             }
-
-            return {
-                success: false,
-                error: errorMessage
-            };
         }
-    },
-
-    getLoginAttemptId() {
-        const pathParts = window.location.pathname.split('/');
-        const loginIndex = pathParts.indexOf('login');
-        if (loginIndex >= 0 && pathParts.length > loginIndex + 1) {
-            return pathParts[loginIndex + 1];
-        }
-        throw new Error('Could not determine login attempt ID');
-    },
-
-    async handleAuthenticate() {
-        const authBtn = document.getElementById('authenticate-btn');
-        const btnText = authBtn?.querySelector('.btn-text');
-        const btnSpinner = authBtn?.querySelector('.btn-spinner');
-        const errorAlert = document.getElementById('webauthn-auth-error');
-        const errorMessage = document.getElementById('error-message');
-
-        if (authBtn) {
-            authBtn.disabled = true;
-            if (btnText) btnText.style.display = 'none';
-            if (btnSpinner) btnSpinner.style.display = 'inline';
-        }
-
-        if (errorAlert) errorAlert.style.display = 'none';
-
-        const result = await this.authenticate();
-
-        if (authBtn) {
-            authBtn.disabled = false;
-            if (btnText) btnText.style.display = 'inline';
-            if (btnSpinner) btnSpinner.style.display = 'none';
-        }
-
-        if (!result.success) {
-            if (errorMessage) errorMessage.textContent = result.error;
-            if (errorAlert) errorAlert.style.display = 'block';
-        }
-    },
-
-    init() {
-        if (!this.checkBrowserSupport()) {
-            return;
-        }
-
-        const container = document.getElementById('passkey-auth-container');
-        if (container && !container.dataset.webauthnInitialized) {
-            this.handleAuthenticate();
-            container.dataset.webauthnInitialized = 'true';
-        }
-
-        const authBtn = document.getElementById('authenticate-btn');
-        if (authBtn && !authBtn.dataset.webauthnInitialized) {
-            authBtn.addEventListener('click', () => this.handleAuthenticate());
-            authBtn.dataset.webauthnInitialized = 'true';
-        }
-    }
-};
-
-export { authenticateWebauthn };
+    };
+}

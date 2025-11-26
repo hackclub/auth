@@ -1,27 +1,22 @@
-<div class="auth-container" id="passkey-auth-container">
-  <div class="auth-card passkey-auth">
+<div class="auth-container" x-data="webauthnAuth()">
+  <div class="auth-card passkey-auth" x-show="browserSupported">
     <header>
       <h1><%= t(".title") %></h1>
       <small><%= t(".subtitle") %></small>
     </header>
 
-    <div id="browser-support-warning" style="display: none;">
-      <div class="alert alert-warning">
-        <%= t(".browser_not_supported") %>
-      </div>
-    </div>
-
-    <div id="webauthn-auth-error" style="display: none;">
-      <div class="alert alert-error">
-        <span id="error-message"></span>
-      </div>
+    <div x-show="error" x-cloak class="alert alert-error" role="alert">
+      <strong>Authentication Failed</strong>
+      <p x-text="error"></p>
     </div>
 
     <div class="passkey-prompt">
-      <button id="authenticate-btn" type="button" class="webauthn-button">
-        <span class="webauthn-icon"><%= inline_icon("fingerprint", size: 16) %></span>
-        <span class="btn-text"><%= t(".authenticate") %></span>
-        <span class="btn-spinner" style="display: none;"><%= t(".authenticating") %>...</span>
+      <button
+        type="button"
+        class="webauthn-button"
+        <span class="webauthn-icon"><%= inline_icon("fingerprint", size: 16) %>>
+        <span x-show="!loading"><%= t(".authenticate") %></span>
+        <span x-show="loading" x-cloak><%= t(".authenticating") %>...</span>
       </button>
     </div>
 
@@ -41,5 +36,12 @@
         </p>
       <% end %>
     </footer>
+  </div>
+
+  <div x-show="!browserSupported" x-cloak class="auth-card">
+    <div class="alert alert-warning">
+      <strong>Browser Not Supported</strong>
+      <p><%= t(".browser_not_supported") %></p>
+    </div>
   </div>
 </div>

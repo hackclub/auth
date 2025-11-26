@@ -1,33 +1,15 @@
-<div id="passkey-registration-container" class="passkey-setup">
+<div class="passkey-setup" x-data="webauthnRegister()">
   <p class="webauthn-setup-description">
     A passwordless way to sign in using your device's biometric authentication or PIN.
   </p>
 
-  <div id="browser-support-warning" class="alert alert-warning" style="display: none;">
+  <div x-show="!browserSupported" x-cloak class="alert alert-warning">
     <strong>Browser not supported</strong>
     <p>Your browser doesn't support the latest WebAuthn features. Use something modern!</p>
   </div>
 
-  <div>
-    <form>
-      <div class="form-group">
-        <label for="webauthn-nickname">Passkey Nickname</label>
-        <input
-          type="text"
-          id="webauthn-nickname"
-          name="nickname"
-          placeholder="e.g., Heidi's iPhone, MacBook Air"
-          required
-          maxlength="50"
-          autocomplete="off">
-        <small class="form-hint">Give this passkey a memorable name to identify it later!</small>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary" id="register-btn">
-          <span class="btn-text">Register Passkey</span>
-          <span class="btn-spinner" style="display: none;">Loading...</span>
-        </button>
+  <div x-show="browserSupported">
+    <form
         <%= link_to "Cancel",
             identity_webauthn_credentials_path,
             class: "btn btn-secondary",
@@ -35,18 +17,7 @@
               "hx-get": identity_webauthn_credentials_path,
               "hx-target": "#webauthn-credentials-container",
               "hx-swap": "innerHTML"
-            } %>
-      </div>
+            } %>>
     </form>
-  </div>
-
-  <div id="webauthn-registration-success" class="alert alert-success" style="display: none;">
-    <strong>Success!</strong>
-    <p>Your passkey has been registered successfully!</p>
-  </div>
-
-  <div id="webauthn-registration-error" class="alert alert-error" style="display: none;">
-    <strong>Registration Failed</strong>
-    <p id="error-message"></p>
   </div>
 </div>
