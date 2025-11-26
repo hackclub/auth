@@ -58,6 +58,7 @@ module SCIMService
 
       retries = 0
       max_retries = 1
+      response = nil
 
       loop do
         Rails.logger.info "Creating Slack user with payload: #{user_payload.inspect}"
