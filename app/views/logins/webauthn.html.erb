@@ -5,7 +5,7 @@
       <small><%= t(".subtitle") %></small>
     </header>
 
-    <div x-show="error" x-cloak class="alert alert-error" role="alert">
+    <div x-show="error" x-cloak role="alert">
       <strong>Authentication Failed</strong>
       <p x-text="error"></p>
     </div>
@@ -14,7 +14,9 @@
       <button
         type="button"
         class="webauthn-button"
-        <span class="webauthn-icon"><%= inline_icon("fingerprint", size: 16) %>>
+        @click="authenticate()"
+        :disabled="loading">
+        <span class="webauthn-icon"><%= inline_icon("fingerprint", size: 16) %></span>
         <span x-show="!loading"><%= t(".authenticate") %></span>
         <span x-show="loading" x-cloak><%= t(".authenticating") %>...</span>
       </button>

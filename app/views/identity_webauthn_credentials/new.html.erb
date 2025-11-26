@@ -9,7 +9,30 @@
   </div>
 
   <div x-show="browserSupported">
-    <form
+    <form @submit.prevent="register()">
+      <div class="form-group">
+        <label for="webauthn-nickname">Passkey Nickname</label>
+        <input
+          type="text"
+          id="webauthn-nickname"
+          x-model="nickname"
+          placeholder="e.g., Heidi's iPhone, MacBook Air"
+          required
+          maxlength="50"
+          autocomplete="off">
+        <small class="form-hint">Give this passkey a memorable name to identify it later!</small>
+      </div>
+
+      <div x-show="error" x-cloak class="alert alert-error" role="alert">
+        <strong>Registration Failed</strong>
+        <p x-text="error"></p>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" :disabled="loading">
+          <span x-show="!loading">Register Passkey</span>
+          <span x-show="loading" x-cloak>Registering...</span>
+        </button>
         <%= link_to "Cancel",
             identity_webauthn_credentials_path,
             class: "btn btn-secondary",
@@ -17,7 +40,8 @@
               "hx-get": identity_webauthn_credentials_path,
               "hx-target": "#webauthn-credentials-container",
               "hx-swap": "innerHTML"
-            } %>>
+            } %>
+      </div>
     </form>
   </div>
 </div>
