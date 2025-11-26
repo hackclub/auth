@@ -33,7 +33,7 @@ class SAMLController < ApplicationController
     # Try to assign to Slack workspace if not yet done
     if params[:slug] == "slack"
       provision_slack_via_scim_if_needed
-      try_assign_to_slack_workspace if !current_identity.is_in_workspace
+      try_assign_to_slack_workspace unless current_identity.is_in_workspace
     end
 
     response = build_saml_response(
