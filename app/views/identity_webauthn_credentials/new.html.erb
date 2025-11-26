@@ -9,7 +9,7 @@
   </div>
 
   <div x-show="browserSupported">
-    <form @submit.prevent="register()">
+    <form x-on:submit.prevent="register()">
       <div class="form-group">
         <label for="webauthn-nickname">Passkey Nickname</label>
         <input

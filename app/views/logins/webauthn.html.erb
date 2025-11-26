@@ -14,8 +14,8 @@
       <button
         type="button"
         class="webauthn-button"
-        @click="authenticate()"
-        :disabled="loading">
+        x-on:click="authenticate()"
+        x-bind:disabled="loading">
         <span class="webauthn-icon"><%= inline_icon("fingerprint", size: 16) %></span>
         <span x-show="!loading"><%= t(".authenticate") %></span>
         <span x-show="loading" x-cloak><%= t(".authenticating") %>...</span>
