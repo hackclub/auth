@@ -10,16 +10,13 @@ class IdentityWebauthnCredentialsController < ApplicationController
 
   # Generate registration options (challenge) for WebAuthn credential creation
   def options
-    user_id_binary = [ current_identity.id ].pack("Q>") # 64-bit unsigned big-endian
-    user_id_base64 = Base64.urlsafe_encode64(user_id_binary, padding: false)
-
     challenge = WebAuthn::Credential.options_for_create(
       user: {
-        id: user_id_base64,
+        id: current_identity.webauthn_user_id,
         name: current_identity.primary_email,
         display_name: "#{current_identity.first_name} #{current_identity.last_name}"
       },
-      exclude: current_identity.webauthn_credentials.pluck(:external_id).map { |id| Base64.urlsafe_decode64(id) },
+      exclude: current_identity.webauthn_credentials.raw_credential_ids,
       authenticator_selection: {
         user_verification: "preferred",
         resident_key: "preferred"
@@ -60,7 +57,10 @@ class IdentityWebauthnCredentialsController < ApplicationController
       render json: { success: true, redirect_url: security_path }
     rescue WebAuthn::Error => e
       Rails.logger.error "WebAuthn registration error: #{e.message}"
-      render json: { success: false, error: e.message }, status: :unprocessable_entity
+      render json: { success: false, error: "Passkey registration failed. Please try again." }, status: :unprocessable_entity
+    rescue => e
+      Rails.logger.error "Unexpected WebAuthn registration error: #{e.message}"
+      render json: { success: false, error: "An unexpected error occurred. Please try again." }, status: :unprocessable_entity
     end
   end
 

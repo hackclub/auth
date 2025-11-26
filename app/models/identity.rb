@@ -319,6 +319,13 @@ class Identity < ApplicationRecord
 
   def webauthn_enabled? = webauthn_credentials.any?
 
+  # Encode identity ID as base64url for WebAuthn user.id
+  # Uses 64-bit unsigned big-endian binary format
+  def webauthn_user_id
+    user_id_binary = [ id ].pack("Q>")
+    Base64.urlsafe_encode64(user_id_binary, padding: false)
+  end
+
   def available_step_up_methods
     methods = []
     methods << :totp if totp.present?

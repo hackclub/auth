@@ -6,9 +6,10 @@ export function webauthnRegister() {
         browserSupported: true,
 
         init() {
-            // let's check browser support on initialization
-            const hasJsonSupport = !!globalThis.PublicKeyCredential?.parseCreationOptionsFromJSON;
-            this.browserSupported = hasJsonSupport;
+            this.browserSupported = !!(
+                globalThis.PublicKeyCredential?.parseCreationOptionsFromJSON &&
+                navigator.credentials?.create
+            );
         },
 
         async getRegistrationOptions() {

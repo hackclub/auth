@@ -4,6 +4,7 @@ class Identity::WebauthnCredential < ApplicationRecord
   validates :external_id, presence: true, uniqueness: true
   validates :public_key, presence: true
   validates :sign_count, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :nickname, length: { maximum: 50 }, allow_blank: true
 
   before_validation :set_initial_sign_count, on: :create
 
@@ -34,6 +35,12 @@ class Identity::WebauthnCredential < ApplicationRecord
   # Human-readable display for the credential
   def display_name
     nickname.presence || "Passkey created #{created_at.strftime('%b %d, %Y')}"
+  end
+
+  # Class method to get all decoded credential IDs for a collection
+  # Useful for building WebAuthn allow/exclude lists
+  def self.raw_credential_ids
+    pluck(:external_id).map { |id| Base64.urlsafe_decode64(id) }
   end
 
   private

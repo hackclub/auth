@@ -300,12 +300,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_01_170716) do
     t.boolean "developer_mode", default: false, null: false
     t.boolean "saml_debug"
     t.boolean "is_in_workspace", default: false, null: false
-<<<<<<< HEAD
     t.string "slack_dm_channel_id"
-    t.index "lower((primary_email)::text)", name: "idx_identities_unique_primary_email", unique: true, where: "(deleted_at IS NULL)"
-=======
     t.string "webauthn_id"
->>>>>>> ac051da (Step 2)
+    t.index "lower((primary_email)::text)", name: "idx_identities_unique_primary_email", unique: true, where: "(deleted_at IS NULL)"
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
     t.index ["legacy_migrated_at"], name: "index_identities_on_legacy_migrated_at"
@@ -442,12 +439,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_01_170716) do
 
   create_table "identity_webauthn_credentials", force: :cascade do |t|
     t.bigint "identity_id", null: false
-    t.string "external_id"
-    t.string "public_key"
+    t.string "external_id", null: false
+    t.string "public_key", null: false
     t.string "nickname"
     t.integer "sign_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["external_id"], name: "index_identity_webauthn_credentials_on_external_id", unique: true
     t.index ["identity_id"], name: "index_identity_webauthn_credentials_on_identity_id"
   end
 

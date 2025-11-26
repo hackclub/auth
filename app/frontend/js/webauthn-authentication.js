@@ -5,9 +5,10 @@ export function webauthnAuth() {
         browserSupported: true,
 
         init() {
-            // let's check browser support on initialization
-            const hasJsonSupport = !!globalThis.PublicKeyCredential?.parseRequestOptionsFromJSON;
-            this.browserSupported = hasJsonSupport;
+            this.browserSupported = !!(
+                globalThis.PublicKeyCredential?.parseRequestOptionsFromJSON &&
+                navigator.credentials?.get
+            );
 
             if (this.browserSupported) {
                 this.authenticate();

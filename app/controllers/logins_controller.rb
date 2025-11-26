@@ -182,10 +182,8 @@ class LoginsController < ApplicationController
     end
 
     def webauthn_options
-        credentials = @identity.webauthn_credentials.pluck(:external_id).map { |id| Base64.urlsafe_decode64(id) }
-
         options = WebAuthn::Credential.options_for_get(
-            allow: credentials,
+            allow: @identity.webauthn_credentials.raw_credential_ids,
             user_verification: "preferred"
         )
 
@@ -198,10 +196,8 @@ class LoginsController < ApplicationController
         flash.clear
 
         begin
-            # Parse the JSON request body manually since Rails doesn't auto-parse for non-API controllers
-            request_body = request.body.read
-            request.body.rewind
-            credential_data = JSON.parse(request_body)
+            # Rails automatically parses JSON requests into params
+            credential_data = params.except(:controller, :action, :id).to_unsafe_h
 
             webauthn_credential = WebAuthn::Credential.from_get(credential_data)
 
