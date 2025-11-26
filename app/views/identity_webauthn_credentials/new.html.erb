@@ -12,15 +12,14 @@
     <form>
       <div class="form-group">
         <label for="webauthn-nickname">Passkey Nickname</label>
-        <input 
-          type="text" 
-          id="webauthn-nickname" 
-          name="nickname" 
+        <input
+          type="text"
+          id="webauthn-nickname"
+          name="nickname"
           placeholder="e.g., Heidi's iPhone, MacBook Air"
           required
           maxlength="50"
-          autocomplete="off"
-        />
+          autocomplete="off">
         <small class="form-hint">Give this passkey a memorable name to identify it later!</small>
       </div>
 
@@ -29,7 +28,7 @@
           <span class="btn-text">Register Passkey</span>
           <span class="btn-spinner" style="display: none;">Loading...</span>
         </button>
-        <%= link_to "Cancel", 
+        <%= link_to "Cancel",
             identity_webauthn_credentials_path,
             class: "btn btn-secondary",
             data: {

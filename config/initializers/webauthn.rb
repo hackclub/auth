@@ -2,12 +2,12 @@
 WebAuthn.configure do |config|
   # The allowed origins - where WebAuthn requests can come from
   config.allowed_origins = if Rails.env.production?
-    ["https://account.hackclub.com"]
+    [ "https://account.hackclub.com" ]
   elsif Rails.env.development?
-    ["http://localhost:3000"]
+    [ "http://localhost:3000" ]
   else
     # For test environment or other environments
-    ["http://localhost:3000"]
+    [ "http://localhost:3000" ]
   end
 
   # The Relying Party name - shown in authenticator UI
@@ -17,5 +17,5 @@ WebAuthn.configure do |config|
   # Algorithms we support for credential public keys
   # ES256 is ECDSA with SHA-256, the most widely supported algorithm
   # RS256 is RSA with SHA-256, supported by some older authenticators
-  config.algorithms = ["ES256", "RS256"]
+  config.algorithms = [ "ES256", "RS256" ]
 end

@@ -10,7 +10,7 @@ class IdentityWebauthnCredentialsController < ApplicationController
 
   # Generate registration options (challenge) for WebAuthn credential creation
   def options
-    user_id_binary = [current_identity.id].pack("Q>") # 64-bit unsigned big-endian
+    user_id_binary = [ current_identity.id ].pack("Q>") # 64-bit unsigned big-endian
     user_id_base64 = Base64.urlsafe_encode64(user_id_binary, padding: false)
 
     challenge = WebAuthn::Credential.options_for_create(
