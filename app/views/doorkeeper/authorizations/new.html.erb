@@ -66,6 +66,13 @@
                       <li><span><%= t('.scopes.verification_status.ysws_eligible_label') %></span> <%= current_identity.ysws_eligible ? 'Yes' : 'No' %></li>
                     </ul>
                   </div>
+                <% when "profile" %>
+                  <div class="permission-item">
+                    <strong><%= t('.scopes.profile.title') %></strong>
+                    <ul class="permission-details">
+                      <li><span><%= t('.scopes.profile.name_label') %></span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
+                    </ul>
+                  </div>
                 <% else %>
                   <div class="permission-item">
                     <strong><%= t scope, scope: [:doorkeeper, :scopes] %></strong>

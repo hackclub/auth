@@ -167,6 +167,9 @@ en:
             title: See your verification status
             verification_status_label: "Verification status:"
             ysws_eligible_label: "YSWS eligible:"
+          profile:
+            title: See your profile information
+            name_label: "Name:"
   authorized_applications:
     none: You haven't authorized any apps yet.
     created_at: Authorized
