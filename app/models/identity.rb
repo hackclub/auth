@@ -54,6 +54,7 @@ class Identity < ApplicationRecord
   has_many :v2_login_codes, class_name: "Identity::V2LoginCode", dependent: :destroy
   has_many :totps, class_name: "Identity::TOTP", dependent: :destroy
   has_many :backup_codes, class_name: "Identity::BackupCode", dependent: :destroy
+  has_many :webauthn_credentials, class_name: "Identity::WebauthnCredential", dependent: :destroy
   has_many :email_change_requests, class_name: "Identity::EmailChangeRequest", dependent: :destroy
 
   has_one :backend_user, class_name: "Backend::User", dependent: :destroy
@@ -61,10 +62,6 @@ class Identity < ApplicationRecord
   def active_for_backend?
     backend_user&.active?
   end
-
-
-
-
 
   has_many :documents, class_name: "Identity::Document", dependent: :destroy
   has_many :verifications, class_name: "Verification", dependent: :destroy
@@ -320,10 +317,13 @@ class Identity < ApplicationRecord
 
   def backup_codes_enabled? = backup_codes.active.any?
 
+  def webauthn_enabled? = webauthn_credentials.any?
+
   def available_step_up_methods
     methods = []
     methods << :totp if totp.present?
     methods << :backup_code if backup_codes_enabled?
+    methods << :webauthn if webauthn_enabled?
     # Future: methods << :sms if sms_verified?
     methods
   end
@@ -331,7 +331,8 @@ class Identity < ApplicationRecord
   # Generic 2FA method helpers
   def two_factor_methods
     [
-      totps.verified
+      totps.verified,
+      webauthn_credentials
       # Future: sms_two_factors.verified,
     ].flatten.compact
   end

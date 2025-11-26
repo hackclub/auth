@@ -18,49 +18,31 @@ const registerWebauthn = {
         if (formContainer) formContainer.style.display = 'none';
     },
 
-    toBase64url(buffer) {
-        const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
-        return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-    },
+    async getRegistrationOptions() {
+        // Fetch registration options from the server
+        // The server will generate a cryptographic challenge and return user info
+        const response = await fetch('/identity_webauthn_credentials/options', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+            }
+        });
 
-    async getRegistrationOptions(nickname) {
-        const userId = new Uint8Array(16);
-        crypto.getRandomValues(userId);
+        if (!response.ok) {
+            throw new Error('Failed to get registration options from server');
+        }
 
-        const challenge = new Uint8Array(32);
-        crypto.getRandomValues(challenge);
-
-        return {
-            challenge: this.toBase64url(challenge),
-            rp: {
-                name: "Hack Club Account",
-                id: window.location.hostname
-            },
-            user: {
-                id: this.toBase64url(userId),
-                name: "user@example.com",
-                displayName: nickname
-            },
-            pubKeyCredParams: [
-                { type: "public-key", alg: -7 },
-                { type: "public-key", alg: -257 }
-            ],
-            authenticatorSelection: {
-                authenticatorAttachment: "platform",
-                requireResidentKey: false,
-                residentKey: "preferred",
-                userVerification: "preferred"
-            },
-            timeout: 60000,
-            attestation: "none"
-        };
+        return await response.json();
     },
 
     async register(nickname) {
         try {
-            const options = await this.getRegistrationOptions(nickname);
+            // Get registration options from server (includes challenge and user info)
+            const options = await this.getRegistrationOptions();
             console.log('Registration options:', options);
 
+            // Parse the options and create the credential
             const publicKey = PublicKeyCredential.parseCreationOptionsFromJSON(options);
             console.log('Parsed creation options:', publicKey);
 
@@ -72,20 +54,34 @@ const registerWebauthn = {
 
             console.log('Credential created:', credential);
 
+            // Convert credential to JSON for transmission
             const credentialJSON = credential.toJSON();
             console.log('Credential JSON:', credentialJSON);
 
-            const registrationData = {
-                nickname: nickname,
-                credential: credentialJSON,
-                timestamp: new Date().toISOString()
-            };
+            // Send the credential to the server for verification and storage
+            const response = await fetch('/identity_webauthn_credentials', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+                },
+                body: JSON.stringify({
+                    nickname: nickname,
+                    ...credentialJSON
+                })
+            });
 
-            console.log('Registration data:', registrationData);
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Failed to register passkey');
+            }
+
+            console.log('Registration successful:', result);
 
             return {
                 success: true,
-                data: registrationData
+                data: result
             };
         } catch (error) {
             console.error('Passkey registration error:', error);
@@ -139,8 +135,8 @@ const registerWebauthn = {
         btnSpinner.style.display = 'none';
 
         if (result.success) {
-            successAlert.style.display = 'block';
-            nicknameInput.value = '';
+            // Redirect to the credentials index page to show the updated list
+            window.location.href = '/identity_webauthn_credentials';
         } else {
             errorMessage.textContent = result.error;
             errorAlert.style.display = 'block';
@@ -160,7 +156,6 @@ const registerWebauthn = {
             return;
         }
 
-        // Find the form within the passkey registration container
         const container = document.getElementById('passkey-registration-container');
         const form = container?.querySelector('form');
         if (form && !form.dataset.webauthnInitialized) {

@@ -300,8 +300,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_01_170716) do
     t.boolean "developer_mode", default: false, null: false
     t.boolean "saml_debug"
     t.boolean "is_in_workspace", default: false, null: false
+<<<<<<< HEAD
     t.string "slack_dm_channel_id"
     t.index "lower((primary_email)::text)", name: "idx_identities_unique_primary_email", unique: true, where: "(deleted_at IS NULL)"
+=======
+    t.string "webauthn_id"
+>>>>>>> ac051da (Step 2)
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
     t.index ["legacy_migrated_at"], name: "index_identities_on_legacy_migrated_at"
@@ -434,6 +438,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_01_170716) do
     t.index ["identity_id", "login_attempt_id", "code", "used_at"], name: "index_v2_codes_on_identity_attempt_code_used"
     t.index ["identity_id"], name: "index_identity_v2_login_codes_on_identity_id"
     t.index ["login_attempt_id"], name: "index_identity_v2_login_codes_on_login_attempt_id"
+  end
+
+  create_table "identity_webauthn_credentials", force: :cascade do |t|
+    t.bigint "identity_id", null: false
+    t.string "external_id"
+    t.string "public_key"
+    t.string "nickname"
+    t.integer "sign_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["identity_id"], name: "index_identity_webauthn_credentials_on_identity_id"
   end
 
   create_table "login_attempts", force: :cascade do |t|
@@ -573,6 +588,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_01_170716) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
+  create_table "webauthn_credentials", force: :cascade do |t|
+    t.bigint "identity_id", null: false
+    t.string "external_id", null: false
+    t.string "public_key", null: false
+    t.string "nickname", null: false
+    t.integer "sign_count", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["external_id"], name: "index_webauthn_credentials_on_external_id", unique: true
+    t.index ["identity_id"], name: "index_webauthn_credentials_on_identity_id"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "addresses", "identities"
@@ -594,6 +621,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_01_170716) do
   add_foreign_key "identity_totps", "identities"
   add_foreign_key "identity_v2_login_codes", "identities"
   add_foreign_key "identity_v2_login_codes", "login_attempts"
+  add_foreign_key "identity_webauthn_credentials", "identities"
   add_foreign_key "login_attempts", "identities"
   add_foreign_key "login_attempts", "identity_sessions", column: "session_id"
   add_foreign_key "oauth_access_grants", "identities", column: "resource_owner_id"
@@ -604,4 +632,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_01_170716) do
   add_foreign_key "verifications", "identities"
   add_foreign_key "verifications", "identity_aadhaar_records", column: "aadhaar_record_id"
   add_foreign_key "verifications", "identity_documents"
+  add_foreign_key "webauthn_credentials", "identities"
 end

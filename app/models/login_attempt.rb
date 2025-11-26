@@ -8,7 +8,7 @@ class LoginAttempt < ApplicationRecord
   has_encrypted :browser_token
   before_validation :ensure_browser_token
 
-  store_accessor :authentication_factors, :email, :totp, :backup_code, :legacy_email, prefix: :authenticated_with
+  store_accessor :authentication_factors, :email, :totp, :backup_code, :webauthn, :legacy_email, prefix: :authenticated_with
 
   EXPIRATION = 15.minutes
 
@@ -72,9 +72,12 @@ class LoginAttempt < ApplicationRecord
 
   def backup_code_available? = !authenticated_with_backup_code && identity.backup_codes_enabled?
 
+  def webauthn_available? = !authenticated_with_webauthn && identity.webauthn_enabled?
+
   def available_factors
     factors = []
     factors << :email if email_available?
+    factors << :webauthn if webauthn_available?
     factors << :totp if totp_available?
     factors << :backup_code if backup_code_available?
     factors
@@ -83,8 +86,12 @@ class LoginAttempt < ApplicationRecord
   private
 
   def required_authentication_factors_count
+    # WebAuthn inherently provides 2FA (possession + biometric/PIN)
+    # So if WebAuthn is used, we only need 1 factor
+    if authenticated_with_webauthn
+      1
     # Require 2FA if enabled AND at least one 2FA method is configured
-    if identity.requires_two_factor?
+    elsif identity.requires_two_factor?
       2
     else
       1

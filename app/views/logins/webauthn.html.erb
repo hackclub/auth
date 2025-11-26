@@ -1,0 +1,50 @@
+<div class="auth-container" id="passkey-auth-container">
+  <div class="auth-card passkey-auth">
+    <header>
+      <h1><%= t(".title") %></h1>
+      <small><%= t(".subtitle") %></small>
+    </header>
+
+    <div id="browser-support-warning" style="display: none;">
+      <div class="alert alert-warning">
+        <%= t(".browser_not_supported") %>
+      </div>
+    </div>
+
+    <div id="webauthn-auth-error" style="display: none;">
+      <div class="alert alert-error">
+        <span id="error-message"></span>
+      </div>
+    </div>
+
+    <div class="passkey-prompt">
+      <div class="passkey-icon">
+        <%= inline_icon("fingerprint", size: 64) if defined?(inline_icon) %>
+      </div>
+
+      <button id="authenticate-btn" type="button" class="primary-btn">
+        <span class="btn-text"><%= t(".authenticate") %></span>
+        <span class="btn-spinner" style="display: none;"><%= t(".authenticating") %>...</span>
+      </button>
+
+      <p class="passkey-hint"><%= t(".hint") %></p>
+    </div>
+
+    <footer>
+      <p>
+        <%= t(".prefer_email") %>
+        <%= button_to t(".use_email_code"),
+            skip_webauthn_login_attempt_path(@attempt),
+            method: :post,
+            class: "secondary small-btn" %>
+      </p>
+
+      <% if @attempt.backup_code_available? %>
+        <p>
+          <%= t(".lost_passkey") %>
+          <%= link_to t(".use_backup_code"), backup_code_login_attempt_path(@attempt) %>
+        </p>
+      <% end %>
+    </footer>
+  </div>
+</div>
