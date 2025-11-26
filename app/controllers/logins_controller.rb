@@ -8,7 +8,7 @@ class LoginsController < ApplicationController
     before_action :set_return_to, only: [ :new, :create ]
     before_action :set_attempt, except: [ :new, :create ]
     before_action :validate_browser_token, except: [ :new, :create ]
-    before_action :ensure_no_user!, except: [ :verify, :verify_totp, :verify_backup_code, :verify_webauthn, :webauthn_options ]
+    before_action :ensure_no_user!
 
     def new
         @prefill_email = params[:email] if params[:email].present?
@@ -182,8 +182,10 @@ class LoginsController < ApplicationController
     end
 
     def webauthn_options
+        credentials = @identity.webauthn_credentials.pluck(:external_id).map { |id| Base64.urlsafe_decode64(id) }
+
         options = WebAuthn::Credential.options_for_get(
-            allow: @identity.webauthn_credentials.raw_credential_ids,
+            allow: credentials,
             user_verification: "preferred"
         )
 
@@ -196,12 +198,12 @@ class LoginsController < ApplicationController
         flash.clear
 
         begin
-            # Rails automatically parses JSON requests into params
-            credential_data = params.except(:controller, :action, :id).to_unsafe_h
+            request_body = request.body.read
+            request.body.rewind
+            credential_data = JSON.parse(request_body)
 
             webauthn_credential = WebAuthn::Credential.from_get(credential_data)
 
-            # wrap in a transaction with pessimistic locking to prevent race conditions on sign_count
             Identity::WebauthnCredential.transaction do
                 credential = @identity.webauthn_credentials.lock.find_by(
                     external_id: Base64.urlsafe_encode64(webauthn_credential.id, padding: false)
@@ -219,7 +221,6 @@ class LoginsController < ApplicationController
                     sign_count: credential.sign_count
                 )
 
-                # Update sign_count within the locked transaction
                 credential.update!(sign_count: webauthn_credential.sign_count)
             end
 
