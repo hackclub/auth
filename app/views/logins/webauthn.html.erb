@@ -18,16 +18,11 @@
     </div>
 
     <div class="passkey-prompt">
-      <div class="passkey-icon">
-        <%= inline_icon("fingerprint", size: 64) if defined?(inline_icon) %>
-      </div>
-
-      <button id="authenticate-btn" type="button" class="primary-btn">
+      <button id="authenticate-btn" type="button" class="webauthn-button">
+        <span class="webauthn-icon"><%= inline_icon("fingerprint", size: 16) %></span>
         <span class="btn-text"><%= t(".authenticate") %></span>
         <span class="btn-spinner" style="display: none;"><%= t(".authenticating") %>...</span>
       </button>
-
-      <p class="passkey-hint"><%= t(".hint") %></p>
     </div>
 
     <footer>

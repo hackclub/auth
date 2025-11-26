@@ -372,11 +372,10 @@ en:
       lost_authenticator: Lost your authenticator?
       use_backup_code: Use a backup code instead
     webauthn:
-      title: Use your passkey
+      title: Welcome back!
       subtitle: Use the passkey saved on this device or another nearby device
       authenticate: Use passkey
       authenticating: Authenticating
-      hint: Follow your browser's prompt to authenticate with your passkey
       browser_not_supported: Your browser doesn't support passkeys. Please use a modern browser or use email code instead.
       prefer_email: Don't have a passkey?
       use_email_code: Use email code instead
@@ -468,8 +467,12 @@ en:
       setup_description: Sign in securely using a passkey stored on your device - like your phone, laptop, or hardware security key.
       setup_webauthn: Set up passkey
     added: Added
+    created_at: Created
+    last_used: Last used
     remove: Remove
     remove_confirmation: Are you sure you want to remove this passkey? You won't be able to use it to sign in anymore.
+    successfully_added: passkey added!
+    successfully_removed: passkey removed!
   step_up:
     new:
       title: Gotta confirm it's you...

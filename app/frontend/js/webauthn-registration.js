@@ -54,11 +54,9 @@ const registerWebauthn = {
 
             console.log('Credential created:', credential);
 
-            // Convert credential to JSON for transmission
             const credentialJSON = credential.toJSON();
             console.log('Credential JSON:', credentialJSON);
 
-            // Send the credential to the server for verification and storage
             const response = await fetch('/identity_webauthn_credentials', {
                 method: 'POST',
                 headers: {
@@ -135,8 +133,8 @@ const registerWebauthn = {
         btnSpinner.style.display = 'none';
 
         if (result.success) {
-            // Redirect to the credentials index page to show the updated list
-            window.location.href = '/identity_webauthn_credentials';
+            // Redirect to the URL provided by the server (flash message will be displayed)
+            window.location.href = result.data.redirect_url || '/identity_webauthn_credentials';
         } else {
             errorMessage.textContent = result.error;
             errorAlert.style.display = 'block';

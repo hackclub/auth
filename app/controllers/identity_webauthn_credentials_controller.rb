@@ -56,7 +56,8 @@ class IdentityWebauthnCredentialsController < ApplicationController
 
       session.delete(:webauthn_registration_challenge)
 
-      render json: { success: true, credential_id: credential.id }
+      flash[:success] = t(".successfully_added")
+      render json: { success: true, redirect_url: security_path }
     rescue WebAuthn::Error => e
       Rails.logger.error "WebAuthn registration error: #{e.message}"
       render json: { success: false, error: e.message }, status: :unprocessable_entity
@@ -67,9 +68,7 @@ class IdentityWebauthnCredentialsController < ApplicationController
     credential = current_identity.webauthn_credentials.find(params[:id])
     credential.destroy
 
-    respond_to do |format|
-      format.html { redirect_to security_path, notice: "Passkey removed successfully" }
-      format.json { render json: { success: true } }
-    end
+    flash[:success] = t(".successfully_removed")
+    redirect_to security_path
   end
 end
