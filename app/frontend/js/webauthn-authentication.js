@@ -68,7 +68,6 @@ export function webauthnAuth() {
             } catch (error) {
                 console.error('Passkey authentication error:', error);
 
-                // Translate error codes to user-friendly messages
                 if (error.name === 'NotAllowedError') {
                     this.error = 'Authentication was cancelled or not allowed';
                 } else if (error.name === 'InvalidStateError') {

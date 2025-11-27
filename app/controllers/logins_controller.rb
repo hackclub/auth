@@ -176,7 +176,7 @@ class LoginsController < ApplicationController
     end
 
     def skip_webauthn
-        # User wants to skip passkey and use email code instead
+        # the user wants to skip using a passkey, use email code instead
         send_v2_login_code(@identity, @attempt)
         redirect_to login_attempt_path(id: @attempt.to_param), status: :see_other
     end
