@@ -335,6 +335,7 @@ en:
     email: Email
     totp: TOTP
     backup_code: Backup code
+    webauthn: Passkey
   logins:
     new:
       title: Welcome back!

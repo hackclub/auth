@@ -50,6 +50,7 @@
           <% auth_methods = [] %>
           <% auth_methods << t("auth_type.email") if identity_session.login_attempt.authenticated_with_email || identity_session.login_attempt.authenticated_with_legacy_email %>
           <% auth_methods << t("auth_type.totp") if identity_session.login_attempt.authenticated_with_totp %>
+          <% auth_methods << t("auth_type.webauthn") if identity_session.login_attempt.authenticated_with_webauthn %>
           <% auth_methods << t("auth_type.backup_code") if identity_session.login_attempt.authenticated_with_backup_code %>
           <%= auth_methods.join(", ") %>
         </span>
