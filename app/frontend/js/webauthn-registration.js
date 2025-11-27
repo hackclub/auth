@@ -47,30 +47,16 @@ export function webauthnRegister() {
                 }
 
                 const credentialJSON = credential.toJSON();
-                const response = await fetch('/identity_webauthn_credentials', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
-                    },
-                    body: JSON.stringify({
-                        nickname: this.nickname,
-                        ...credentialJSON
-                    })
-                });
 
-                const result = await response.json();
+                const credentialDataField = document.getElementById('registration-credential-data');
+                const nicknameField = document.getElementById('registration-nickname');
+                const form = document.getElementById('webauthn-registration-form');
 
-                if (!response.ok || !result.success) {
-                    throw new Error(result.error || 'Failed to register passkey');
-                }
-
-                // Success! Redirect to the security page
-                window.location.href = result.redirect_url || '/identity_webauthn_credentials';
+                credentialDataField.value = JSON.stringify(credentialJSON);
+                nicknameField.value = this.nickname;
+                form.submit();
             } catch (error) {
                 console.error('Passkey registration error:', error);
-
-                // Translate error codes to user-friendly messages
                 if (error.name === 'NotAllowedError') {
                     this.error = 'Registration was cancelled or not allowed';
                 } else if (error.name === 'InvalidStateError') {

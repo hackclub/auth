@@ -8,7 +8,6 @@ class IdentityWebauthnCredentialsController < ApplicationController
     render layout: request.headers["HX-Request"] ? "htmx" : false
   end
 
-  # Generate registration options (challenge) for WebAuthn credential creation
   def options
     challenge = WebAuthn::Credential.options_for_create(
       user: {
@@ -31,14 +30,8 @@ class IdentityWebauthnCredentialsController < ApplicationController
 
   def create
     begin
-      # Parse the JSON request body manually since Rails doesn't auto-parse for non-API controllers
-      # (is this wrong? probably...)
-      request_body = request.body.read
-      request.body.rewind
-      body_params = JSON.parse(request_body)
-
-      nickname = body_params["nickname"]
-      credential_data = body_params.except("nickname")
+      credential_data = JSON.parse(params[:credential_data])
+      nickname = params[:nickname]
 
       webauthn_credential = WebAuthn::Credential.from_create(credential_data)
 
@@ -54,13 +47,15 @@ class IdentityWebauthnCredentialsController < ApplicationController
       session.delete(:webauthn_registration_challenge)
 
       flash[:success] = t(".successfully_added")
-      render json: { success: true, redirect_url: security_path }
+      redirect_to security_path
     rescue WebAuthn::Error => e
       Rails.logger.error "WebAuthn registration error: #{e.message}"
-      render json: { success: false, error: "Passkey registration failed. Please try again." }, status: :unprocessable_entity
+      flash[:error] = "Passkey registration failed. Please try again."
+      render :new, status: :unprocessable_entity
     rescue => e
       Rails.logger.error "Unexpected WebAuthn registration error: #{e.message}"
-      render json: { success: false, error: "An unexpected error occurred. Please try again." }, status: :unprocessable_entity
+      flash[:error] = "An unexpected error occurred. Please try again."
+      render :new, status: :unprocessable_entity
     end
   end
 

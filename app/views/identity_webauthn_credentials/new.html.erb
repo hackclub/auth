@@ -8,6 +8,11 @@
     <p>Your browser doesn't support the latest WebAuthn features. Use something modern!</p>
   </div>
 
+  <%= form_with url: identity_webauthn_credentials_path, method: :post, local: true, id: "webauthn-registration-form", style: "display: none;" do |form| %>
+    <%= form.hidden_field :credential_data, id: "registration-credential-data" %>
+    <%= form.hidden_field :nickname, id: "registration-nickname" %>
+  <% end %>
+
   <div x-show="browserSupported">
     <form x-on:submit.prevent="register()">
       <div class="form-group">
