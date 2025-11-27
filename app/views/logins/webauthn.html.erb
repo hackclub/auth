@@ -34,13 +34,6 @@
             method: :post,
             class: "secondary small-btn" %>
       </p>
-
-      <% if @attempt.backup_code_available? %>
-        <p>
-          <%= t(".lost_passkey") %>
-          <%= link_to t(".use_backup_code"), backup_code_login_attempt_path(@attempt) %>
-        </p>
-      <% end %>
     </footer>
   </div>
 

@@ -379,8 +379,6 @@ en:
       browser_not_supported: Your browser doesn't support passkeys. Please use a modern browser or use email code instead.
       prefer_email: Don't have a passkey?
       use_email_code: Use email code instead
-      lost_passkey: Lost your passkey?
-      use_backup_code: Use a backup code instead
   saml:
     http_post:
       title: SAMLing...

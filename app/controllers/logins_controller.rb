@@ -401,10 +401,10 @@ class LoginsController < ApplicationController
     def redirect_to_next_factor
         available = @attempt.available_factors
 
-        if available.include?(:webauthn)
-            redirect_to webauthn_login_attempt_path(id: @attempt.to_param), status: :see_other
-        elsif available.include?(:totp)
+        if available.include?(:totp)
             redirect_to totp_login_attempt_path(id: @attempt.to_param), status: :see_other
+        elsif available.include?(:webauthn)
+            redirect_to webauthn_login_attempt_path(id: @attempt.to_param), status: :see_other
         elsif available.include?(:backup_code)
             redirect_to backup_code_login_attempt_path(id: @attempt.to_param), status: :see_other
         else
