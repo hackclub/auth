@@ -511,3 +511,55 @@
   font-style: italic;
   color: var(--text-muted-strong);
 }
+
+// Inline confirmation for delete actions
+.confirmation-inline {
+  padding: $space-4;
+  background: var(--surface-2);
+  border-radius: $radius-md;
+  border: 1px solid var(--surface-2-border);
+
+  [data-theme="dark"] & {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .confirmation-text {
+    margin: 0 0 $space-4;
+    font-size: 0.9rem;
+    color: var(--text-strong);
+    line-height: 1.5;
+  }
+
+  .confirmation-actions {
+    display: flex;
+    gap: $space-2;
+    justify-content: flex-end;
+
+    @media (max-width: 480px) {
+      flex-direction: column;
+
+      button,
+      form {
+        width: 100%;
+      }
+    }
+
+    button,
+    form button {
+      font-size: 0.875rem !important;
+      padding: $space-1 $space-3 !important;
+      width: auto !important;
+      margin: 0 !important;
+      min-width: 80px;
+
+      @media (max-width: 480px) {
+        width: 100% !important;
+      }
+    }
+
+    form {
+      display: inline-block;
+    }
+  }
+}
