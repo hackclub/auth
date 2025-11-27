@@ -220,6 +220,9 @@ class LoginsController < ApplicationController
                 )
 
                 credential.update!(sign_count: webauthn_credential.sign_count)
+                # "software" passkeys (like the ones from macOS) don't update the sign count,
+                # so we need to touch the record to update the updated_at timestamp
+                credential.touch unless credential.saved_change_to_sign_count?
             end
 
             session.delete(:webauthn_authentication_challenge)
