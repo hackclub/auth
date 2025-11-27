@@ -20,8 +20,9 @@ so is the onboarding controller, she should really be ripped out and replaced.
 
 - make sure you have working installations of ruby ≥ 3.4.4 & nodejs
 - clone repo
-- create .env.development, populate `DATABASE_URL` w/ a local postgres instance 
+- create .env.development, populate `DATABASE_URL` w/ a local postgres instance and `LOCKBOX_MASTER_KEY` with the value of `openssl rand -hex 32`
 - if you want to use docker, you can run `docker compose -f docker-compose-dbonly.yml up` to spin up a database and plug `postgresql://postgres@localhost:5432/identity_vault_development` in as your `DATABASE_URL`
+  - if you don't have docker and are on macOS, [orbstack](https://orbstack.dev) may be helpful
 - run `bundle install`
 - run `bin/rails db:prepare`
 - console in (`bin/rails console`)
