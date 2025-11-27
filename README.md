@@ -23,7 +23,7 @@ so is the onboarding controller, she should really be ripped out and replaced.
 - create .env.development, populate `DATABASE_URL` w/ a local postgres instance 
 - if you want to use docker, you can run `docker compose -f docker-compose-dbonly.yml up` to spin up a database and plug `postgresql://postgres@localhost:5432/identity_vault_development` in as your `DATABASE_URL`
 - run `bundle install`
-- run `rails db:prepare`
+- run `bin/rails db:prepare`
 - console in (`bin/rails console`)
   - `Backend::User.create!(slack_id: "U<whatever>", username: "<you>", active: true, super_admin: true)`
 - run `bin/dev` (and `bin/vite dev` if you want hot reload on css & js)
