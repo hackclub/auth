@@ -144,5 +144,5 @@ gem "slocks", "~> 0.1.0"
 gem "factory_bot_rails", "~> 6.4"
 
 group :production do
-  gem 'cloudflare-rails'
+  gem "cloudflare-rails"
 end
