@@ -96,7 +96,7 @@ gem "aws-sdk-s3", "~> 1.189"
 
 gem "lz_string", "~> 0.3.0"
 
-gem "valid_email2", "~> 7.0"
+gem "valid_email2", github: "24c02/valid_email2"
 
 gem "rails_semantic_logger", "~> 4.17"
 
@@ -145,5 +145,5 @@ gem "slocks", "~> 0.1.0"
 gem "factory_bot_rails", "~> 6.4"
 
 group :production do
-  gem 'cloudflare-rails'
+  gem "cloudflare-rails"
 end
