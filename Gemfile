@@ -95,7 +95,7 @@ gem "aws-sdk-s3", "~> 1.189"
 
 gem "lz_string", "~> 0.3.0"
 
-gem "valid_email2", "~> 7.0"
+gem "valid_email2", github: "24c02/valid_email2"
 
 gem "rails_semantic_logger", "~> 4.17"
 
