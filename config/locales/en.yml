@@ -4,7 +4,7 @@ en:
      primary_email:
        temporary: "seems to be a disposable email address. Please use a permanent email address to create your account (or if this is a false positive email nora@hackclub.com!)"
        invalid_format: "is not shaped like a valid email address. Please check the format and try again."
-       no_mx_record: "'s domain doesn't have a valid mail server. Please check the domain and try again."
+       no_mx_record: "doesn't seem to have a valid mail server? Please check the domain and try again."
   activerecord:
     attributes:
       backend_user:
