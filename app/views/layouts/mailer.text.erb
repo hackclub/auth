@@ -1,14 +1,5 @@
-<%= {
-    transactionalId: @TRANSACTIONAL_ID,
-    email: @recipient,
-    dataVariables: @datavariables.merge({
-        env: case Rails.env
-            when "development"
-                "[DEV] "
-            when "staging"
-                "[STAGING] "
-            else
-                "​"
-        end,
-    })
-}.to_json %>
+<%= yield %>
+--
+Hack Club is an open source and financially transparent 501(c)(3) nonprofit.
+Our EIN is 81-2908499. This is yours.
+https://hackclub.com

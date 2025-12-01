@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title><%= @subject %></title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #1a1d23;
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    .header {
+      margin-bottom: 28px;
+    }
+
+    .header table {
+      border-spacing: 0;
+    }
+
+    .header img {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      vertical-align: middle;
+    }
+
+    .header .brand {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a1d23;
+      padding-left: 10px;
+      vertical-align: middle;
+    }
+
+    .env-badge {
+      display: inline-block;
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      vertical-align: middle;
+    }
+
+    .content p {
+      margin: 0 0 16px;
+    }
+
+    .greeting {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .body-text {
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    .secondary-text {
+      font-size: 14px;
+      color: #6b7280;
+      margin-top: 20px;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #9ca3af;
+      text-align: center;
+      margin: -12px 0 16px;
+    }
+
+    .code-block {
+      background: #f0f0f0;
+      border-radius: 10px;
+      padding: 24px 20px;
+      text-align: center;
+      margin: 24px 0;
+      font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      color: #1a1d23;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.08), inset 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .reason-block {
+      background: #fef9e7;
+      border-left: 3px solid #d97706;
+      padding: 12px 16px;
+      margin: 20px 0;
+      border-radius: 0 6px 6px 0;
+      color: #92400e;
+      font-size: 15px;
+    }
+
+    .button-container {
+      margin: 24px 0;
+    }
+
+    .button {
+      display: inline-block;
+      background: linear-gradient(180deg, #d92d46 0%, #c7243c 100%);
+      border: 1px solid #b01f35;
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.2);
+    }
+
+    .signature {
+      margin-top: 28px;
+      color: #6b7280;
+    }
+
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 13px;
+      color: #8b8b8b;
+      line-height: 1.5;
+    }
+
+    .footer a {
+      color: #ec3750;
+      text-decoration: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #1a1a1a !important;
+        color: #e0e0e0 !important;
+      }
+
+      .header .brand {
+        color: #e0e0e0 !important;
+      }
+
+      .env-badge {
+        background: #3d2a0a !important;
+        color: #fbbf24 !important;
+      }
+
+      .content p {
+        color: #d0d0d0 !important;
+      }
+
+      .greeting {
+        color: #f0f0f0 !important;
+      }
+
+      .secondary-text {
+        color: #909090 !important;
+      }
+
+      .hint {
+        color: #666 !important;
+      }
+
+      .code-block {
+        background: #2a2a2a !important;
+        color: #f0f0f0 !important;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), inset 0 1px 2px rgba(0,0,0,0.2) !important;
+      }
+
+      .reason-block {
+        background: #3d2a0a !important;
+        border-left-color: #d97706 !important;
+        color: #fbbf24 !important;
+      }
+
+      .button {
+        background: linear-gradient(180deg, #dd2f4a 0%, #c7243c 100%) !important;
+        border-color: #b01f35 !important;
+        box-shadow: 
+          0 2px 8px rgba(0, 0, 0, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.15),
+          inset 0 -1px 1px rgba(0, 0, 0, 0.2) !important;
+      }
+
+      .signature {
+        color: #909090 !important;
+      }
+
+      .footer {
+        border-top-color: #333 !important;
+        color: #666 !important;
+      }
+
+      .footer a {
+        color: #ec3750 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <% if @preview_text.present? %>
+    <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
+      <%= @preview_text %>
+    </div>
+    <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
+      &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
+    </div>
+  <% end %>
+  <div class="container">
+    <div class="header">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+        <tr>
+          <td><%= image_tag attachments['logo.png'].url, alt: "Hack Club", width: 32, height: 32 %></td>
+          <td class="brand"><%= t("brand") %></td>
+          <% if @env_prefix.present? %>
+            <td style="padding-left: 8px;"><span class="env-badge"><%= @env_prefix.strip.delete("[]") %></span></td>
+          <% end %>
+        </tr>
+      </table>
+    </div>
+
+    <div class="content">
+      <%= yield %>
+    </div>
+
+    <div class="footer">
+      <a href="https://hackclub.com">Hack Club</a> is an open source and financially transparent 501(c)(3)&nbsp;nonprofit.<br>
+      Our EIN is 81-2908499. This is yours.
+    </div>
+  </div>
+</body>
+</html>

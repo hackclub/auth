@@ -61,13 +61,13 @@ Rails.application.configure do
 
   Rails.application.routes.default_url_options[:host] =  "auth.hackclub.com"
 
-  # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
+  # Amazon SES SMTP settings
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: "smtp.loops.so",
+    address: Rails.application.credentials.dig(:ses, :smtp_host) || "email-smtp.us-east-1.amazonaws.com",
     port: 587,
-    user_name: "loops",
-    password: Rails.application.credentials.dig(:loops, :api_key),
+    user_name: Rails.application.credentials.dig(:ses, :smtp_username),
+    password: Rails.application.credentials.dig(:ses, :smtp_password),
     authentication: "plain",
     enable_starttls: true
   }

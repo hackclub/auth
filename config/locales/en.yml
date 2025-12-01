@@ -1,4 +1,45 @@
 en:
+  identity_mailer:
+    v2_login_code:
+      subject: "%{code} is your Hack Club login code"
+      greeting: "Hey %{first_name}!"
+      body: "Here's the code to sign into your Hack Club Account:"
+      triple_click: "(triple-click to copy it quicker!)"
+      expiry: "This code expires in 30 minutes."
+      not_you: "Didn't request this? You can safely ignore this email."
+      signature: "– Hack Club"
+    approved_but_ysws_ineligible:
+      subject: "[Hack Club] Your identity verification"
+      greeting: "Hey %{first_name},"
+      body: "Your documents have been approved! However, you're over 18, which is outside the age range for our You Ship, We Ship grant programs."
+      signature: "Best,\nthe Hack Club team"
+  verification_mailer:
+    approved:
+      subject: "[Hack Club] Your identity verification has been approved!"
+      greeting: "Hey %{first_name}!"
+      body: "Your documents have been approved — you're all set!"
+      signature: "Best,\nthe Hack Club team"
+    rejected_amicably:
+      subject: "[Hack Club] Action required: Please resubmit verification"
+      greeting: "Hey %{first_name},"
+      body: "We weren't able to approve your verification on the first try."
+      reason_intro: "Here's what we found:"
+      resubmit_cta: "Resubmit your documents"
+      help: "Need help? If you're 18 or under, ask in #identity-help on Slack. You can also reply directly to this email."
+      signature: "Thanks,\nthe Hack Club team"
+    rejected_permanently:
+      subject: "[Hack Club] We weren't able to verify your identity"
+      greeting: "Hey %{first_name},"
+      body: "Unfortunately, we weren't able to approve your verification."
+      reason_intro: "Here's what we found:"
+      no_resubmit: "You're unable to resubmit at this time."
+      contact: "If you have questions, please reply to this email."
+      signature: "Thanks,\nthe Hack Club team"
+    created:
+      subject: "[Hack Club] Your verification is being reviewed"
+      greeting: "Hey %{first_name}!"
+      body: "We got your documents and they're in the queue for review. We'll let you know as soon as we've had a look!"
+      signature: "Best,\nthe Hack Club team"
   errors:
    attributes:
      primary_email:
