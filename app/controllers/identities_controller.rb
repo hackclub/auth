@@ -71,9 +71,7 @@ class IdentitiesController < ApplicationController
           end
 
           unless slack_user_id.present?
-            today = Date.today
-            age = today.year - birthday.year
-            age -= 1 if today < birthday + age.years
+            age = Identity.calculate_age(birthday)
 
             if age >= 19 && !@onboarding_scenario.accepts_adults
               @age_restriction = "Hack Club is a community for teenagers. <br/>Unfortunately, you are not eligible to join.".html_safe
