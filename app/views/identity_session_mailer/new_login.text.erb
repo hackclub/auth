@@ -1,0 +1,9 @@
+<%= t(".greeting", first_name: @first_name) %>
+
+<%= t(".body") %><% if @session.device_info.present? %> on <%= @session.device_info %><% end %><% if @session.os_info.present? %> running <%= @session.os_info %><% end %>
+
+<%= t(".ip_label") %> <%= @session.ip.presence || t(".unknown") %>
+
+If this is unexpected, please review your account's security settings at <%= security_url %> and contact us at account@hackclub.com.
+
+<%= t("mailer_common.signature") %>

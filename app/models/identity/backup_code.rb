@@ -23,8 +23,7 @@ class Identity::BackupCode < ApplicationRecord
 
       after do
         identity.create_activity :use_backup_code, owner: identity, recipient: identity
-        # TODO: write this mailer
-        # User::BackupCodeMailer.with(user_id: user.id).code_used.deliver_now
+        IdentityBackupCodeMailer.code_used(identity).deliver_later
       end
     end
     event :mark_discarded do

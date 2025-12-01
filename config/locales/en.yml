@@ -1,4 +1,7 @@
 en:
+  mailer_common:
+    not_you: "If this wasn't you, please review your account security settings immediately and contact us at account@hackclub.com."
+    signature: "– Hack Club"
   identity_mailer:
     v2_login_code:
       subject: "%{code} is your Hack Club login code"
@@ -13,6 +16,32 @@ en:
       greeting: "Hey %{first_name},"
       body: "Your documents have been approved! However, you're over 18, which is outside the age range for our You Ship, We Ship grant programs."
       signature: "Best,\nthe Hack Club team"
+  identity_backup_code_mailer:
+    code_used:
+      subject: "[Hack Club] A backup code was used on your account"
+      greeting: "Hey %{first_name},"
+      body: "A backup code was just used to sign into your Hack Club account."
+      action: "If this was you, no action is needed. Consider regenerating your backup codes if you're running low."
+    codes_regenerated:
+      subject: "[Hack Club] Your backup codes have been regenerated"
+      greeting: "Hey %{first_name},"
+      body: "New backup codes were just generated for your Hack Club account. Your previous codes are no longer valid."
+  identity_session_mailer:
+    new_login:
+      subject: "[Hack Club] New sign-in to your account"
+      greeting: "Hey %{first_name}."
+      body: "We're writing to let you know that you just signed into your Hack Club account from a new device"
+      ip_label: "IP address:"
+      unknown: "Unknown"
+  totp_mailer:
+    enabled:
+      subject: "[Hack Club] Two-factor authentication enabled"
+      greeting: "Hey %{first_name},"
+      body: "Two-factor authentication has been enabled on your Hack Club account. You'll now need to enter a code from your authenticator app when signing in."
+    disabled:
+      subject: "[Hack Club] Two-factor authentication disabled"
+      greeting: "Hey %{first_name},"
+      body: "Two-factor authentication has been removed from your Hack Club account."
   verification_mailer:
     approved:
       subject: "[Hack Club] Your identity verification has been approved!"

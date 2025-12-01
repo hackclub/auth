@@ -70,6 +70,7 @@ class StepUpController < ApplicationController
     when "remove_totp"
       totp = current_identity.totp
       totp&.destroy
+      TOTPMailer.disabled(current_identity).deliver_later
 
       if current_identity.two_factor_methods.empty?
         current_identity.update!(use_two_factor_authentication: false)

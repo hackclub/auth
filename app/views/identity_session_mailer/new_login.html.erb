@@ -1,0 +1,34 @@
+<p class="greeting"><%= t(".greeting", first_name: @first_name) %></p>
+
+<p class="body-text">
+  <%= t(".body") %>
+  <% if @session.device_info.present? %>
+    on <b><%= @session.device_info %></b>
+  <% end %>
+  <% if @session.os_info.present? %>
+    running <b><%= @session.os_info %></b>
+  <% end %>
+</p>
+
+<p class="body-text">
+  <%= t(".ip_label") %>
+  <b>
+    <% if @session.ip.present? %>
+      <%= @session.ip %>
+    <% else %>
+      <%= t(".unknown") %>
+    <% end %>
+  </b>
+</p>
+
+<% if @session.latitude %>
+  <img
+    src="https://maps.hackclub.com/api/shipping?latitude=<%= @session.latitude %>&longitude=<%= @session.longitude %>&size=640x320"
+    style="border-radius: 0.5rem; width: 80%">
+<% end %>
+
+<p class="secondary-text">
+  If this is unexpected, please review <%= link_to "your account's security settings", security_url %> and contact us at <%= mail_to "account@hackclub.com" %>.
+</p>
+
+<p class="signature"><%= simple_format(t("mailer_common.signature")) %></p>
