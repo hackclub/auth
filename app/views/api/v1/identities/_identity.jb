@@ -2,12 +2,12 @@ ident = {
   id: identity.public_id
 }
 
-scope "verification_status" do
+scope "verification_status", identity: do
   ident[:ysws_eligible] = identity.ysws_eligible
   ident[:verification_status] = identity.verification_status
 end
 
-scope "basic_info" do
+scope "basic_info", identity: do
   ident[:first_name] = identity.first_name
   ident[:last_name] = identity.last_name
   ident[:primary_email] = identity.primary_email
@@ -22,25 +22,25 @@ scope "basic_info" do
   ident[:birthday] = identity.birthday
 end
 
-scope "email" do
+scope "email", identity: do
   ident[:primary_email] = identity.primary_email
 end
 
-scope "name" do
+scope "name", identity: do
   ident[:first_name] = identity.first_name
   ident[:last_name] = identity.last_name
 end
 
-scope "slack_id" do
+scope "slack_id", identity: do
   ident[:slack_id] = identity.slack_id
 end
 
-scope "legal_name" do
+scope "legal_name", identity: do
   ident[:legal_first_name] = identity.legal_first_name
   ident[:legal_last_name] = identity.legal_last_name
 end
 
-scope "address" do
+scope "address", identity: do
   ident[:addresses] = identity.addresses.map do |address|
     render address
   end

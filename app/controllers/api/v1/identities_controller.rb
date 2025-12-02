@@ -9,7 +9,7 @@ module API
 
       def show
         raise Pundit::NotAuthorizedError unless acting_as_program
-        @identity = ident_scope.find_by_public_id!(params[:id])
+        @identity = ident_scope.includes(:access_tokens, :addresses, :verifications).find_by_public_id!(params[:id])
         render :show
       end
 
@@ -28,7 +28,7 @@ module API
 
       def index
         raise Pundit::NotAuthorizedError unless acting_as_program
-        @identities = ident_scope.all
+        @identities = ident_scope.all.includes(:access_tokens, :addresses, :verifications)
         render :index
       end
 
