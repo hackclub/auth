@@ -9,7 +9,7 @@ en:
     attributes:
       backend_user:
           slack_id: Slack ID
-  brand: Hack Club Account
+  brand: Hack Club Auth
   home:
     apps:
       heading: Where do you want to go today?
@@ -265,7 +265,7 @@ en:
       text: Logging you in...
   static_pages:
     welcome:
-      title: Hack Club Account
+      title: Hack Club Auth
       subtitle: One account for Slack, Hack Club, and beyond.
       cta_create: Create Your Account →
       cta_signin: Sign In
