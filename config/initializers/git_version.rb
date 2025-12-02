@@ -1,7 +1,7 @@
 # Get the first 6 characters of the current git commit hash
 git_hash = ENV["SOURCE_COMMIT"] || `git rev-parse HEAD` rescue "unknown"
 
-commit_link = git_hash != "unknown" ? "https://github.com/hackclub/account/commit/#{git_hash}" : nil
+commit_link = git_hash != "unknown" ? "https://github.com/hackclub/auth/commit/#{git_hash}" : nil
 
 short_hash = git_hash[0..7]
 
