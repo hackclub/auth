@@ -62,8 +62,8 @@ class StepUpController < ApplicationController
       return
     end
 
-    # Mark step-up as completed in session
-    session[:step_up_completed_at] = Time.current.to_i
+    # Mark step-up as completed on the identity session
+    current_session.update!(last_step_up_at: Time.current)
 
     # Execute the verified action
     case action_type

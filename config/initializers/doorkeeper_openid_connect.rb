@@ -22,16 +22,15 @@ Doorkeeper::OpenidConnect.configure do
   end
 
   auth_time_from_resource_owner do |resource_owner|
-    # Return the more recent of: last login OR last step-up completion
-    # This allows step-up to satisfy max_age/prompt=login requirements
-    session_time = resource_owner.sessions.order(created_at: :desc).first&.created_at
-    step_up_time = self.session[:step_up_completed_at] ? Time.at(self.session[:step_up_completed_at]) : nil
+    session = resource_owner.sessions.not_expired.order(created_at: :desc).first
+    return nil unless session
 
-    [session_time, step_up_time].compact.max
+    [session.created_at, session.last_step_up_at].compact.max
   end
 
   reauthenticate_resource_owner do |resource_owner, return_to|
-    return if self.session[:step_up_completed_at] && self.session[:step_up_completed_at] > 60.seconds.ago.to_i
+    session = resource_owner.sessions.not_expired.order(created_at: :desc).first
+    return if session&.last_step_up_at&.after?(60.seconds.ago)
 
     redirect_to new_step_up_path(action_type: "oidc_reauth", return_to: return_to)
   end
