@@ -15,7 +15,7 @@ Doorkeeper::OpenidConnect.configure do
 
   signing_algorithm :rs256
 
-  subject_types_supported [:public]
+  subject_types_supported [ :public ]
 
   resource_owner_from_access_token do |access_token|
     Identity.find_by(id: access_token.resource_owner_id)
@@ -25,7 +25,7 @@ Doorkeeper::OpenidConnect.configure do
     session = resource_owner.sessions.not_expired.order(created_at: :desc).first
     return nil unless session
 
-    [session.created_at, session.last_step_up_at].compact.max
+    [ session.created_at, session.last_step_up_at ].compact.max
   end
 
   reauthenticate_resource_owner do |resource_owner, return_to|
@@ -60,7 +60,7 @@ Doorkeeper::OpenidConnect.configure do
       next nil unless addr
 
       {
-        street_address: [addr.line_1, addr.line_2].compact.join("\n"),
+        street_address: [ addr.line_1, addr.line_2 ].compact.join("\n"),
         locality: addr.city,
         region: addr.state,
         postal_code: addr.postal_code,
