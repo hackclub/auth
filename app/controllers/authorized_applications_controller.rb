@@ -10,6 +10,7 @@ class AuthorizedApplicationsController < ApplicationController
   def destroy
     token = current_identity.access_tokens.find(params[:id])
     token.revoke
+    token.create_activity :revoke, owner: current_identity, recipient: current_identity
 
     if request.headers["HX-Request"]
       @access_tokens = current_identity.access_tokens
