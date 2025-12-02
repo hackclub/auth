@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_02_092143) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -75,6 +75,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_092143) do
     t.bigint "identity_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "phone_number"
     t.index ["identity_id"], name: "index_addresses_on_identity_id"
   end
 
