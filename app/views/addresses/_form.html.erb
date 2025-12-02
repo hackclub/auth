@@ -8,7 +8,7 @@
   # Strip country code prefix for display (it's shown separately)
   raw_phone = address.phone_number.presence || current_identity&.phone_number
   display_phone = if raw_phone.present? && raw_phone.start_with?("+")
-    raw_phone.sub(/^\+#{initial_calling_code}/, "")
+    raw_phone.sub(/^\+#{Regexp.escape(initial_calling_code)}/, "")
   else
     raw_phone
   end
