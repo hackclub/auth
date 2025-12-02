@@ -1,8 +1,5 @@
 @import "../stylesheets/backend.scss";
 
-@import "../stylesheets/os9.css";
-@import "../stylesheets/layout.css";
-
 body {
     font-family: var(--preferred-font), system-ui;
 }

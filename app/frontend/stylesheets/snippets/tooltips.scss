@@ -6,79 +6,76 @@
   position: relative;
 }
 
-@include up(56em) {
-  .tooltipped {
-    &:after {
-      background-color: light-dark(rgba(255, 255, 255, 0.95), rgba(0, 0, 0, 0.9));
-      border: 1px solid var(--border);
-      box-shadow:
-              0 0 2px 0 rgba(0, 0, 0, 0.0625),
-              0 4px 8px 0 rgba(0, 0, 0, 0.125);
-      color: light-dark(black, white);
-      content: attr(aria-label);
-      font-size: 0.875rem;
-      font-weight: 500;
-      height: min-content;
-      letter-spacing: 0;
-      line-height: 1.375;
-      max-width: 16rem;
-      min-height: 1.25rem;
-      opacity: 0;
-      padding: 0.15rem 0.55rem;
-      pointer-events: none;
-      position: absolute;
-      right: 100%;
-      text-align: center;
-      transform: translateY(50%);
-      transition: 0.125s all ease-in-out;
-      width: max-content;
-      z-index: 1;
-
-      &.tooltipped--lg {
-        max-width: 24rem;
-      }
-    }
-
-    &:hover:after,
-    &:active:after,
-    &:focus:after {
-      opacity: 1;
-      z-index: 9;
-    }
-  }
-
-  .tooltipped--e:after {
-    left: 100%;
-    bottom: 50%;
-    right: 0;
-    margin-left: 0.5rem;
-    transform: translateY(50%);
-  }
-
-  .tooltipped--w:after {
+.tooltipped {
+  &:after {
+    background-color: light-dark(rgba(255, 255, 255, 0.95), rgba(0, 0, 0, 0.9));
+    border: 1px solid var(--border);
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.0625),
+    0 4px 8px 0 rgba(0, 0, 0, 0.125);
+    color: light-dark(black, white);
+    content: attr(aria-label);
+    font-size: 0.875rem;
+    font-weight: 500;
+    height: min-content;
+    letter-spacing: 0;
+    line-height: 1.375;
+    max-width: 16rem;
+    min-height: 1.25rem;
+    opacity: 0;
+    padding: 0.15rem 0.55rem;
+    pointer-events: none;
+    position: absolute;
     right: 100%;
-    bottom: 50%;
-    margin-right: 0.5rem;
+    text-align: center;
     transform: translateY(50%);
-  }
+    transition: 0.125s all ease-in-out;
+    width: max-content;
+    z-index: 1;
 
-  .tooltipped--n:after {
-    right: 50%;
-    bottom: 100%;
-    margin-bottom: 0.5rem;
-    transform: translateX(50%);
-  }
-
-  .tooltipped--s:after {
-    right: 50%;
-    top: 100%;
-    margin-top: 0.5rem;
-    transform: translateX(50%);
-  }
-
-  .tooltipped--xl {
-    &:after {
-      max-width: none;
+    &.tooltipped--lg {
+      max-width: 24rem;
     }
+  }
+
+  &:hover:after,
+  &:active:after,
+  &:focus:after {
+    opacity: 1;
+    z-index: 9;
+  }
+}
+
+.tooltipped--e:after {
+  left: 100%;
+  bottom: 50%;
+  right: 0;
+  margin-left: 0.5rem;
+  transform: translateY(50%);
+}
+
+.tooltipped--w:after {
+  right: 100%;
+  bottom: 50%;
+  margin-right: 0.5rem;
+  transform: translateY(50%);
+}
+
+.tooltipped--n:after {
+  right: 50%;
+  bottom: 100%;
+  margin-bottom: 0.5rem;
+  transform: translateX(50%);
+}
+
+.tooltipped--s:after {
+  right: 50%;
+  top: 100%;
+  margin-top: 0.5rem;
+  transform: translateX(50%);
+}
+
+.tooltipped--xl {
+  &:after {
+    max-width: none;
   }
 }

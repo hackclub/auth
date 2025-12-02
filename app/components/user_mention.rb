@@ -3,12 +3,12 @@
 class Components::UserMention < Components::Base
   extend Literal::Properties
 
-  prop :user, _Union(Backend::User, ::Identity), :positional
+  prop :user, _Union(::Backend::User, ::Identity), :positional
 
   def view_template
     div class: "icon", role: "option" do
       case @user
-      when Backend::User
+      when ::Backend::User
         img src: @user.icon_url, width: "16px", class: "inline pr-2"
         div class: "icon-label" do
           a(href: backend_user_path(@user)) do
