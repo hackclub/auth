@@ -1,0 +1,6 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <%
+    is_current = defined?(current_identity) && activity.trackable == current_identity
+  %>
+  promoted <%= is_current ? "your" : "#{activity.trackable.first_name} #{activity.trackable.last_name}'s" %> Slack account to full member.
+<% end %>
