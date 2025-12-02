@@ -284,7 +284,16 @@ class Identity < ApplicationRecord
     sessions.destroy_all
   end
 
-  def age = (Date.today - birthday).days.in_years
+  def self.calculate_age(birthday)
+    today = Date.today
+    age = today.year - birthday.year
+    age -= 1 if today < birthday + age.years
+    age
+  end
+
+  def age
+    self.class.calculate_age(birthday)
+  end
 
   def totp = totps.verified.first
 
