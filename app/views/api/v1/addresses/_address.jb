@@ -8,5 +8,6 @@
   state: address.state,
   postal_code: address.postal_code,
   country: address.country,
+  phone_number: address.phone_number,
   primary: address.id == address&.identity&.primary_address&.id
 }.compact_blank

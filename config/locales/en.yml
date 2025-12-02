@@ -120,6 +120,7 @@ en:
     city: City
     state: State/Province
     postal_code: Postal code
+    phone_number: Phone number
     save: Save address
     cancel: Cancel
     primary: Primary

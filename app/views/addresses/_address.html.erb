@@ -17,6 +17,9 @@
     <% end %>
     <%= address.city %>, <%= address.state %> <%= address.postal_code %><br>
     <%= address.country %>
+    <% if address.phone_number.present? %>
+      <br><%= inline_icon("phone", size: 14) %> <%= address.phone_number %>
+    <% end %>
   </div>
 
   <div class="form-actions" style="gap: 0.5rem;">

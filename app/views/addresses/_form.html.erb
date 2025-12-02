@@ -1,3 +1,19 @@
+<%
+  country_calling_codes = Address.countries.keys.each_with_object({}) do |alpha2, hash|
+    hash[alpha2] = Address.country_calling_code(alpha2)
+  end
+  initial_country = address.country || current_identity&.country || "US"
+  initial_calling_code = Address.country_calling_code(initial_country) || "1"
+  
+  # Strip country code prefix for display (it's shown separately)
+  raw_phone = address.phone_number.presence || current_identity&.phone_number
+  display_phone = if raw_phone.present? && raw_phone.start_with?("+")
+    raw_phone.sub(/^\+#{initial_calling_code}/, "")
+  else
+    raw_phone
+  end
+%>
+
 <%= form_with model: address, url: local_assigns[:url], local: true do |f| %>
   <% if local_assigns[:from_program] %>
     <%= f.hidden_field :from_program, value: true %>
@@ -27,12 +43,32 @@
     <%= f.text_field :state, placeholder: t("addresses.state"), required: true %>
   </div>
 
-  <div class="grid">
-    <%= f.text_field :postal_code, placeholder: t("addresses.postal_code"), required: true %>
-    <%= f.collection_select :country, Address.countries_for_select,
-                            :first, :last,
-                            { include_blank: "Country" },
-                            { required: true } %>
+  <div x-data="{
+         callingCodes: <%= country_calling_codes.to_json %>,
+         callingCode: '<%= initial_calling_code %>',
+         updateCallingCode(countrySelect) {
+           const code = this.callingCodes[countrySelect.value];
+           if (code) this.callingCode = code;
+         }
+       }">
+    <div class="grid">
+      <%= f.text_field :postal_code, placeholder: t("addresses.postal_code"), required: true %>
+      <%= f.collection_select :country, Address.countries_for_select,
+                              :first, :last,
+                              { include_blank: "Country" },
+                              { required: true, "@change": "updateCallingCode($event.target)" } %>
+    </div>
+
+    <div class="grid" style="grid-template-columns: auto 1fr; margin-top: 1rem;">
+      <span style="padding: 0.5rem 0.75rem; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: var(--radius); display: flex; align-items: center; font-size: 0.95rem; color: var(--text-muted);">
+        +<span x-text="callingCode"></span>
+      </span>
+      <%= f.telephone_field :phone_number,
+                            placeholder: t("addresses.phone_number"),
+                            value: display_phone,
+                            required: true,
+                            style: "margin: 0;" %>
+    </div>
   </div>
 
   <div class="form-actions">
