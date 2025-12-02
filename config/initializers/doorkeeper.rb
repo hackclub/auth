@@ -268,6 +268,9 @@ Doorkeeper.configure do
   # default_scopes  :public
   # optional_scopes :write, :update
 
+  # OIDC standard scopes
+  optional_scopes :openid, :profile, :phone, :birthdate
+
   # Allows to restrict only certain scopes for grant_type.
   # By default, all the scopes will be available for all the grant types.
   #

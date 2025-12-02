@@ -1,0 +1,263 @@
+---
+title: OpenID Connect
+description: Use OIDC for authentication with Hack Club Account
+category: Developer
+order: 9
+---
+
+OpenID Connect (OIDC) is an identity layer on top of OAuth 2.0 that lets you verify user identity and get basic profile information. If you're building a web app that needs to know *who* the user is, OIDC is the way to go.
+
+<div class="banner info">
+<b>OIDC vs OAuth:</b>
+<p>
+Use <b>OIDC</b> if you just need to authenticate users and get their identity.<br/>
+Use the <%= link_to "REST API", doc_path("api") %> if you need to make ongoing API calls on behalf of the user.
+</p>
+</div>
+
+## Discovery
+
+The OIDC discovery document is available at:
+
+<%= render Components::APIExample.new(method: "GET", url: "#{root_url}.well-known/openid-configuration", path_only: true) %>
+
+This returns all the endpoints and capabilities of our OIDC implementation. Most OIDC libraries will auto-configure themselves from this URL.
+
+## Quick Start
+
+### 1. Create an OAuth application
+
+Head to the [Developer Apps](<%= developer_apps_path %>) page and create a new app. Make sure to:
+- Set your redirect URI (e.g., `https://arcade.hackclub.com/auth/callback`)
+- Note your Client ID and Client Secret
+
+### 2. Redirect users to authorize
+
+<%= render Components::APIExample.new(method: "GET", url: oauth_authorization_url(client_id: "your_client_id", redirect_uri: "https://arcade.hackclub.com/auth/callback", response_type: "code", scope: "openid profile email")) %>
+
+### 3. Exchange the code for tokens
+
+After the user authorizes, they'll be redirected back with an authorization code:
+
+```
+https://arcade.hackclub.com/auth/callback?code=a1b2c3d4e5f6
+```
+
+Exchange it for tokens:
+
+<%= render Components::APIExample.new(method: "POST", url: oauth_token_url) %>
+
+**Request body:**
+
+```json
+{
+  "client_id": "your_client_id",
+  "client_secret": "your_client_secret",
+  "redirect_uri": "https://arcade.hackclub.com/auth/callback",
+  "code": "a1b2c3d4e5f6",
+  "grant_type": "authorization_code"
+}
+```
+
+**Response:**
+
+```json
+{
+  "access_token": "idntk.abc123...",
+  "token_type": "Bearer",
+  "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+The `id_token` is a signed JWT containing the user's identity claims.
+
+### 4. Validate the ID token
+
+The ID token is a JWT signed with RS256. You can:
+
+1. Decode and validate it using a JWT library
+2. Fetch our public keys from the JWKS endpoint to verify the signature
+
+<%= render Components::APIExample.new(method: "GET", url: "#{root_url}oauth/discovery/keys", path_only: true) %>
+
+### 5. (Optional) Fetch user info
+
+You can also get user claims from the userinfo endpoint:
+
+<%= render Components::APIExample.new(method: "GET", url: "#{root_url}oauth/userinfo", path_only: true) %>
+
+Include the access token in the Authorization header:
+
+```
+Authorization: Bearer idntk.abc123...
+```
+
+## Scopes and Claims
+
+### Standard OIDC Scopes
+
+| Scope | Claims | Description |
+|-------|--------|-------------|
+| `openid` | `sub` | Required for OIDC. Returns the user's public ID (`ident!abc123`) |
+| `profile` | `name`, `given_name`, `family_name`, `nickname`, `updated_at` | Basic profile info |
+| `email` | `email`, `email_verified` | Email address |
+| `phone` | `phone_number`, `phone_number_verified` | Phone number |
+| `address` | `address` | Structured address object |
+| `birthdate` | `birthdate` | Date of birth (ISO 8601) |
+
+<div class="banner info">
+<b>Privacy note:</b>
+<p>
+The <code>birthdate</code> scope is separate from <code>profile</code> intentionally, since date of birth is more sensitive information.
+</p>
+</div>
+
+### Hack Club Custom Scopes
+
+| Scope | Claims | Description |
+|-------|--------|-------------|
+| `slack_id` | `slack_id` | The user's Hack Club Slack ID |
+| `verification_status` | `verification_status`, `ysws_eligible` | Verification status and YSWS eligibility |
+
+### Example ID Token Claims
+
+With scopes `openid profile email verification_status`:
+
+```json
+{
+  "iss": "<%= root_url.chomp('/') %>",
+  "sub": "ident!sdfjksfjd",
+  "aud": "your_client_id",
+  "exp": 1700000000,
+  "iat": 1699996400,
+  "name": "Heidi Trashworth",
+  "given_name": "Heidi",
+  "family_name": "Trashworth",
+  "email": "racc@garbagemail.biz",
+  "email_verified": true,
+  "verification_status": "verified",
+  "ysws_eligible": true
+}
+```
+
+### Address Claim Format
+
+When the `address` scope is granted, the address claim follows the OIDC standard format:
+
+```json
+{
+  "address": {
+    "street_address": "15 Falls Road",
+    "locality": "Shelburne",
+    "region": "VT",
+    "postal_code": "05482",
+    "country": "US"
+  }
+}
+```
+
+## Reauthentication
+
+If you need to force the user to re-authenticate (for sensitive operations), use the `prompt=login` parameter:
+
+<%= render Components::APIExample.new(method: "GET", url: oauth_authorization_url(client_id: "your_client_id", redirect_uri: "https://arcade.hackclub.com/auth/callback", response_type: "code", scope: "openid", prompt: "login")) %>
+
+This will require the user to verify their identity again, even if they have an active session. They can use TOTP, backup codes, or email verification.
+
+You can also use `max_age` to require reauthentication if the user's session is older than a certain number of seconds:
+
+```
+max_age=3600
+```
+
+## Community Apps
+
+<div class="banner warning">
+<b>Scope restrictions:</b>
+<p>
+Community apps can only request: <code>openid <%= Program::COMMUNITY_ALLOWED_SCOPES.join(" ") %></code><br/>
+Other scopes require HQ official status.
+</p>
+</div>
+
+## Using an OIDC Library
+
+Most languages have OIDC client libraries that handle the complexity for you. Point them at our discovery URL and they'll figure out the rest:
+
+```
+<%= root_url %>.well-known/openid-configuration
+```
+
+### Example: Better Auth
+
+[Better Auth](https://better-auth.com) is a popular TypeScript authentication library. Here's how to add Hack Club Account as an OIDC provider:
+
+**1. Install the plugin:**
+
+```bash
+npm i better-auth
+```
+
+**2. Configure the server:**
+
+```typescript
+// auth.ts
+import { betterAuth } from "better-auth"
+import { genericOAuth } from "better-auth/plugins"
+
+export const auth = betterAuth({
+  // ...your other config
+  plugins: [
+    genericOAuth({
+      config: [
+        {
+          providerId: "hackclub",
+          discoveryUrl: "<%= root_url %>.well-known/openid-configuration",
+          clientId: process.env.HACKCLUB_CLIENT_ID,
+          clientSecret: process.env.HACKCLUB_CLIENT_SECRET,
+          scopes: ["openid", "profile", "email", "verification_status"],
+        },
+      ],
+    }),
+  ],
+})
+```
+
+**3. Add the client plugin:**
+
+```typescript
+// auth-client.ts
+import { createAuthClient } from "better-auth/client"
+import { genericOAuthClient } from "better-auth/client/plugins"
+
+export const authClient = createAuthClient({
+  plugins: [genericOAuthClient()],
+})
+```
+
+**4. Sign in:**
+
+```typescript
+await authClient.signIn.oauth2({
+  providerId: "hackclub",
+  callbackURL: "/dashboard",
+})
+```
+
+Better Auth will automatically discover our endpoints, handle the OAuth flow, and validate the ID token for you.
+
+<div class="banner info">
+<b>Callback URL:</b>
+<p>
+Better Auth uses <code>/api/auth/oauth2/callback/hackclub</code> as the callback URL by default. Make sure to add this to your app's redirect URIs when you create it.
+</p>
+</div>
+
+### Other Popular Libraries
+
+- **Ruby:** `omniauth-openid-connect`
+- **Node.js:** `openid-client`
+- **Python:** `Authlib`
+- **Go:** `go-oidc`
+
+Happy hacking!

@@ -1,0 +1,23 @@
+en:
+  doorkeeper:
+    scopes:
+      openid: Authenticate your account
+      profile: See your name
+      email: See your email address
+      address: See your mailing address
+      phone: See your phone number
+      birthdate: See your date of birth
+    errors:
+      messages:
+        login_required: You need to log in again to continue
+        consent_required: You need to approve this request
+        interaction_required: We need you to do something before continuing
+        account_selection_required: Please select an account to continue
+    openid_connect:
+      errors:
+        messages:
+          resource_owner_from_access_token_not_configured: "Can't find user from access token (misconfigured)"
+          auth_time_from_resource_owner_not_configured: "Can't determine login time (misconfigured)"
+          reauthenticate_resource_owner_not_configured: "Can't reauthenticate user (misconfigured)"
+          select_account_for_resource_owner_not_configured: "Can't select account (misconfigured)"
+          subject_not_configured: "Can't generate ID token (misconfigured)"

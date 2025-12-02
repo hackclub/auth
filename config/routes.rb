@@ -167,6 +167,7 @@ class SuperAdminConstraint
 end
 
 Rails.application.routes.draw do
+  use_doorkeeper_openid_connect
   use_doorkeeper
   mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
   mount ActiveStorageEncryption::Engine, at: "/encrypted_blobs"
@@ -302,6 +303,8 @@ Rails.application.routes.draw do
   # Step-up authentication flow
   get "/step_up", to: "step_up#new", as: :new_step_up
   post "/step_up/verify", to: "step_up#verify", as: :verify_step_up
+  post "/step_up/send_email_code", to: "step_up#send_email_code", as: :send_step_up_email_code
+  post "/step_up/resend_email", to: "step_up#resend_email", as: :resend_step_up_email
 
   resources :identity_backup_codes, only: [ :index, :create ] do
     patch :confirm, on: :collection

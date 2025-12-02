@@ -11,7 +11,7 @@
 
       <div style="display: flex; flex-direction: column; gap: 1rem; margin: 2rem 0;">
         <% if @available_methods.include?(:totp) %>
-          <%= link_to new_step_up_path(action_type: @action, method: :totp),
+          <%= link_to new_step_up_path(action_type: @action, method: :totp, return_to: @return_to),
               class: "step-up-method-option" do %>
             <div><%= inline_icon("private", size: 32) %></div>
             <div style="flex: 1;">
@@ -22,7 +22,7 @@
         <% end %>
 
         <% if @available_methods.include?(:backup_code) %>
-          <%= link_to new_step_up_path(action_type: @action, method: :backup_code),
+          <%= link_to new_step_up_path(action_type: @action, method: :backup_code, return_to: @return_to),
               class: "step-up-method-option" do %>
             <div><%= inline_icon("private", size: 32) %></div>
             <div style="flex: 1;">
@@ -33,12 +33,25 @@
         <% end %>
 
         <% if @available_methods.include?(:sms) %>
-          <%= link_to new_step_up_path(action_type: @action, method: :sms),
+          <%= link_to new_step_up_path(action_type: @action, method: :sms, return_to: @return_to),
               class: "step-up-method-option" do %>
             <div><%= inline_icon("message", size: 32) %></div>
             <div style="flex: 1;">
               <div style="font-weight: 600;"><%= t(".methods.sms.title") %></div>
               <small><%= t(".methods.sms.description") %></small>
+            </div>
+          <% end %>
+        <% end %>
+
+        <% if @available_methods.include?(:email) %>
+          <%= button_to send_step_up_email_code_path(action_type: @action, return_to: @return_to),
+              method: :post,
+              class: "step-up-method-option",
+              style: "text-align: left; width: 100%; cursor: pointer;" do %>
+            <div><%= inline_icon("mail", size: 32) %></div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600;"><%= t(".methods.email.title", default: "Email code") %></div>
+              <small><%= t(".methods.email.description", default: "We'll send a code to #{current_identity.primary_email}") %></small>
             </div>
           <% end %>
         <% end %>
@@ -69,13 +82,14 @@
     <% else %>
       <%# Show form for selected method %>
       <header>
-        <h1><%= t(".enter_code_labels.#{method}") %></h1>
-        <small><%= t(".enter_code_descriptions.#{method}") %></small>
+        <h1><%= t(".enter_code_labels.#{method}", default: "Enter your code") %></h1>
+        <small><%= t(".enter_code_descriptions.#{method}", default: "Enter the verification code") %></small>
       </header>
 
       <%= form_with url: verify_step_up_path, method: :post, local: true do |f| %>
         <%= f.hidden_field :action_type, value: @action %>
         <%= f.hidden_field :method, value: method %>
+        <%= f.hidden_field :return_to, value: @return_to %>
 
         <fieldset>
           <%= f.label :code, t(".code_label") %>
@@ -85,6 +99,14 @@
                 autocomplete: "one-time-code",
                 autofocus: true,
                 placeholder: t(".backup_placeholder") %>
+          <% elsif method == :email %>
+            <%= f.text_field :code,
+                required: true,
+                autocomplete: "one-time-code",
+                autofocus: true,
+                placeholder: "123-456",
+                maxlength: 7,
+                inputmode: "numeric" %>
           <% else %>
             <%= f.text_field :code,
                 required: true,
@@ -101,7 +123,12 @@
       <% end %>
 
       <footer>
-        <p><%= link_to t(".use_different_method"), new_step_up_path(action_type: @action) %></p>
+        <p><%= link_to t(".use_different_method"), new_step_up_path(action_type: @action, return_to: @return_to) %></p>
+        <% if method == :email %>
+          <p>
+            <%= button_to "Resend code", resend_step_up_email_path(action_type: @action, return_to: @return_to), method: :post, class: "link-button" %>
+          </p>
+        <% end %>
       </footer>
     <% end %>
   </div>
