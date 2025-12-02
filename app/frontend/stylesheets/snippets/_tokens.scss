@@ -13,6 +13,15 @@
   --text-muted-strong: #9ca3af;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-2: #1f2937;
+    --surface-2-border: #374151;
+    --text-strong: #f5f7fa;
+    --text-muted-strong: #9ca3af;
+  }
+}
+
 $radius-sm: 6px;
 $radius-md: 8px;
 $radius-lg: 12px;

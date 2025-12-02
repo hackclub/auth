@@ -36,6 +36,45 @@
   --purple-fg-strong: #4c1d95;
 }
 
+[data-theme="dark"] {
+  --error-bg: #3b1017;
+  --error-border: #8b2535;
+  --error-fg: #dc818f;
+  --error-fg-strong: #e39aa5;
+
+  --warning-bg: #33290b;
+  --warning-border: #7f661c;
+  --warning-fg: #ffe083;
+  --warning-fg-strong: #ffecb4;
+
+  --success-bg: #142c1b;
+  --success-border: #285a37;
+  --success-fg: #8abd99;
+  --success-fg-strong: #b9d8c2;
+
+  --info-bg: #0f273b;
+  --info-bg-selected: #436075;
+  --info-border: #436075;
+  --info-fg: #b4d9f3;
+  --info-fg-strong: #d2e8f7;
+
+  --quote-fg-1: #b3cbff;
+  --quote-bg-1: #373a3f;
+  --quote-fg-2: #bee3aa;
+  --quote-bg-2: #313b2d;
+  --quote-fg-3: #ffc4b3;
+  --quote-bg-3: #55393a;
+  --quote-fg-4: #ffd3c0;
+  --quote-bg-4: #5e473e;
+  --quote-fg-5: #9ac9ca;
+  --quote-bg-5: #393d3e;
+
+  --purple-bg: #2d1b3b;
+  --purple-border: #6b46c1;
+  --purple-fg: #c4b5fd;
+  --purple-fg-strong: #ddd6fe;
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --error-bg: #3b1017;

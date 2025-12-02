@@ -28,6 +28,16 @@ $theme-color: "red";
     --pico-primary-inverse: #fff;
 }
 
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --pico-primary: #f03d58;
+        --pico-primary-rgb: 240, 61, 88;
+        --pico-primary-hover: #ff4d68;
+        --pico-primary-focus: rgba(240, 61, 88, 0.25);
+        --pico-primary-inverse: #fff;
+    }
+}
+
 h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.025em;
   font-weight: 700;
