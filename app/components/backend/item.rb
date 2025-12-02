@@ -10,7 +10,7 @@ class Components::Backend::Item < Components::Base
 
   def view_template
     if @href
-      a class: "item", href: @href, target: @target, tab_index: nil, role: :link do
+      a class: "item", href: @href, target: @target, onclick: (safe(@onclick) if @onclick), tab_index: nil, role: :link do
         icon
         children { yield }
       end

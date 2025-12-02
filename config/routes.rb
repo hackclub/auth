@@ -191,6 +191,8 @@ Rails.application.routes.draw do
     get "login", to: "static_pages#login", as: :login
     get "session_dump", to: "static_pages#session_dump", as: :session_dump unless Rails.env.production?
 
+    get "kbar/search", to: "kbar#search", as: :kbar_search
+
 
     resources :users do
       member do

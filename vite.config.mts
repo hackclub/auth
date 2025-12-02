@@ -13,5 +13,9 @@ export default defineConfig({
     }),
     // tailwindcss(), 
   ],
+  esbuild: {
+    jsxFactory: "h",
+    jsxFragment: "Fragment",
+  },
   build: { sourcemap: false },
 });

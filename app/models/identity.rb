@@ -61,7 +61,7 @@ class Identity < ApplicationRecord
     backend_user&.active?
   end
 
-
+  def full_name = "#{first_name} #{last_name}"
 
 
 
