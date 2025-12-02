@@ -1,0 +1,87 @@
+@mixin _color-vars-dark {
+  --error-bg: #3b1017;
+  --error-border: #8b2535;
+  --error-fg: #dc818f;
+  --error-fg-strong: #e39aa5;
+
+  --warning-bg: #33290b;
+  --warning-border: #7f661c;
+  --warning-fg: #ffe083;
+  --warning-fg-strong: #ffecb4;
+
+  --success-bg: #142c1b;
+  --success-border: #285a37;
+  --success-fg: #8abd99;
+  --success-fg-strong: #b9d8c2;
+
+  --info-bg: #0f273b;
+  --info-bg-selected: #436075;
+  --info-border: #436075;
+  --info-fg: #b4d9f3;
+  --info-fg-strong: #d2e8f7;
+
+  --quote-fg-1: #b3cbff;
+  --quote-bg-1: #373a3f;
+  --quote-fg-2: #bee3aa;
+  --quote-bg-2: #313b2d;
+  --quote-fg-3: #ffc4b3;
+  --quote-bg-3: #55393a;
+  --quote-fg-4: #ffd3c0;
+  --quote-bg-4: #5e473e;
+  --quote-fg-5: #9ac9ca;
+  --quote-bg-5: #393d3e;
+
+  --purple-bg: #2d1b3b;
+  --purple-border: #6b46c1;
+  --purple-fg: #c4b5fd;
+  --purple-fg-strong: #ddd6fe;
+}
+
+:root {
+  --error-bg: #fbf2f4;
+  --error-border: #eab4bc;
+  --error-fg: #b9031f;
+  --error-fg-strong: #78202e;
+
+  --warning-bg: #fffcf2;
+  --warning-border: #ffe69b;
+  --warning-fg: #ffc107;
+  --warning-fg-strong: #6a311c;
+
+  --success-bg: #f3f8f5;
+  --success-border: #a1caad;
+  --success-fg: #147b33;
+  --success-fg-strong: #285a37;
+
+  --info-bg: #f2f7fb;
+  --info-bg-selected: #cce0f1;
+  --info-border: #b2d1ea;
+  --info-fg: #0067b9;
+  --info-fg-strong: #1f5077;
+
+  --quote-fg-1: #2b497d;
+  --quote-bg-1: #e8ecf2;
+  --quote-fg-2: #1d3e0f;
+  --quote-bg-2: #e4f1df;
+  --quote-fg-3: #5c0a0a;
+  --quote-bg-3: #f7d4d4;
+  --quote-fg-4: #472215;
+  --quote-bg-4: #dbbeb3;
+  --quote-fg-5: #335f61;
+  --quote-bg-5: #e0e6e6;
+  
+  --purple-bg: #f7f3fb;
+  --purple-border: #c4a3d4;
+  --purple-fg: #7c3aed;
+  --purple-fg-strong: #4c1d95;
+}
+
+:root[data-theme="dark"] {
+  @include _color-vars-dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    @include _color-vars-dark;
+  }
+}

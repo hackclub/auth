@@ -2,6 +2,7 @@
 // $theme-color: "lime";
 $theme-color: "red";
 @import "@picocss/pico/scss/pico";
+@import "./snippets/tokens";
 
 :root {
     --pico-font-family-sans-serif: Inter, system-ui, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, Helvetica, Arial, "Helvetica Neue", sans-serif, var(--pico-font-family-emoji) !important;
@@ -18,18 +19,8 @@ $theme-color: "red";
     --pico-primary-hover: #d92d46;
     --pico-primary-focus: rgba(236, 55, 80, 0.15);
     --pico-primary-inverse: #fff;
-}
-
-[data-theme="dark"] {
-    --pico-primary: #f03d58;
-    --pico-primary-rgb: 240, 61, 88;
-    --pico-primary-hover: #ff4d68;
-    --pico-primary-focus: rgba(240, 61, 88, 0.25);
-    --pico-primary-inverse: #fff;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
+    
+    @include dark-mode-root {
         --pico-primary: #f03d58;
         --pico-primary-rgb: 240, 61, 88;
         --pico-primary-hover: #ff4d68;
@@ -42,7 +33,7 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.025em;
   font-weight: 700;
   
-  [data-theme="dark"] & {
+  @include dark-mode {
     color: #f0f0f0;
   }
 }
@@ -56,8 +47,7 @@ h3 { font-size: 1.5rem; }
 .usn {
   user-select: none;
 }
-@import "./colors.css";
-@import "./snippets/tokens";
+@import "./colors";
 @import "./snippets/breakpoints";
 @import "./snippets/skeumorphic.scss";
 @import "./snippets/utilities";
@@ -97,7 +87,7 @@ textarea {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 10px;
   
-  [data-theme="dark"] & {
+  @include dark-mode {
     box-shadow: 
       inset 0 1px 2px rgba(0, 0, 0, 0.3),
       0 1px 0 rgba(255, 255, 255, 0.03);
@@ -109,7 +99,7 @@ textarea {
       0 1px 0 rgba(255, 255, 255, 0.4),
       0 0 0 3px rgba(var(--pico-primary-rgb), 0.25);
     
-    [data-theme="dark"] & {
+    @include dark-mode {
       box-shadow: 
         inset 0 1px 2px rgba(0, 0, 0, 0.3),
         0 1px 0 rgba(255, 255, 255, 0.03),

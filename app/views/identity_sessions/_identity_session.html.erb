@@ -1,4 +1,4 @@
-<div class="session-card <%= 'current-session' if identity_session.id == @current_session&.id %>">
+<div class="card-hoverable <%= 'current-session' if identity_session.id == @current_session&.id %>">
   <div class="session-header">
     <div class="session-icon">
       <% if identity_session.os_info&.include?("Mac") || identity_session.os_info&.include?("macOS") %>

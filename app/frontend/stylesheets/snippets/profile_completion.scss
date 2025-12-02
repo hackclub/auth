@@ -4,20 +4,11 @@
   --completion-icon-bg: #f0fdf4;
   --completion-completed-icon-bg: #d1fae5;
   
-  [data-theme="dark"] & {
+  @include dark-mode {
     --completion-green: #a3e635;
     --completion-green-dark: #84cc16;
     --completion-icon-bg: rgba(132, 204, 22, 0.1);
     --completion-completed-icon-bg: rgba(16, 185, 129, 0.15);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) & {
-      --completion-green: #a3e635;
-      --completion-green-dark: #84cc16;
-      --completion-icon-bg: rgba(132, 204, 22, 0.1);
-      --completion-completed-icon-bg: rgba(16, 185, 129, 0.15);
-    }
   }
   
   background: linear-gradient(165deg, var(--pico-card-background-color) 0%, var(--surface-2) 100%);
@@ -30,7 +21,7 @@
     2px 2px 8px rgba(0, 0, 0, 0.02),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
   
-  [data-theme="dark"] & {
+  @include dark-mode {
     background: linear-gradient(165deg, #252932 0%, #1f2329 100%);
     box-shadow: 
       4px 4px 16px rgba(0, 0, 0, 0.3),

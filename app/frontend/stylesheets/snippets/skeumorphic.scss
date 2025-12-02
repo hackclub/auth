@@ -57,7 +57,7 @@
   @include shadow-raised;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   
-  [data-theme="dark"] & {
+  @include dark-mode {
     @include gradient-dark;
     border-color: rgba(0, 0, 0, 0.3);
     box-shadow: 
@@ -71,7 +71,7 @@
     transform: translateY(-1px);
     @include shadow-raised-hover;
     
-    [data-theme="dark"] & {
+    @include dark-mode {
       @include gradient-dark-hover;
       box-shadow: 
         0 6px 16px rgba(0, 0, 0, 0.5),
@@ -84,7 +84,7 @@
     transform: translateY(0);
     @include shadow-pressed;
     
-    [data-theme="dark"] & {
+    @include dark-mode {
       box-shadow: 
         inset 0 3px 6px rgba(0, 0, 0, 0.5),
         inset 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -127,7 +127,7 @@
   border-radius: $radius;
   padding: $padding;
   
-  [data-theme="dark"] & {
+  @include dark-mode {
     background: linear-gradient(165deg, #252932 0%, #1f2329 100%);
   }
   
@@ -137,7 +137,7 @@
       2px 2px 8px rgba(0, 0, 0, 0.02),
       inset 0 1px 0 rgba(255, 255, 255, 0.5);
     
-    [data-theme="dark"] & {
+    @include dark-mode {
       box-shadow: 
         4px 4px 16px rgba(0, 0, 0, 0.3),
         2px 2px 8px rgba(0, 0, 0, 0.2),
@@ -146,8 +146,53 @@
   }
 }
 
+@mixin card-hoverable($padding: $space-4, $radius: $radius-lg) {
+  @include card($padding: $padding, $radius: $radius);
+  @include transition-default();
+  
+  @include dark-mode {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.1),
+      0 2px 6px rgba(0, 0, 0, 0.06);
+    
+    @include dark-mode {
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
 @mixin section-card {
   @include card(2rem, $radius-lg);
+}
+
+@mixin page-sections($max: 900px) {
+  max-width: $max;
+  margin: 2rem auto 0;
+}
+
+@mixin form-fieldset {
+  border: none; padding: 0;
+  legend { font-weight: 600; color: var(--pico-color); padding: 0; }
+  label { font-weight: 500; display: block; color: var(--pico-color); }
+  input, select, textarea { border-radius: $radius-md; }
+}
+
+@mixin status-card($color, $light-from, $light-to) {
+  background: linear-gradient(135deg, $light-from, $light-to);
+  border-color: $color;
+  
+  @include dark-mode {
+    background: linear-gradient(135deg, rgba($color, 0.15), rgba($color, 0.08));
+    border-color: rgba($color, 0.3);
+  }
 }
 
 @mixin badge($bg, $fg, $radius: 6px) {
@@ -169,4 +214,55 @@
   font-weight: 600;
   margin: 0 0 $mb;
   color: var(--pico-color);
+}
+
+@mixin colored-button($light-from, $light-to, $border, $dark-from, $dark-to, $dark-border, $hover-from, $hover-to, $dark-hover-from, $dark-hover-to) {
+  background: linear-gradient(180deg, $light-from 0%, $light-to 100%) !important;
+  border: 1px solid $border !important;
+  color: #ffffff !important;
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.2) !important;
+
+  @include dark-mode {
+    background: linear-gradient(180deg, $dark-from 0%, $dark-to 100%) !important;
+    border: 1px solid $dark-border !important;
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: linear-gradient(180deg, $hover-from 0%, $hover-to 100%) !important;
+    border-color: $border !important;
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.2) !important;
+
+    @include dark-mode {
+      background: linear-gradient(180deg, $dark-hover-from 0%, $dark-hover-to 100%) !important;
+      border-color: $dark-to !important;
+      box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.2) !important;
+    }
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 
+      inset 0 3px 6px rgba(0, 0, 0, 0.3),
+      inset 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+
+    @include dark-mode {
+      box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.4),
+        inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    }
+  }
 }

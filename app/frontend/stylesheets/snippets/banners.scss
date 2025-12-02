@@ -51,6 +51,16 @@
     @include banner-theme(var(--purple-bg), var(--purple-border), var(--purple-fg-strong), var(--purple-fg));
 }
 
+@mixin alert-box($bg, $border, $fg-strong) {
+    background: $bg;
+    border: 1px solid $border;
+    border-radius: $radius-md;
+    padding: $space-3 $space-4;
+    margin-bottom: $space-5;
+    h3, h4 { margin: 0 0 $space-2; font-weight: 500; font-size: 1rem; color: $fg-strong; }
+    ul { margin: 0; padding-left: $space-4; }
+}
+
 .banner {
     @include banner-base;
     text-align: left;

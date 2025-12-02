@@ -1,20 +1,25 @@
+@mixin dark-mode {
+  [data-theme="dark"] & { @content; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) & { @content; }
+  }
+}
+
+@mixin dark-mode-root {
+  &[data-theme="dark"] { @content; }
+  @media (prefers-color-scheme: dark) {
+    &:not([data-theme]) { @content; }
+  }
+}
+
 :root {
   --surface-1: var(--pico-card-background-color);
   --surface-2: #f9fafb;
   --surface-2-border: #e5e7eb;
   --text-strong: #1a1d23;
   --text-muted-strong: #6b7280;
-}
-
-[data-theme="dark"] {
-  --surface-2: #1f2937;
-  --surface-2-border: #374151;
-  --text-strong: #f5f7fa;
-  --text-muted-strong: #9ca3af;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  
+  @include dark-mode-root {
     --surface-2: #1f2937;
     --surface-2-border: #374151;
     --text-strong: #f5f7fa;
