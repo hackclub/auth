@@ -50,3 +50,5 @@ node_modules
 .idea
 **/.DS_Store
 /config/credentials/uat.key
+
+public/.vite

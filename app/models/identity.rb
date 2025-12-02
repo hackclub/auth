@@ -110,6 +110,8 @@ class Identity < ApplicationRecord
   before_validation :downcase_email
   before_commit :copy_legal_name_if_needed, on: :create
 
+  def full_name = "#{first_name} #{last_name}"
+
   def self.slack_authorize_url(redirect_uri)
     params = {
       client_id: ENV["SLACK_CLIENT_ID"],

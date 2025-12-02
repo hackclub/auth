@@ -38,7 +38,7 @@
 <%# end %>
 <div class="grid">
 
-  <%= render Components::Backend::Card.new(title: "Hack Club Auth Backend") do %>
+  <%= render Components::Backend::Card.new(title: "welcome to the cool zone") do %>
     <% if current_user.super_admin? %>
       <b>Super admin:</b>
       <%= render Components::Backend::Item.new(icon: "⭢", href: backend_identities_path) do %>
@@ -72,7 +72,7 @@
       <b>Manual document verifier:</b>
       <%= render Components::Backend::Item.new(icon: "⭢", href: backend_identities_path) do %>
         <b>Review pending verifications</b>
-        <p class="shortcode">&nbsp; [ VERF ]</p>
+        <p class="shortcode">&nbsp; [ PEND ]</p>
       <% end %>
     <% end %>
     <hr/>
@@ -80,7 +80,12 @@
       <b>Manage identities</b>
       <p class="shortcode">&nbsp; [ IDNT ]</p>
     <% end %>
-    <%= render Components::Backend::Item.new(icon: "⊹", href: backend_identities_path) do %>
+    <%= render Components::Backend::Item.new(icon: "⭢", href: backend_audit_logs_path) do %>
+      <b>Audit logs</b>
+      <p class="shortcode">&nbsp; [ LOGS ]</p>
+    <% end %>
+    <hr/>
+    <%= render Components::Backend::Item.new(icon: "⊹", href: "#", onclick: "window.openKbar && window.openKbar(); return false;") do %>
       <b>Go anywhere</b>
       <p class="shortcode">&nbsp; <&nbsp;⌘-K&nbsp;&nbsp;></p>
     <% end %>

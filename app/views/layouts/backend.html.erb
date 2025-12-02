@@ -16,9 +16,12 @@
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= vite_client_tag %>
     <%= vite_stylesheet_tag "backend.css" %>
-    <%= vite_javascript_tag 'backend' %>
+    <%= vite_javascript_tag 'backend.jsx' %>
   </head>
   <body>
+    <script type="application/json" id="kbar-data">
+      <%= raw Shortcodes.kbar_data_for(current_user) %>
+    </script>
     <%= render "shared/flash" %>
     <%= yield %>
     <% unless Rails.env.production? %>

@@ -195,6 +195,8 @@ Rails.application.routes.draw do
     if Rails.env.development?
       post "/auth/slack/fake", to: "sessions#fake_slack_callback_for_dev", as: :fake_slack_callback_for_dev
     end
+    get "kbar/search", to: "kbar#search", as: :kbar_search
+
 
     resources :users do
       member do
