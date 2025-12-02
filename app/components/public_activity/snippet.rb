@@ -12,11 +12,11 @@ class Components::PublicActivity::Snippet < Components::Base
         owner = @owner || @activity.owner
         # Only render backend users as links if current user is a backend user
         # Check if we're in the backend context by looking for current_user helper
-        is_backend = respond_to?(:current_user) && current_user.is_a?(Backend::User)
+        is_backend = respond_to?(:current_user) && current_user.is_a?(::Backend::User)
 
         if owner.nil?
           em { "unknown" }
-        elsif owner.is_a?(Backend::User) && !is_backend
+        elsif owner.is_a?(::Backend::User) && !is_backend
           plain owner.username
         else
           render owner

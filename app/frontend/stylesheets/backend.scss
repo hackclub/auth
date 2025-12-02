@@ -1,14 +1,16 @@
-@import "./colors";
-@import "./snippets/tokens";
-@import "./snippets/breakpoints";
+@import "./srcl-global";
+@import "./srcl-fonts";
 @import "./snippets/banners.scss";
 @import "./snippets/admin_tools.scss";
 @import "./snippets/borders.scss";
 @import "./snippets/tooltips.scss";
+@import "./backend/card";
+@import "./backend/item";
+@import "./backend/shortcodes";
+@import "./backend/grid";
 
 body {
-    font-size: 12px;
-    margin: 5rem
+  max-width: 80ch;
 }
 
 form {
