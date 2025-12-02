@@ -48,7 +48,7 @@
               method: :post,
               class: "step-up-method-option",
               style: "text-align: left; width: 100%; cursor: pointer;" do %>
-            <div><%= inline_icon("mail", size: 32) %></div>
+            <div><%= inline_icon("email", size: 32) %></div>
             <div style="flex: 1;">
               <div style="font-weight: 600;"><%= t(".methods.email.title", default: "Email code") %></div>
               <small><%= t(".methods.email.description", default: "We'll send a code to #{current_identity.primary_email}") %></small>
