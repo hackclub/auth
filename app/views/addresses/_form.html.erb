@@ -4,7 +4,7 @@
   end
   initial_country = address.country || current_identity&.country || "US"
   initial_calling_code = Address.country_calling_code(initial_country) || "1"
-  
+
   # Strip country code prefix for display (it's shown separately)
   raw_phone = address.phone_number.presence || current_identity&.phone_number
   display_phone = if raw_phone.present? && raw_phone.start_with?("+")
