@@ -30,7 +30,7 @@ class VerificationMailer < ApplicationMailer
     @datavariables = {
       first_name: @identity.first_name,
       reason_line:,
-      resubmit_url: document_onboarding_url
+      resubmit_url: verification_step_url(:document)
     }
 
     send_it!
