@@ -9,7 +9,7 @@ en:
     attributes:
       backend_user:
           slack_id: Slack ID
-  brand: Hack Club Account
+  brand: Hack Club Auth
   home:
     apps:
       heading: Where do you want to go today?
@@ -206,7 +206,7 @@ en:
       super_secret_settings: "Super secret settings"
       saml_debug: "debug your SAML assertions?"
     new:
-      already_have: Already have a Hack Club account?
+      already_have: Already have a Hack Club Auth account?
       log_in: Log in here
       not_necessarily_legal_name: not necessarily your legal name, what do people usually call you?
       email_code: We'll send a one-time code to this address.
@@ -227,7 +227,7 @@ en:
   logins:
     new:
       title: Welcome back!
-      subtitle: Sign in to your Hack Club Account
+      subtitle: Sign in to Hack Club Auth
       email_label: Email address
       continue: Continue
       no_account: Don't have an account?
@@ -265,7 +265,7 @@ en:
       text: Logging you in...
   static_pages:
     welcome:
-      title: Hack Club Account
+      title: Hack Club Auth
       subtitle: One account for Slack, Hack Club, and beyond.
       cta_create: Create Your Account →
       cta_signin: Sign In
@@ -458,4 +458,4 @@ en:
           subtitle: Verify your age and identity to participate in programs and compete for prizes
           start_verification: Start Verification
   auth:
-    sign_in_or_create: "Sign in or create a Hack Club account to continue"
+    sign_in_or_create: "Sign in or create a Hack Club Auth account to continue"

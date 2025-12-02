@@ -165,9 +165,9 @@ uat:
       allow_unsigned_requests: true
 production:
   idp_metadata:
-    entity_id: https://account.hackclub.com
+    entity_id: https://auth.hackclub.com
     single_sign_on_services:
-      - location: https://account.hackclub.com/saml/auth
+      - location: https://auth.hackclub.com/saml/auth
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
   service_providers:
     - slug: slack

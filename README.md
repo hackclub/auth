@@ -1,6 +1,6 @@
-# Hack Club Account
+# Hack Club Auth
 
-This is the Rails codebase powering https://account.hackclub.com!
+This is the Rails codebase powering https://auth.hackclub.com!
 
 ## contributing
 
