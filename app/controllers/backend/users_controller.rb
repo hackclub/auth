@@ -5,7 +5,7 @@ module Backend
     def index
       authorize Backend::User
       @users = User.all
-      @users = @users.joins(:identity).where("identities.primary_email ILIKE ? OR identities.first_name ILIKE ? OR identities.last_name ILIKE ?", "%#{params[:search]}%", "%#{params[:search]}%", "%#{params[:search]}%") if params[:search].present?
+      @users = @users.left_joins(:identity).where("identities.primary_email ILIKE :q OR identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR users.username ILIKE :q", q: "%#{params[:search]}%") if params[:search].present?
       @users = @users.includes(:identity, :organized_programs)
     end
 
