@@ -1,3 +1,4 @@
+import htmx from "htmx.org";
 import { setup_copy } from "../js/click-to-copy.js";
 import { Kbar } from "../components/kbar.jsx";
 import { HintsModal } from "../components/hints_modal.jsx";
