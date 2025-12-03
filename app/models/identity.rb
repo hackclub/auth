@@ -97,8 +97,8 @@ class Identity < ApplicationRecord
 
     sanitized_term = "%#{term}%"
     where(
-      "first_name ILIKE ? OR last_name ILIKE ? OR primary_email ILIKE ? OR slack_id ILIKE ?",
-      sanitized_term, sanitized_term, sanitized_term, sanitized_term
+      "first_name ILIKE ? OR last_name ILIKE ? OR primary_email ILIKE ? OR slack_id ILIKE ? OR CONCAT(first_name, ' ', last_name) ILIKE ?",
+      sanitized_term, sanitized_term, sanitized_term, sanitized_term, sanitized_term
     )
   }
 
