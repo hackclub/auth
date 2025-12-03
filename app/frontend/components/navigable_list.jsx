@@ -1,5 +1,5 @@
 const NavigableList = function(cx) {
-  this.selectedIndex = 0
+  this.selectedIndex = -1
   this.items = []
   
   const state = this
@@ -26,11 +26,19 @@ const NavigableList = function(cx) {
 
     if (e.key === 'j' || e.key === 'ArrowDown') {
       e.preventDefault()
-      state.selectedIndex = Math.min(state.selectedIndex + 1, items.length - 1)
+      if (state.selectedIndex < 0) {
+        state.selectedIndex = 0
+      } else {
+        state.selectedIndex = Math.min(state.selectedIndex + 1, items.length - 1)
+      }
       updateSelection()
     } else if (e.key === 'k' || e.key === 'ArrowUp') {
       e.preventDefault()
-      state.selectedIndex = Math.max(state.selectedIndex - 1, 0)
+      if (state.selectedIndex < 0) {
+        state.selectedIndex = items.length - 1
+      } else {
+        state.selectedIndex = Math.max(state.selectedIndex - 1, 0)
+      }
       updateSelection()
     } else if (e.key === 'Enter') {
       const selectedItem = items[state.selectedIndex]
@@ -68,8 +76,6 @@ const NavigableList = function(cx) {
         updateSelection()
       })
     })
-    
-    updateSelection()
   }
 
   return (
