@@ -17,13 +17,16 @@ module Backend
 
       if query.include?("!") && prefix_info
         begin
-          klass = prefix_info[:model].constantize
+          # Safe to use constantize because prefix_info[:model] comes from
+          # Shortcodes.public_id_prefixes which contains only whitelisted model names
+          model_name = prefix_info[:model]
+          klass = Object.const_get(model_name)
           record = klass.find_by_public_id(query)
           if record
             results << build_result_for(record, prefix_info)
           end
-        rescue Hashid::Rails::Error
-          # Invalid hashid format
+        rescue
+          nil
         end
       elsif scope.present?
         results = search_in_scope(scope, query)
