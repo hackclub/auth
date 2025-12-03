@@ -4,9 +4,13 @@ module Backend
 
     hint :list_navigation, on: :index
     hint :search_focus, on: :index
+    hint :back_navigation, on: :index
 
     def index
       authorize Backend::User
+
+      set_keyboard_shortcut(:back, backend_root_path)
+
       @users = User.all
       @users = @users.joins(:identity).where("identities.primary_email ILIKE ? OR identities.first_name ILIKE ? OR identities.last_name ILIKE ?", "%#{params[:search]}%", "%#{params[:search]}%", "%#{params[:search]}%") if params[:search].present?
       @users = @users.includes(:identity, :organized_programs)
