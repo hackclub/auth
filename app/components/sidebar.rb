@@ -8,6 +8,7 @@ class Components::Sidebar < Components::Base
   register_value_helper :signed_in?
   register_value_helper :root_path
   register_value_helper :logout_path
+  register_value_helper :backend_root_path
   register_output_helper :copy_to_clipboard
   register_output_helper :vite_image_tag
 
@@ -58,6 +59,10 @@ class Components::Sidebar < Components::Base
     end
 
     items << { label: t("sidebar.docs"), path: docs_path, icon: "docs" }
+
+    if current_identity.present? && current_identity.active_for_backend?
+      items << { label: t("sidebar.backend"), path: backend_root_path, icon: "admin" }
+    end
 
     items
   end
