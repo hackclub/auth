@@ -19,9 +19,12 @@
     <%= vite_javascript_tag 'backend.jsx' %>
   </head>
   <body>
-    <%= render Components::Backend::ActionBar.new(controller_path: controller_path, action_name: action_name, user: current_user) { yield :toolbar } %>
+    <%= render Components::Backend::ActionBar.new(controller_path: controller_path, action_name: action_name, user: current_user, has_unseen_hints: has_unseen_hints?) { yield :toolbar } %>
     <script type="application/json" id="kbar-data">
       <%= raw Shortcodes.kbar_data_for(current_user) %>
+    </script>
+    <script type="application/json" id="hints-data">
+      <%= raw({ hints: current_hints.map { |h| { slug: h.slug, content: h.content } } }.to_json) %>
     </script>
     <%= render "shared/flash" %>
     <%= yield %>
