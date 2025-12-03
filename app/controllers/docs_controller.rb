@@ -39,8 +39,9 @@ class DocsController < ApplicationController
       raise ActionController::RoutingError, "Invalid documentation path"
     end
 
-    erb_path = Rails.root.join("app", "views", "docs", "#{slug}.md.erb")
-    md_path = Rails.root.join("app", "views", "docs", "#{slug}.md")
+    docs_dir = Rails.root.join("app", "views", "docs").to_s
+    erb_path = File.join(docs_dir, "#{slug}.md.erb")
+    md_path = File.join(docs_dir, "#{slug}.md")
 
     @doc_file_path = File.exist?(erb_path) ? erb_path : md_path
   end
