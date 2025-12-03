@@ -42,7 +42,7 @@
       <% if current_user&.manual_document_verifier? || current_user&.super_admin? %>
         <b>Manual document verifier:</b>
         <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: backend_identities_path) do %>
+          <%= render Components::Backend::Item.new(icon: "⭢", href: pending_backend_verifications_path) do %>
             <b>Review pending verifications</b>
             <p class="shortcode">&nbsp; [ PEND ]</p>
           <% end %>
