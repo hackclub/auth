@@ -32,5 +32,35 @@ module Backend
     def manual_document_verifier? = manual_document_verifier
     def human_endorser? = human_endorser
     def all_fields_access? = all_fields_access
+
+    # Returns a human-readable string of the user's roles
+    def pretty_roles
+      roles = []
+      roles << "Super Admin" if super_admin?
+      roles << "Program Manager" if program_manager?
+      roles << "Manual Document Verifier" if manual_document_verifier?
+      roles << "Human Endorser" if human_endorser?
+      roles << "All Fields Access" if all_fields_access?
+      roles.presence&.join(", ") || "None"
+    end
+
+    # Returns an array of organized program IDs
+    def organized_program_ids
+      organized_programs.pluck(:id)
+    end
+
+    # Sets the organized programs by IDs
+    def organized_program_ids=(ids)
+      ids = Array(ids).map(&:to_i).uniq
+      current_ids = organized_program_ids
+      # Add new organizer positions
+      (ids - current_ids).each do |id|
+        organizer_positions.create(program_id: id)
+      end
+      # Remove organizer positions not in the new list
+      (current_ids - ids).each do |id|
+        organizer_positions.where(program_id: id).destroy_all
+      end
+    end
   end
 end
