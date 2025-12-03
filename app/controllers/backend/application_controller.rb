@@ -2,6 +2,7 @@ module Backend
   class ApplicationController < ActionController::Base
     include PublicActivity::StoreController
     include Pundit::Authorization
+    include ::SessionsHelper
 
     layout "backend"
 
@@ -10,15 +11,16 @@ module Backend
     helper_method :current_user, :user_signed_in?
 
     before_action :authenticate_user!, :set_honeybadger_context
+    before_action :require_2fa!
 
     before_action :set_paper_trail_whodunnit
 
     def current_user
-      @current_user ||= User.find_by(id: session[:user_id]) if session[:user_id]
+      @current_user ||= current_identity&.backend_user
     end
 
     def current_impersonator
-      @current_impersonator ||= User.find_by(id: session[:impersonator_user_id]) if session[:impersonator_user_id]
+      @current_impersonator ||= Identity.find_by(id: session[:impersonator_user_id])&.backend_user if session[:impersonator_user_id]
     end
 
     alias_method :find_current_auditor, :current_user
@@ -30,20 +32,28 @@ module Backend
     def user_signed_in? = !!current_user
 
     def authenticate_user!
-      unless user_signed_in?
-        return redirect_to backend_login_path, alert: ("you need to be logged in!")
+      unless current_identity
+        session[:return_to] = request.original_url
+        return redirect_to root_path, alert: "Please log in to access the backend."
       end
-      unless @current_user&.active?
-        session[:user_id] = nil
-        @current_user = nil
-        redirect_to backend_login_path, alert: ("you need to be logged in!")
+
+      unless current_user&.active?
+        redirect_to root_path, alert: "You do not have access to the backend."
+      end
+    end
+
+    def require_2fa!
+      unless current_identity&.use_two_factor_authentication?
+        redirect_to root_path, alert: "You must enable Two-Factor Authentication to access the backend."
       end
     end
 
     def set_honeybadger_context
       Honeybadger.context({
         user_id: current_user&.id,
-        user_username: current_user&.username
+        user_username: current_user&.username,
+        identity_id: current_identity&.id,
+        identity_email: current_identity&.primary_email
       })
     end
 

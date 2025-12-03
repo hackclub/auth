@@ -159,10 +159,13 @@
 
 class SuperAdminConstraint
   def self.matches?(request)
-    return false unless request.session[:user_id]
+    session_token = request.cookie_jar.encrypted[:session_token]
+    return false unless session_token
 
-    user = Backend::User.find_by(id: request.session[:user_id])
-    user&.super_admin?
+    session = IdentitySession.not_expired.find_by(session_token: session_token)
+    return false unless session&.identity
+
+    session.identity.backend_user&.super_admin?
   end
 end
 
@@ -189,12 +192,6 @@ Rails.application.routes.draw do
     get "login", to: "static_pages#login", as: :login
     get "session_dump", to: "static_pages#session_dump", as: :session_dump unless Rails.env.production?
 
-    get "/auth/slack", to: "sessions#new", as: :slack_auth
-    get "/auth/slack/callback", to: "sessions#create"
-
-    if Rails.env.development?
-      post "/auth/slack/fake", to: "sessions#fake_slack_callback_for_dev", as: :fake_slack_callback_for_dev
-    end
 
     resources :users do
       member do

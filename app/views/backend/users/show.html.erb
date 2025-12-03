@@ -1,23 +1,40 @@
-<%= render Components::Window.new("User: #{@user.username}", close_url: backend_users_path) do %>
+<%= render Components::Window.new("User: #{@user.display_name}", close_url: backend_users_path) do %>
   <div class="padding">
-    <%= render Components::UserMention.new(@user) %>
-    <b>Roles: </b> <%= @user.pretty_roles %>
-    <br>
-    <b>Organized Programs: </b>
-    <% if @user.organized_programs.any? %>
-      <%= @user.organized_programs.map(&:name).join(", ") %>
+    <% if @user.orphaned? %>
+      <div class="alert alert-warning">
+        ⚠️ <strong>Warning:</strong> This user is not linked to an Identity and cannot log in.
+      </div>
     <% else %>
-      <em>None</em>
+      <div class="card">
+        <h4>Linked Identity</h4>
+        <p><strong>Name:</strong> <%= @user.first_name %> <%= @user.last_name %></p>
+        <p><strong>Email:</strong> <%= @user.email %></p>
+        <p><strong>Slack ID:</strong> <%= @user.slack_id || "Not linked" %></p>
+      </div>
     <% end %>
-    <% super_admin_tool do %>
-      <%= link_to "edit this user", edit_backend_user_path(@user), class: "link" %>
-      <% if @user.active? %>
-        <%= button_to "deactivate this user", {action: :deactivate} %>
-        <i>(this will stop them from logging in)</i>
-        <% else %>
-        <%= button_to "activate this user", {action: :activate} %>
-        <i>(this will allow them to log in again)</i>
+
+    <div class="padding-top">
+      <b>Roles: </b> <%= @user.pretty_roles %>
+      <br>
+      <b>Organized Programs: </b>
+      <% if @user.organized_programs.any? %>
+        <%= @user.organized_programs.map(&:name).join(", ") %>
+      <% else %>
+        <em>None</em>
       <% end %>
+    </div>
+
+    <% super_admin_tool do %>
+      <div class="padding-top">
+        <%= link_to "edit this user", edit_backend_user_path(@user), class: "link" %>
+        <% if @user.active? %>
+          <%= button_to "deactivate this user", {action: :deactivate} %>
+          <i>(this will stop them from logging in)</i>
+        <% else %>
+          <%= button_to "activate this user", {action: :activate} %>
+          <i>(this will allow them to log in again)</i>
+        <% end %>
+      </div>
     <% end %>
   </div>
 <% end %>

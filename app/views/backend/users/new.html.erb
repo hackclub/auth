@@ -1,5 +1,62 @@
-<%= render Components::Window.new("New User", close_url: backend_users_path, max_width: 500) do %>
+<%= render Components::Window.new("Grant Backend Access", close_url: backend_users_path, max_width: 600) do %>
   <div class="padding">
-    <%= render Backend::Users::Form.new @user %>
+    <h3>Search for an Identity</h3>
+    <%= form_with url: new_backend_user_path, method: :get, class: "flex gap" do |f| %>
+      <%= f.text_field :query, placeholder: "Search by email, name, or Slack ID...", value: params[:query], class: "input flex-1", autofocus: true %>
+      <%= f.submit "Search", class: "button" %>
+    <% end %>
   </div>
+
+  <% if params[:query].present? %>
+    <div class="padding">
+      <% if @identities.any? %>
+        <table class="detailed">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Slack ID</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @identities.each do |identity| %>
+              <tr>
+                <td><%= "#{identity.first_name} #{identity.last_name}" %></td>
+                <td><%= identity.primary_email %></td>
+                <td><%= identity.slack_id || "—" %></td>
+                <td>
+                  <%= link_to "Grant Access →", new_backend_user_path(identity_id: identity.id), class: "link" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="text-muted">No identities found matching "<%= params[:query] %>"</p>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if params[:identity_id].present? %>
+    <% identity = Identity.find(params[:identity_id]) %>
+    <div class="padding">
+      <h3>Grant Access to <%= identity.first_name %> <%= identity.last_name %></h3>
+      <p><strong>Email:</strong> <%= identity.primary_email %></p>
+      <p><strong>Slack ID:</strong> <%= identity.slack_id || "Not linked" %></p>
+
+      <%= form_with url: backend_users_path, method: :post do |f| %>
+        <%= hidden_field_tag :identity_id, identity.id %>
+
+        <div class="padding-top">
+          <h4>Set Permissions</h4>
+          <%= render Backend::Users::PermissionsForm.new(Backend::User.new) %>
+        </div>
+
+        <div class="padding-top">
+          <%= f.submit "Grant Backend Access", class: "button" %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
 <% end %>
