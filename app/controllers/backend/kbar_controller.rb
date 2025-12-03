@@ -54,7 +54,7 @@ module Backend
 
       when "oauth_apps"
         if current_user.super_admin? || current_user.program_manager?
-          Doorkeeper::Application.where("name ILIKE ? OR uid = ?", "%#{query}%", query).limit(10).each do |app|
+          Program.where("name ILIKE ? OR uid = ?", "%#{query}%", query).limit(10).each do |app|
             results << {
               type: "oauth_app",
               id: app.id,
