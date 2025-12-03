@@ -9,7 +9,7 @@ module Backend
 
     validates :username, presence: true, uniqueness: true, if: :orphaned?
 
-    delegate :email, :first_name, :last_name, :slack_id, to: :identity, allow_nil: true
+    delegate :first_name, :last_name, :slack_id, to: :identity, allow_nil: true
 
     scope :orphaned, -> { where(identity_id: nil) }
     scope :linked, -> { where.not(identity_id: nil) }
@@ -21,6 +21,8 @@ module Backend
       "#{first_name} #{last_name}".strip.presence || email || username
     end
 
+    def email = identity.primary_email
+
     def active? = active
     def activate! = update!(active: true)
     def deactivate! = update!(active: false)
@@ -30,5 +32,15 @@ module Backend
     def manual_document_verifier? = manual_document_verifier
     def human_endorser? = human_endorser
     def all_fields_access? = all_fields_access
+
+    def pretty_roles
+      return "Super admin" if super_admin?
+      roles = []
+      roles << "Program manager" if program_manager?
+      roles << "Document verifier" if manual_document_verifier?
+      roles << "Endorser" if human_endorser?
+      roles << "All fields" if all_fields_access?
+      roles.join(", ")
+    end
   end
 end
