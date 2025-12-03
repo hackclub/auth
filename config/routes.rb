@@ -194,6 +194,7 @@ Rails.application.routes.draw do
 
 
     get "kbar/search", to: "kbar#search", as: :kbar_search
+    get "identity_picker/search", to: "identity_picker#search", as: :identity_picker_search
 
     resources :users do
       member do
