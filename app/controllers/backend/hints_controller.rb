@@ -5,7 +5,8 @@ module Backend
     skip_after_action :verify_authorized
 
     def mark_seen
-      slugs = params[:slugs] || []
+      body = JSON.parse(request.body.read) rescue {}
+      slugs = body["slugs"] || []
       slugs.each { |slug| current_user.seen_hint!(slug) }
       head :ok
     end

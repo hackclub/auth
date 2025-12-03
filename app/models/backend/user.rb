@@ -34,12 +34,13 @@ module Backend
     def all_fields_access? = all_fields_access
 
     def seen_hint!(slug)
+      self.seen_hints ||= []
       self.seen_hints << slug.to_s
       self.seen_hints.uniq!
-      save
+      save!
     end
 
-    def seen_hint?(slug) = seen_hints&.include? slug.to_s
+    def seen_hint?(slug) = (seen_hints || []).include?(slug.to_s)
 
     def pretty_roles
       return "Super admin" if super_admin?

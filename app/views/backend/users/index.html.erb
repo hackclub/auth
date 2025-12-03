@@ -3,7 +3,7 @@
     <%= form_with url: backend_users_path, method: :get, local: true do |f| %>
       <div class="form-row">
         <%= f.search_field :search, value: params[:search], placeholder: "search by email or name..." %>
-        <%= render Components::Backend::ActionButton.new(hotkey: "↵") { "SRCH" } %>
+        <%= render Components::Backend::ActionButton.new(hotkey: "↵") { "search" } %>
       </div>
     <% end %>
     <hr/>
