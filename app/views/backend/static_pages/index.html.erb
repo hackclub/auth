@@ -1,43 +1,4 @@
-<%#= render Components::Window.new("Identity Vault (#{Rails.env.upcase})") do %>
-<!--  <div class="padding">-->
-<!--    <b>Would you like to...</b>-->
-<!--    <ul>-->
-<%# super_admin_tool do %>
-<!--        <li>-->
-<!--        </li>-->
-<!--        <li>-->
-<!--        </li>-->
-<!--        <li>-->
-<!--        </li>-->
-<!--        <li>-->
-<!--        </li>-->
-<%# end %>
-<%# program_manager_tool do %>
-<!--        <li>-->
-<!--        </li>-->
-<%# end %>
-<%# mdv_tool do %>
-<!--        <li>-->
-<%#= link_to "review pending verifications", pending_backend_verifications_path, { class: 'link' } %>
-<%# if @pending_verifications_count && @pending_verifications_count > 0 %>
-<!--            (<%#= @pending_verifications_count %> pending)-->
-<!--          <%# end %>?-->
-<!--        </li>-->
-<%# end %>
-<!--      <li>-->
-<!--        view <%#= link_to "audit logs", backend_audit_logs_path, { class: 'link' } %>?-->
-<!--      </li>-->
-<!--      <li>-->
-<!--        view <%#= link_to "identities", backend_identities_path, { class: 'link' } %>?-->
-<!--      </li>-->
-<!--      <li>-->
-<!--        view <%#= link_to "dashboard", backend_dashboard_path, { class: 'link' } %>?-->
-<!--      </li>-->
-<!--    </ul>-->
-<!--  </div>-->
-<%# end %>
 <div class="grid">
-
   <%= render Components::Backend::Card.new(title: "welcome to the cool zone") do %>
     <% if current_user.super_admin? %>
       <b>Super admin:</b>
