@@ -196,6 +196,7 @@ Rails.application.routes.draw do
       post "/auth/slack/fake", to: "sessions#fake_slack_callback_for_dev", as: :fake_slack_callback_for_dev
     end
     get "kbar/search", to: "kbar#search", as: :kbar_search
+    get "identity_picker/search", to: "identity_picker#search", as: :identity_picker_search
 
 
     resources :users do
