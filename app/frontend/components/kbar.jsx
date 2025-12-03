@@ -259,9 +259,11 @@ const Kbar = function(cx) {
     } else if (e.key === "ArrowDown") {
       e.preventDefault()
       state.selectedIndex = Math.min(state.selectedIndex + 1, items.length - 1)
+      scrollToSelected()
     } else if (e.key === "ArrowUp") {
       e.preventDefault()
       state.selectedIndex = Math.max(state.selectedIndex - 1, 0)
+      scrollToSelected()
     } else if (e.key === "Enter") {
       e.preventDefault()
       const item = items[state.selectedIndex]
@@ -273,6 +275,16 @@ const Kbar = function(cx) {
       } else if (item.type === 'shortcut') navigate(item.path, item)
       else navigate(item.path)
     }
+  }
+
+  const scrollToSelected = () => {
+    setTimeout(() => {
+      const resultsList = document.querySelector('.kbar-results-list')
+      const selected = document.querySelector('.kbar-result-item.selected')
+      if (resultsList && selected) {
+        selected.scrollIntoView({ block: 'nearest' })
+      }
+    }, 0)
   }
 
   const handleInput = (e) => {
