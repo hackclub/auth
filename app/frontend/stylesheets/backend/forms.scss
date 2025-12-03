@@ -1,17 +1,29 @@
 .form-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 1ch;
   margin-bottom: calc(var(--font-size) * 0.5);
 
   label {
     flex-shrink: 0;
     min-width: 12ch;
+    display: block;
   }
 
-  input, select, textarea {
+  input:not([type="checkbox"]), select, textarea {
     flex: 1;
     min-width: 0;
+  }
+
+  input[type="checkbox"] {
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  small {
+    flex: 1;
+    margin-left: 0.5ch;
+    color: var(--theme-border);
   }
 }
 
@@ -58,20 +70,46 @@ textarea {
 
 input[type="checkbox"] {
   appearance: none;
-  width: 2ch;
-  height: calc(var(--font-size) * var(--theme-line-height-base));
+  width: 1.5em;
+  height: 1.5em;
   background: var(--theme-background-input);
-  box-shadow: inset 0 0 0 1px var(--theme-border);
+  border: 1px solid var(--theme-border);
+  border-radius: 0.25em;
   cursor: pointer;
   vertical-align: middle;
+  display: inline-block;
+  position: relative;
+  transition: background-color 150ms ease, border-color 150ms ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--theme-focused-foreground);
+  }
 
   &:checked {
     background: var(--theme-focused-foreground);
+    border-color: var(--theme-focused-foreground);
+
+    &::after {
+      content: "✓";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--theme-background-input);
+      font-size: 0.85em;
+      font-weight: bold;
+      line-height: 1;
+    }
   }
 
   &:focus {
     outline: none;
-    box-shadow: inset 0 0 0 2px var(--theme-focused-foreground);
+    box-shadow: 0 0 0 2px var(--theme-background-input), 0 0 0 3px var(--theme-focused-foreground);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 }
 
