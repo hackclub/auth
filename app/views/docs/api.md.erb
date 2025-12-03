@@ -37,7 +37,7 @@ Get the authenticated user's identity information based on granted scopes.
 **Response:**
 
 <pre><code class="language-json"><%
-  identity = stub_identity_with_address(FactoryBot.build_stubbed(:identity))
+  identity = stub_identity_with_address(FactoryBot.build_stubbed(:identity, id: rand(1000000)))
   scopes = ["email", "name", "verification_status", "slack_id", "basic_info", "address", "legal_name"]
 %><%= render_api_example(template: "api/v1/identities/me", identity: identity, scopes: scopes, color_by_scope: true).html_safe %></code></pre>
 
@@ -152,7 +152,7 @@ Get a specific user's identity by their public ID.
 
 ```json
 <%
-  identity = FactoryBot.build_stubbed(:identity, last_name: "Hacksworth")
+  identity = FactoryBot.build_stubbed(:identity, id: rand(1000000), last_name: "Hacksworth")
 %><%= render_api_example(template: "api/v1/identities/show", identity: identity) %>
 ```
 

@@ -28,7 +28,11 @@ module DocsHelper
       controller.instance_variable_set(:@identities, identities)
     end
 
+    # Skip authentication by setting instance variables directly
+    controller.instance_variable_set(:@current_scopes, scopes)
     controller.define_singleton_method(:current_scopes) { scopes }
+    controller.define_singleton_method(:identity_authorized_for_scope?) { |identity, scope| true }
+    controller.define_singleton_method(:authenticate!) { nil }
 
     json_result = controller.render_to_string(
       template: template,
@@ -72,7 +76,10 @@ module DocsHelper
     all_scopes.each do |scope|
       controller = API::V1::IdentitiesController.new
       controller.instance_variable_set(:@identity, identity)
+      controller.instance_variable_set(:@current_scopes, [ scope ])
       controller.define_singleton_method(:current_scopes) { [ scope ] }
+      controller.define_singleton_method(:identity_authorized_for_scope?) { |identity, scope| true }
+      controller.define_singleton_method(:authenticate!) { nil }
 
       json_result = controller.render_to_string(template: template, formats: [ :json ])
       pretty = JSON.pretty_generate(JSON.parse(json_result))
@@ -83,7 +90,10 @@ module DocsHelper
     # Generate baseline (no scopes) to identify always-present lines
     controller = API::V1::IdentitiesController.new
     controller.instance_variable_set(:@identity, identity)
+    controller.instance_variable_set(:@current_scopes, [])
     controller.define_singleton_method(:current_scopes) { [] }
+    controller.define_singleton_method(:identity_authorized_for_scope?) { |identity, scope| true }
+    controller.define_singleton_method(:authenticate!) { nil }
     baseline_json = controller.render_to_string(template: template, formats: [ :json ])
     baseline_pretty = JSON.pretty_generate(JSON.parse(baseline_json))
     baseline_lines = baseline_pretty.lines.map(&:rstrip)
