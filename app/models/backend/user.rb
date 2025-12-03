@@ -16,7 +16,7 @@ module Backend
 
     def orphaned? = identity_id.nil?
 
-    def email = identity&.email
+    def email = identity&.primary_email
 
     def display_name
       return username if orphaned?
