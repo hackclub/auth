@@ -14,7 +14,7 @@
     <% if params[:search].present? %>
       <p>found <%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</p>
     <% end %>
-    <hr/>
+    <hr>
     <div class="table-container" data-navigable-list>
       <table>
         <thead>

@@ -44,7 +44,7 @@ module API
           @current_program = @current_token.application
           @current_scopes = @current_token.scopes
           unless @current_program&.active?
-            return render json: { error: "invalid_auth" }, status: :unauthorized
+            render json: { error: "invalid_auth" }, status: :unauthorized
           end
         else
           @acting_as_program = true

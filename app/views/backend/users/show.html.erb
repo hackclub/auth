@@ -3,7 +3,7 @@
     <%= render Components::Backend::Item.new(icon: "⭠", href: backend_users_path) do %>
       <b>back to users</b>
     <% end %>
-    <hr/>
+    <hr>
     <% if @user.orphaned? %>
       <div class="banner warning">
         <h3>⚠ orphaned user</h3>
@@ -48,7 +48,7 @@
       </div>
     </div>
     <% super_admin_tool do %>
-      <hr/>
+      <hr>
       <%= render Components::Backend::Item.new(icon: "✎", href: edit_backend_user_path(@user)) do %>
         <b>edit user</b>
       <% end %>

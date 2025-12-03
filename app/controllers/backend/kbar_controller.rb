@@ -72,14 +72,14 @@ module Backend
 
       label, sublabel, path = case record
       when Identity
-        [record.full_name, record.primary_email, "#{base_path}/#{record.public_id}"]
+        [ record.full_name, record.primary_email, "#{base_path}/#{record.public_id}" ]
       when Address
-        [record.full_address, record.identity&.full_name, "/backend/identities/#{record.identity&.public_id}"]
+        [ record.full_address, record.identity&.full_name, "/backend/identities/#{record.identity&.public_id}" ]
       when Verification
-        ["Verification #{record.public_id}", record.identity&.full_name, "#{base_path}/#{record.public_id}"]
+        [ "Verification #{record.public_id}", record.identity&.full_name, "#{base_path}/#{record.public_id}" ]
       else
         display = record.try(:name) || record.try(:title) || record.public_id
-        [display, nil, "#{base_path}/#{record.public_id}"]
+        [ display, nil, "#{base_path}/#{record.public_id}" ]
       end
 
       { type: type, id: record.public_id, label: label, sublabel: sublabel, path: path }

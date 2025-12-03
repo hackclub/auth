@@ -4,7 +4,7 @@
       <b>back to identities</b>
     <% end %>
     <% break_glass_tool do %>
-      <hr/>
+      <hr>
       <%= render Components::Backend::Item.new(icon: "✎", href: edit_backend_identity_path(@identity)) do %>
         <b>edit identity</b>
       <% end %>
@@ -15,7 +15,7 @@
         <% end %>
       <% end %>
     <% end %>
-    <hr/>
+    <hr>
     <% if @identity.permabanned %>
       <div class="banner danger">
         <h3>⛔ permabanned</h3>

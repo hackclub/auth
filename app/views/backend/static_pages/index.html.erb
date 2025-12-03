@@ -39,7 +39,6 @@
         </div>
       <% end %>
 
-
       <% if current_user&.manual_document_verifier? || current_user&.super_admin? %>
         <b>Manual document verifier:</b>
         <div data-navigable-item>
@@ -49,7 +48,7 @@
           <% end %>
         </div>
       <% end %>
-      <hr/>
+      <hr>
       <div data-navigable-item>
         <%= render Components::Backend::Item.new(icon: "⭢", href: backend_identities_path) do %>
           <b>Manage identities</b>
@@ -62,14 +61,14 @@
           <p class="shortcode">&nbsp; [ LOGS ]</p>
         <% end %>
       </div>
-      <hr/>
+      <hr>
       <div data-navigable-item>
         <%= render Components::Backend::Item.new(icon: "⊹", href: "#", onclick: "window.openKbar && window.openKbar(); return false;") do %>
           <b>Go anywhere</b>
           <p class="shortcode">&nbsp; <&nbsp;⌘-K&nbsp;&nbsp;></p>
         <% end %>
       </div>
-      <hr/>
+      <hr>
       <div data-navigable-item>
         <%= render Components::Backend::Item.new(icon: "⭠", href: root_path) do %>
           <b>Escape hatch</b>

@@ -154,7 +154,7 @@ RSpec.describe "API::V1::Identities", type: :request do
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
         # Only id should be present, no PII
-        expect(json["identity"].keys).to eq(["id"])
+        expect(json["identity"].keys).to eq([ "id" ])
       end
 
       it "cannot access identity not associated with program" do
@@ -228,8 +228,6 @@ RSpec.describe "API::V1::Identities", type: :request do
         expect(ident2).not_to have_key("first_name")
         expect(ident2["legal_first_name"]).to eq(identity2.legal_first_name)
       end
-
-
     end
 
     context "with OAuth token" do
