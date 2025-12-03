@@ -2,6 +2,10 @@ module Backend
   class VerificationsController < ApplicationController
     before_action :set_verification, only: [ :show, :approve, :reject, :ignore ]
 
+    hint :list_navigation, on: [ :index, :pending ]
+    hint :pagination, on: [ :index, :pending ]
+    hint :verification_review, on: :show
+
     def index
       authorize Verification
       @recent_verifications = Verification.includes(:identity, :identity_document)
@@ -23,6 +27,13 @@ module Backend
 
     def show
       authorize @verification
+
+      set_keyboard_shortcut(:back, pending_backend_verifications_path)
+      if @verification.pending?
+        set_keyboard_shortcut(:approve_ysws, approve_backend_verification_path(@verification))
+        set_keyboard_shortcut(:approve_not_ysws, approve_backend_verification_path(@verification))
+        set_keyboard_shortcut(:focus_reject, true)
+      end
 
       # Fetch verification activities
       verification_activities = @verification.activities.includes(:owner)
