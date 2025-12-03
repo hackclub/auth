@@ -4,10 +4,14 @@ module Backend
 
     hint :list_navigation, on: [ :index, :pending ]
     hint :pagination, on: [ :index, :pending ]
+    hint :back_navigation, on: [ :index, :pending ]
     hint :verification_review, on: :show
 
     def index
       authorize Verification
+
+      set_keyboard_shortcut(:back, backend_root_path)
+
       @recent_verifications = Verification.includes(:identity, :identity_document)
         .where.not(status: "pending")
         .order(updated_at: :desc)
@@ -17,6 +21,9 @@ module Backend
 
     def pending
       authorize Verification
+
+      set_keyboard_shortcut(:back, backend_root_path)
+
       @pending_verifications = Verification.includes(:identity, :identity_document, identity_document: { files_attachments: :blob })
         .where(status: "pending")
         .order(created_at: :asc)

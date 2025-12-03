@@ -4,9 +4,13 @@ module Backend
 
     hint :list_navigation, on: :index
     hint :search_focus, on: :index
+    hint :back_navigation, on: :index
 
     def index
       authorize Backend::User
+
+      set_keyboard_shortcut(:back, backend_root_path)
+
       @users = User.all
     end
 
