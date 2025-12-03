@@ -20,6 +20,7 @@
   </head>
   <body>
     <%= render Components::Backend::ActionBar.new(controller_path: controller_path, action_name: action_name, user: current_user) { yield :toolbar } %>
+    <!-- erblint:disable ScriptType -->
     <script type="application/json" id="kbar-data">
       <%= raw Shortcodes.kbar_data_for(current_user) %>
     </script>
@@ -29,6 +30,7 @@
     <script type="application/json" id="keyboard-shortcuts-data">
       <%= raw(keyboard_shortcuts.to_json) %>
     </script>
+    <!-- erblint:enable ScriptType -->
     <%= render "shared/flash" %>
     <% if has_unseen_hints? %>
   <div class="grid">
