@@ -192,6 +192,7 @@ Rails.application.routes.draw do
     get "session_dump", to: "static_pages#session_dump", as: :session_dump unless Rails.env.production?
 
     get "kbar/search", to: "kbar#search", as: :kbar_search
+    get "identity_picker/search", to: "identity_picker#search", as: :identity_picker_search
 
 
     resources :users do

@@ -1,0 +1,226 @@
+.picker-container {
+  position: relative;
+  width: 100%;
+}
+
+// Search component
+.picker-search {
+  position: relative;
+}
+
+.picker-search-wrapper {
+  display: flex;
+  align-items: stretch;
+}
+
+.picker-search-icon {
+  align-items: center;
+  background: var(--theme-button-foreground);
+  display: inline-flex;
+  flex-shrink: 0;
+  height: calc(var(--font-size) * var(--theme-line-height-base));
+  justify-content: center;
+  width: 3ch;
+  user-select: none;
+}
+
+.picker-search-input {
+  flex: 1;
+  background: var(--theme-button-background);
+  border: none;
+  color: var(--theme-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size);
+  height: calc(var(--font-size) * var(--theme-line-height-base));
+  outline: none;
+  padding: 0 1ch;
+  width: 100%;
+
+  &::placeholder {
+    color: var(--theme-text);
+    opacity: 0.5;
+  }
+}
+
+.picker-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: var(--z-index-page-modals, 100);
+  background: var(--theme-background);
+  box-shadow:
+    inset 2px 0 0 0 var(--theme-text),
+    inset -2px 0 0 0 var(--theme-text),
+    inset 0 -2px 0 0 var(--theme-text);
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+.picker-results-list {
+  padding: 0;
+}
+
+.picker-status {
+  padding: 0.5ch 1ch;
+  opacity: 0.6;
+  font-size: var(--font-size);
+  background: var(--theme-button-background);
+  margin-left: 3ch;
+}
+
+.picker-result-item {
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  color: var(--theme-text);
+  background: transparent;
+
+  &:hover .picker-result-icon,
+  &.selected .picker-result-icon {
+    background: var(--theme-focused-foreground);
+  }
+
+  &.selected .picker-result-text {
+    background: var(--theme-focused-foreground-subdued);
+  }
+}
+
+.picker-result-icon {
+  align-items: center;
+  background: var(--theme-button-foreground);
+  display: inline-flex;
+  flex-shrink: 0;
+  height: calc(var(--font-size) * var(--theme-line-height-base));
+  justify-content: center;
+  width: 3ch;
+  user-select: none;
+}
+
+.picker-result-text {
+  align-items: center;
+  align-self: stretch;
+  background: var(--theme-button-background);
+  display: inline-flex;
+  justify-content: flex-start;
+  min-width: 10%;
+  padding: 0 1ch;
+  user-select: none;
+  width: 100%;
+  gap: 1ch;
+}
+
+.picker-result-label {
+  font-weight: 700;
+}
+
+.picker-result-sublabel {
+  opacity: 0.6;
+}
+
+// Single picker
+.picker-single {
+  box-shadow:
+    inset 2px 0 0 0 var(--theme-text),
+    inset -2px 0 0 0 var(--theme-text),
+    inset 0 2px 0 0 var(--theme-text),
+    inset 0 -2px 0 0 var(--theme-text);
+  background: var(--theme-background);
+}
+
+.picker-single-selected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1ch;
+  height: calc(var(--font-size) * var(--theme-line-height-base));
+  background: var(--theme-button-background);
+}
+
+.picker-single-text {
+  display: flex;
+  align-items: center;
+  gap: 1ch;
+}
+
+.picker-single-label {
+  font-weight: 700;
+}
+
+.picker-single-sublabel {
+  opacity: 0.6;
+}
+
+.picker-single-clear {
+  background: transparent;
+  border: none;
+  color: var(--theme-text);
+  cursor: pointer;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size);
+  padding: 0 0.5ch;
+  opacity: 0.5;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+// Multiple picker
+.picker-multiple {
+  box-shadow:
+    inset 2px 0 0 0 var(--theme-text),
+    inset -2px 0 0 0 var(--theme-text),
+    inset 0 2px 0 0 var(--theme-text),
+    inset 0 -2px 0 0 var(--theme-text);
+  background: var(--theme-background);
+}
+
+.picker-multiple-list {
+  &:not(:empty) {
+    border-bottom: 1px solid var(--theme-button-foreground);
+  }
+}
+
+.picker-multiple-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1ch;
+  height: calc(var(--font-size) * var(--theme-line-height-base));
+  background: var(--theme-button-background);
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--theme-background);
+  }
+}
+
+.picker-multiple-text {
+  display: flex;
+  align-items: center;
+  gap: 1ch;
+}
+
+.picker-multiple-label {
+  font-weight: 700;
+}
+
+.picker-multiple-sublabel {
+  opacity: 0.6;
+}
+
+.picker-multiple-remove {
+  background: transparent;
+  border: none;
+  color: var(--theme-text);
+  cursor: pointer;
+  font-family: var(--font-family-mono);
+  font-size: calc(var(--font-size) * 1.2);
+  padding: 0 0.5ch;
+  opacity: 0.5;
+  line-height: 1;
+
+  &:hover {
+    opacity: 1;
+  }
+}
