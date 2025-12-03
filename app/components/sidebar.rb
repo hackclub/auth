@@ -6,9 +6,6 @@ class Components::Sidebar < Components::Base
 
   register_value_helper :current_identity
   register_value_helper :signed_in?
-  register_value_helper :root_path
-  register_value_helper :logout_path
-  register_value_helper :backend_root_path
   register_output_helper :copy_to_clipboard
   register_output_helper :vite_image_tag
 
