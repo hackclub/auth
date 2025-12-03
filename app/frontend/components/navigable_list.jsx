@@ -46,7 +46,7 @@ const NavigableList = function(cx) {
         const link = selectedItem.querySelector('a') || selectedItem.closest('a')
         if (link) {
           e.preventDefault()
-          window.location.href = link.href
+          link.click()
         }
       }
     } else if (e.key === 'g') {
