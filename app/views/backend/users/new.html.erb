@@ -10,7 +10,7 @@
         <%= form_with url: new_backend_user_path, method: :get, local: true do |f| %>
           <div class="form-row">
             <%= f.text_field :query, placeholder: "search by email, name, or slack id...", value: params[:query], autofocus: true %>
-            <%= render Components::Backend::ActionButton.new(hotkey: "↵") { "SRCH" } %>
+            <%= render Components::Backend::ActionButton.new(hotkey: "↵") { "search" } %>
           </div>
         <% end %>
       </div>

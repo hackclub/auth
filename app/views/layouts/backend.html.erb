@@ -31,9 +31,11 @@
     </script>
     <%= render "shared/flash" %>
     <% if has_unseen_hints? %>
+  <div class="grid">
       <div class="banner info hints-banner" onclick="window.openHints()">
         <b>press <kbd>?</kbd> to see keyboard shortcuts for this page</b>
       </div>
+  </div>
     <% end %>
     <%= yield %>
     <% unless Rails.env.production? %>
