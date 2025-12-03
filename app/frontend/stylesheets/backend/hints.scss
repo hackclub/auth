@@ -108,3 +108,12 @@
     padding: 0 0.5ch;
   }
 }
+
+.hints-banner {
+  cursor: pointer;
+  
+  kbd {
+    background: var(--theme-button-background);
+    padding: 0 0.5ch;
+  }
+}

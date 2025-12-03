@@ -4,6 +4,7 @@ module Backend
     include Pundit::Authorization
     include ::SessionsHelper
     include Backend::Hints::Controller
+    include Backend::Hints::Shortcuts
 
     layout "backend"
 

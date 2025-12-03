@@ -19,14 +19,22 @@
     <%= vite_javascript_tag 'backend.jsx' %>
   </head>
   <body>
-    <%= render Components::Backend::ActionBar.new(controller_path: controller_path, action_name: action_name, user: current_user, has_unseen_hints: has_unseen_hints?) { yield :toolbar } %>
+    <%= render Components::Backend::ActionBar.new(controller_path: controller_path, action_name: action_name, user: current_user) { yield :toolbar } %>
     <script type="application/json" id="kbar-data">
       <%= raw Shortcodes.kbar_data_for(current_user) %>
     </script>
     <script type="application/json" id="hints-data">
-      <%= raw({ hints: current_hints.map { |h| { slug: h.slug, content: h.content } } }.to_json) %>
+      <%= raw({ hints: current_hints.map { |h| { slug: h.slug, content: h.content } }, slugs: current_hints.map { |h| h.slug.to_s } }.to_json) %>
+    </script>
+    <script type="application/json" id="keyboard-shortcuts-data">
+      <%= raw(keyboard_shortcuts.to_json) %>
     </script>
     <%= render "shared/flash" %>
+    <% if has_unseen_hints? %>
+      <div class="banner info hints-banner" onclick="window.openHints()">
+        <b>press <kbd>?</kbd> to see keyboard shortcuts for this page</b>
+      </div>
+    <% end %>
     <%= yield %>
     <% unless Rails.env.production? %>
       <div class="environment <%= Rails.env %>">

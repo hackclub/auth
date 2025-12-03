@@ -1,6 +1,8 @@
 class Backend::ProgramsController < Backend::ApplicationController
   before_action :set_program, only: [ :show, :edit, :update, :destroy ]
 
+  hint :list_navigation, on: :index
+
   def index
     authorize Program
     @programs = policy_scope(Program).includes(:identities).order(:name)
