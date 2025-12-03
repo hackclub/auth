@@ -47,7 +47,7 @@ module Backend
       ))
 
       if @user.save
-        redirect_to backend_user_path(@user), notice: "Backend access granted to #{identity.email}!"
+        redirect_to backend_user_path(@user), notice: "Backend access granted to #{identity.primary_email}!"
       else
         redirect_to new_backend_user_path, alert: @user.errors.full_messages.join(", ")
       end
