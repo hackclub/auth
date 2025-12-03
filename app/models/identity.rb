@@ -85,11 +85,19 @@ class Identity < ApplicationRecord
   scope :search, ->(term) {
     return all if term.blank?
 
-    sanitized_term = "%#{term}%"
-    where(
-      "first_name ILIKE ? OR last_name ILIKE ? OR primary_email ILIKE ? OR slack_id ILIKE ?",
-      sanitized_term, sanitized_term, sanitized_term, sanitized_term
-    )
+    parts = term.split
+    if parts.length == 2
+      # Search for "firstname lastname" pattern
+      where("first_name ILIKE ? AND last_name ILIKE ?", "%#{parts[0]}%", "%#{parts[1]}%")
+        .or(where("first_name ILIKE ? OR last_name ILIKE ? OR primary_email ILIKE ? OR slack_id ILIKE ?",
+          "%#{term}%", "%#{term}%", "%#{term}%", "%#{term}%"))
+    else
+      sanitized_term = "%#{term}%"
+      where(
+        "first_name ILIKE ? OR last_name ILIKE ? OR primary_email ILIKE ? OR slack_id ILIKE ?",
+        sanitized_term, sanitized_term, sanitized_term, sanitized_term
+      )
+    end
   }
 
   scope :with_fatal_rejections, -> {
