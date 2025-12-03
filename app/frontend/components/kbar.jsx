@@ -213,7 +213,7 @@ const Kbar = function(cx) {
   const navigate = (path, shortcode = null) => {
     if (shortcode?.code === "EXIT") {
       state.isExiting = true
-      setTimeout(() => { window.location.href = path }, 1200)
+      setTimeout(() => { window.location.href = path }, 200)
     } else {
       closeModal()
       window.location.href = path
