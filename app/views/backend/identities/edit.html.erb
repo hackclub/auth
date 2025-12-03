@@ -3,7 +3,7 @@
     <%= render Components::Backend::Item.new(icon: "⭠", href: backend_identity_path(@identity)) do %>
       <b>cancel</b>
     <% end %>
-    <hr/>
+    <hr>
     <% if @identity.errors.any? %>
       <div class="banner danger">
         <h3><%= pluralize(@identity.errors.count, "error") %></h3>
@@ -86,12 +86,12 @@
         <%= f.submit "save", class: "action_button" %>
       </div>
     <% end %>
-    <hr/>
+    <hr>
     <div class="lowered">
       <p><b>⚠ break glass access required</b></p>
       <p>all changes are permanently logged with your user info.</p>
     </div>
-    <hr/>
+    <hr>
     <% if @identity.slack_id.present? %>
       <%= button_to clear_slack_id_backend_identity_path(@identity), class: "item" do %>
         <figure class="icon">✕</figure>

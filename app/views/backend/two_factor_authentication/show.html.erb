@@ -1,7 +1,7 @@
 <div class="grid">
   <%= render Components::Backend::Card.new(title: "two-factor authentication") do %>
     <p>enter your 2fa code to access the backend.</p>
-    <hr/>
+    <hr>
     <%= form_with url: backend_two_factor_authentication_path, local: true do |f| %>
       <div class="form-row">
         <%= f.label :code, "code" %>

@@ -1,12 +1,12 @@
 <div class="grid">
   <%= render Components::Backend::Card.new(title: "identity vault [#{Rails.env.upcase[0..3]}]") do %>
     <p>abandon hope, all ye who enter here...</p>
-    <hr/>
+    <hr>
     <%= render Components::Backend::Item.new(icon: "⭢", href: backend_slack_auth_path) do %>
       <b>sign in with slack</b>
     <% end %>
     <% dev_tool do %>
-      <hr/>
+      <hr>
       <%= form_with url: backend_fake_slack_callback_for_dev_path, method: :post, local: true do |f| %>
         <div class="form-row">
           <%= f.label :slack_id, "fake slack id" %>
@@ -15,7 +15,7 @@
         </div>
       <% end %>
     <% end %>
-    <hr/>
+    <hr>
     <small>running commit <%= ENV["SOURCE_COMMIT"]&.[](0..7) || "...dunno?" %></small>
   <% end %>
 </div>
