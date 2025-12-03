@@ -69,24 +69,24 @@ module Shortcodes
     def public_id_prefixes
       @public_id_prefixes ||= begin
         Rails.application.eager_load! if Rails.env.development?
-        
+
         ActiveRecord::Base.descendants
           .select { |klass| klass.included_modules.include?(PublicIdentifiable) }
           .each_with_object({}) do |klass, hash|
             prefix = klass.get_public_id_prefix rescue next
             path = case klass.name
-                   when "Identity" then "/backend/identities"
-                   when "Verification" then "/backend/verifications"
-                   when "Address" then "/backend/identities"
-                   else "/backend/#{klass.name.underscore.pluralize}"
-                   end
+            when "Identity" then "/backend/identities"
+            when "Verification" then "/backend/verifications"
+            when "Address" then "/backend/identities"
+            else "/backend/#{klass.name.underscore.pluralize}"
+            end
             hash[prefix] = { model: klass.name, path: path }
           end
       end
     end
 
     def search_scopes_for(user)
-      scopes = [{ key: "identities", label: "Identities", icon: "⭢" }]
+      scopes = [ { key: "identities", label: "Identities", icon: "⭢" } ]
 
       if user&.super_admin? || user&.program_manager?
         scopes << { key: "oauth_apps", label: "OAuth apps", icon: "⭢" }

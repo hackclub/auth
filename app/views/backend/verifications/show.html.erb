@@ -3,7 +3,7 @@
     <%= render Components::Backend::Item.new(icon: "⭠", href: pending_backend_verifications_path) do %>
       <b>back to pending</b>
     <% end %>
-    <hr/>
+    <hr>
     <div class="two-col">
       <div class="section">
         <div class="section-header"><h3>identity</h3></div>
@@ -64,7 +64,7 @@
         <% end %>
       </div>
     </div>
-    <hr/>
+    <hr>
     <% if @verification.pending? %>
       <div class="section">
         <div class="section-header"><h3>decision</h3></div>
@@ -86,7 +86,7 @@
               <p>⚠ birthday (<%= @verification.identity.birthday %>) is more than 19 years ago</p>
             </div>
           <% end %>
-          <hr/>
+          <hr>
           <% mdv_tool do %>
             <%= form_with url: reject_backend_verification_path(@verification), method: :patch, local: true do |form| %>
               <% if @verification.identity.under_13? %>
@@ -143,7 +143,7 @@
               </div>
             <% end %>
           <% end %>
-          <hr/>
+          <hr>
           <div class="detail-row">
             <span class="detail-label">current ysws status</span>
             <span class="detail-value">
@@ -219,7 +219,7 @@
         </div>
       </div>
     <% end %>
-    <hr/>
+    <hr>
     <div class="section">
       <div class="section-header"><h3>audit log</h3></div>
       <div class="section-content">

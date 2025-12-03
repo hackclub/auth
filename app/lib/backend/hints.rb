@@ -45,7 +45,7 @@ module Backend
           actions = Array(on).map(&:to_sym)
           self._hints = _hints.dup unless _hints.frozen?
           actions.each do |action|
-            self._hints[action] = (_hints[action] || []) + [slug.to_sym]
+            self._hints[action] = (_hints[action] || []) + [ slug.to_sym ]
           end
         end
       end

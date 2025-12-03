@@ -3,7 +3,7 @@
     <%= render Components::Backend::Item.new(icon: "⭠", href: backend_verifications_path) do %>
       <b>all verifications</b>
     <% end %>
-    <hr/>
+    <hr>
     <% if @average_hangtime.present? %>
       <div class="detail-row">
         <span class="detail-label">avg hangtime</span>
