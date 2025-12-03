@@ -1,8 +1,14 @@
 class Backend::ProgramsController < Backend::ApplicationController
   before_action :set_program, only: [ :show, :edit, :update, :destroy ]
 
+  hint :list_navigation, on: :index
+  hint :back_navigation, on: :index
+
   def index
     authorize Program
+
+    set_keyboard_shortcut(:back, backend_root_path)
+
     @programs = policy_scope(Program).includes(:identities).order(:name)
   end
 

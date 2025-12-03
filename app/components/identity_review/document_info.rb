@@ -1,37 +1,48 @@
+# frozen_string_literal: true
+
 class Components::IdentityReview::DocumentInfo < Components::Base
   def initialize(verification)
     @verification = verification
   end
 
   def view_template
-    div class: "lowered padding" do
-      h2(style: "margin-top: 0;") { "Document Information" }
-      table style: "width: 100%;" do
-        tr do
-          td(style: "font-weight: bold; padding: 0.25rem 0;") { "Type:" }
-          td(style: "padding: 0.25rem 0;") { @verification.document_type }
+    div class: "lowered" do
+      detail_row("type", @verification.document_type)
+      detail_row("uploaded", @verification.identity_document.created_at.strftime("%B %d, %Y at %I:%M %p"))
+      if @verification.identity.country == "IN"
+        detail_row("aadhaar password") do
+          copy_to_clipboard(@verification.identity.suggested_aadhaar_password, tooltip_direction: "e")
         end
-        tr do
-          td(style: "font-weight: bold; padding: 0.25rem 0;") { "Uploaded:" }
-          td(style: "padding: 0.25rem 0;") { @verification.identity_document.created_at.strftime("%B %d, %Y at %I:%M %p") }
+      end
+      detail_row("status") do
+        span class: "badge #{status_class}" do
+          @verification.status.humanize
         end
-        if @verification.identity.country == "IN"
-          tr do
-            td(style: "font-weight: bold; padding: 0.25rem 0;") { "Suggested Aadhaar password:" }
-            td(style: "padding: 0.25rem 0;") { copy_to_clipboard(@verification.identity.suggested_aadhaar_password, tooltip_direction: "e") }
-          end
-        end
-        tr do
-          td(style: "font-weight: bold; padding: 0.25rem 0;") { "Status:" }
-          td(style: "padding: 0.25rem 0;") do
-            span class: (@verification.pending? ? "status-pending" : @verification.approved? ? "status-verified" : "status-rejected") do
-              @verification.status.humanize
-            end
-          end
-        end
-        tr do
-          td(style: "font-weight: bold; padding: 0.25rem 0;") { "Files:" }
-          td(style: "padding: 0.25rem 0;") { @verification.identity_document.files.count }
+      end
+      detail_row("files", @verification.identity_document.files.count)
+    end
+  end
+
+  private
+
+  def status_class
+    if @verification.pending?
+      "pending"
+    elsif @verification.approved?
+      "success"
+    else
+      "danger"
+    end
+  end
+
+  def detail_row(label, value = nil, &block)
+    div class: "detail-row" do
+      span(class: "detail-label") { label }
+      span class: "detail-value" do
+        if block_given?
+          yield
+        else
+          plain value.to_s
         end
       end
     end

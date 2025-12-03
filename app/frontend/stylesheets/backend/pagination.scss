@@ -1,0 +1,40 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5ch;
+  margin-top: calc(var(--font-size) * var(--theme-line-height-base));
+
+  a, span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3ch;
+    padding: 0 0.5ch;
+    height: calc(var(--font-size) * var(--theme-line-height-base));
+  }
+
+  a {
+    background: var(--theme-button-background);
+    color: var(--theme-text);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--theme-focused-foreground);
+    }
+  }
+
+  .current {
+    background: var(--theme-focused-foreground);
+    font-weight: 600;
+  }
+
+  .disabled {
+    color: var(--theme-border);
+    cursor: not-allowed;
+  }
+
+  .gap {
+    color: var(--theme-border);
+  }
+}

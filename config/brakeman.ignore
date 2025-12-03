@@ -1,13 +1,36 @@
 {
   "ignored_warnings": [
     {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "08cedc20182ee5d67fccbe58f8aecf2c823498d12bfd6df46daccbd287bfdc1a",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `const_get` called with parameter value",
+      "file": "app/controllers/backend/kbar_controller.rb",
+      "line": 23,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "Object.const_get(Shortcodes.public_id_prefixes[params[:q].to_s.strip.split(\"!\").first.downcase][:model])",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Backend::KbarController",
+        "method": "search"
+      },
+      "user_input": "params[:q].to_s.strip.split(\"!\").first.downcase",
+      "confidence": "Medium",
+      "cwe_id": [
+        470
+      ],
+      "note": "this is clamped to valid PublicIdentifiable models in @shortcodes.rb"
+    },
+    {
       "warning_type": "Dynamic Render Path",
       "warning_code": 15,
       "fingerprint": "60d8df7190a1ed518ea8679aa9c8d919f27fe7a6366669433833caa541f5040d",
       "check_name": "Render",
       "message": "Render path contains parameter value",
       "file": "app/views/backend/users/edit.html.erb",
-      "line": 3,
+      "line": 7,
       "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
       "code": "render(action => Backend::Users::Form.new(User.find(params[:id])), { :locals => ({ :\"backend::users::form\" => Backend::Users::Form.new(User.find(params[:id])) }) })",
       "render_path": [
@@ -15,7 +38,7 @@
           "type": "controller",
           "class": "Backend::UsersController",
           "method": "edit",
-          "line": 17,
+          "line": 30,
           "file": "app/controllers/backend/users_controller.rb",
           "rendered": {
             "name": "backend/users/edit",
@@ -33,30 +56,7 @@
         22
       ],
       "note": "barring some bug in superform, this is fine"
-    },
-    {
-      "warning_type": "Redirect",
-      "warning_code": 18,
-      "fingerprint": "aedd908b558aa6308899ced4cdfa0918a074c38253b96d1ef06448762bd556be",
-      "check_name": "Redirect",
-      "message": "Possible unprotected redirect",
-      "file": "app/controllers/slack_accounts_controller.rb",
-      "line": 7,
-      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
-      "code": "redirect_to(Identity.slack_authorize_url(url_for(:action => :create, :only_path => false)), :host => \"https://slack.com\", :allow_other_host => true)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "SlackAccountsController",
-        "method": "new"
-      },
-      "user_input": "Identity.slack_authorize_url(url_for(:action => :create, :only_path => false))",
-      "confidence": "Weak",
-      "cwe_id": [
-        601
-      ],
-      "note": "this will only ever be Slack"
     }
   ],
-  "brakeman_version": "7.1.0"
+  "brakeman_version": "7.1.1"
 }

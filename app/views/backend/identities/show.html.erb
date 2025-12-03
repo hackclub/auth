@@ -1,228 +1,171 @@
-<%= render Components::Window.new("Identity: #{@identity.first_name} #{@identity.last_name}", close_url: backend_identities_path, max_width: 1000) do %>
-  <% break_glass_tool do %>
-    <div style="text-align: right; margin-bottom: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "#{@identity.first_name} #{@identity.last_name}") do %>
+    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_identities_path) do %>
+      <b>back to identities</b>
+    <% end %>
+    <% break_glass_tool do %>
+      <hr>
+      <%= render Components::Backend::Item.new(icon: "✎", href: edit_backend_identity_path(@identity)) do %>
+        <b>edit identity</b>
+      <% end %>
       <% if @identity.slack_id.present? %>
-        <%= button_to "Promote to Full Slack User", promote_to_full_user_backend_identity_path(@identity), method: :post, class: "button", style: "background-color: #059669; border-color: #059669; color: white;" %>
-      <% end %>
-      <%= link_to "Edit Identity", edit_backend_identity_path(@identity), class: "button primary", style: "background-color: #dc2626; border-color: #dc2626;" %>
-    </div>
-  <% end %>
-  <div class="padding">
-    <!-- Identity Information -->
-    <div class="lowered padding" style="margin-bottom: 2rem;">
-      <h2 style="margin-top: 0;">Identity Information</h2>
-      <% if @identity.permabanned %>
-        <div class="banner danger" style="margin-top: 1rem;">
-          <p>this identity is permabanned.</p>
-        </div>
-      <% end %>
-    <%= render Components::Identity.new(@identity, show_legal_name: @available_scopes.include?("legal_name")) %>
-    </div>
-    <!-- Addresses Section -->
-    <% if @available_scopes.include?("address") %>
-      <div style="margin-bottom: 2rem;">
-        <h2>Addresses</h2>
-        <% if @addresses.any? %>
-          <table class="table detailed">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Address</th>
-                <th>City, State</th>
-                <th>Postal Code</th>
-                <th>Country</th>
-                <th>Primary</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @addresses.each do |address| %>
-                <tr>
-                  <td>
-                    <%= address.first_name %> <%= address.last_name %>
-                  </td>
-                  <td>
-                    <%= address.line_1 %>
-                    <% if address.line_2.present? %>
-                      <br>
-                      <%= address.line_2 %>
-                    <% end %>
-                  </td>
-                  <td><%= address.city %>, <%= address.state %></td>
-                  <td><%= address.postal_code %></td>
-                  <td><%= address.country %></td>
-                  <td>
-                    <% if @identity.primary_address == address %>
-                      <span style="color: #059669;">Yes</span>
-                    <% else %>
-                      —
-                    <% end %>
-                  </td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        <% else %>
-          <div class="lowered padding">
-            <p style="text-align: center; color: #666; margin: 0;">No addresses on file.</p>
-          </div>
+        <%= button_to promote_to_full_user_backend_identity_path(@identity), method: :post, class: "item" do %>
+          <figure class="icon">↑</figure>
+          <span class="text"><b>promote to full slack user</b></span>
         <% end %>
+      <% end %>
+    <% end %>
+    <hr>
+    <% if @identity.permabanned %>
+      <div class="banner danger">
+        <h3>⛔ permabanned</h3>
+        <p>this identity is permanently banned.</p>
       </div>
     <% end %>
-    <!-- Verifications Section -->
-    <div style="margin-bottom: 2rem;">
-      <h2>Verifications</h2>
-      <% super_admin_tool do %>
-        <%= link_to "Create Vouch Verification", new_vouch_backend_identity_path(@identity), class: "button" %>
-      <% end %>
-      <% if @verifications.any? %>
-        <table class="table detailed">
-          <thead>
-            <tr>
-              <th>Document Type</th>
-              <th>Status</th>
-              <th>Submitted</th>
-              <th>Rejection Reason</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @verifications.each do |verification| %>
-              <tr style="<%= 'opacity: 0.6; background-color: #f9f9f9;' if verification.ignored_at.present? %>">
-                <% case verification %>
-                <% when Verification::AadhaarVerification %>
-                  <td>
-                    Aadhaar
-                    <% if verification.ignored_at.present? %>
-                      <br>
-                      <small style="color: #666;">(Ignored)</small>
-                    <% end %>
-                  </td>
-                  <td>
-                    <%= verification.status.humanize %>
-                  </td>
-                  <td>
-                    <%= verification.pending_at&.strftime("%b %d, %Y") || "not yet" %>
-                  </td>
-                  <td>
-                    <% if verification.ignored_at.present? %>
-                      <strong>Ignored:</strong> <%= verification.ignored_reason %>
-                    <% elsif verification.rejection_reason.present? %>
-                      <%= verification.rejection_reason_name %>
-                    <% else %>
-                      —
-                    <% end %>
-                  </td>
-                  <td>
-                    <%= link_to "View", backend_verification_path(verification), class: "link" %>
-                  </td>
-                <% when Verification::DocumentVerification %>
-                  <td>
-                    <%= Identity::Document::FRIENDLY_NAMES[verification.identity_document.document_type.to_sym] %>
-                    <% if verification.ignored_at.present? %>
-                      <br>
-                      <small style="color: #666;">(Ignored)</small>
-                    <% end %>
-                  </td>
-                  <td>
-                    <span class="<%= verification.pending? ? 'status-pending' : verification.approved? ? 'status-verified' : 'status-rejected' %>">
-                      <%= verification.status.humanize %>
-                    </span>
-                  </td>
-                  <td><%= verification.created_at.strftime("%b %d, %Y") %></td>
-                  <td>
-                    <% if verification.ignored_at.present? %>
-                      <strong>Ignored:</strong> <%= verification.ignored_reason %>
-                    <% elsif verification.rejection_reason.present? %>
-                      <%= verification.rejection_reason_name %>
-                    <% else %>
-                      —
-                    <% end %>
-                  </td>
-                  <td>
-                    <%= link_to "View", backend_verification_path(verification), class: "link" %>
-                  </td>
-                <% when Verification::VouchVerification %>
-                  <td>
-                    Vouch
-                    <% if verification.ignored_at.present? %>
-                      <br>
-                      <small style="color: #666;">(Ignored)</small>
-                    <% end %>
-                  </td>
-                  <td>
-                    <span class="<%= verification.pending? ? 'status-pending' : verification.approved? ? 'status-verified' : 'status-rejected' %>">
-                      <%= verification.status.humanize %>
-                    </span>
-                  </td>
-                  <td><%= verification.created_at.strftime("%b %d, %Y") %></td>
-                  <td>
-                    <% if verification.ignored_at.present? %>
-                      <strong>Ignored:</strong> <%= verification.ignored_reason %>
-                    <% elsif verification.rejection_reason.present? %>
-                      <%= verification.rejection_reason_name %>
-                    <% else %>
-                      —
-                    <% end %>
-                  </td>
-                  <td>
-                    <%= link_to "View", backend_verification_path(verification), class: "link" %>
-                  </td>
+    <div class="section">
+      <div class="section-header"><h3>identity</h3></div>
+      <div class="section-content">
+        <%= render Components::Identity.new(@identity, show_legal_name: @available_scopes.include?("legal_name")) %>
+      </div>
+    </div>
+    <% if @available_scopes.include?("address") && @addresses.any? %>
+      <div class="section">
+        <div class="section-header"><h3>addresses</h3></div>
+        <div class="section-content">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>name</th>
+                  <th>address</th>
+                  <th>city</th>
+                  <th>country</th>
+                  <th>primary</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @addresses.each do |address| %>
+                  <tr>
+                    <td><%= address.first_name %> <%= address.last_name %></td>
+                    <td><%= address.line_1 %><% if address.line_2.present? %><br><%= address.line_2 %><% end %></td>
+                    <td><%= address.city %>, <%= address.state %> <%= address.postal_code %></td>
+                    <td><%= address.country %></td>
+                    <td><%= @identity.primary_address == address ? "✓" : "—" %></td>
+                  </tr>
                 <% end %>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      <% else %>
-        <div class="lowered padding">
-          <p style="text-align: center; color: #666; margin: 0;">No verifications submitted yet.</p>
+              </tbody>
+            </table>
+          </div>
         </div>
-      <% end %>
+      </div>
+    <% end %>
+    <div class="section">
+      <div class="section-header">
+        <h3>verifications</h3>
+        <% super_admin_tool do %>
+          <%= link_to new_vouch_backend_identity_path(@identity) do %>
+            <%= render Components::Backend::ActionButton.new { "+ VOUCH" } %>
+          <% end %>
+        <% end %>
+      </div>
+      <div class="section-content">
+        <% if @verifications.any? %>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>type</th>
+                  <th>status</th>
+                  <th>submitted</th>
+                  <th>reason</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @verifications.each do |verification| %>
+                  <tr>
+                    <td>
+                      <% case verification %>
+                      <% when Verification::AadhaarVerification %>
+                        Aadhaar
+                      <% when Verification::DocumentVerification %>
+                        <%= Identity::Document::FRIENDLY_NAMES[verification.identity_document.document_type.to_sym] %>
+                      <% when Verification::VouchVerification %>
+                        Vouch
+                      <% end %>
+                      <% if verification.ignored_at.present? %>
+                        <span class="badge warning">ignored</span>
+                      <% end %>
+                    </td>
+                    <td>
+                      <span class="badge <%= verification.pending? ? 'pending' : verification.approved? ? 'success' : 'danger' %>">
+                        <%= verification.status %>
+                      </span>
+                    </td>
+                    <td>
+                      <% if verification.respond_to?(:pending_at) && verification.pending_at %>
+                        <%= verification.pending_at.strftime("%b %d, %Y") %>
+                      <% else %>
+                        <%= verification.created_at.strftime("%b %d, %Y") %>
+                      <% end %>
+                    </td>
+                    <td>
+                      <% if verification.ignored_at.present? %>
+                        <%= verification.ignored_reason %>
+                      <% elsif verification.rejection_reason.present? %>
+                        <%= verification.rejection_reason_name %>
+                      <% else %>
+                        —
+                      <% end %>
+                    </td>
+                    <td><%= link_to "view →", backend_verification_path(verification) %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <div class="empty-state">no verifications submitted</div>
+        <% end %>
+      </div>
     </div>
-    <!-- Programs Section -->
-    <div style="margin-bottom: 2rem;">
-      <h2>Programs</h2>
-      <% if @all_programs.any? %>
-        <table class="table detailed">
-          <thead>
-            <tr>
-              <th>Program Name</th>
-              <th>Scopes</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @all_programs.each do |program| %>
-              <tr>
-                <td>
-                  <%= link_to program.name, backend_program_path(program), class: "link" %>
-                </td>
-                <td>
-                  <% if program.scopes.present? %>
-                    <code style="font-size: 0.9em;"><%= program.scopes %></code>
-                  <% else %>
-                    <em>No scopes</em>
-                  <% end %>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      <% else %>
-        <div class="lowered padding">
-          <p style="text-align: center; color: #666; margin: 0;">No programs accessed yet.</p>
-        </div>
-      <% end %>
+    <div class="section">
+      <div class="section-header"><h3>programs</h3></div>
+      <div class="section-content">
+        <% if @all_programs.any? %>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>program</th>
+                  <th>scopes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @all_programs.each do |program| %>
+                  <tr>
+                    <td><%= link_to program.name, backend_program_path(program) %></td>
+                    <td><code><%= program.scopes.presence || "—" %></code></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <div class="empty-state">no programs accessed</div>
+        <% end %>
+      </div>
     </div>
-    <!-- Audit Log Section -->
-    <div>
-      <h2>Audit Log</h2>
-      <% if @activities.any? %>
-        <%= render Components::PublicActivity::Container.new(@activities) %>
-      <% else %>
-        <div class="lowered padding">
-          <p style="text-align: center; color: #666; margin: 0;">No audit log entries yet.</p>
-        </div>
-      <% end %>
+    <div class="section">
+      <div class="section-header"><h3>audit log</h3></div>
+      <div class="section-content">
+        <% if @activities.any? %>
+          <%= render Components::PublicActivity::Container.new(@activities) %>
+        <% else %>
+          <div class="empty-state">no audit entries</div>
+        <% end %>
+      </div>
     </div>
-  </div>
+  <% end %>
   <%= render Components::Inspector.new(@identity) %>
-<% end %>
+</div>

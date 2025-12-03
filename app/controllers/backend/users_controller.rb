@@ -2,8 +2,15 @@ module Backend
   class UsersController < ApplicationController
     before_action :set_user, except: [ :index, :new, :create ]
 
+    hint :list_navigation, on: :index
+    hint :search_focus, on: :index
+    hint :back_navigation, on: :index
+
     def index
       authorize Backend::User
+
+      set_keyboard_shortcut(:back, backend_root_path)
+
       @users = User.all
       @users = @users.left_joins(:identity).where("identities.primary_email ILIKE :q OR identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR users.username ILIKE :q", q: "%#{params[:search]}%") if params[:search].present?
       @users = @users.includes(:identity, :organized_programs)

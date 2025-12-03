@@ -1,50 +1,42 @@
-<%= render Components::Window.new("Identities", close_url: backend_root_path, max_width: 1000) do %>
-  <div class="padding">
-    <!-- Search Form -->
-    <%= form_with url: backend_identities_path, method: :get, local: true, class: "search-form" do |f| %>
-      <div class="grid">
-        <div>
-          <%= f.search_field :search, value: params[:search], placeholder: "Search identities...", class: "form-control" %>
-        </div>
-        <div>
-          <%= f.submit "Search", class: "btn btn-primary" %>
-          <% if params[:search].present? %>
-            <%= link_to "Clear", backend_identities_path, class: "btn btn-secondary" %>
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "identities") do %>
+    <%= form_with url: backend_identities_path, method: :get, local: true do |f| %>
+      <div class="form-row">
+        <%= f.search_field :search, value: params[:search], placeholder: "search by name, email, slack id..." %>
+        <%= render Components::Backend::ActionButton.new(hotkey: "↵") { "search" } %>
+        <% if params[:search].present? %>
+          <%= link_to backend_identities_path do %>
+            <%= render Components::Backend::ActionButton.new { "CLR" } %>
           <% end %>
-        </div>
+        <% end %>
       </div>
     <% end %>
-
     <% if params[:search].present? %>
-      <p class="search-results">
-        Found <%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"
-      </p>
+      <p>found <%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</p>
     <% end %>
-
-    <table class="table detailed">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Verification Status</th>
-          <th>YSWS Eligible?</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @identities.each do |identity| %>
+    <hr>
+    <div class="table-container" data-navigable-list>
+      <table>
+        <thead>
           <tr>
-            <td><%= render identity %></td>
-            <td><%= identity.primary_email %></td>
-            <td><%= identity.verification_status %></td>
-            <td><%= identity.ysws_eligible.nil? ? "?" : render_checkbox(identity.ysws_eligible) %></td>
+            <th>name</th>
+            <th>email</th>
+            <th>status</th>
+            <th>ysws</th>
           </tr>
-        <% end %>
-      </tbody>
-    </table>
-
-    <!-- Pagination -->
-    <div class="pagination-wrapper">
-      <%= paginate @identities, params: { search: params[:search] } %>
+        </thead>
+        <tbody>
+          <% @identities.each do |identity| %>
+            <tr data-navigable-item>
+              <td><%= link_to backend_identity_path(identity) do %><%= render identity %><% end %></td>
+              <td><%= identity.primary_email %></td>
+              <td><span class="badge <%= identity.verification_status == 'verified' ? 'success' : 'pending' %>"><%= identity.verification_status %></span></td>
+              <td><%= identity.ysws_eligible.nil? ? "?" : render_checkbox(identity.ysws_eligible) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
     </div>
-  </div>
-<% end %>
+    <%= paginate @identities, params: { search: params[:search] } %>
+  <% end %>
+</div>

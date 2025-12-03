@@ -1,114 +1,105 @@
-<%= render Components::Window.new("Dashboard - Identity Vault (#{Rails.env.upcase})", close_url: backend_root_path, max_width: 1000) do %>
-  <div class="padding">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-      <h3>Verification Dashboard</h3>
-      <%= form_tag backend_dashboard_path, method: :get, style: "margin: 0;" do %>
-        <%= select_tag :time_period,
-            options_for_select([
-              ["Today", "today"],
-              ["This Month", "this_month"],
-              ["All Time", "all_time"]
-            ], @time_period),
-            onchange: "this.form.submit()" %>
-      <% end %>
-    </div>
-    <!-- Main Stats Grid -->
-    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
-      <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-        <div style="font-size: 2rem; font-weight: bold; color: #1e293b;"><%= @stats[:total] %></div>
-        <div style="color: #64748b; font-size: 0.9rem; margin-top: 0.25rem;">Total Submissions</div>
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "dashboard") do %>
+    <div class="section">
+      <div class="section-header">
+        <h3>verification stats</h3>
+        <%= form_tag backend_dashboard_path, method: :get do %>
+          <%= select_tag :time_period,
+              options_for_select([
+                ["today", "today"],
+                ["this month", "this_month"],
+                ["all time", "all_time"]
+              ], @time_period),
+              onchange: "this.form.submit()" %>
+        <% end %>
       </div>
-      <div style="background: #f0fdf4; padding: 1.5rem; border-radius: 8px; border: 1px solid #bbf7d0;">
-        <div style="font-size: 2rem; font-weight: bold; color: #059669;"><%= @stats[:approved] %></div>
-        <div style="color: #16a34a; font-size: 0.9rem; margin-top: 0.25rem;">Approved</div>
-      </div>
-      <div style="background: #fef2f2; padding: 1.5rem; border-radius: 8px; border: 1px solid #fecaca;">
-        <div style="font-size: 2rem; font-weight: bold; color: #dc2626;"><%= @stats[:rejected] %></div>
-        <div style="color: #dc2626; font-size: 0.9rem; margin-top: 0.25rem;">Rejected</div>
-      </div>
-      <div style="background: #fffbeb; padding: 1.5rem; border-radius: 8px; border: 1px solid #fed7aa;">
-        <div style="font-size: 2rem; font-weight: bold; color: #f59e0b;"><%= @stats[:pending] %></div>
-        <div style="color: #f59e0b; font-size: 0.9rem; margin-top: 0.25rem;">Pending</div>
-      </div>
-      <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-        <div style="font-size: 2rem; font-weight: bold; color: #475569;">
-          <%= distance_of_time_in_words 0, @stats[:average_hangtime] %></span>
-      </div>
-      <div style="color: #64748b; font-size: 0.9rem; margin-top: 0.25rem;">Avg. Pending Time</div>
-    </div>
-  </div>
-  <!-- Leaderboard & Rejection Breakdown -->
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
-    <!-- Leaderboard -->
-    <div style="padding: 1.5rem;">
-      <div style="font-weight: bold; margin-bottom: 1rem; color: #374151; font-size: 1.1rem;"><%= inline_icon("leader", size: 20) %> Leaderboard</div>
-      <% if @leaderboard.any? %>
-        <div class="list">
-          <table class="detailed">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>User</th>
-                <th>Processed</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @leaderboard.each_with_index do |entry, index| %>
-                <%
-                    bg_color = case index
-                    when 0 then "#fef3c7"  # Gold background
-                    when 1 then "#f3f4f6"  # Silver background
-                    else "transparent"
-                    end
-                    text_color = index < 2 ? "#ca8a04" : "#374151"
-                %>
-                <tr style="background-color: <%= bg_color %>;">
-                  <td style="font-weight: bold; color: <%= text_color %>;">
-                    <%= index == 0 ? "#{index + 1} #{inline_icon("leader", size: 16)}" : index + 1 %>
-                  </td>
-                  <td>
-                    <%= render entry[:user] %></td>
-                  <td style="font-weight: bold; color: <%= text_color %>;"><%= entry[:processed_count] %></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
+      <div class="section-content">
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-value"><%= @stats[:total] %></div>
+            <div class="stat-label">total</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="color: var(--color-green-50);"><%= @stats[:approved] %></div>
+            <div class="stat-label">approved</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="color: var(--color-red-50);"><%= @stats[:rejected] %></div>
+            <div class="stat-label">rejected</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="color: var(--color-daybreak);"><%= @stats[:pending] %></div>
+            <div class="stat-label">pending</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value"><%= distance_of_time_in_words 0, (@stats[:average_hangtime] || 0) %></div>
+            <div class="stat-label">avg wait</div>
+          </div>
         </div>
-      <% else %>
-        <p style="color: #6b7280; font-style: italic;">No processing activity yet</p>
-      <% end %>
+      </div>
     </div>
-    <!-- Rejection Reasons Breakdown -->
-    <div style="padding: 1.5rem;">
-      <div style="font-weight: bold; margin-bottom: 1rem; color: #374151; font-size: 1.1rem;"><%= inline_icon("analytics", size: 20) %> Rejection Reasons</div>
-      <% if @rejection_breakdown.any? %>
-        <div class="list">
-          <table class="detailed">
-            <thead>
-              <tr>
-                <th>Reason</th>
-                <th>Count</th>
-                <th>%</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% total_rejected = @stats[:rejected] %>
-              <% @rejection_breakdown.each do |reason, data| %>
-                <% color = data[:fatal] ? "#dc2626" : "#f59e0b" %>
-                <% bg_color = data[:fatal] ? "#fef2f2" : "#fffbeb" %>
-                <tr style="background-color: <%= bg_color %>;">
-                  <td><%= reason %></td>
-                  <td style="font-weight: bold; color: <%= color %>;"><%= data[:count] %></td>
-                  <td style="color: <%= color %>;"><%= total_rejected > 0 ? "#{(data[:count].to_f / total_rejected * 100).round(1)}%" : "0%" %></td>
+    <hr>
+    <div class="two-col">
+      <div class="section">
+        <div class="section-header"><h3>🏆 leaderboard</h3></div>
+        <div class="section-content">
+          <% if @leaderboard.any? %>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>user</th>
+                  <th>processed</th>
                 </tr>
-              <% end %>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <% @leaderboard.each_with_index do |entry, index| %>
+                  <tr>
+                    <td><%= index == 0 ? "🥇" : index == 1 ? "🥈" : index + 1 %></td>
+                    <td><%= render entry[:user] %></td>
+                    <td><b><%= entry[:processed_count] %></b></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% else %>
+            <div class="empty-state">no activity yet</div>
+          <% end %>
         </div>
-      <% else %>
-        <p style="color: #6b7280; font-style: italic;">No rejections yet</p>
-      <% end %>
+      </div>
+      <div class="section">
+        <div class="section-header"><h3>📊 rejection reasons</h3></div>
+        <div class="section-content">
+          <% if @rejection_breakdown.any? %>
+            <table>
+              <thead>
+                <tr>
+                  <th>reason</th>
+                  <th>count</th>
+                  <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% total_rejected = @stats[:rejected] %>
+                <% @rejection_breakdown.each do |reason, data| %>
+                  <tr>
+                    <td>
+                      <%= reason %>
+                      <% if data[:fatal] %>
+                        <span class="badge danger">fatal</span>
+                      <% end %>
+                    </td>
+                    <td><b><%= data[:count] %></b></td>
+                    <td><%= total_rejected > 0 ? "#{(data[:count].to_f / total_rejected * 100).round(1)}%" : "0%" %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% else %>
+            <div class="empty-state">no rejections</div>
+          <% end %>
+        </div>
+      </div>
     </div>
-  </div>
+  <% end %>
 </div>
-<% end %>

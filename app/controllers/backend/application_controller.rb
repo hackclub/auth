@@ -3,6 +3,8 @@ module Backend
     include PublicActivity::StoreController
     include Pundit::Authorization
     include ::SessionsHelper
+    include Hints::Controller
+    include Hints::Shortcuts
 
     layout "backend"
 

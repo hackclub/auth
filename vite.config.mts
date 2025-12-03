@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import ViteRails from "vite-plugin-rails";
 import tailwindcss from '@tailwindcss/vite'
+
 export default defineConfig({
   plugins: [
     ViteRails({
@@ -13,5 +14,10 @@ export default defineConfig({
     }),
     // tailwindcss(), 
   ],
+  esbuild: {
+    jsxFactory: "h",
+    jsxFragment: "Fragment",
+    jsxInject: "import { h } from 'dreamland/core'"
+  },
   build: { sourcemap: false },
 });

@@ -23,6 +23,13 @@ module Backend
       "#{first_name} #{last_name}".strip.presence || email || username || "Unknown User"
     end
 
+    def seen_hint?(slug) = seen_hints.include? slug.to_s
+    def seen_hint!(slug)
+      self.seen_hints << slug
+      self.seen_hints.uniq!
+      save!
+    end
+
     def active? = active
     def activate! = update!(active: true)
     def deactivate! = update!(active: false)

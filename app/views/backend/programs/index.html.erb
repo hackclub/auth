@@ -1,62 +1,45 @@
-<%= render Components::Window.new("Programs", close_url: backend_root_path, max_width: 800) do %>
-  <div class="padding">
-    <div class="list">
-      <table class="detailed">
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "oauth programs") do %>
+    <div class="table-container">
+      <table>
         <thead>
           <tr>
-            <th>Program Name</th>
-            <th>Owner</th>
-            <th>OAuth Application</th>
-            <th>Scopes</th>
-            <th>Users</th>
-            <th>Active?</th>
-            <th>Actions</th>
+            <th>name</th>
+            <th>owner</th>
+            <th>scopes</th>
+            <th>users</th>
+            <th>active</th>
           </tr>
         </thead>
         <tbody>
           <% @programs.each do |program| %>
             <tr>
               <td>
-                <div class="icon-label">
-                  <strong><%= program.name %></strong>
-                  <% if program.description.present? %>
-                    <br>
-                    <small><%= truncate(program.description, length: 60) %></small>
-                  <% end %>
-                </div>
+                <%= link_to backend_program_path(program) do %>
+                  <b><%= program.name %></b>
+                <% end %>
+                <% if program.description.present? %>
+                  <br><small><%= truncate(program.description, length: 40) %></small>
+                <% end %>
               </td>
               <td>
                 <% if program.owner_identity.present? %>
                   <%= render Components::UserMention.new(program.owner_identity) %>
                 <% else %>
-                  <em style="color: var(--text-secondary);">HQ</em>
+                  <i>HQ</i>
                 <% end %>
               </td>
-              <td>
-                <small>
-                  ID: <%= program.uid %><br>
-                  Name: <%= program.name %>
-                </small>
-              </td>
-              <td>
-                <% if program.scopes.present? %>
-                  <code><%= program.scopes %></code>
-                <% else %>
-                  <em>No scopes</em>
-                <% end %>
-              </td>
+              <td><code><%= program.scopes.presence || "—" %></code></td>
               <td><%= program.identities.distinct.count %></td>
               <td><%= render_checkbox(program.active?) %></td>
-              <td>
-                <%= link_to "View", backend_program_path(program), class: "link" %>
-              </td>
             </tr>
           <% end %>
         </tbody>
       </table>
-      <div class="mt-4">
-        <%= link_to "New Program", new_backend_program_path, class: "button" %>
-      </div>
     </div>
-  </div>
-<% end %>
+    <hr>
+    <%= render Components::Backend::Item.new(icon: "+", href: new_backend_program_path) do %>
+      <b>new program</b>
+    <% end %>
+  <% end %>
+</div>

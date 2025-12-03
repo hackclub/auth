@@ -1,40 +1,68 @@
-<%= render Components::Window.new("User: #{@user.display_name}", close_url: backend_users_path) do %>
-  <div class="padding">
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "user: #{@user.display_name}") do %>
+    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_users_path) do %>
+      <b>back to users</b>
+    <% end %>
+    <hr>
     <% if @user.orphaned? %>
-      <div class="alert alert-warning">
-        ⚠️ <strong>Warning:</strong> This user is not linked to an Identity and cannot log in.
+      <div class="banner warning">
+        <h3>⚠ orphaned user</h3>
+        <p>this user is not linked to an identity and cannot log in.</p>
       </div>
     <% else %>
-      <div class="card">
-        <h4>Linked Identity</h4>
-        <p><strong>Name:</strong> <%= @user.first_name %> <%= @user.last_name %></p>
-        <p><strong>Email:</strong> <%= @user.email %></p>
-        <p><strong>Slack ID:</strong> <%= @user.slack_id || "Not linked" %></p>
+      <div class="section">
+        <div class="section-header"><h3>linked identity</h3></div>
+        <div class="section-content">
+          <div class="detail-row">
+            <span class="detail-label">name</span>
+            <span class="detail-value"><%= @user.first_name %> <%= @user.last_name %></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">email</span>
+            <span class="detail-value"><%= @user.email %></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">slack</span>
+            <span class="detail-value"><%= @user.slack_id || "not linked" %></span>
+          </div>
+        </div>
       </div>
     <% end %>
-
-    <div class="padding-top">
-      <b>Roles: </b> <%= @user.pretty_roles %>
-      <br>
-      <b>Organized Programs: </b>
-      <% if @user.organized_programs.any? %>
-        <%= @user.organized_programs.map(&:name).join(", ") %>
-      <% else %>
-        <em>None</em>
-      <% end %>
+    <div class="section">
+      <div class="section-header"><h3>permissions</h3></div>
+      <div class="section-content">
+        <div class="detail-row">
+          <span class="detail-label">roles</span>
+          <span class="detail-value"><%= @user.pretty_roles %></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">programs</span>
+          <span class="detail-value">
+            <% if @user.organized_programs.any? %>
+              <%= @user.organized_programs.map(&:name).join(", ") %>
+            <% else %>
+              <i>none</i>
+            <% end %>
+          </span>
+        </div>
+      </div>
     </div>
-
     <% super_admin_tool do %>
-      <div class="padding-top">
-        <%= link_to "edit this user", edit_backend_user_path(@user), class: "link" %>
-        <% if @user.active? %>
-          <%= button_to "deactivate this user", {action: :deactivate} %>
-          <i>(this will stop them from logging in)</i>
-        <% else %>
-          <%= button_to "activate this user", {action: :activate} %>
-          <i>(this will allow them to log in again)</i>
+      <hr>
+      <%= render Components::Backend::Item.new(icon: "✎", href: edit_backend_user_path(@user)) do %>
+        <b>edit user</b>
+      <% end %>
+      <% if @user.active? %>
+        <%= button_to backend_user_path(@user, action: :deactivate), method: :patch, class: "item" do %>
+          <figure class="icon">✕</figure>
+          <span class="text"><b>deactivate</b> <i>(stops login)</i></span>
         <% end %>
-      </div>
+      <% else %>
+        <%= button_to backend_user_path(@user, action: :activate), method: :patch, class: "item" do %>
+          <figure class="icon">✓</figure>
+          <span class="text"><b>activate</b> <i>(allows login)</i></span>
+        <% end %>
+      <% end %>
     <% end %>
-  </div>
-<% end %>
+  <% end %>
+</div>
