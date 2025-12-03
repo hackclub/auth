@@ -47,7 +47,7 @@
 
       <%= form_with url: backend_users_path, method: :post do |f| %>
         <%= hidden_field_tag :identity_id, identity.id %>
-        
+
         <div class="padding-top">
           <h4>Set Permissions</h4>
           <%= render Backend::Users::PermissionsForm.new(Backend::User.new) %>

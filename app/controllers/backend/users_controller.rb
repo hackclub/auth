@@ -32,13 +32,13 @@ module Backend
 
     def create
       authorize User
-      
+
       unless params[:identity_id].present?
         redirect_to new_backend_user_path, alert: "No identity selected"
         return
       end
       identity = Identity.find(params[:identity_id])
-      
+
       if User.exists?(identity_id: identity.id)
         redirect_to backend_users_path, alert: "This identity already has backend access!"
         return
