@@ -32,6 +32,7 @@ module Backend
     def manual_document_verifier? = manual_document_verifier
     def human_endorser? = human_endorser
     def all_fields_access? = all_fields_access
+    def can_break_glass? = can_break_glass
 
     # Returns a human-readable string of the user's roles
     def pretty_roles
