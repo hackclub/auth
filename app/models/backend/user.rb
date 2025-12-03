@@ -20,7 +20,7 @@ module Backend
 
     def display_name
       return username if orphaned?
-      "#{first_name} #{last_name}".strip.presence || email || username
+      "#{first_name} #{last_name}".strip.presence || email || username || "Unknown User"
     end
 
     def active? = active
