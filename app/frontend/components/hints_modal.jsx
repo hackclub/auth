@@ -1,11 +1,15 @@
 const HintsModal = function(cx) {
   this.isOpen = false
   this.hints = []
+  this.slugs = []
   const state = this
 
   const openModal = () => {
     state.isOpen = true
     markHintsSeen()
+    // Hide the banner after opening
+    const banner = document.querySelector('.hints-banner')
+    if (banner) banner.style.display = 'none'
   }
 
   const closeModal = () => {
@@ -13,13 +17,15 @@ const HintsModal = function(cx) {
   }
 
   const markHintsSeen = async () => {
+    if (state.slugs.length === 0) return
     try {
       await fetch('/backend/hints/mark_seen', { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
-        }
+        },
+        body: JSON.stringify({ slugs: state.slugs })
       })
     } catch (err) {
       console.error("Failed to mark hints as seen:", err)
@@ -32,6 +38,7 @@ const HintsModal = function(cx) {
       try {
         const data = JSON.parse(dataEl.textContent)
         state.hints = data.hints || []
+        state.slugs = data.slugs || []
       } catch (err) {
         console.error("Failed to parse hints data:", err)
       }
@@ -78,14 +85,20 @@ const HintsModal = function(cx) {
               <span class="hints-shortcut-label">Focus search input</span>
             </div>
           </div>
-          {use(state.hints).map(hints => hints.length > 0 ? (
-            <div class="hints-section">
-              <div class="hints-section-label">This page</div>
-              {hints.map(hint => (
-                <div class="hints-content" innerHTML={hint.content}></div>
-              ))}
-            </div>
-          ) : null)}
+          {use(state.hints).map(hints => {
+            if (hints.length === 0) return null
+            return (
+              <div class="hints-section">
+                <div class="hints-section-label">This page</div>
+                {hints.map(hint => {
+                  const div = document.createElement('div')
+                  div.className = 'hints-content'
+                  div.innerHTML = hint.content
+                  return div
+                })}
+              </div>
+            )
+          })}
           <div class="hints-hint">
             <kbd>Esc</kbd> close
           </div>

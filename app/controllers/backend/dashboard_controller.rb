@@ -4,7 +4,10 @@ module Backend
   class DashboardController < ApplicationController
     # i really hope any of this math is right!
 
+    hint :back_navigation, on: :show
+
     def show
+      set_keyboard_shortcut(:back, backend_root_path)
       authorize Verification
 
       @time_period = params[:time_period] || "this_month"

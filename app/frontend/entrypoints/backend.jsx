@@ -1,6 +1,7 @@
 import "../js/click-to-copy";
 import { Kbar } from "../components/kbar.jsx";
 import { HintsModal } from "../components/hints_modal.jsx";
+import { KeyboardShortcuts } from "../components/keyboard_shortcuts.jsx";
 import { SingleIdentityPicker, MultipleIdentityPicker } from "../components/identity_picker.jsx";
 import { NavigableList } from "../components/navigable_list.jsx";
 
@@ -10,6 +11,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const hintsModal = h(HintsModal, null);
   document.body.appendChild(hintsModal);
+
+  const keyboardShortcuts = h(KeyboardShortcuts, null);
+  document.body.appendChild(keyboardShortcuts);
 
   document.querySelectorAll("[data-identity-picker]").forEach((el) => {
     const dataEl = el.querySelector(".picker-initial-data");

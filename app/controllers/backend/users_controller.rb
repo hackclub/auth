@@ -2,6 +2,9 @@ module Backend
   class UsersController < ApplicationController
     before_action :set_user, except: [ :index, :new, :create ]
 
+    hint :list_navigation, on: :index
+    hint :search_focus, on: :index
+
     def index
       authorize Backend::User
       @users = User.all

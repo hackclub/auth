@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 class Components::Backend::ActionBar < Components::Base
-  def initialize(controller_path: nil, action_name: nil, user: nil, has_unseen_hints: false)
+  def initialize(controller_path: nil, action_name: nil, user: nil)
     @controller_path = controller_path
     @action_name = action_name
     @user = user
-    @has_unseen_hints = has_unseen_hints
   end
 
   def view_template
@@ -19,9 +18,7 @@ class Components::Backend::ActionBar < Components::Base
           if current_shortcode.present?
             span(class: "current_shortcode") { "[#{current_shortcode.code}]" }
           end
-          if @has_unseen_hints
-            render ActionButton.new(hotkey: "?", onclick: "window.openHints()") { "HINTS" }
-          end
+          render ActionButton.new(hotkey: "?", onclick: "window.openHints()") { "KBD SHORTCUTS" }
           render ActionButton.new(hotkey: "⌘K", onclick: "window.openKbar()") { "GO" }
         end
       end
