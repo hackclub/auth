@@ -71,7 +71,7 @@ class IdentitiesController < ApplicationController
           end
 
           unless slack_user_id.present?
-            age = Identity.calculate_age(birthday)
+            age = (Date.today - birthday).days.in_years
 
             if age >= 19 && !@onboarding_scenario.accepts_adults
               @age_restriction = "Hack Club is a community for teenagers. <br/>Unfortunately, you are not eligible to join.".html_safe
@@ -105,8 +105,7 @@ class IdentitiesController < ApplicationController
                 identity: @identity,
                 authentication_factors: {},
                 provenance: "signup",
-                next_action: @onboarding_scenario.next_action.to_s,
-                return_to: @return_to
+                next_action: @onboarding_scenario.next_action.to_s
             )
 
             # Set browser token cookie for security
@@ -120,7 +119,7 @@ class IdentitiesController < ApplicationController
                 IdentityMailer.v2_login_code(login_code).deliver_later
             end
 
-            redirect_to login_attempt_path(id: login_attempt.to_param), status: :see_other
+            redirect_to login_attempt_path(id: login_attempt.to_param, return_to: @return_to), status: :see_other
         else
             render :new, status: :unprocessable_entity
         end
@@ -161,7 +160,8 @@ class IdentitiesController < ApplicationController
     end
 
     def set_return_to
-        @return_to = params[:return_to] if params[:return_to].present?
+        session[:return_to] = params[:return_to] if params[:return_to].present?
+        @return_to = session[:return_to]
     end
 
     def identity_params

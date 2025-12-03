@@ -1,14 +1,10 @@
 .profile-completion {
   --completion-green: #84cc16;
   --completion-green-dark: #65a30d;
-  --completion-icon-bg: #f0fdf4;
-  --completion-completed-icon-bg: #d1fae5;
   
-  @include dark-mode {
+  [data-theme="dark"] & {
     --completion-green: #a3e635;
     --completion-green-dark: #84cc16;
-    --completion-icon-bg: rgba(132, 204, 22, 0.1);
-    --completion-completed-icon-bg: rgba(16, 185, 129, 0.15);
   }
   
   background: linear-gradient(165deg, var(--pico-card-background-color) 0%, var(--surface-2) 100%);
@@ -21,7 +17,7 @@
     2px 2px 8px rgba(0, 0, 0, 0.02),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
   
-  @include dark-mode {
+  [data-theme="dark"] & {
     background: linear-gradient(165deg, #252932 0%, #1f2329 100%);
     box-shadow: 
       4px 4px 16px rgba(0, 0, 0, 0.3),
@@ -110,7 +106,11 @@
       }
 
       .task-icon {
-        background: var(--completion-completed-icon-bg);
+        background: #d1fae5;
+
+        @media (prefers-color-scheme: dark) {
+          background: rgba(16, 185, 129, 0.15);
+        }
       }
 
       .task-action {
@@ -127,13 +127,17 @@
       flex-shrink: 0;
       width: 40px;
       height: 40px;
-      background: var(--completion-icon-bg);
+      background: #f0fdf4;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 1.25rem;
       color: var(--completion-green-dark);
+
+      @media (prefers-color-scheme: dark) {
+        background: rgba(132, 204, 22, 0.1);
+      }
     }
 
     .task-content {

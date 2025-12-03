@@ -1,14 +1,31 @@
-@import "./colors";
-@import "./snippets/tokens";
-@import "./snippets/breakpoints";
+@import "./srcl-global";
+@import "./srcl-fonts";
+@import "./snippets/borders";
 @import "./snippets/banners.scss";
 @import "./snippets/admin_tools.scss";
-@import "./snippets/borders.scss";
 @import "./snippets/tooltips.scss";
+@import "./backend/card";
+@import "./backend/item";
+@import "./backend/shortcodes";
+@import "./backend/grid";
+@import "./backend/kbar";
+@import "./backend/hints";
+@import "./backend/identity_picker";
+@import "./backend/action_bar";
+@import "./backend/buttons";
+@import "./backend/tables";
+@import "./backend/forms";
+@import "./backend/sections";
+@import "./backend/pagination";
+@import "./backend/document_review";
+
 
 body {
-    font-size: 12px;
-    margin: 5rem
+  max-width: 120ch;
+  padding-top: 3ch;
+  padding-left: 2ch;
+  padding-right: 2ch;
+  margin: 0 auto;
 }
 
 form {

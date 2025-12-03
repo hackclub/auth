@@ -1,5 +1,9 @@
-<%= render Components::Window.new("Edit user: #{@user.username}", close_url: backend_users_path, max_width: 500) do %>
-  <div class="padding">
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "edit: #{@user.display_name}") do %>
+    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_user_path(@user)) do %>
+      <b>cancel</b>
+    <% end %>
+    <hr>
     <%= render Backend::Users::Form.new @user %>
-  </div>
-<% end %>
+  <% end %>
+</div>

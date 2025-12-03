@@ -1,0 +1,54 @@
+.card {
+  position: relative;
+  display: block;
+  padding: 0;
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.card-header-left {
+  min-width: 10%;
+  width: 100%;
+  box-shadow:
+    inset 2px 0 0 0 var(--theme-text),
+    inset 0 2px 0 0 var(--theme-text);
+  padding: calc((var(--font-size) * 0.5) * var(--theme-line-height-base)) 2ch 0 1ch;
+}
+
+.card-header-right {
+  min-width: 10%;
+  width: 100%;
+  box-shadow:
+    inset -2px 0 0 0 var(--theme-text),
+    inset 0 2px 0 0 var(--theme-text);
+  padding: calc((var(--font-size) * 0.5) * var(--theme-line-height-base)) 2ch 0 1ch;
+}
+
+.card-title {
+  flex-shrink: 0;
+  padding: 0 1ch;
+  font-size: var(--font-size);
+  font-weight: 400;
+  margin: 0;
+}
+
+.card-body {
+  box-shadow:
+    inset 2px 0 0 0 var(--theme-text),
+    inset -2px 0 0 0 var(--theme-text),
+    inset 0 -2px 0 0 var(--theme-text);
+  display: block;
+  padding: calc(var(--theme-line-height-base) * 0.5rem) 2ch calc(var(--theme-line-height-base) * 1rem);
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  scrollbar-width: none;
+}

@@ -6,13 +6,12 @@ class StaticPagesController < ApplicationController
   end
 
   def welcome
-    @return_to = params[:return_to]
     render layout: "logged_out"
   end
 
   def oauth_welcome
     # Extract client_id from the return_to URL
-    @return_to = params[:return_to]
+    @return_to = session[:return_to]
     if @return_to.present?
       uri = URI.parse(@return_to)
       params_hash = URI.decode_www_form(uri.query || "").to_h

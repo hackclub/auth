@@ -6,7 +6,7 @@ class SAMLController < ApplicationController
   skip_before_action :authenticate_identity!, only: [ :metadata, :sp_initiated_get, :idp_initiated, :welcome ]
   before_action :check_enterprise_features!, except: [ :welcome ]
 
-  AUTHN_REQUEST_TTL = 30.minutes
+  AUTHN_REQUEST_TTL = 5.minutes
   SSO_ENDPOINT_PATH = "/saml/auth"
 
   def metadata
@@ -33,7 +33,7 @@ class SAMLController < ApplicationController
     # Try to assign to Slack workspace if not yet done
     if params[:slug] == "slack"
       provision_slack_via_scim_if_needed
-      try_assign_to_slack_workspace unless current_identity.is_in_workspace
+      try_assign_to_slack_workspace if !current_identity.is_in_workspace
     end
 
     response = build_saml_response(
@@ -66,11 +66,6 @@ class SAMLController < ApplicationController
     )
 
     render_saml_response(saml_response: response, sp_config: @sp_config)
-
-  rescue SAML2::MissingMessage
-    # hotfix for zach email
-    @missing_message = true
-    render :error and return
   end
 
   def welcome

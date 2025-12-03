@@ -32,17 +32,14 @@ class ApplicationController < ActionController::Base
 
   def authenticate_identity!
     unless identity_signed_in?
+      session[:return_to] = request.original_url unless request.xhr?
       # JANK ALERT
       hide_some_data_away
 
       # EW
       return if controller_name == "onboardings"
 
-      if request.xhr?
-        redirect_to welcome_path
-      else
-        redirect_to welcome_path(return_to: request.original_url)
-      end
+      redirect_to welcome_path
     end
   end
 

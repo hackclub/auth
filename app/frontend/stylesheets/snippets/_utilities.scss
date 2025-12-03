@@ -1,7 +1,19 @@
-.card { @include card(); }
-.section-card { @include section-card(); }
-.card-hoverable { @include card-hoverable(); }
-.page-sections { @include page-sections(); }
-.container { @include container(); }
-.container-md { @include container(1000px); }
-.container-sm { @include container(720px); }
+.card {
+  @include card();
+}
+
+.section-card {
+  @include section-card();
+}
+
+.container {
+  @include container();
+}
+
+.container-md {
+  @include container(1000px);
+}
+
+.container-sm {
+  @include container(720px);
+}

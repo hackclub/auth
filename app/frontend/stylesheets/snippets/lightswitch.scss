@@ -11,7 +11,7 @@
   justify-content: center;
   overflow: hidden;
   
-  @include dark-mode {
+  [data-theme="dark"] & {
     color: #d0d0d0;
   }
 

@@ -1,15 +1,9 @@
 en:
-  errors:
-   attributes:
-     primary_email:
-       temporary: "seems to be a disposable email address. Please use a permanent email address to create your account (or if this is a false positive email nora@hackclub.com!)"
-       invalid_format: "is not shaped like a valid email address. Please check the format and try again."
-       no_mx_record: "doesn't seem to have a valid mail server? Please check the domain and try again."
   activerecord:
     attributes:
       backend_user:
           slack_id: Slack ID
-  brand: Hack Club Auth
+  brand: Hack Club Account
   home:
     apps:
       heading: Where do you want to go today?
@@ -120,7 +114,6 @@ en:
     city: City
     state: State/Province
     postal_code: Postal code
-    phone_number: Phone number
     save: Save address
     cancel: Cancel
     primary: Primary
@@ -174,9 +167,6 @@ en:
             title: See your verification status
             verification_status_label: "Verification status:"
             ysws_eligible_label: "YSWS eligible:"
-          profile:
-            title: See your profile information
-            name_label: "Name:"
   authorized_applications:
     none: You haven't authorized any apps yet.
     created_at: Authorized
@@ -207,7 +197,7 @@ en:
       super_secret_settings: "Super secret settings"
       saml_debug: "debug your SAML assertions?"
     new:
-      already_have: Already have a Hack Club Auth account?
+      already_have: Already have a Hack Club account?
       log_in: Log in here
       not_necessarily_legal_name: not necessarily your legal name, what do people usually call you?
       email_code: We'll send a one-time code to this address.
@@ -228,7 +218,7 @@ en:
   logins:
     new:
       title: Welcome back!
-      subtitle: Sign in to Hack Club Auth
+      subtitle: Sign in to your Hack Club Account
       email_label: Email address
       continue: Continue
       no_account: Don't have an account?
@@ -266,7 +256,7 @@ en:
       text: Logging you in...
   static_pages:
     welcome:
-      title: Hack Club Auth
+      title: Hack Club Account
       subtitle: One account for Slack, Hack Club, and beyond.
       cta_create: Create Your Account →
       cta_signin: Sign In
@@ -459,4 +449,4 @@ en:
           subtitle: Verify your age and identity to participate in programs and compete for prizes
           start_verification: Start Verification
   auth:
-    sign_in_or_create: "Sign in or create a Hack Club Auth account to continue"
+    sign_in_or_create: "Sign in or create a Hack Club account to continue"

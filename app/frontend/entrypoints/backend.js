@@ -1,1 +1,0 @@
-import "../js/click-to-copy";

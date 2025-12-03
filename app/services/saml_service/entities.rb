@@ -42,7 +42,7 @@ module SAMLService
           @metadata_xml ||= begin
                               xml = idp_entity.to_xml
                               xml.root.add_child Nokogiri::XML::Comment.new(xml, " haiii :3 ")
-                              xml.add_child Nokogiri::XML::Comment.new(xml, " curious thing, aren't you? – https://hack.af/gh/account , glory awaits")
+                              xml.add_child Nokogiri::XML::Comment.new(xml, " curious thing, aren't you? – https://hack.af/gh/identity-vault , glory awaits")
                               xml.to_s
                             end
         end

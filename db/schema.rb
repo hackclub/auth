@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_03_031324) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -75,7 +75,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
     t.bigint "identity_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "phone_number"
     t.index ["identity_id"], name: "index_addresses_on_identity_id"
   end
 
@@ -100,7 +99,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
   end
 
   create_table "backend_users", force: :cascade do |t|
-    t.string "slack_id"
     t.string "username"
     t.string "icon_url"
     t.boolean "super_admin"
@@ -113,7 +111,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
     t.boolean "active"
     t.string "credential_id"
     t.boolean "can_break_glass"
-    t.index ["slack_id"], name: "index_backend_users_on_slack_id"
+    t.bigint "identity_id"
+    t.string "seen_hints", default: [], array: true
+    t.index ["identity_id"], name: "index_backend_users_on_identity_id"
   end
 
   create_table "break_glass_records", force: :cascade do |t|
@@ -378,7 +378,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
     t.bigint "identity_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.datetime "last_step_up_at"
     t.index ["identity_id"], name: "index_identity_sessions_on_identity_id"
   end
 
@@ -476,18 +475,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
   end
 
-  create_table "oauth_openid_requests", force: :cascade do |t|
-    t.bigint "access_grant_id", null: false
-    t.string "nonce", null: false
-    t.index ["access_grant_id"], name: "index_oauth_openid_requests_on_access_grant_id"
-  end
-
   create_table "settings", force: :cascade do |t|
     t.string "key", null: false
     t.text "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["key"], name: "index_settings_on_key", unique: true
+  end
+
+  create_table "slack_idp_groups", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "slack_group_id"
+    t.string "slug", null: false
+    t.datetime "synced_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slack_group_id"], name: "index_slack_idp_groups_on_slack_group_id", unique: true
+    t.index ["slug"], name: "index_slack_idp_groups_on_slug", unique: true
   end
 
   create_table "verifications", force: :cascade do |t|
@@ -537,6 +541,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
   add_foreign_key "addresses", "identities"
   add_foreign_key "backend_organizer_positions", "backend_users"
   add_foreign_key "backend_organizer_positions", "oauth_applications", column: "program_id"
+  add_foreign_key "backend_users", "identities"
   add_foreign_key "break_glass_records", "backend_users"
   add_foreign_key "identities", "addresses", column: "primary_address_id"
   add_foreign_key "identity_aadhaar_records", "identities"
@@ -557,7 +562,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_02_173250) do
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "identities", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
-  add_foreign_key "oauth_openid_requests", "oauth_access_grants", column: "access_grant_id", on_delete: :cascade
   add_foreign_key "verifications", "identities"
   add_foreign_key "verifications", "identity_aadhaar_records", column: "aadhaar_record_id"
   add_foreign_key "verifications", "identity_documents"

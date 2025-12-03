@@ -66,13 +66,6 @@
                       <li><span><%= t('.scopes.verification_status.ysws_eligible_label') %></span> <%= current_identity.ysws_eligible ? 'Yes' : 'No' %></li>
                     </ul>
                   </div>
-                <% when "profile" %>
-                  <div class="permission-item">
-                    <strong><%= t('.scopes.profile.title') %></strong>
-                    <ul class="permission-details">
-                      <li><span><%= t('.scopes.profile.name_label') %></span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
-                    </ul>
-                  </div>
                 <% else %>
                   <div class="permission-item">
                     <strong><%= t scope, scope: [:doorkeeper, :scopes] %></strong>
@@ -94,10 +87,9 @@
         <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
         <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
         <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
-        <%= hidden_field_tag :nonce, @pre_auth.nonce, id: nil %>
         <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
         <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
-        <%= submit_tag t('.deny'), class: "secondary delete" %>
+        <%= submit_tag t('.deny'), class: "secondary" %>
       <% end %>
 
       <%= form_tag oauth_authorization_path, method: :post do %>
@@ -107,10 +99,9 @@
         <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
         <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
         <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
-        <%= hidden_field_tag :nonce, @pre_auth.nonce, id: nil %>
         <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
         <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
-        <%= submit_tag auth_label, "x-bind:disabled": "!ready", "x-bind:value": "ready ? authLabel : `Wait ${countdown}s...`", class: "approve" %>
+        <%= submit_tag auth_label, "x-bind:disabled": "!ready", "x-bind:value": "ready ? authLabel : `Wait ${countdown}s...`" %>
       <% end %>
     </div>
   </div>

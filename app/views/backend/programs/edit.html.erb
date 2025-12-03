@@ -1,5 +1,9 @@
-<%= render Components::Window.new("Edit Program: #{@program.name}", close_url: backend_program_path(@program), max_width: 500) do %>
-  <div class="padding">
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "edit: #{@program.name}") do %>
+    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_program_path(@program)) do %>
+      <b>cancel</b>
+    <% end %>
+    <hr>
     <%= render Backend::Programs::Form.new @program %>
-  </div>
-<% end %>
+  <% end %>
+</div>

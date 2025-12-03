@@ -56,7 +56,30 @@
         601
       ],
       "note": "this will only ever be Slack"
+    },
+    {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "9e5f4b7f8d9c3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `const_get` called with parameter value",
+      "file": "app/controllers/backend/kbar_controller.rb",
+      "line": 23,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "Object.const_get(model_name)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Backend::KbarController",
+        "method": "search"
+      },
+      "user_input": "prefix_info[:model]",
+      "confidence": "Medium",
+      "cwe_id": [
+        95
+      ],
+      "note": "model_name comes from Shortcodes.public_id_prefixes which only contains whitelisted class names from PublicIdentifiable models"
     }
   ],
-  "brakeman_version": "7.1.0"
+  "brakeman_version": "7.1.1"
 }

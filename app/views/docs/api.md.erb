@@ -1,12 +1,12 @@
 ---
 title: API
-description: Integrate with Hack Club Auth's REST API
+description: Integrate with Hack Club Account's REST API
 category: Developer
-order: 11
+order: 10
 ---
 
 
-The Hack Club Auth API allows you to retrieve user identity information after they've authorized your app via OAuth.
+The Hack Club Account API allows you to retrieve user identity information after they've authorized your app via OAuth.
 
 You may want to read the <%= link_to "OAuth Guide", doc_path("oauth-guide") %> first to get access tokens.
 
@@ -78,20 +78,14 @@ Check the verification status of a user by their ID, email, or Slack ID. This is
 
 ## Available Scopes
 
-When requesting OAuth authorization, you can request the following scopes.
-
-For OIDC-specific scopes and claims, see the <%= link_to "OpenID Connect guide", doc_path("oidc-guide") %>.
+When requesting OAuth authorization, you can request the following scopes:
 
 | Scope | Description | Community Access    |
 |-------|-------------|---------------------|
-| `openid` | Enable OpenID Connect authentication | ✅                   |
-| `profile` | Name and profile information (OIDC) | ✅                   |
 | `email` | Access to email address | ✅                   |
 | `name` | Access to first and last name | ✅                   |
 | `slack_id` | Access to Slack ID | ✅                   |
 | `verification_status` | Verification status and YSWS eligibility | ✅                   |
-| `phone` | Phone number (OIDC) | HQ only             |
-| `birthdate` | Date of birth (OIDC) | HQ only             |
 | `basic_info` | Email, name, verification status, birthday, phone | HQ only             |
 | `legal_name` | Legal first and last name | HQ only             |
 | `address` | Mailing addresses | HQ only             |

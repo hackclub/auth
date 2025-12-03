@@ -70,7 +70,6 @@ gem "awesome_print", "~> 1.9"
 gem "active_storage_encryption", "~> 0.3.0"
 
 gem "doorkeeper", "~> 5.8"
-gem "doorkeeper-openid_connect", "~> 1.8"
 
 gem "aasm", "~> 5.5"
 
@@ -96,7 +95,7 @@ gem "aws-sdk-s3", "~> 1.189"
 
 gem "lz_string", "~> 0.3.0"
 
-gem "valid_email2", github: "24c02/valid_email2"
+gem "valid_email2", "~> 7.0"
 
 gem "rails_semantic_logger", "~> 4.17"
 
@@ -143,7 +142,3 @@ gem "browser", "~> 6.0"
 gem "slocks", "~> 0.1.0"
 
 gem "factory_bot_rails", "~> 6.4"
-
-group :production do
-  gem "cloudflare-rails"
-end

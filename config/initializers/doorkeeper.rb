@@ -29,8 +29,8 @@ Doorkeeper.configure do
       params.reject! { |key, _| key == "stash_data" }
       uri.query = URI.encode_www_form(params) unless params.empty?
       # Store only the path + query (relative URL) for security
-      # session[:return_to] = uri.request_uri
-      redirect_to "/oauth/welcome?return_to=#{CGI.escape(uri.request_uri)}"
+      session[:return_to] = uri.request_uri
+      redirect_to "/oauth/welcome"
     end
   end
 
@@ -158,7 +158,7 @@ Doorkeeper.configure do
   #
   # You can not enable this option together with +hash_token_secrets+.
   #
-  reuse_access_token
+  # reuse_access_token
 
   # In case you enabled `reuse_access_token` option Doorkeeper will try to find matching
   # token using `matching_token_for` Access Token API that searches for valid records
@@ -267,9 +267,6 @@ Doorkeeper.configure do
   #
   # default_scopes  :public
   # optional_scopes :write, :update
-
-  # OIDC standard scopes
-  optional_scopes :openid, :profile, :phone, :birthdate
 
   # Allows to restrict only certain scopes for grant_type.
   # By default, all the scopes will be available for all the grant types.

@@ -2,8 +2,16 @@ module Backend
   class IdentitiesController < ApplicationController
     before_action :set_identity, except: [ :index ]
 
+    hint :list_navigation, on: :index
+    hint :search_focus, on: :index
+    hint :pagination, on: :index
+    hint :back_navigation, on: :index
+    hint :identity_actions, on: :show
+
     def index
       authorize Identity
+
+      set_keyboard_shortcut(:back, backend_root_path)
 
       if (search = params[:search])&.start_with? "ident!"
         ident = Identity.find_by_public_id(search)
@@ -19,6 +27,9 @@ module Backend
 
     def show
       authorize @identity
+
+      set_keyboard_shortcut(:back, backend_identities_path)
+      set_keyboard_shortcut(:edit, edit_backend_identity_path(@identity))
 
       if current_user.super_admin? || current_user.manual_document_verifier?
         @available_scopes = [ "basic_info", "legal_name", "address" ]

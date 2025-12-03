@@ -55,6 +55,16 @@ class Identity < ApplicationRecord
   has_many :totps, class_name: "Identity::TOTP", dependent: :destroy
   has_many :backup_codes, class_name: "Identity::BackupCode", dependent: :destroy
 
+  has_one :backend_user, class_name: "Backend::User", dependent: :destroy
+
+  def active_for_backend?
+    backend_user&.active?
+  end
+
+  def full_name = "#{first_name} #{last_name}"
+
+
+
   has_many :documents, class_name: "Identity::Document", dependent: :destroy
   has_many :verifications, class_name: "Verification", dependent: :destroy
   has_many :document_verifications, class_name: "Verification::DocumentVerification", dependent: :destroy
@@ -76,7 +86,7 @@ class Identity < ApplicationRecord
 
   validates :first_name, :last_name, :country, :primary_email, :birthday, presence: true
   validates :primary_email, uniqueness: { conditions: -> { where(deleted_at: nil) } }
-  validate :validate_primary_email
+  validates :primary_email, 'valid_email_2/email': { mx: true, disposable: true }
 
   validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, allow_blank: true
   validates :aadhaar_number, uniqueness: true, allow_blank: true
@@ -85,11 +95,19 @@ class Identity < ApplicationRecord
   scope :search, ->(term) {
     return all if term.blank?
 
-    sanitized_term = "%#{term}%"
-    where(
-      "first_name ILIKE ? OR last_name ILIKE ? OR primary_email ILIKE ? OR slack_id ILIKE ?",
-      sanitized_term, sanitized_term, sanitized_term, sanitized_term
-    )
+    parts = term.split
+    if parts.length == 2
+      # Search for "firstname lastname" pattern
+      where("first_name ILIKE ? AND last_name ILIKE ?", "%#{parts[0]}%", "%#{parts[1]}%")
+        .or(where("first_name ILIKE ? OR last_name ILIKE ? OR primary_email ILIKE ? OR slack_id ILIKE ?",
+          "%#{term}%", "%#{term}%", "%#{term}%", "%#{term}%"))
+    else
+      sanitized_term = "%#{term}%"
+      where(
+        "first_name ILIKE ? OR last_name ILIKE ? OR primary_email ILIKE ? OR slack_id ILIKE ?",
+        sanitized_term, sanitized_term, sanitized_term, sanitized_term
+      )
+    end
   }
 
   scope :with_fatal_rejections, -> {
@@ -284,16 +302,7 @@ class Identity < ApplicationRecord
     sessions.destroy_all
   end
 
-  def self.calculate_age(birthday)
-    today = Date.today
-    age = today.year - birthday.year
-    age -= 1 if today < birthday + age.years
-    age
-  end
-
-  def age
-    self.class.calculate_age(birthday)
-  end
+  def age = (Date.today - birthday).days.in_years
 
   def totp = totps.verified.first
 
@@ -382,26 +391,6 @@ class Identity < ApplicationRecord
     six_years_ago = Date.current - 6.years
     if birthday > six_years_ago
       errors.add(:base, "Are you sure about that birthday?")
-    end
-  end
-
-  def validate_primary_email
-    return unless primary_email.present?
-
-    address = ValidEmail2::Address.new(primary_email)
-
-    unless address.valid?
-      errors.add(:primary_email, I18n.t("errors.attributes.primary_email.invalid_format"))
-      return
-    end
-
-    if address.disposable?
-      errors.add(:primary_email, I18n.t("errors.attributes.primary_email.temporary"))
-      return
-    end
-
-    unless address.valid_mx?
-      errors.add(:primary_email, I18n.t("errors.attributes.primary_email.no_mx_record"))
     end
   end
 end

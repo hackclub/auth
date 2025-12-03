@@ -3,7 +3,7 @@
 </div>
 
 <% if @addresses.any? %>
-  <div class="page-sections">
+  <div class="info-sections">
     <% @addresses.each do |address| %>
       <%= render 'address', address: address %>
     <% end %>

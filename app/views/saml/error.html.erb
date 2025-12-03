@@ -1,8 +1,1 @@
-<% if Flipper.enabled?(:are_we_enterprise_yet, current_identity) && !@missing_message %><%= @error %>
-  <%= @error %>
-<% else %>
-  <b>Hack Club is currently migrating to Slack Enterprise Grid.</b> <br>
-  <p>The Slack will be unavailable for up to 2 days (counting from Monday morning).</p>
-  <p>Thanks for your patience! If you like, you can join us on IRC at <code>irc.hackclub.com</code>?</p>
-  <iframe src="https://are-we-there-yet.hackclub.com" style="width: 100%; height: 100vh;"></iframe>
-<% end %>
+<%= @error %>

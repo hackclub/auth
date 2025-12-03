@@ -1,52 +1,34 @@
-<%= render Components::Window.new("Pending Document Verifications", close_url: backend_root_path, max_width: 1000) do %>
-  <div class="padding">
-    <div class="flex" style="justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-      <h2 style="margin: 0;">Pending Verification (<%= @pending_verifications.total_count %>)</h2>
-      <div class="flex" style="gap: 1rem;">
-        <%= link_to "All Verifications", backend_verifications_path, class: "button button-secondary" %>
-      </div>
-    </div>
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "pending verifications (#{@pending_verifications.total_count})") do %>
+    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_verifications_path) do %>
+      <b>all verifications</b>
+    <% end %>
+    <hr>
     <% if @average_hangtime.present? %>
-      <h3>Average hangtime: <%= distance_of_time_in_words(0, @average_hangtime) %></h3>
+      <div class="detail-row">
+        <span class="detail-label">avg hangtime</span>
+        <span class="detail-value"><%= distance_of_time_in_words(0, @average_hangtime) %></span>
+      </div>
     <% end %>
     <% if @pending_verifications.any? %>
-      <div class="grid" style="gap: 1rem;">
+      <div data-navigable-list>
         <% @pending_verifications.each do |verification| %>
-          <div class="lowered padding">
-            <div class="flex" style="justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-              <div>
-                <h3 style="margin: 0 0 0.5rem 0;">
-                  <%= verification.document_type %>
-                </h3>
-                <p style="margin: 0; color: #666;">
-                  <strong><%= verification.identity.first_name %> <%= verification.identity.last_name %></strong>
-                  (<%= verification.identity.primary_email %>)
-                </p>
-                <p style="margin: 0.25rem 0 0 0; color: #666; font-size: 0.9em;">
-                  Country: <%= verification.identity.country %> |
-                  Uploaded: <%= time_ago_in_words(verification.pending_at || verification.created_at) %> ago
-                </p>
-              </div>
-              <span class="status-pending">
-                Pending
-              </span>
-            </div>
-            <div class="flex" style="gap: 0.5rem;">
-              <%= link_to "Review", backend_verification_path(verification), class: "button" %>
-            </div>
+          <div data-navigable-item>
+            <%= render Components::Backend::Item.new(icon: "⭢", href: backend_verification_path(verification)) do %>
+              <b><%= verification.document_type %></b>
+              &nbsp;·&nbsp;
+              <%= verification.identity.first_name %> <%= verification.identity.last_name %>
+              &nbsp;·&nbsp;
+              <small><%= time_ago_in_words(verification.pending_at || verification.created_at) %> ago</small>
+            <% end %>
           </div>
         <% end %>
       </div>
-      <div style="margin-top: 2rem; text-align: center;">
-        <%= paginate @pending_verifications %>
-      </div>
+      <%= paginate @pending_verifications %>
     <% else %>
-      <div class="lowered padding" style="text-align: center;">
-        <p>No documents pending verification</p>
-        <p style="color: #666; margin-top: 1rem;">
-          <%= link_to "View all verifications", backend_verifications_path, class: "button button-secondary" %>
-        </p>
+      <div class="empty-state">
+        no documents pending verification 🎉
       </div>
     <% end %>
-  </div>
-<% end %>
+  <% end %>
+</div>

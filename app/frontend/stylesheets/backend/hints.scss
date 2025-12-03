@@ -1,0 +1,119 @@
+.hints-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-index-page-modals);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+  background: var(--theme-overlay);
+
+  &.open {
+    display: flex;
+  }
+}
+
+.hints-modal {
+  width: 100%;
+  max-width: 72ch;
+  background: var(--theme-background);
+}
+
+.hints-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.hints-left {
+  min-width: 10%;
+  width: 100%;
+  box-shadow:
+    inset 2px 0 0 0 var(--theme-text),
+    inset 0 2px 0 0 var(--theme-text);
+  padding: calc((var(--font-size) * 0.5) * var(--theme-line-height-base)) 2ch 0px 1ch;
+}
+
+.hints-title {
+  flex-shrink: 0;
+  padding: 0 1ch 0 1ch;
+  font-size: var(--font-size);
+  font-weight: 400;
+}
+
+.hints-right {
+  min-width: 10%;
+  width: 100%;
+  box-shadow:
+    inset -2px 0 0 0 var(--theme-text),
+    inset 0 2px 0 0 var(--theme-text);
+  padding: calc((var(--font-size) * 0.5) * var(--theme-line-height-base)) 2ch 0px 1ch;
+}
+
+.hints-body {
+  box-shadow:
+    inset 2px 0 0 0 var(--theme-text),
+    inset -2px 0 0 0 var(--theme-text),
+    inset 0 -2px 0 0 var(--theme-text);
+  padding: calc(var(--theme-line-height-base) * 0.5rem) 2ch calc(var(--theme-line-height-base) * 1rem) 2ch;
+}
+
+.hints-section {
+  margin-bottom: calc(var(--theme-line-height-base) * 0.5rem);
+}
+
+.hints-section-label {
+  font-size: var(--font-size);
+  opacity: 0.6;
+  margin-bottom: calc(var(--theme-line-height-base) * 0.25rem);
+}
+
+.hints-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 0.5ch;
+  margin-bottom: calc(var(--theme-line-height-base) * 0.25rem);
+
+  kbd {
+    background: var(--theme-button-background);
+    padding: 0 0.5ch;
+    min-width: 2ch;
+    text-align: center;
+  }
+}
+
+.hints-shortcut-label {
+  margin-left: 1ch;
+}
+
+.hints-content {
+  margin-bottom: calc(var(--theme-line-height-base) * 0.5rem);
+  
+  kbd {
+    background: var(--theme-button-background);
+    padding: 0 0.5ch;
+  }
+}
+
+.hints-hint {
+  margin-top: calc(var(--theme-line-height-base) * 0.5rem);
+  opacity: 0.5;
+  font-size: var(--font-size);
+
+  kbd {
+    background: var(--theme-button-background);
+    padding: 0 0.5ch;
+  }
+}
+
+.hints-banner {
+  cursor: pointer;
+  
+  kbd {
+    background: var(--theme-button-background);
+    padding: 0 0.5ch;
+  }
+}

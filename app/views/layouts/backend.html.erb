@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Hack Club Auth" %></title>
+    <title><%= content_for(:title) || "Hack Club Account" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -16,10 +16,29 @@
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= vite_client_tag %>
     <%= vite_stylesheet_tag "backend.css" %>
-    <%= vite_javascript_tag 'backend' %>
+    <%= vite_javascript_tag 'backend.jsx' %>
   </head>
   <body>
+    <%= render Components::Backend::ActionBar.new(controller_path: controller_path, action_name: action_name, user: current_user) { yield :toolbar } %>
+    <!-- erblint:disable ScriptType -->
+    <script type="application/json" id="kbar-data">
+      <%= raw Shortcodes.kbar_data_for(current_user) %>
+    </script>
+    <script type="application/json" id="hints-data">
+      <%= raw({ hints: current_hints.map { |h| { slug: h.slug, content: h.content } }, slugs: current_hints.map { |h| h.slug.to_s } }.to_json) %>
+    </script>
+    <script type="application/json" id="keyboard-shortcuts-data">
+      <%= raw(keyboard_shortcuts.to_json) %>
+    </script>
+    <!-- erblint:enable ScriptType -->
     <%= render "shared/flash" %>
+    <% if has_unseen_hints? %>
+  <div class="grid">
+      <div class="banner info hints-banner" onclick="window.openHints()">
+        <b>press <kbd>?</kbd> to see keyboard shortcuts for this page</b>
+      </div>
+  </div>
+    <% end %>
     <%= yield %>
     <% unless Rails.env.production? %>
       <div class="environment <%= Rails.env %>">

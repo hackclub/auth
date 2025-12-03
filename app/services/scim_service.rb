@@ -58,7 +58,6 @@ module SCIMService
 
       retries = 0
       max_retries = 1
-      response = nil
 
       loop do
         Rails.logger.info "Creating Slack user with payload: #{user_payload.inspect}"
@@ -68,16 +67,8 @@ module SCIMService
           break
         end
 
-        error_msg = if response.body.is_a?(Hash)
-                      response.body.dig("Errors", 0, "description") ||
-                        response.body["detail"] ||
-                        response.body["message"] ||
-                        response.body["error"]
-        end
-
-        error_msg ||= "Unknown error (Status #{response.status}): #{response.body.inspect}"
-
-        Rails.logger.error "Failed to create Slack user: #{error_msg}"
+        error_msg = response.body.dig("Errors", 0, "description") || response.body["detail"] || "Unknown error"
+        Rails.logger.error "Failed to create Slack user: #{error_msg}. Full response: #{response.body.inspect}"
 
         # Check for email_taken error with existing_user ID
         if error_msg =~ /email_taken.*existing_user=(U[A-Z0-9]+)/i
@@ -92,20 +83,16 @@ module SCIMService
         end
 
         # Check if user already exists but wasn't found by email lookup
-        if error_msg.include?("already") || error_msg.include?("duplicate") || error_msg.include?("exists") || error_msg.include?("email_taken") || error_msg.include?("conflict")
+        if error_msg.include?("already") || error_msg.include?("duplicate") || error_msg.include?("exists")
           # Try to find the existing user by email using SCIM
           existing_user = find_existing_user_by_email(identity.primary_email)
-
-          # Fallback to Web API lookup if SCIM failed to find the user
-          existing_user ||= SlackService.find_by_email(identity.primary_email)
-
           if existing_user
-            Rails.logger.info "Found existing Slack user for #{identity.primary_email}: #{existing_user}"
+            Rails.logger.info "Found existing Slack user via SCIM for #{identity.primary_email}: #{existing_user}"
             return {
               success: true,
               slack_id: existing_user,
               created: false,
-              message: "Linked existing Slack account (found via lookup)"
+              message: "Linked existing Slack account (found via SCIM)"
             }
           end
         end

@@ -159,15 +159,17 @@
 
 class SuperAdminConstraint
   def self.matches?(request)
-    return false unless request.session[:user_id]
+    session_token = request.cookie_jar.encrypted[:session_token]
+    return false unless session_token
 
-    user = Backend::User.find_by(id: request.session[:user_id])
-    user&.super_admin?
+    session = IdentitySession.not_expired.find_by(session_token: session_token)
+    return false unless session&.identity
+
+    session.identity.backend_user&.super_admin?
   end
 end
 
 Rails.application.routes.draw do
-  use_doorkeeper_openid_connect
   use_doorkeeper
   mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
   mount ActiveStorageEncryption::Engine, at: "/encrypted_blobs"
@@ -189,12 +191,10 @@ Rails.application.routes.draw do
     get "login", to: "static_pages#login", as: :login
     get "session_dump", to: "static_pages#session_dump", as: :session_dump unless Rails.env.production?
 
-    get "/auth/slack", to: "sessions#new", as: :slack_auth
-    get "/auth/slack/callback", to: "sessions#create"
+    get "kbar/search", to: "kbar#search", as: :kbar_search
+    get "identity_picker/search", to: "identity_picker#search", as: :identity_picker_search
+    post "hints/mark_seen", to: "hints#mark_seen", as: :hints_mark_seen
 
-    if Rails.env.development?
-      post "/auth/slack/fake", to: "sessions#fake_slack_callback_for_dev", as: :fake_slack_callback_for_dev
-    end
 
     resources :users do
       member do
@@ -303,8 +303,6 @@ Rails.application.routes.draw do
   # Step-up authentication flow
   get "/step_up", to: "step_up#new", as: :new_step_up
   post "/step_up/verify", to: "step_up#verify", as: :verify_step_up
-  post "/step_up/send_email_code", to: "step_up#send_email_code", as: :send_step_up_email_code
-  post "/step_up/resend_email", to: "step_up#resend_email", as: :resend_step_up_email
 
   resources :identity_backup_codes, only: [ :index, :create ] do
     patch :confirm, on: :collection

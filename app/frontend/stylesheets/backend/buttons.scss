@@ -1,0 +1,69 @@
+.button_group {
+  display: flex;
+  gap: 0;
+
+  &.full {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    white-space: nowrap;
+
+    .action_button,
+    input[type="submit"] {
+      width: 100%;
+    }
+  }
+}
+
+.action_button,
+input[type="submit"],
+button[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size);
+  background: var(--theme-button-background);
+  box-shadow: inset 0 0 0 2px var(--theme-button-foreground);
+  color: var(--theme-text);
+  padding: 0 1ch;
+  text-transform: uppercase;
+  text-decoration: none;
+  line-height: calc(var(--font-size) * var(--theme-line-height-base));
+
+  &:hover {
+    box-shadow: inset 0 0 0 2px var(--theme-focused-foreground);
+  }
+
+  &:focus {
+    box-shadow: inset 0 0 0 2px var(--theme-focused-foreground);
+    outline: none;
+  }
+
+  &.selected {
+    background: var(--theme-focused-foreground);
+  }
+
+  .hotkey {
+    background: var(--theme-button-foreground);
+    color: var(--theme-text);
+    margin-left: -1ch;
+    margin-right: 0.5ch;
+    padding: 0 0.5ch;
+  }
+
+  &:hover .hotkey {
+    background: var(--theme-focused-foreground);
+  }
+}
+
+.action_button {
+  .content {
+    text-transform: uppercase;
+  }
+}

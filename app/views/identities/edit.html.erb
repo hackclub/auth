@@ -2,7 +2,7 @@
   <h1><%= t ".title" %></h1>
 </div>
 
-<div class="page-sections">
+<div class="info-sections">
   <%= form_with model: @identity, url: identity_path, method: :patch, local: true do |f| %>
     <% if @identity.errors.any? %>
       <div class="banner danger" aria-live="polite" style="margin-bottom: 1.5rem;">

@@ -1,22 +1,15 @@
 ---
 title: OAuth Guide
-description: Integrate Hack Club Auth authentication into your app
+description: Integrate Hack Club Account authentication into your app
 category: Developer
-order: 10
+order: 9
 ---
 
-This guide will walk you through implementing OAuth 2.0 authentication with Hack Club Auth.
-
-<div class="banner info">
-<b>Looking for OIDC?</b>
-<p>
-If you just need to authenticate users and get their identity, check out the <%= link_to "OpenID Connect guide", doc_path("oidc-guide") %> instead. It's simpler for basic auth use cases.
-</p>
-</div>
+This guide will walk you through implementing OAuth 2.0 authentication with Hack Club Accounts.
 
 ### Step 1: Create an OAuth application
 
-1. Navigate to the [Developer Apps](<%= developer_apps_path %>) page
+1. Navigate to the [Developer Apps](https://hca.dinosaurbbq.org/developer_apps) page
 2. Click "<%= t("developer_apps.index.create_new") %>"
 3. Fill out the form with your app details and click "<%= t("developer_apps.new.create") %>"
 4. Copy your Client ID and Client Secret and store them securely
@@ -96,7 +89,7 @@ Store this access token securely - you'll use it to authenticate API requests.
 
 ### Step 5: Make authenticated API requests
 
-Include the access token in the `Authorization` header when making requests to the <a href="/docs/api">Hack Club Auth API</a>:
+Include the access token in the `Authorization` header when making requests to the <a href="/docs/api">Hack Club Account API</a>:
 
 ```
 Authorization: Bearer idntk.mraowj2z72e1x8i2a60o88j3h7d0f1
