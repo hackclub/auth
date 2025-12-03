@@ -43,9 +43,10 @@ module Backend
     end
 
     def require_2fa!
-      return unless current_identity&.active_for_backend?
+      # Only enforce 2FA for users who are authenticated and active
+      return unless current_user&.active?
 
-      unless current_identity.use_two_factor_authentication?
+      unless current_identity&.use_two_factor_authentication?
         redirect_to root_path, alert: "You must enable Two-Factor Authentication to access the backend."
       end
     end
