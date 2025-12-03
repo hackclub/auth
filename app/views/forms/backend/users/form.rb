@@ -5,9 +5,9 @@ class Backend::Users::Form < ApplicationForm
     unless model.orphaned?
       div class: "card margin-bottom" do
         h4 { "Linked Identity" }
-        p { b { "Name: " }; text "#{model.first_name} #{model.last_name}" }
-        p { b { "Email: " }; text model.email }
-        p { b { "Slack ID: " }; text model.slack_id || "Not linked" }
+        p { b { "Name: " }; "#{model.first_name} #{model.last_name}" }
+        p { b { "Email: " }; model.email }
+        p { b { "Slack ID: " }; model.slack_id || "Not linked" }
       end
     end
 
@@ -17,7 +17,7 @@ class Backend::Users::Form < ApplicationForm
       end
     end
 
-    render Backend::Users::PermissionsForm.new(model)
+    render ::Backend::Users::PermissionsForm.new(model)
 
     submit "save"
   end
