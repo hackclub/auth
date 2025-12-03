@@ -33,6 +33,14 @@ module Backend
     def human_endorser? = human_endorser
     def all_fields_access? = all_fields_access
 
+    def seen_hint!(slug)
+      self.seen_hints << slug.to_s
+      self.seen_hints.uniq!
+      save
+    end
+
+    def seen_hint?(slug) = seen_hints&.include? slug.to_s
+
     def pretty_roles
       return "Super admin" if super_admin?
       roles = []

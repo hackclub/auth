@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_20_212350) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_03_031324) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -112,6 +112,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_20_212350) do
     t.string "credential_id"
     t.boolean "can_break_glass"
     t.bigint "identity_id"
+    t.string "seen_hints", default: [], array: true
     t.index ["identity_id"], name: "index_backend_users_on_identity_id"
   end
 
