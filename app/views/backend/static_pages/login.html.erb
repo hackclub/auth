@@ -1,34 +1,21 @@
-<div class="window active mx-auto" style="max-width: 400px;">
-  <div class="title-bar">
-    <div class="title-bar-text">
-      Identity Vault [
-      <% case Rails.env %>
-      <% when "development" %>
-        DEV
-      <% when "staging" %>
-        STAGING
-      <% else %>
-        PROD
-      <% end %>]
-    </div>
-  </div>
-  <div class="window-body">
-    <div class="padding">
-      Abandon hope, all ye who enter here...
-    </div>
-    <div class="padding flex justify-end">
-      <%= link_to backend_slack_auth_path, class: "button w-fit" do %>
-        Sign in with Slack?
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "identity vault [#{Rails.env.upcase[0..3]}]") do %>
+    <p>abandon hope, all ye who enter here...</p>
+    <hr/>
+    <%= render Components::Backend::Item.new(icon: "⭢", href: backend_slack_auth_path) do %>
+      <b>sign in with slack</b>
+    <% end %>
+    <% dev_tool do %>
+      <hr/>
+      <%= form_with url: backend_fake_slack_callback_for_dev_path, method: :post, local: true do |f| %>
+        <div class="form-row">
+          <%= f.label :slack_id, "fake slack id" %>
+          <%= f.text_field :slack_id, placeholder: "U12345678" %>
+          <%= f.submit "fake it", class: "action_button" %>
+        </div>
       <% end %>
-      <% dev_tool do %>
-        <%= form_with url: backend_fake_slack_callback_for_dev_path, method: :post do |f| %>
-          <%= f.text_field :slack_id %>
-          <%= f.submit "fake it til' you make it" %>
-        <% end %>
-      <% end %>
-    </div>
-    <div class="padding">
-      Running commit <%= ENV["SOURCE_COMMIT"]&.[](0..7) || "...dunno?" %>
-    </div>
-  </div>
+    <% end %>
+    <hr/>
+    <small>running commit <%= ENV["SOURCE_COMMIT"]&.[](0..7) || "...dunno?" %></small>
+  <% end %>
 </div>

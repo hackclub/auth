@@ -1,22 +1,35 @@
+# frozen_string_literal: true
+
 class Components::Inspector < Components::Base
   def initialize(record, small: false)
     @record = record
     @small = small
-    @id_line = "#{@record.class.name}#{" record" unless @small} #{@record&.try(:public_id) || @record&.id}"
   end
 
   def view_template
     return unless Rails.env.development?
 
-    details(class: @small ? nil : "dev-tool") do
-      summary { "#{"Inspect" unless @small} #{@id_line}" }
-      pre class: %i[input readonly] do
+    details class: "inspector" do
+      summary do
+        if @small
+          plain record_id
+        else
+          plain "inspect #{record_id}"
+        end
+      end
+      pre class: "inspector-content" do
         unless @record.nil?
           raw safe(ap @record)
         else
-          "no record?"
+          plain "nil"
         end
       end
     end
+  end
+
+  private
+
+  def record_id
+    "#{@record.class.name} #{@record&.try(:public_id) || @record&.id}"
   end
 end

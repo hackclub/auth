@@ -1,76 +1,84 @@
-<%= render Components::Window.new("Program: #{@program.name}", close_url: backend_programs_path, max_width: 600) do %>
-  <div class="padding">
-    <div class="space-y-4">
-      <div>
-        <h3><%= @program.name %></h3>
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "program: #{@program.name}") do %>
+    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_programs_path) do %>
+      <b>back to programs</b>
+    <% end %>
+    <hr/>
+    <div class="section">
+      <div class="section-header"><h3>details</h3></div>
+      <div class="section-content">
         <% if @program.description.present? %>
-          <p class="text-gray-600"><%= @program.description %></p>
+          <p><%= @program.description %></p>
         <% end %>
-      </div>
-      <% if @program.owner_identity.present? %>
-        <div>
-          <strong>Developer-owned by:</strong>
-          <%= render Components::UserMention.new(@program.owner_identity) %>
+        <div class="detail-row">
+          <span class="detail-label">owner</span>
+          <span class="detail-value">
+            <% if @program.owner_identity.present? %>
+              <%= render Components::UserMention.new(@program.owner_identity) %>
+            <% else %>
+              <i>HQ</i>
+            <% end %>
+          </span>
         </div>
-      <% end %>
-      <div>
-        <strong>Status:</strong>
-        <%= @program.active? ? "Active" : "Inactive" %>
+        <div class="detail-row">
+          <span class="detail-label">status</span>
+          <span class="detail-value"><span class="badge <%= @program.active? ? 'success' : 'danger' %>"><%= @program.active? ? "active" : "inactive" %></span></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">trust</span>
+          <span class="detail-value"><%= @program.trust_level.to_s.titleize %></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">scopes</span>
+          <span class="detail-value"><code><%= @program.scopes.presence || "none" %></code></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">users</span>
+          <span class="detail-value"><%= @identities_count %></span>
+        </div>
       </div>
-      <div>
-        <strong>Trust Level:</strong>
-        <%= @program.trust_level.to_s.titleize %>
+    </div>
+    <hr/>
+    <div class="section">
+      <div class="section-header"><h3>credentials</h3></div>
+      <div class="section-content lowered">
+        <div class="form-row">
+          <label>client id</label>
+          <input type="text" value="<%= @program.uid %>" readonly onclick="this.select()" data-click-to-copy>
+        </div>
+        <div class="form-row">
+          <label>secret</label>
+          <input type="text" value="<%= @program.secret %>" readonly onclick="this.select()" data-click-to-copy>
+        </div>
+        <div class="form-row">
+          <label>api key</label>
+          <input type="text" value="<%= @program.program_key %>" readonly onclick="this.select()" data-click-to-copy>
+        </div>
       </div>
-      <div>
-        <strong>OAuth Scopes:</strong>
-        <% if @program.scopes.present? %>
-          <br>
-          <code class="bg-light p-2"><%= @program.scopes %></code>
-        <% else %>
-          <em>No scopes defined</em>
-        <% end %>
-      </div>
-      <div>
-        <strong>Users Enrolled:</strong> <%= @identities_count %>
-      </div>
-      <hr>
-      <div>
-        <div class="grid gap-2" style="grid-template-columns: max-content auto;">
-          <strong>Client ID:</strong>
-          <input type="text" value="<%= @program.uid %>" readonly autocomplete="nope">
-          <strong>Client Secret:</strong>
-          <input type="text" value="<%= @program.secret %>" readonly autocomplete="nope">
-          <strong>Program global API key:</strong>
-          <input type="text" value="<%= @program.program_key %>" readonly autocomplete="nope">
-          <strong>Redirect URIs:</strong>
-          <% if @program.redirect_uri.present? %>
-            <table>
-              <% @program.redirect_uri.split.each do |uri| %>
-                <tr>
-                  <td>
-                    <code class="bg-light"><%= uri %></code>
-                  </td>
-                  <td>
-                    <%= link_to "auth link", oauth_authorization_path(client_id: @program.uid, redirect_uri: uri, response_type: 'code', scope: @program.scopes), class: 'btn btn-success', target: '_blank' %>
-                  </td>
-                </tr>
-              <% end %>
-            </table>
-            <div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 1rem;">
-              <small style="color: #666;">(right click to copy auth URLs)</small>
+    </div>
+    <% if @program.redirect_uri.present? %>
+      <div class="section">
+        <div class="section-header"><h3>redirect uris</h3></div>
+        <div class="section-content">
+          <% @program.redirect_uri.split.each do |uri| %>
+            <div class="detail-row">
+              <span class="detail-value"><code><%= uri %></code></span>
+              <%= link_to "auth →", oauth_authorization_path(client_id: @program.uid, redirect_uri: uri, response_type: 'code', scope: @program.scopes), target: '_blank' %>
             </div>
-          <% else %>
-            <span class="bg-light font-italic text-uppercase text-muted"><%= t('.not_defined') %></span>
           <% end %>
         </div>
       </div>
-      <div class="flex gap-2">
-        <%= link_to "Edit Program", edit_backend_program_path(@program), class: "button" %>
-        <%= link_to "View OAuth App", oauth_application_path(@program), class: "link", target: "_blank" %>
-        <%= link_to "Delete Program", backend_program_path(@program), method: :delete,
-                   confirm: "Are you sure? This will delete the program and all associated data.",
-                   class: "link", style: "color: red;" %>
-      </div>
-    </div>
-  </div>
-<% end %>
+    <% end %>
+    <hr/>
+    <%= render Components::Backend::Item.new(icon: "✎", href: edit_backend_program_path(@program)) do %>
+      <b>edit program</b>
+    <% end %>
+    <%= render Components::Backend::Item.new(icon: "⭢", href: oauth_application_path(@program), target: "_blank") do %>
+      <b>oauth app</b>
+    <% end %>
+    <%= link_to backend_program_path(@program), method: :delete, data: { confirm: "delete this program and all associated data?" }, class: "item" do %>
+      <figure class="icon">✕</figure>
+      <span class="text"><b>delete program</b></span>
+    <% end %>
+  <% end %>
+</div>

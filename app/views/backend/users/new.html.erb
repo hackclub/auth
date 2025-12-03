@@ -1,5 +1,80 @@
-<%= render Components::Window.new("New User", close_url: backend_users_path, max_width: 500) do %>
-  <div class="padding">
-    <%= render Backend::Users::Form.new @user %>
-  </div>
-<% end %>
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "grant backend access") do %>
+    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_users_path) do %>
+      <b>cancel</b>
+    <% end %>
+    <hr/>
+    <div class="section">
+      <div class="section-header"><h3>find identity</h3></div>
+      <div class="section-content">
+        <%= form_with url: new_backend_user_path, method: :get, local: true do |f| %>
+          <div class="form-row">
+            <%= f.text_field :query, placeholder: "search by email, name, or slack id...", value: params[:query], autofocus: true %>
+            <%= render Components::Backend::ActionButton.new(hotkey: "↵") { "SRCH" } %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <% if params[:query].present? %>
+      <% if @identities.any? %>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>name</th>
+                <th>email</th>
+                <th>slack</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @identities.each do |identity| %>
+                <tr>
+                  <td><%= identity.first_name %> <%= identity.last_name %></td>
+                  <td><%= identity.primary_email %></td>
+                  <td><%= identity.slack_id || "—" %></td>
+                  <td><%= link_to "select →", new_backend_user_path(identity_id: identity.id) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state">no identities found matching "<%= params[:query] %>"</div>
+      <% end %>
+    <% end %>
+    <% if params[:identity_id].present? %>
+      <% identity = Identity.find(params[:identity_id]) %>
+      <hr/>
+      <div class="section">
+        <div class="section-header"><h3>granting access to</h3></div>
+        <div class="section-content">
+          <div class="detail-row">
+            <span class="detail-label">name</span>
+            <span class="detail-value"><%= identity.first_name %> <%= identity.last_name %></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">email</span>
+            <span class="detail-value"><%= identity.primary_email %></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">slack</span>
+            <span class="detail-value"><%= identity.slack_id || "not linked" %></span>
+          </div>
+        </div>
+      </div>
+      <%= form_with url: backend_users_path, method: :post, local: true do |f| %>
+        <%= hidden_field_tag :identity_id, identity.id %>
+        <div class="section">
+          <div class="section-header"><h3>permissions</h3></div>
+          <div class="section-content">
+            <%= render Backend::Users::PermissionsForm.new(Backend::User.new) %>
+          </div>
+        </div>
+        <div class="form-actions">
+          <%= f.submit "grant access", class: "action_button" %>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>
