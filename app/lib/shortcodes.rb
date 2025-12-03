@@ -33,8 +33,7 @@ module Shortcodes
 
       # Program manager
       if user&.program_manager? || user&.super_admin?
-        shortcuts << Shortcode.new(code: "PROG", label: "Programs", controller: "backend/programs", action: "index", icon: "⭢", role: :program_manager, path_override: nil)
-        shortcuts << Shortcode.new(code: "APPS", label: "OAuth2 apps", controller: "doorkeeper/applications", action: "index", icon: "⭢", role: :program_manager, path_override: "/oauth/applications")
+        shortcuts << Shortcode.new(code: "APPS", label: "OAuth2 apps", controller: "backend/programs", action: "index", icon: "⭢", role: :program_manager, path_override: nil)
       end
 
       # Super admin (less frequent)
