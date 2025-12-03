@@ -197,6 +197,7 @@ Rails.application.routes.draw do
     end
     get "kbar/search", to: "kbar#search", as: :kbar_search
     get "identity_picker/search", to: "identity_picker#search", as: :identity_picker_search
+    post "hints/mark_seen", to: "hints#mark_seen", as: :hints_mark_seen
 
 
     resources :users do
