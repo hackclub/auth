@@ -44,15 +44,15 @@
       <div class="section-content lowered">
         <div class="form-row">
           <label>client id</label>
-          <input type="text" value="<%= @program.uid %>" readonly onclick="this.select()" data-click-to-copy>
+          <input type="text" value="<%= @program.uid %>" readonly onclick="this.select()" data-click-to-copy autocomplete="off">
         </div>
         <div class="form-row">
           <label>secret</label>
-          <input type="text" value="<%= @program.secret %>" readonly onclick="this.select()" data-click-to-copy>
+          <input type="text" value="<%= @program.secret %>" readonly onclick="this.select()" data-click-to-copy autocomplete="off">
         </div>
         <div class="form-row">
           <label>api key</label>
-          <input type="text" value="<%= @program.program_key %>" readonly onclick="this.select()" data-click-to-copy>
+          <input type="text" value="<%= @program.program_key %>" readonly onclick="this.select()" data-click-to-copy autocomplete="off">
         </div>
       </div>
     </div>
