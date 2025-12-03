@@ -9,12 +9,14 @@ module Backend
 
     validates :username, presence: true, uniqueness: true, if: :orphaned?
 
-    delegate :email, :first_name, :last_name, :slack_id, to: :identity, allow_nil: true
+    delegate :first_name, :last_name, :slack_id, to: :identity, allow_nil: true
 
     scope :orphaned, -> { where(identity_id: nil) }
     scope :linked, -> { where.not(identity_id: nil) }
 
     def orphaned? = identity_id.nil?
+
+    def email = identity&.email
 
     def display_name
       return username if orphaned?
