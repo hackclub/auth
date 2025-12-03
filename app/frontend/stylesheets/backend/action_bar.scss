@@ -1,0 +1,40 @@
+#toolbar {
+  position: fixed;
+  top: 0;
+  left: 2ch;
+  right: 2ch;
+  z-index: 100;
+}
+
+.action_bar {
+  background: var(--theme-background);
+  box-shadow: inset 0 0 0 1px var(--theme-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.action_bar_left {
+  display: flex;
+  align-items: center;
+}
+
+.action_bar_right {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.usn {
+  padding: 0 1ch;
+  background: var(--theme-border);
+  font-weight: 600;
+}
+
+.current_shortcode {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size);
+  padding: 0 1ch;
+  background: var(--theme-button-foreground);
+  color: var(--theme-text);
+}

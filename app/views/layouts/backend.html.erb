@@ -19,6 +19,7 @@
     <%= vite_javascript_tag 'backend.jsx' %>
   </head>
   <body>
+    <%= render Components::Backend::ActionBar.new(controller_path: controller_path, action_name: action_name, user: current_user) { yield :toolbar } %>
     <script type="application/json" id="kbar-data">
       <%= raw Shortcodes.kbar_data_for(current_user) %>
     </script>
