@@ -1,5 +1,5 @@
 import $ from "jquery";
-function setup_copy() {
+export function setup_copy() {
     $('[data-copy-to-clipboard]').not('[data-copy-setup]').each(function() {
         $(this).attr('data-copy-setup', 'true').on('click', async function (e) {
             const element = e.currentTarget;

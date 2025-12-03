@@ -1,11 +1,14 @@
-import "../js/click-to-copy";
+import { setup_copy } from "../js/click-to-copy.js";
 import { Kbar } from "../components/kbar.jsx";
 import { HintsModal } from "../components/hints_modal.jsx";
 import { KeyboardShortcuts } from "../components/keyboard_shortcuts.jsx";
 import { SingleIdentityPicker, MultipleIdentityPicker } from "../components/identity_picker.jsx";
 import { NavigableList } from "../components/navigable_list.jsx";
 
+window.htmx = htmx;
+
 document.addEventListener("DOMContentLoaded", () => {
+  setup_copy();
   const kbar = h(Kbar, null);
   document.body.appendChild(kbar);
 
