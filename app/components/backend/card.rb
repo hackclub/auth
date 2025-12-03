@@ -1,20 +1,19 @@
 # frozen_string_literal: true
 
 class Components::Backend::Card < Components::Base
-  def initialize(title:, mode: nil)
+  def initialize(title:)
     @title = title
-    @mode = mode
   end
 
   def view_template
     article class: "card" do
-      header class: "action" do
-        div class: @mode == :left ? "leftCorner" : "left", aria_hidden: true
-        h2(class: "title") { @title }
-        div class: @mode == :left ? "rightCorner" : "right", aria_hidden: true
+      header class: "card-header" do
+        div class: "card-header-left", aria_hidden: true
+        h2(class: "card-title") { @title }
+        div class: "card-header-right", aria_hidden: true
       end
 
-      section class: "children" do
+      section class: "card-body" do
         yield
       end
     end

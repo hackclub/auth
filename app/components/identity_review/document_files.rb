@@ -1,118 +1,120 @@
+# frozen_string_literal: true
+
 class Components::IdentityReview::DocumentFiles < Components::Base
   def initialize(document)
     @document = document
   end
 
   def view_template
-    h2(style: "margin-top: 0;") { "Document Files" }
-
     if @document.files.attached?
-      @document.files.each_with_index do |file, index|
-        div(style: "margin-bottom: 2rem;") do
-          h3 { "File #{index + 1}: #{file.filename}" }
-
-          if file.content_type.start_with?("image/")
-            # Display image files (use variants for format conversion)
-            image_src = if file.content_type.in?(%w[image/heic image/heif])
-                url_for(file.variant(format: :png))
-            else
-                url_for(file)
-            end
-
-            div(style: "position: relative; display: inline-block;") do
-              # Loader
-              div(
-                id: "loader-#{index}",
-                style: "display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;",
-              ) do
-                div(style: "text-align: center;") do
-                  plain file.content_type.in?(%w[image/heic image/heif]) ? "Converting HEIC image..." : "Loading image..."
-                  br
-                  vite_image_tag "images/loader.gif", style: "image-rendering: pixelated; width: 32px; height: 32px;"
-                end
-              end
-
-              # Image container (hidden until loaded)
-              div(id: "image-container-#{index}", style: "display: none;") do
-                img(
-                  src: image_src,
-                  alt: "Document file #{index + 1}",
-                  style: "max-width: 100%; max-height: 600px; height: auto; border: 1px solid #ddd; border-radius: 4px; transition: transform 0.3s ease;",
-                  id: "image-#{index}",
-                  data: { rotation: 0 },
-                  onload: safe("document.getElementById('loader-#{index}').style.display='none'; document.getElementById('image-container-#{index}').style.display='block';"),
-                  onerror: safe("document.getElementById('loader-#{index}').innerHTML='<p>Error loading image</p>';"),
-                )
-                button(
-                  type: "button",
-                  class: "button",
-                  style: "position: absolute; top: 10px; right: 10px;",
-                  onclick: safe("rotateImage(#{index})"),
-                  title: "Rotate image",
-                ) { "↻ Rotate" }
-              end
-            end
-          elsif file.content_type == "application/pdf"
-            # Display PDF files inline
-            div(style: "border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;") do
-              div(style: "padding: 1rem; border-bottom: 1px solid #ddd; background: #f5f5f5;") do
-                span(style: "font-weight: bold;") { "#{inline_icon("docs", size: 16)} #{file.filename}" }
-                a(
-                  href: url_for(file),
-                  target: "_blank",
-                  style: "color: #0066cc; text-decoration: underline; margin-left: 1rem;",
-                ) { "Open in new tab" }
-              end
-              # Embed PDF using iframe
-              iframe(
-                src: url_for(file),
-                width: "100%",
-                height: "600",
-                style: "border: none; display: block;",
-                type: "application/pdf",
-              ) do
-                # Fallback for browsers that don't support PDF embedding
-                p(style: "padding: 2rem; text-align: center;") do
-                  plain "Your browser doesn't support PDF embedding. "
-                  a(
-                    href: url_for(file),
-                    target: "_blank",
-                    style: "color: #0066cc; text-decoration: underline;",
-                  ) { "Click here to view the PDF" }
-                end
-              end
-            end
-          else
-            # Display other file types
-            div(style: "border: 1px solid #ddd; border-radius: 4px; padding: 1rem; background: #f9f9f9;") do
-              p { "#{inline_icon("attachment", size: 16)} File: #{file.filename}" }
-              p { "Type: #{file.content_type}" }
-              p do
-                a(
-                  href: url_for(file),
-                  target: "_blank",
-                  style: "color: #0066cc; text-decoration: underline;",
-                ) { "Download File" }
-              end
-            end
-          end
+      div class: "document-files" do
+        @document.files.each_with_index do |file, index|
+          render_file(file, index)
         end
       end
+
+      script do
+        raw safe <<~JAVASCRIPT
+          function rotateImage(index) {
+            const img = document.getElementById('image-' + index);
+            let currentRotation = parseInt(img.dataset.rotation || 0);
+            currentRotation = (currentRotation + 90);
+            img.dataset.rotation = currentRotation;
+            img.style.transform = 'rotate(' + currentRotation + 'deg)';
+          }
+        JAVASCRIPT
+      end
     else
-      p(style: "color: #666; font-style: italic;") { "No files attached to this document." }
+      div(class: "empty-state") { "no files attached" }
+    end
+  end
+
+  private
+
+  def render_file(file, index)
+    div class: "document-file" do
+      div class: "file-header" do
+        span(class: "file-name") { "#{index + 1}. #{file.filename}" }
+        a(href: url_for(file), target: "_blank", class: "file-action") { "open ↗" }
+      end
+
+      if file.content_type.start_with?("image/")
+        render_image(file, index)
+      elsif file.content_type == "application/pdf"
+        render_pdf(file)
+      else
+        render_other(file)
+      end
+    end
+  end
+
+  def render_image(file, index)
+    image_src = if file.content_type.in?(%w[image/heic image/heif])
+      url_for(file.variant(format: :png))
+    else
+      url_for(file)
     end
 
-    # Add JavaScript for image rotation
-    script do
-      raw safe <<~JAVASCRIPT
-                 function rotateImage(index) {
-                   const img = document.getElementById('image-' + index);
-                   let currentRotation = parseInt(img.dataset.rotation || 0);
-                   currentRotation = (currentRotation + 90);
-                   img.dataset.rotation = currentRotation;
-                   img.style.transform = 'rotate(' + currentRotation + 'deg)';
-                 }
-               JAVASCRIPT
+    div class: "file-preview" do
+      div id: "loader-#{index}", class: "file-loader" do
+        plain file.content_type.in?(%w[image/heic image/heif]) ? "converting heic..." : "loading..."
+        br
+        vite_image_tag "images/loader.gif", class: "loader-gif"
+      end
+
+      div id: "image-container-#{index}", class: "image-container hidden" do
+        img(
+          src: image_src,
+          alt: "document file #{index + 1}",
+          class: "preview-image",
+          id: "image-#{index}",
+          data: { rotation: 0 },
+          onload: safe("document.getElementById('loader-#{index}').style.display='none'; document.getElementById('image-container-#{index}').classList.remove('hidden');"),
+          onerror: safe("document.getElementById('loader-#{index}').innerHTML='error loading image';"),
+        )
+        button(
+          type: "button",
+          class: "action_button rotate-button",
+          onclick: safe("rotateImage(#{index})"),
+        ) { "↻ rotate" }
+      end
+    end
+  end
+
+  def render_pdf(file)
+    div class: "file-preview pdf-preview" do
+      iframe(
+        src: url_for(file),
+        class: "pdf-frame",
+        type: "application/pdf",
+      ) do
+        p(class: "pdf-fallback") do
+          plain "browser doesn't support pdf embedding. "
+          a(href: url_for(file), target: "_blank") { "open pdf" }
+        end
+      end
+    end
+  end
+
+  def render_other(file)
+    div class: "file-preview lowered" do
+      detail_row("type", file.content_type)
+      detail_row("download") do
+        a(href: url_for(file), target: "_blank") { "download file" }
+      end
+    end
+  end
+
+  def detail_row(label, value = nil, &block)
+    div class: "detail-row" do
+      span(class: "detail-label") { label }
+      span class: "detail-value" do
+        if block_given?
+          yield
+        else
+          plain value.to_s
+        end
+      end
     end
   end
 end

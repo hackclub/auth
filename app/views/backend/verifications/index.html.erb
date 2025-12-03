@@ -1,71 +1,58 @@
-<%= render Components::Window.new("All Verifications", close_url: backend_root_path, max_width: 1200) do %>
-  <div class="padding">
-    <div class="flex" style="justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-      <h2 style="margin: 0;">All Verifications</h2>
-      <div class="flex" style="gap: 1rem;">
-        <%= link_to "Pending Verifications", pending_backend_verifications_path, class: "button" %>
-      </div>
-    </div>
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "all verifications") do %>
+    <%= render Components::Backend::Item.new(icon: "⭢", href: pending_backend_verifications_path) do %>
+      <b>pending verifications</b>
+      <p class="shortcode">&nbsp; [ PEND ]</p>
+    <% end %>
+    <hr/>
     <% if @recent_verifications.any? %>
-      <div class="lowered" style="overflow-x: auto;">
-        <table class="detailed">
+      <div class="table-container">
+        <table>
           <thead>
             <tr>
-              <th>Identity</th>
-              <th>Document Type</th>
-              <th>Status</th>
-              <th>Date</th>
-              <th>Reason</th>
-              <th>Actions</th>
+              <th>identity</th>
+              <th>type</th>
+              <th>status</th>
+              <th>date</th>
+              <th>reason</th>
             </tr>
           </thead>
           <tbody>
             <% @recent_verifications.each do |verification| %>
-              <tr style="<%= 'opacity: 0.6; background-color: #f9f9f9;' if verification.ignored_at.present? %>">
+              <tr>
                 <td>
-                  <%= verification.identity.first_name %> <%= verification.identity.last_name %>
-                  <br>
-                  <small style="color: #666;"><%= verification.identity.primary_email %></small>
+                  <%= link_to backend_verification_path(verification) do %>
+                    <%= verification.identity.first_name %> <%= verification.identity.last_name %>
+                  <% end %>
+                  <br><small><%= verification.identity.primary_email %></small>
                 </td>
                 <td>
                   <%= verification.document_type %>
                   <% if verification.ignored_at.present? %>
-                    <br><small style="color: #666;">(Ignored)</small>
+                    <span class="badge warning">ignored</span>
                   <% end %>
                 </td>
                 <td>
-                  <span class="<%= verification.approved? ? 'status-verified' : 'status-rejected' %>">
-                    <%= verification.status.humanize %>
+                  <span class="badge <%= verification.approved? ? 'success' : 'danger' %>">
+                    <%= verification.status %>
                   </span>
                 </td>
-                <td>
-                  <%= verification.updated_at.strftime("%m/%d/%Y %I:%M %p") %>
-                </td>
+                <td><%= verification.updated_at.strftime("%m/%d/%Y") %></td>
                 <td>
                   <% if verification.ignored_at.present? %>
-                    <strong>Ignored:</strong> <%= verification.ignored_reason %>
+                    <%= verification.ignored_reason %>
                   <% else %>
                     <%= verification.rejection_reason_name %>
                   <% end %>
-                </td>
-                <td>
-                  <%= link_to "View", backend_verification_path(verification), class: "button button-secondary" %>
                 </td>
               </tr>
             <% end %>
           </tbody>
         </table>
       </div>
-      <div style="margin-top: 2rem; text-align: center;">
-        <%= paginate @recent_verifications %>
-      </div>
+      <%= paginate @recent_verifications %>
     <% else %>
-      <div class="lowered padding" style="text-align: center;">
-        <p>No verifications found</p>
-        <p style="color: #666; margin-top: 1rem;">
-          <%= link_to "Check pending verifications", pending_backend_verifications_path, class: "button" %>
-        </p>
-      </div>
+      <div class="empty-state">no verifications found</div>
     <% end %>
-  </div>
-<% end %>
+  <% end %>
+</div>
