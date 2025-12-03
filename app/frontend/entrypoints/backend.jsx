@@ -1,11 +1,15 @@
 import "../js/click-to-copy";
 import { Kbar } from "../components/kbar.jsx";
+import { HintsModal } from "../components/hints_modal.jsx";
 import { SingleIdentityPicker, MultipleIdentityPicker } from "../components/identity_picker.jsx";
 import { NavigableList } from "../components/navigable_list.jsx";
 
 document.addEventListener("DOMContentLoaded", () => {
   const kbar = h(Kbar, null);
   document.body.appendChild(kbar);
+
+  const hintsModal = h(HintsModal, null);
+  document.body.appendChild(hintsModal);
 
   document.querySelectorAll("[data-identity-picker]").forEach((el) => {
     const dataEl = el.querySelector(".picker-initial-data");
