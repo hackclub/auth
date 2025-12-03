@@ -1,16 +1,17 @@
+# frozen_string_literal: true
+
 class Components::Backend::ActionButton < Components::Base
   extend Literal::Properties
 
   prop :hotkey, _String?
   prop :onclick, _String?
   prop :selected, _Boolean?
+  prop :type, _String?, default: "button"
 
   def view_template
-    div class: "action_button#{" selected" if @selected}", onclick: (safe(@onclick) if @onclick) do
+    button class: "action_button#{" selected" if @selected}", type: @type, onclick: (safe(@onclick) if @onclick) do
       span(class: "hotkey") { @hotkey } if @hotkey.present?
-      span class: "content" do
-        yield
-      end
+      plain yield
     end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Components::Resemblance < Components::Base
   attr_reader :resemblance
 
@@ -6,9 +8,14 @@ class Components::Resemblance < Components::Base
   end
 
   def view_template
-    div style: { border: "1px solid", padding: "10px", margin: "10px" } do
+    div class: "lowered" do
       render @resemblance
-      render Components::Identity.new(@resemblance.past_identity)
+      div class: "section" do
+        div(class: "section-header") { h3 { "matched identity" } }
+        div class: "section-content" do
+          render Components::Identity.new(@resemblance.past_identity)
+        end
+      end
       render Components::Inspector.new(@resemblance)
     end
   end

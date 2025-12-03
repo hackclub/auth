@@ -10,19 +10,25 @@ class Components::Backend::Item < Components::Base
 
   def view_template
     if @href
-      a class: "item", href: @href, target: @target, onclick: (safe(@onclick) if @onclick), tab_index: nil, role: :link do
-        icon
-        children { yield }
+      a class: "item", href: @href, target: @target, onclick: (safe(@onclick) if @onclick) do
+        render_icon
+        render_text { yield }
       end
     else
-      div class: "item", onclick: (safe(@onclick) if @onclick), tab_index: nil, role: :button do
-        icon
-        children { yield }
+      button class: "item", type: "button", onclick: (safe(@onclick) if @onclick) do
+        render_icon
+        render_text { yield }
       end
     end
   end
 
-  def icon = figure(class: "icon") { @icon }
+  private
 
-  def children(&block) = span(class: "text") { yield }
+  def render_icon
+    figure(class: "icon") { @icon || "·" }
+  end
+
+  def render_text
+    span(class: "text") { yield }
+  end
 end
