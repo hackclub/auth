@@ -1,5 +1,113 @@
 // this is monstrous i'm so sorry
-const Kbar = function() {
+import { ResultItem } from "./kbar/result_item.jsx";
+import { ScopeItem } from "./kbar/scope_item.jsx";
+
+const scopeShortcuts = { "?i": "identities", "?a": "oauth_apps" }
+const scopeShortcutHints = { "identities": "?i", "oauth_apps": "?a" }
+
+const ScopedResults = function(cx) {
+  const renderItem = (r, idx) => (
+    <ResultItem
+      path={r.path}
+      selected={use(this.selectedIndex).map(s => s === idx)}
+      icon="⭢"
+      label={r.label}
+      sublabel={r.sublabel}
+      onSelect={() => this.onNavigate?.(r.path)}
+      onHover={() => { this.selectedIndex = idx }}
+    />
+  )
+
+  return (
+    <div class="kbar-results-list">
+      {use(this.results, this.query, this.scopeLabel).map(([results, query, label]) => {
+        if (results.length > 0) {
+          return results.map((r, idx) => renderItem(r, idx))
+        } else if (query.length >= 2) {
+          return <div class="kbar-section-label">No results</div>
+        } else {
+          return <div class="kbar-section-label">Type to search {label}...</div>
+        }
+      })}
+    </div>
+  )
+}
+
+const MainResults = function(cx) {
+  return (
+    <div class="kbar-results-list">
+      {use(this.publicIdMatch, this.publicIdLookup, this.query).map(([match, lookup, query]) => {
+        if (!match) return null
+        const isNotFound = lookup?.query === query && lookup?.notFound
+        const isLoading = lookup?.query === query && lookup?.loading
+        const fetchedData = lookup?.query === query ? lookup?.data : null
+        const targetPath = fetchedData?.path || match.path
+        const sublabel = isNotFound ? match.fullId 
+          : fetchedData ? [fetchedData.label, fetchedData.sublabel].filter(Boolean).join(' · ')
+          : isLoading ? 'loading...' : match.fullId
+
+        return (
+          <ResultItem
+            path={targetPath}
+            selected={use(this.selectedIndex).map(s => s === 0)}
+            disabled={isNotFound}
+            icon={isNotFound ? '✕' : '⭢'}
+            label={isNotFound ? `${match.model} not found` : `Go to ${match.model}`}
+            sublabel={sublabel}
+            onSelect={() => !isNotFound && this.onNavigate?.(targetPath)}
+            onHover={() => { this.selectedIndex = 0 }}
+          />
+        )
+      })}
+
+      {use(this.filteredShortcuts).map(shortcuts => shortcuts.length > 0 ? (
+        <div class="kbar-section">
+          <div class="kbar-section-label">Shortcuts</div>
+          {use(this.filteredShortcuts, this.publicIdMatch).map(([shortcuts, hasPublicId]) => 
+            shortcuts.map((s, i) => {
+              const idx = hasPublicId ? i + 1 : i
+              return (
+                <ResultItem
+                  path={s.path}
+                  selected={use(this.selectedIndex).map(sel => sel === idx)}
+                  icon={s.icon}
+                  label={s.label}
+                  shortcode={s.code}
+                  onSelect={() => this.onNavigateShortcut?.(s.path, s)}
+                  onHover={() => { this.selectedIndex = idx }}
+                />
+              )
+            })
+          )}
+        </div>
+      ) : null)}
+
+      {use(this.filteredScopes).map(scopes => scopes.length > 0 ? (
+        <div class="kbar-section">
+          <div class="kbar-section-label">Search</div>
+          {use(this.filteredScopes, this.filteredShortcuts, this.publicIdMatch).map(([scopes, shortcuts, hasPublicId]) => {
+            const offset = (hasPublicId ? 1 : 0) + shortcuts.length
+            return scopes.map((scope, i) => {
+              const idx = offset + i
+              return (
+                <ScopeItem
+                  label={scope.label}
+                  hint={scopeShortcutHints[scope.key]}
+                  queryHint={use(this.query).map(q => q.length >= 2 ? q : null)}
+                  selected={use(this.selectedIndex).map(sel => sel === idx)}
+                  onSelect={() => this.onEnterScope?.(scope)}
+                  onHover={() => { this.selectedIndex = idx }}
+                />
+              )
+            })
+          })}
+        </div>
+      ) : null)}
+    </div>
+  )
+}
+
+const Kbar = function(cx) {
   this.isOpen = false
   this.query = ""
   this.shortcuts = []
@@ -7,16 +115,13 @@ const Kbar = function() {
   this.searchScopes = []
   this.searchResults = []
   this.selectedIndex = 0
-  this.resultsVersion = 0
-  this.publicIdLookup = null // { query, loading, data, notFound }
-  this.activeScope = null // { key, label } - when drilling down into a search
+  this.publicIdLookup = null
+  this.activeScope = null
   this.isExiting = false
 
   let searchTimeout = null
   let publicIdTimeout = null
   const state = this
-  let resultsContainer = null
-  let backdropEl = null
   let inputEl = null
 
   const getPublicIdMatch = () => {
@@ -33,40 +138,27 @@ const Kbar = function() {
     }
   }
 
-  const fetchPublicIdDetails = (query, prefixData) => {
+  const fetchPublicIdDetails = (query) => {
     if (publicIdTimeout) clearTimeout(publicIdTimeout)
-    
-    // Check if hashid part is long enough (at least 3 chars after the !)
     const hashPart = query.split("!")[1] || ""
     if (hashPart.length < 3) {
       state.publicIdLookup = { query, loading: false, data: null, notFound: true }
-      state.resultsVersion++
       return
     }
-
     state.publicIdLookup = { query, loading: true, data: null, notFound: false }
-    state.resultsVersion++
-
     publicIdTimeout = setTimeout(async () => {
       try {
         const res = await fetch(`/backend/kbar/search?q=${encodeURIComponent(query)}`)
-        if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) {
-          throw new Error("Non-JSON response")
-        }
+        if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) throw new Error("Non-JSON response")
         const results = await res.json()
-        if (state.publicIdLookup?.query !== query) return // stale
-        
-        if (results.length > 0) {
-          state.publicIdLookup = { query, loading: false, data: results[0], notFound: false }
-        } else {
-          state.publicIdLookup = { query, loading: false, data: null, notFound: true }
-        }
-        state.resultsVersion++
+        if (state.publicIdLookup?.query !== query) return
+        state.publicIdLookup = results.length > 0 
+          ? { query, loading: false, data: results[0], notFound: false }
+          : { query, loading: false, data: null, notFound: true }
       } catch (err) {
         console.error("Public ID lookup failed:", err)
         if (state.publicIdLookup?.query === query) {
           state.publicIdLookup = { query, loading: false, data: null, notFound: true }
-          state.resultsVersion++
         }
       }
     }, 100)
@@ -79,34 +171,13 @@ const Kbar = function() {
     state.selectedIndex = 0
     state.publicIdLookup = null
     state.activeScope = null
-    state.resultsVersion++
-    backdropEl.classList.add("open")
-    setTimeout(() => {
-      if (inputEl) {
-        inputEl.value = ""
-        inputEl.focus()
-      }
-    }, 10)
+    setTimeout(() => inputEl?.focus(), 10)
   }
 
-  const updateScopeUI = () => {
-    const wrapper = backdropEl?.querySelector(".kbar-search-wrapper")
-    const existingBadge = wrapper?.querySelector(".kbar-scope-badge")
-    const iconEl = wrapper?.querySelector(".kbar-search-icon")
-    if (existingBadge) existingBadge.remove()
-
-    if (state.activeScope && wrapper && inputEl) {
-      const badge = document.createElement("div")
-      badge.className = "kbar-scope-badge"
-      badge.textContent = state.activeScope.label
-      badge.onclick = exitScope
-      wrapper.insertBefore(badge, inputEl)
-      inputEl.placeholder = `Search ${state.activeScope.label}...`
-      if (iconEl) iconEl.textContent = "⌕"
-    } else if (inputEl) {
-      inputEl.placeholder = "Search or type a shortcode..."
-      if (iconEl) iconEl.textContent = "⊹"
-    }
+  const closeModal = () => {
+    state.isOpen = false
+    state.query = ""
+    state.searchResults = []
   }
 
   const exitScope = () => {
@@ -114,12 +185,7 @@ const Kbar = function() {
     state.query = ""
     state.searchResults = []
     state.selectedIndex = 0
-    state.resultsVersion++
-    updateScopeUI()
-    if (inputEl) {
-      inputEl.value = ""
-      inputEl.focus()
-    }
+    setTimeout(() => inputEl?.focus(), 0)
   }
 
   const enterScope = (scope) => {
@@ -127,464 +193,116 @@ const Kbar = function() {
     state.activeScope = scope
     state.searchResults = []
     state.selectedIndex = 0
-    state.resultsVersion++
-    updateScopeUI()
-    
-    // Keep the query and trigger search
-    if (inputEl) {
-      inputEl.focus()
-    }
-    if (previousQuery.length >= 2) {
-      // Trigger search with existing query
-      searchTimeout = setTimeout(async () => {
-        try {
-          const url = `/backend/kbar/search?q=${encodeURIComponent(previousQuery)}&scope=${scope.key}`
-          const res = await fetch(url)
-          if (!res.ok) throw new Error("Search failed")
-          state.searchResults = await res.json()
-          state.resultsVersion++
-        } catch (err) {
-          console.error("Scoped search failed:", err)
-          state.searchResults = []
-          state.resultsVersion++
-        }
-      }, 50)
-    }
+    if (previousQuery.length >= 2) doScopedSearch(previousQuery, scope.key)
   }
 
-  const closeModal = () => {
-    state.isOpen = false
-    state.query = ""
-    state.searchResults = []
-    state.resultsVersion++
-    backdropEl.classList.remove("open")
+  const doScopedSearch = (query, scopeKey) => {
+    if (searchTimeout) clearTimeout(searchTimeout)
+    searchTimeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`/backend/kbar/search?q=${encodeURIComponent(query)}&scope=${scopeKey}`)
+        if (!res.ok) throw new Error("Search failed")
+        state.searchResults = await res.json()
+      } catch (err) {
+        console.error("Scoped search failed:", err)
+        state.searchResults = []
+      }
+    }, 150)
   }
 
   const navigate = (path, shortcode = null) => {
     if (shortcode?.code === "EXIT") {
       state.isExiting = true
-      state.resultsVersion++
-      setTimeout(() => {
-        window.location.href = path
-      }, 1200)
+      setTimeout(() => { window.location.href = path }, 1200)
     } else {
       closeModal()
       window.location.href = path
     }
   }
 
+  const getFilteredShortcuts = () => {
+    if (!state.query) return state.shortcuts
+    const q = state.query.toLowerCase()
+    return state.shortcuts.filter(s => s.code.toLowerCase().includes(q) || s.label.toLowerCase().includes(q))
+  }
+
+  const getFilteredScopes = () => {
+    if (getPublicIdMatch()) return []
+    if (!state.query || state.query.length >= 2) return state.searchScopes
+    const q = state.query.toLowerCase()
+    return state.searchScopes.filter(scope => scope.label.toLowerCase().includes(q) || "search".includes(q))
+  }
+
   const getAllItems = () => {
     const items = []
-
-    // If in a scope, just show search results
     if (state.activeScope) {
-      state.searchResults.forEach(r => items.push({ ...r, isSearch: true }))
+      state.searchResults.forEach(r => items.push({ ...r, type: 'search' }))
       return items
     }
-
-    // Public ID match
     const publicIdMatch = getPublicIdMatch()
-    if (publicIdMatch) {
-      items.push({ ...publicIdMatch, isPublicId: true })
-    }
-
-    // Filtered shortcuts
-    const filtered = state.shortcuts.filter(s => {
-      if (!state.query) return true
-      return s.code.toLowerCase().includes(state.query.toLowerCase()) ||
-             s.label.toLowerCase().includes(state.query.toLowerCase())
-    })
-    filtered.forEach(s => items.push({ ...s, isShortcut: true }))
-
-    // Search scope drilldowns (always visible when no query or 2+ chars, but not when public ID)
-    if (!publicIdMatch) {
-      const showAllScopes = !state.query || state.query.length >= 2
-      const filteredScopes = state.searchScopes.filter(scope => {
-        if (showAllScopes) return true
-        // For 1 char, filter by label match
-        return scope.label.toLowerCase().includes(state.query.toLowerCase()) ||
-               "search".includes(state.query.toLowerCase())
-      })
-      filteredScopes.forEach(scope => items.push({ 
-        ...scope, 
-        isScope: true,
-        searchQuery: state.query.length >= 2 ? state.query : null
-      }))
-    }
-
+    if (publicIdMatch) items.push({ ...publicIdMatch, type: 'publicId' })
+    getFilteredShortcuts().forEach(s => items.push({ ...s, type: 'shortcut' }))
+    getFilteredScopes().forEach(s => items.push({ ...s, type: 'scope' }))
     return items
   }
 
   const handleKeyDown = (e) => {
     if (!state.isOpen) return
-
     const items = getAllItems()
 
     if (e.key === "Escape") {
       e.preventDefault()
-      if (state.activeScope) {
-        exitScope()
-      } else {
-        closeModal()
-      }
+      state.activeScope ? exitScope() : closeModal()
     } else if (e.key === "Backspace" && state.query === "" && state.activeScope) {
       e.preventDefault()
       exitScope()
     } else if (e.key === "ArrowDown") {
       e.preventDefault()
       state.selectedIndex = Math.min(state.selectedIndex + 1, items.length - 1)
-      state.resultsVersion++
-      scrollToSelected()
     } else if (e.key === "ArrowUp") {
       e.preventDefault()
       state.selectedIndex = Math.max(state.selectedIndex - 1, 0)
-      state.resultsVersion++
-      scrollToSelected()
     } else if (e.key === "Enter") {
       e.preventDefault()
       const item = items[state.selectedIndex]
       if (!item) return
-
-      if (item.isScope) {
-        enterScope(item)
-      } else if (item.isPublicId) {
+      if (item.type === 'scope') enterScope(item)
+      else if (item.type === 'publicId') {
         const lookup = state.publicIdLookup
-        const isDisabled = lookup?.query === state.query && lookup?.notFound
-        if (!isDisabled) {
-          const path = lookup?.data?.path || item.path
-          navigate(path)
-        }
-      } else if (item.isShortcut) {
-        navigate(item.path, item)
-      } else {
-        navigate(item.path)
-      }
+        if (!(lookup?.query === state.query && lookup?.notFound)) navigate(lookup?.data?.path || item.path)
+      } else if (item.type === 'shortcut') navigate(item.path, item)
+      else navigate(item.path)
     }
-  }
-
-  const scopeShortcuts = {
-    "?i": "identities",
-    "?a": "oauth_apps"
-  }
-
-  const scopeShortcutHints = {
-    "identities": "?i",
-    "oauth_apps": "?a"
   }
 
   const handleInput = (e) => {
-    state.query = e.target.value
+    const query = e.target.value
+    state.query = query
     state.selectedIndex = 0
-    state.resultsVersion++
 
-    if (searchTimeout) clearTimeout(searchTimeout)
-
-    // Check for scope shortcuts like ?i or ?a
-    const scopeKey = scopeShortcuts[state.query.toLowerCase()]
+    const scopeKey = scopeShortcuts[query.toLowerCase()]
     if (scopeKey) {
       const scope = state.searchScopes.find(s => s.key === scopeKey)
-      if (scope) {
-        state.query = ""
-        if (inputEl) inputEl.value = ""
-        enterScope(scope)
-        return
+      if (scope) { state.query = ""; enterScope(scope); return }
+    }
+
+    if (!state.activeScope) {
+      if (query.includes("@") || /^[UW][A-Z0-9]{8,}$/i.test(query)) {
+        const identityScope = state.searchScopes.find(s => s.key === "identities")
+        if (identityScope) { enterScope(identityScope); return }
       }
     }
 
-    // Short-circuit to identity search for emails or Slack IDs
-    const looksLikeEmail = state.query.includes("@")
-    const looksLikeSlackId = /^[UW][A-Z0-9]{8,}$/i.test(state.query)
-    if ((looksLikeEmail || looksLikeSlackId) && !state.activeScope) {
-      const identityScope = state.searchScopes.find(s => s.key === "identities")
-      if (identityScope) {
-        enterScope(identityScope)
-        return
-      }
-    }
-
-    // If in a scope, search within that scope
-    if (state.activeScope) {
-      if (state.query.length >= 2) {
-        searchTimeout = setTimeout(async () => {
-          try {
-            const url = `/backend/kbar/search?q=${encodeURIComponent(state.query)}&scope=${state.activeScope.key}`
-            const res = await fetch(url)
-            if (!res.ok) throw new Error("Search failed")
-            state.searchResults = await res.json()
-            state.resultsVersion++
-          } catch (err) {
-            console.error("Scoped search failed:", err)
-            state.searchResults = []
-            state.resultsVersion++
-          }
-        }, 150)
-      } else {
-        state.searchResults = []
-      }
-      return
-    }
-
-    // Check for public ID pattern and trigger background lookup
-    const publicIdMatch = getPublicIdMatch()
-    if (publicIdMatch) {
-      if (state.publicIdLookup?.query !== state.query) {
-        fetchPublicIdDetails(state.query, state.prefixes[publicIdMatch.prefix])
-      }
-      state.searchResults = []
-      return
-    } else {
-      if (publicIdTimeout) clearTimeout(publicIdTimeout)
-      state.publicIdLookup = null
-    }
-
-    // No auto-search outside of scopes
-    state.searchResults = []
-  }
-
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      closeModal()
-    }
-  }
-
-  const scrollToSelected = () => {
-    setTimeout(() => {
-      const selected = resultsContainer?.querySelector(".selected")
-      if (selected) {
-        selected.scrollIntoView({ block: "nearest" })
-      }
-    }, 0)
-  }
-
-  const renderResults = () => {
-    if (!resultsContainer) return
-    
-    resultsContainer.innerHTML = ""
-
-    // Show goodbye message when exiting
-    if (state.isExiting) {
-      const goodbye = document.createElement("div")
-      goodbye.className = "kbar-goodbye"
-      goodbye.textContent = "bye, i'll miss you!"
-      resultsContainer.appendChild(goodbye)
-      return
-    }
-
-    let idx = 0
-
-    // If in a scope, only show search results
-    if (state.activeScope) {
-      if (state.searchResults.length > 0) {
-        state.searchResults.forEach((r) => {
-          const currentIdx = idx++
-          const item = document.createElement("a")
-          item.href = r.path
-          item.className = state.selectedIndex === currentIdx ? "kbar-result-item selected" : "kbar-result-item"
-          item.onclick = (e) => { e.preventDefault(); navigate(r.path) }
-          item.onmouseenter = () => { state.selectedIndex = currentIdx; state.resultsVersion++ }
-
-          const icon = document.createElement("div")
-          icon.className = "kbar-result-icon"
-          icon.textContent = "⭢"
-
-          const text = document.createElement("div")
-          text.className = "kbar-result-text"
-          
-          const labelSpan = document.createElement("span")
-          labelSpan.className = "kbar-result-label"
-          labelSpan.textContent = r.label
-          text.appendChild(labelSpan)
-
-          if (r.sublabel) {
-            const sublabel = document.createElement("span")
-            sublabel.className = "kbar-result-sublabel"
-            sublabel.textContent = r.sublabel
-            text.appendChild(sublabel)
-          }
-
-          item.appendChild(icon)
-          item.appendChild(text)
-          resultsContainer.appendChild(item)
-        })
-      } else if (state.query.length >= 2) {
-        const hint = document.createElement("div")
-        hint.className = "kbar-section-label"
-        hint.textContent = "No results"
-        resultsContainer.appendChild(hint)
-      } else {
-        const hint = document.createElement("div")
-        hint.className = "kbar-section-label"
-        hint.textContent = `Type to search ${state.activeScope.label}...`
-        resultsContainer.appendChild(hint)
-      }
-      return
-    }
+    if (state.activeScope && query.length >= 2) doScopedSearch(query, state.activeScope.key)
+    else if (state.activeScope) state.searchResults = []
 
     const publicIdMatch = getPublicIdMatch()
-    if (publicIdMatch) {
-      const lookup = state.publicIdLookup
-      const isNotFound = lookup?.query === state.query && lookup?.notFound
-      const isLoading = lookup?.query === state.query && lookup?.loading
-      const fetchedData = lookup?.query === state.query ? lookup?.data : null
-
-      const currentIdx = idx++
-      const item = document.createElement("a")
-      const targetPath = fetchedData?.path || publicIdMatch.path
-      item.href = targetPath
-      
-      let className = "kbar-result-item"
-      if (state.selectedIndex === currentIdx) className += " selected"
-      if (isNotFound) className += " disabled"
-      item.className = className
-      
-      if (!isNotFound) {
-        item.onclick = (e) => { e.preventDefault(); navigate(targetPath) }
-      } else {
-        item.onclick = (e) => { e.preventDefault() }
-      }
-      item.onmouseenter = () => { state.selectedIndex = currentIdx; state.resultsVersion++ }
-
-      const icon = document.createElement("div")
-      icon.className = "kbar-result-icon"
-      icon.textContent = isNotFound ? "✕" : "⭢"
-
-      const text = document.createElement("div")
-      text.className = "kbar-result-text"
-      
-      const labelSpan = document.createElement("span")
-      labelSpan.className = "kbar-result-label"
-      if (isNotFound) {
-        labelSpan.textContent = `${publicIdMatch.model} not found`
-      } else {
-        labelSpan.textContent = `Go to ${publicIdMatch.model}`
-      }
-      text.appendChild(labelSpan)
-
-      const sublabel = document.createElement("span")
-      sublabel.className = "kbar-result-sublabel"
-      if (isNotFound) {
-        sublabel.textContent = publicIdMatch.fullId
-      } else if (fetchedData) {
-        const parts = [fetchedData.label, fetchedData.sublabel].filter(Boolean)
-        sublabel.textContent = parts.join(" · ")
-      } else if (isLoading) {
-        sublabel.textContent = "loading..."
-      } else {
-        sublabel.textContent = publicIdMatch.fullId
-      }
-      text.appendChild(sublabel)
-
-      item.appendChild(icon)
-      item.appendChild(text)
-      resultsContainer.appendChild(item)
-    }
-
-    // Shortcuts first
-    const filtered = state.shortcuts.filter(s => {
-      if (!state.query) return true
-      return s.code.toLowerCase().includes(state.query.toLowerCase()) ||
-             s.label.toLowerCase().includes(state.query.toLowerCase())
-    })
-
-    if (filtered.length > 0) {
-      const label = document.createElement("div")
-      label.className = "kbar-section-label"
-      label.textContent = "Shortcuts"
-      resultsContainer.appendChild(label)
-
-      filtered.forEach((s) => {
-        const currentIdx = idx++
-        const item = document.createElement("a")
-        item.href = s.path
-        item.className = state.selectedIndex === currentIdx ? "kbar-result-item selected" : "kbar-result-item"
-        item.onclick = (e) => { e.preventDefault(); navigate(s.path, s) }
-        item.onmouseenter = () => { state.selectedIndex = currentIdx; state.resultsVersion++ }
-
-        const icon = document.createElement("div")
-        icon.className = "kbar-result-icon"
-        icon.textContent = s.icon
-
-        const text = document.createElement("div")
-        text.className = "kbar-result-text"
-
-        const labelSpan = document.createElement("span")
-        labelSpan.className = "kbar-result-label"
-        labelSpan.textContent = s.label
-        text.appendChild(labelSpan)
-
-        const shortcode = document.createElement("span")
-        shortcode.className = "kbar-result-shortcode"
-        shortcode.textContent = `[ ${s.code} ]`
-        text.appendChild(shortcode)
-
-        item.appendChild(icon)
-        item.appendChild(text)
-        resultsContainer.appendChild(item)
-      })
-    }
-
-    // Search scope drilldowns (always visible when no query or 2+ chars, but not when public ID)
-    if (!publicIdMatch) {
-      const showAllScopes = !state.query || state.query.length >= 2
-      const filteredScopes = state.searchScopes.filter(scope => {
-        if (showAllScopes) return true
-        return scope.label.toLowerCase().includes(state.query.toLowerCase()) ||
-               "search".includes(state.query.toLowerCase())
-      })
-
-      if (filteredScopes.length > 0) {
-        const label = document.createElement("div")
-        label.className = "kbar-section-label"
-        label.textContent = "Search"
-        resultsContainer.appendChild(label)
-
-        filteredScopes.forEach((scope) => {
-          const currentIdx = idx++
-          const item = document.createElement("div")
-          item.className = state.selectedIndex === currentIdx ? "kbar-result-item selected" : "kbar-result-item"
-          item.onclick = () => enterScope(scope)
-          item.onmouseenter = () => { state.selectedIndex = currentIdx; state.resultsVersion++ }
-
-          const icon = document.createElement("div")
-          icon.className = "kbar-result-icon"
-          icon.textContent = "⌕"
-
-          const text = document.createElement("div")
-          text.className = "kbar-result-text"
-          
-          const labelSpan = document.createElement("span")
-          labelSpan.className = "kbar-result-label"
-          labelSpan.textContent = `Search ${scope.label}`
-          text.appendChild(labelSpan)
-
-          if (state.query.length >= 2) {
-            const sublabel = document.createElement("span")
-            sublabel.className = "kbar-result-sublabel"
-            sublabel.textContent = `for "${state.query}"`
-            text.appendChild(sublabel)
-          }
-
-          const hint = scopeShortcutHints[scope.key]
-          if (hint) {
-            const shortcode = document.createElement("span")
-            shortcode.className = "kbar-result-shortcode"
-            shortcode.textContent = `( ${hint} )`
-            text.appendChild(shortcode)
-          }
-
-          item.appendChild(icon)
-          item.appendChild(text)
-          resultsContainer.appendChild(item)
-        })
-      }
-    }
+    if (publicIdMatch && state.publicIdLookup?.query !== query) fetchPublicIdDetails(query)
+    else if (!publicIdMatch) { if (publicIdTimeout) clearTimeout(publicIdTimeout); state.publicIdLookup = null }
   }
 
-  this.mount = () => {
-    backdropEl = this.root
-    resultsContainer = this.root.querySelector(".kbar-results")
-    inputEl = this.root.querySelector(".kbar-search-input")
-    
+  cx.mount = () => {
+    inputEl = cx.root.querySelector(".kbar-search-input")
     const dataEl = document.getElementById("kbar-data")
     if (dataEl) {
       try {
@@ -592,31 +310,20 @@ const Kbar = function() {
         state.shortcuts = data.shortcuts || []
         state.prefixes = data.prefixes || {}
         state.searchScopes = data.searchScopes || []
-        state.resultsVersion++
-      } catch (err) {
-        console.error("Failed to parse kbar data:", err)
-      }
+      } catch (err) { console.error("Failed to parse kbar data:", err) }
     }
-
-    useChange(use(this.resultsVersion), renderResults)
-
     window.openKbar = openModal
-
     document.addEventListener("keydown", (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault()
-        if (state.isOpen) {
-          closeModal()
-        } else {
-          openModal()
-        }
+        state.isOpen ? closeModal() : openModal()
       }
       handleKeyDown(e)
     })
   }
 
   return (
-    <div class="kbar-backdrop" on:click={handleBackdropClick}>
+    <div class="kbar-backdrop" class:open={use(state.isOpen)} on:click={(e) => e.target === e.currentTarget && closeModal()}>
       <div class="kbar-modal">
         <div class="kbar-header">
           <div class="kbar-left"></div>
@@ -625,15 +332,43 @@ const Kbar = function() {
         </div>
         <div class="kbar-body">
           <div class="kbar-search-wrapper">
-            <div class="kbar-search-icon">⊹</div>
+            {use(state.activeScope).map(scope => scope ? <div class="kbar-scope-badge" on:click={exitScope}>{scope.label}</div> : null)}
+            <div class="kbar-search-icon">{use(state.activeScope).map(scope => scope ? "⌕" : "⊹")}</div>
             <input
               type="text"
               class="kbar-search-input"
-              placeholder="Search or type a shortcode..."
+              placeholder={use(state.activeScope).map(scope => scope ? `Search ${scope.label}...` : "Search or type a shortcode...")}
               on:input={handleInput}
             />
           </div>
-          <div class="kbar-results"></div>
+          <div class="kbar-results">
+            {use(state.isExiting).andThen(<div class="kbar-goodbye">bye, i'll miss you!</div>, null)}
+            {use(state.isExiting, state.activeScope).map(([exiting, scope]) => {
+              if (exiting) return null
+              if (scope) return (
+                <ScopedResults
+                  results={use(state.searchResults)}
+                  query={use(state.query)}
+                  scopeLabel={scope.label}
+                  selectedIndex={use(state.selectedIndex)}
+                  onNavigate={navigate}
+                />
+              )
+              return (
+                <MainResults
+                  query={use(state.query)}
+                  publicIdMatch={use(state.query, state.prefixes).map(() => getPublicIdMatch())}
+                  publicIdLookup={use(state.publicIdLookup)}
+                  filteredShortcuts={use(state.query, state.shortcuts).map(() => getFilteredShortcuts())}
+                  filteredScopes={use(state.query, state.searchScopes).map(() => getFilteredScopes())}
+                  selectedIndex={use(state.selectedIndex)}
+                  onNavigate={navigate}
+                  onNavigateShortcut={navigate}
+                  onEnterScope={enterScope}
+                />
+              )
+            })}
+          </div>
           <div class="kbar-hint">
             <kbd>↑</kbd> <kbd>↓</kbd> navigate · <kbd>Enter</kbd> select · <kbd>Esc</kbd> close
           </div>
