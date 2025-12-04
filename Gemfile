@@ -149,3 +149,5 @@ group :production do
 end
 
 gem "premailer-rails", "~> 1.12"
+
+gem "openssl", "~> 3.3"
