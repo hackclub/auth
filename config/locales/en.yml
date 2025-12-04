@@ -1,6 +1,6 @@
 en:
   mailer_common:
-    not_you: "If this wasn't you, please review your account security settings immediately and contact us at account@hackclub.com."
+    not_you: "If this wasn't you, please review your account security settings immediately and contact us at auth@hackclub.com."
     signature: "– Hack Club"
   identity_mailer:
     v2_login_code:

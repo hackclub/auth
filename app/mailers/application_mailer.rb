@@ -2,7 +2,7 @@ class ApplicationMailer < ActionMailer::Base
   include Rails.application.routes.url_helpers
   layout "mailer"
 
-  ACCOUNT_FROM = "Hack Club <account@hackclub.com>".freeze
+  ACCOUNT_FROM = "Hack Club <auth@hackclub.com>".freeze
   IDENTITY_FROM = "Hack Club <identity@hackclub.com>".freeze
 
   before_action :attach_logo
