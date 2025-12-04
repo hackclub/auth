@@ -11,7 +11,7 @@ Doorkeeper::OpenidConnect.configure do
     end
   end
 
-  signing_key ENV.fetch("OIDC_SIGNING_KEY") { Rails.application.credentials.dig(:oidc, :signing_key) }
+  signing_key ENV["OIDC_SIGNING_KEY"]
 
   signing_algorithm :rs256
 
