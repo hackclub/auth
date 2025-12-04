@@ -6,6 +6,13 @@ class Components::Footer < Components::Base
       div(class: "footer-content") do
         div(class: "footer-main") do
           p(class: "app-name") { "Identity Vault" }
+          p(class: "footer-links") do
+            a(href: "/docs/privacy") { "Privacy" }
+            plain " • "
+            a(href: "/docs/terms-of-service") { "Terms" }
+            plain " • "
+            a(href: "/docs/contact") { "Contact" }
+          end
         end
 
         div(class: "footer-version") do

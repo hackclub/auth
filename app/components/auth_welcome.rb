@@ -76,6 +76,8 @@ class Components::AuthWelcome < Components::Base
         a(href: "/docs/privacy") { "Privacy" }
         plain " • "
         a(href: "/docs/terms-of-service") { "Terms" }
+        plain " • "
+        a(href: "/docs/contact") { "Contact" }
       end
 
       if Rails.application.config.try(:git_version).present?
