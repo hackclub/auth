@@ -109,7 +109,7 @@ class StepUpController < ApplicationController
 
   def send_step_up_email_code
     login_code = current_identity.v2_login_codes.create!
-    IdentityMailer.step_up_code(current_identity, login_code).deliver_later
+    IdentityMailer.v2_login_code(current_identity, login_code).deliver_later
   end
 
   # Prevent open redirect attacks - only allow internal paths
