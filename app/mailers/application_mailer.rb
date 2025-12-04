@@ -5,13 +5,7 @@ class ApplicationMailer < ActionMailer::Base
   ACCOUNT_FROM = "Hack Club <auth@hackclub.com>".freeze
   IDENTITY_FROM = "Hack Club <identity@hackclub.com>".freeze
 
-  before_action :attach_logo
-
   private
-
-  def attach_logo
-    attachments.inline["logo.png"] = Rails.root.join("app/frontend/images/hc-square.png").read
-  end
 
   def env_prefix
     case Rails.env

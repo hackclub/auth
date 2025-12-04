@@ -161,7 +161,7 @@
     <div class="header">
       <table role="presentation" cellspacing="0" cellpadding="0" border="0">
         <tr>
-          <td><%= image_tag attachments['logo.png'].url, alt: "Hack Club", width: 32, height: 32 %></td>
+          <td><img src="<%= Rails.application.routes.url_helpers.root_url %>hc-square.png" alt="Hack Club" width="32" height="32" style="border-radius: 6px; vertical-align: middle;"></td>
           <td class="brand"><%= t("brand") %></td>
           <% if @env_prefix.present? %>
             <td style="padding-left: 8px;"><span class="env-badge"><%= @env_prefix.strip.delete("[]") %></span></td>
