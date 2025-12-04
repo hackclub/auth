@@ -17,9 +17,9 @@ class IdentitySession < ApplicationRecord
 
   after_create_commit do
     if identity.sessions.size == 1
-      # UserSessionMailer.first_login(user:).deliver_later
-    elsif fingerprint.present? && identity.sessions.excluding(self).where(fingerprint:).none?
-      # UserSessionMailer.new_login(user_session: self).deliver_later
+      # First login - no need to notify
+    elsif fingerprint.present? && identity.sessions.where("created_at > ?", 6.months.ago).excluding(self).where(fingerprint:).none?
+      IdentitySessionMailer.new_login(self).deliver_later
     end
   end
 

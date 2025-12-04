@@ -1,0 +1,9 @@
+<p class="greeting"><%= t(".greeting", first_name: @first_name) %></p>
+
+<p class="body-text"><%= t(".body") %></p>
+
+<p class="body-text"><%= t(".action") %></p>
+
+<%= render "mailers/security_warning" %>
+
+<p class="signature"><%= simple_format(t("mailer_common.signature")) %></p>

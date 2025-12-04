@@ -70,6 +70,7 @@ class StepUpController < ApplicationController
     when "remove_totp"
       totp = current_identity.totp
       totp&.destroy
+      TwoFactorMailer.authentication_method_disabled(current_identity).deliver_later
 
       if current_identity.two_factor_methods.empty?
         current_identity.update!(use_two_factor_authentication: false)
@@ -80,6 +81,7 @@ class StepUpController < ApplicationController
 
     when "disable_2fa"
       current_identity.update!(use_two_factor_authentication: false)
+      TwoFactorMailer.required_authentication_disabled(current_identity).deliver_later
       redirect_to security_path, notice: "2FA requirement disabled"
 
     when "oidc_reauth"
@@ -107,7 +109,7 @@ class StepUpController < ApplicationController
 
   def send_step_up_email_code
     login_code = current_identity.v2_login_codes.create!
-    IdentityMailer.step_up_code(current_identity, login_code).deliver_later
+    IdentityMailer.v2_login_code(current_identity, login_code).deliver_later
   end
 
   # Prevent open redirect attacks - only allow internal paths

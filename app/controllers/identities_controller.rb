@@ -181,6 +181,7 @@ class IdentitiesController < ApplicationController
             end
 
             current_identity.update!(use_two_factor_authentication: true)
+            TwoFactorMailer.required_authentication_enabled(current_identity).deliver_later
 
             @totp = current_identity.totp
             if request.headers["HX-Request"]

@@ -28,6 +28,7 @@ class IdentityBackupCodesController < ApplicationController
     current_identity.backup_codes.active.each(&:mark_discarded!)
     current_identity.backup_codes.previewed.each(&:mark_active!)
     current_identity.create_activity :regenerate_backup_codes, owner: current_identity, recipient: current_identity
+    IdentityBackupCodeMailer.codes_regenerated(current_identity).deliver_later
 
     @backup_codes = current_identity.backup_codes.active.order(created_at: :desc)
 

@@ -147,3 +147,7 @@ gem "factory_bot_rails", "~> 6.4"
 group :production do
   gem "cloudflare-rails"
 end
+
+gem "premailer-rails", "~> 1.12"
+
+gem "openssl", "~> 3.3"

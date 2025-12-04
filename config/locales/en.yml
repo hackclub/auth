@@ -1,4 +1,82 @@
 en:
+  mailer_common:
+    not_you: "If this wasn't you, please review your account security settings immediately and contact us at auth@hackclub.com."
+    signature: "– Hack Club"
+  identity_mailer:
+    v2_login_code:
+      subject: "%{code} is your Hack Club login code"
+      greeting: "Hey %{first_name}!"
+      body: "Here's the code to sign into your Hack Club Account:"
+      triple_click: "(triple-click to copy it quicker!)"
+      expiry: "This code expires in 30 minutes."
+      not_you: "Didn't request this? You can safely ignore this email."
+      signature: "– Hack Club"
+    approved_but_ysws_ineligible:
+      subject: "[Hack Club] Your identity verification"
+      greeting: "Hey %{first_name},"
+      body: "Your documents have been approved! However, you're over 18, which is outside the age range for our You Ship, We Ship grant programs."
+      signature: "Best,\nthe Hack Club team"
+  identity_backup_code_mailer:
+    code_used:
+      subject: "[Hack Club] A backup code was used on your account"
+      greeting: "Hey %{first_name},"
+      body: "A backup code was just used to sign into your Hack Club account."
+      action: "If this was you, no action is needed. Consider regenerating your backup codes if you're running low."
+    codes_regenerated:
+      subject: "[Hack Club] Your backup codes have been regenerated"
+      greeting: "Hey %{first_name},"
+      body: "New backup codes were just generated for your Hack Club account. Your previous codes are no longer valid."
+  identity_session_mailer:
+    new_login:
+      subject: "[Hack Club] New sign-in to your account"
+      greeting: "Hey %{first_name}."
+      body: "We're writing to let you know that you just signed into your Hack Club account from a new device"
+      ip_label: "IP address:"
+      unknown: "Unknown"
+  two_factor_mailer:
+    authentication_method_enabled:
+      subject: "[Hack Club] Authentication method enabled"
+      greeting: "Hey %{first_name},"
+      body: "An authentication method has been enabled on your Hack Club account."
+    authentication_method_disabled:
+      subject: "[Hack Club] Authentication method disabled"
+      greeting: "Hey %{first_name},"
+      body: "An authentication method has been removed from your Hack Club account."
+    required_authentication_enabled:
+      subject: "[Hack Club] Two-factor authentication is now required"
+      greeting: "Hey %{first_name},"
+      body: "Two-factor authentication is now required for your Hack Club account. You'll need to enter a code from your authentication method when signing in."
+    required_authentication_disabled:
+      subject: "[Hack Club] Two-factor authentication requirement removed"
+      greeting: "Hey %{first_name},"
+      body: "The two-factor authentication requirement has been removed from your Hack Club account. Your authentication methods are still available if you want to re-enable this requirement later."
+  verification_mailer:
+    approved:
+      subject: "[Hack Club] Your identity verification has been approved!"
+      greeting: "Hey %{first_name}!"
+      body: "Your documents have been approved — you're all set!"
+      signature: "Best,\nthe Hack Club team"
+    rejected_amicably:
+      subject: "[Hack Club] Action required: Please resubmit verification"
+      greeting: "Hey %{first_name},"
+      body: "We weren't able to approve your verification on the first try."
+      reason_intro: "Here's what we found:"
+      resubmit_cta: "Resubmit your documents"
+      help: "Need help? If you're 18 or under, ask in #identity-help on Slack. You can also reply directly to this email."
+      signature: "Thanks,\nthe Hack Club team"
+    rejected_permanently:
+      subject: "[Hack Club] We weren't able to verify your identity"
+      greeting: "Hey %{first_name},"
+      body: "Unfortunately, we weren't able to approve your verification."
+      reason_intro: "Here's what we found:"
+      no_resubmit: "You're unable to resubmit at this time."
+      contact: "If you have questions, please reply to this email."
+      signature: "Thanks,\nthe Hack Club team"
+    created:
+      subject: "[Hack Club] Your verification is being reviewed"
+      greeting: "Hey %{first_name}!"
+      body: "We got your documents and they're in the queue for review. We'll let you know as soon as we've had a look!"
+      signature: "Best,\nthe Hack Club team"
   errors:
    attributes:
      primary_email:

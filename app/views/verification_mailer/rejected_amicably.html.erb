@@ -1,0 +1,15 @@
+<p class="greeting"><%= t(".greeting", first_name: @first_name) %></p>
+
+<p class="body-text"><%= t(".body") %></p>
+
+<p class="body-text"><%= t(".reason_intro") %></p>
+
+<div class="reason-block"><%= @reason_line %></div>
+
+<div class="button-container">
+  <%= link_to t(".resubmit_cta"), @resubmit_url, class: "button" %>
+</div>
+
+<p class="secondary-text"><%= t(".help") %></p>
+
+<p class="signature"><%= simple_format(t(".signature")) %></p>
