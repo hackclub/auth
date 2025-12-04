@@ -4,6 +4,6 @@
 
 <p class="body-text"><%= t(".action") %></p>
 
-<p class="secondary-text"><%= t("mailer_common.not_you") %></p>
+<%= render "mailers/security_warning" %>
 
 <p class="signature"><%= simple_format(t("mailer_common.signature")) %></p>

@@ -33,15 +33,23 @@ en:
       body: "We're writing to let you know that you just signed into your Hack Club account from a new device"
       ip_label: "IP address:"
       unknown: "Unknown"
-  totp_mailer:
-    enabled:
-      subject: "[Hack Club] Two-factor authentication enabled"
+  two_factor_mailer:
+    authentication_method_enabled:
+      subject: "[Hack Club] Authentication method enabled"
       greeting: "Hey %{first_name},"
-      body: "Two-factor authentication has been enabled on your Hack Club account. You'll now need to enter a code from your authenticator app when signing in."
-    disabled:
-      subject: "[Hack Club] Two-factor authentication disabled"
+      body: "An authentication method has been enabled on your Hack Club account."
+    authentication_method_disabled:
+      subject: "[Hack Club] Authentication method disabled"
       greeting: "Hey %{first_name},"
-      body: "Two-factor authentication has been removed from your Hack Club account."
+      body: "An authentication method has been removed from your Hack Club account."
+    required_authentication_enabled:
+      subject: "[Hack Club] Two-factor authentication is now required"
+      greeting: "Hey %{first_name},"
+      body: "Two-factor authentication is now required for your Hack Club account. You'll need to enter a code from your authentication method when signing in."
+    required_authentication_disabled:
+      subject: "[Hack Club] Two-factor authentication requirement removed"
+      greeting: "Hey %{first_name},"
+      body: "The two-factor authentication requirement has been removed from your Hack Club account. Your authentication methods are still available if you want to re-enable this requirement later."
   verification_mailer:
     approved:
       subject: "[Hack Club] Your identity verification has been approved!"

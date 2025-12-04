@@ -21,7 +21,7 @@ class IdentityTotpsController < ApplicationController
 
     if @totp.verify(code, drift_behind: 1, drift_ahead: 1)
       @totp.mark_verified!
-      TOTPMailer.enabled(current_identity).deliver_later
+      TwoFactorMailer.authentication_method_enabled(current_identity).deliver_later
 
       # Generate backup codes if this is their first 2FA method
       codes_generated = []
