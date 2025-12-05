@@ -66,10 +66,18 @@ class Components::AuthWelcome < Components::Base
 
   def render_footer
     footer(class: "welcome-footer") do
+      p do
+        plain helpers.t("logins.welcome.trouble_help")
+        a(href: "mailto:auth@hackclub.com") { "auth@hackclub.com" }
+        plain "."
+      end
+
       p(class: "welcome-links") do
         a(href: "/docs/privacy") { "Privacy" }
         plain " • "
         a(href: "/docs/terms-of-service") { "Terms" }
+        plain " • "
+        a(href: "/docs/contact") { "Contact" }
       end
 
       if Rails.application.config.try(:git_version).present?

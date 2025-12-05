@@ -5,7 +5,10 @@ class Components::Footer < Components::Base
     footer(class: "app-footer") do
       div(class: "footer-content") do
         div(class: "footer-main") do
-          p(class: "app-name") { "Identity Vault" }
+          p(class: "app-name") { t("brand") }
+          p(class: "footer-links") do
+            a(href: "/docs/contact") { "Contact us" }
+          end
         end
 
         div(class: "footer-version") do

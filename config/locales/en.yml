@@ -315,6 +315,7 @@ en:
     welcome:
       email_help: "This'll be the email you use across Hack Club. We recommend using your personal email. If you already have a Hack Club account, just put your existing email in here :-)"
       continue: Continue
+      trouble_help: "If you're having trouble logging in, please email "
     email:
       title: Check your email...
       sent_to: We sent a code to
