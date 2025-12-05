@@ -2,6 +2,7 @@
 
 .auth-container {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
@@ -10,6 +11,36 @@
   
   @include dark-mode {
     background: #1a1d23;
+  }
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  
+  img {
+    width: 32px;
+    height: 32px;
+  }
+  
+  span {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+}
+
+.auth-notice {
+  margin-top: 1.5rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  .banner {
+    margin-bottom: 0;
   }
 }
 
@@ -38,6 +69,7 @@
     text-align: center;
     margin-bottom: $space-7;
     
+
     h1 {
       font-size: 1.85rem;
       font-weight: 600;
