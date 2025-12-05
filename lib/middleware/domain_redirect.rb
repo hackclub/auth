@@ -6,7 +6,9 @@ class DomainRedirect
   def call(env)
     request = Rack::Request.new(env)
 
-    if request.path.start_with?("/api") || request.path.start_with?("/oauth") || request.host == "auth.hackclub.com"
+    if request.host == "auth.hackclub.com" ||
+       request.path.start_with?("/api") ||
+       (request.path.start_with?("/oauth") && !request.path.start_with?("/oauth/authorize"))
       return @app.call(env)
     end
 
