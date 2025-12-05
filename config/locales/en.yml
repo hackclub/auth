@@ -228,10 +228,10 @@ en:
         banners:
           community_untrusted:
             title: Community Application
-            message_html: This application is created by a community member and has not been officially verified by Hack Club HQ. <br/> Make sure you trust the author with the information below
+            message_html: This application is created by a community member and has not been officially verified by Hack Club HQ. <br/> Make sure you trust the author with the information above.
           community_trusted:
             title: Community Application
-            message_html: This application is created by a community member. <br/> Hack Club HQ has reviewed it, but please make sure you trust the author with the information below.
+            message_html: This application is created by a community member. <br/> Hack Club HQ has reviewed it, but please make sure you trust the author with the information above.
         scopes:
           basic_info:
             title: See basic information about you

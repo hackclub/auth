@@ -1,20 +1,12 @@
 <div class="auth-container">
+  <div class="auth-brand">
+    <%= vite_image_tag "images/hc-square.png", alt: "Hack Club logo", class: "brand-logo" %>
+    <span><%= t("brand") %></span>
+  </div>
   <div class="auth-card oauth-consent">
     <header>
       <h1><%= session.dig(:stashed_data, "splash_message") || "Continue to #{@pre_auth.client.name}?" %></h1>
       <% application = Program.find_by(uid: @pre_auth.client.uid) %>
-      <% case application&.trust_level %>
-      <% when "community_untrusted" %>
-        <%= render Components::Banner.new(kind: :warning) do %>
-          <strong><%= t('.banners.community_untrusted.title') %></strong><br>
-          <%= raw t('.banners.community_untrusted.message_html') %>
-        <% end %>
-      <% when "community_trusted" %>
-        <%= render Components::Banner.new(kind: :info) do %>
-          <strong><%= t('.banners.community_trusted.title') %></strong> <br>
-          <%= raw t('.banners.community_trusted.message_html') %>
-        <% end %>
-      <% end %>
       <small>
         <%= raw t('.prompt', client_name: content_tag(:strong) { @pre_auth.client.name }) %>
       </small>
@@ -113,5 +105,22 @@
         <%= submit_tag auth_label, "x-bind:disabled": "!ready", "x-bind:value": "ready ? authLabel : `Wait ${countdown}s...`", class: "approve" %>
       <% end %>
     </div>
+
+    <% case application&.trust_level %>
+    <% when "community_untrusted" %>
+      <div class="auth-notice">
+        <%= render Components::Banner.new(kind: :warning) do %>
+          <strong><%= t('.banners.community_untrusted.title') %></strong><br>
+          <%= raw t('.banners.community_untrusted.message_html') %>
+        <% end %>
+      </div>
+    <% when "community_trusted" %>
+      <div class="auth-notice">
+        <%= render Components::Banner.new(kind: :info) do %>
+          <strong><%= t('.banners.community_trusted.title') %></strong> <br>
+          <%= raw t('.banners.community_trusted.message_html') %>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 </div>
