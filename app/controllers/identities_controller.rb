@@ -101,11 +101,18 @@ class IdentitiesController < ApplicationController
         @identity = Identity.new(attrs)
 
         if @identity.save
+            # If returning to an OAuth flow, skip Slack provisioning redirect
+            next_action = if @return_to.present? && @return_to.start_with?("/oauth/authorize")
+                            "home"
+                          else
+                            @onboarding_scenario.next_action.to_s
+                          end
+
             login_attempt = LoginAttempt.create!(
                 identity: @identity,
                 authentication_factors: {},
                 provenance: "signup",
-                next_action: @onboarding_scenario.next_action.to_s,
+                next_action: next_action,
                 return_to: @return_to
             )
 
