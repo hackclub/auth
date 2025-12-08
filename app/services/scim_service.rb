@@ -47,6 +47,15 @@ module SCIMService
     end
 
     def create_user(identity:, scenario:)
+      if Flipper.enabled?(:disable_slack_invites, identity)
+        Rails.logger.info "Slack invite creation disabled via Flipper for #{identity.primary_email}"
+        return {
+          success: false,
+          error: "Slack signups are temporarily paused...",
+          created: false
+        }
+      end
+
       username = generate_unique_username(identity.primary_email)
       user_type = scenario.slack_user_type
 
