@@ -26,21 +26,41 @@ module RalseiEngine
     def send_message(identity, template_name)
       return unless identity.slack_id.present?
 
+      dm_channel_id = ensure_dm_channel(identity)
+      return unless dm_channel_id
+
       payload = render_template("slack/#{template_name}", identity)
 
       client.chat_postMessage(
-        channel: identity.slack_id,
+        channel: dm_channel_id,
         username: "Ralsei",
         icon_url: RALSEI_PFP,
         **JSON.parse(payload, symbolize_names: true),
         unfurl_links: false,
       )
 
-      Rails.logger.info "RalseiEngine sent message to #{identity.slack_id} (template: #{template_name})"
+      Rails.logger.info "RalseiEngine sent message to #{identity.slack_id} via DM #{dm_channel_id} (template: #{template_name})"
     rescue => e
-
       Rails.logger.error "RalseiEngine failed to send message: #{e.message}"
       Honeybadger.notify(e, context: { identity_id: identity.id, template: template_name })
+    end
+
+    def ensure_dm_channel(identity)
+      return identity.slack_dm_channel_id if identity.slack_dm_channel_id.present?
+
+      response = client.conversations_open(users: identity.slack_id)
+      dm_channel_id = response.dig("channel", "id")
+
+      if dm_channel_id
+        identity.update!(slack_dm_channel_id: dm_channel_id)
+        Rails.logger.info "RalseiEngine opened DM channel #{dm_channel_id} for #{identity.slack_id}"
+      end
+
+      dm_channel_id
+    rescue => e
+      Rails.logger.error "RalseiEngine failed to open DM channel: #{e.message}"
+      Honeybadger.notify(e, context: { identity_id: identity.id })
+      nil
     end
 
     private
