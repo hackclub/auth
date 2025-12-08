@@ -93,7 +93,6 @@ class AddressesController < ApplicationController
 
   def respond_to_create_failure
     if htmx_request?
-      build_address
       render partial: "addresses/form", locals: { address: @address, url: addresses_path, htmx_target: htmx_target }, layout: false
     else
       render params[:address][:from_program] == "true" ? :program_create_address : :new

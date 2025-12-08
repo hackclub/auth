@@ -14,7 +14,6 @@ class Portal::AddressesController < Portal::BaseController
       set_primary_if_needed
       redirect_to_simple_return
     else
-      build_address
       render :portal
     end
   end
