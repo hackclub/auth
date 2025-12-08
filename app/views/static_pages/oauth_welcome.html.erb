@@ -2,5 +2,6 @@
 <%= render Components::AuthWelcome.new(
   headline: "Continue to #{service_name}",
   subtitle: "Sign in or create an account to continue",
-  return_to: @return_to
+  return_to: @return_to,
+  login_hint: @login_hint
 ) %>

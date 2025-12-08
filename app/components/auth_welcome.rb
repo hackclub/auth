@@ -1,10 +1,11 @@
 class Components::AuthWelcome < Components::Base
   include Phlex::Rails::Helpers::DistanceOfTimeInWordsToNow
 
-  def initialize(headline:, subtitle:, return_to: nil)
+  def initialize(headline:, subtitle:, return_to: nil, login_hint: nil)
     @headline = headline
     @subtitle = subtitle
     @return_to = return_to
+    @login_hint = login_hint
   end
 
   def view_template
@@ -43,7 +44,8 @@ class Components::AuthWelcome < Components::Base
             placeholder: t("identities.email_placeholder"),
             required: true,
             autocomplete: "email",
-            style: "width: 100%;"
+            style: "width: 100%;",
+            value: @login_hint
           )
 
           small(style: "color: var(--muted-color); display: block; margin-top: 0.5rem;") do
