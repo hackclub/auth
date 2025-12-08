@@ -170,6 +170,21 @@ You can also use `max_age` to require reauthentication if the user's session is 
 max_age=3600
 ```
 
+## Prefilling the Email Field
+
+If your app already knows the user's email address (e.g., from a signup form or landing page), you can skip the email entry step using the standard OIDC `login_hint` parameter:
+
+<%= render Components::APIExample.new(method: "GET", url: oauth_authorization_url(client_id: "your_client_id", redirect_uri: "https://yourapp.com/callback", response_type: "code", scope: "openid profile email", login_hint: "user@example.com")) %>
+
+When `login_hint` is provided, the form will automatically submit and proceed directly to the verification step – users won't need to manually enter their email or click continue.
+
+<div class="banner info">
+<b>Validation:</b>
+<p>
+Invalid or missing <code>login_hint</code> values are silently ignored – the user will simply see the normal email entry form.
+</p>
+</div>
+
 ## Community Apps
 
 <div class="banner warning">
