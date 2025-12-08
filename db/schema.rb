@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_03_031324) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_08_205405) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -300,6 +300,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_03_031324) do
     t.boolean "developer_mode", default: false, null: false
     t.boolean "saml_debug"
     t.boolean "is_in_workspace", default: false, null: false
+    t.string "slack_dm_channel_id"
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
     t.index ["legacy_migrated_at"], name: "index_identities_on_legacy_migrated_at"
