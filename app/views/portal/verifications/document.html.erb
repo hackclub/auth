@@ -1,0 +1,11 @@
+<% content_for(:portal_wrapper, true) %>
+<div class="container-sm">
+  <div class="page-header-centered">
+    <h1><%= t("verifications.document.title.#{@is_resubmission ? 'resubmit' : 'initial'}") %></h1>
+    <p><%= t("verifications.document.subtitle.#{@is_resubmission ? 'resubmit' : 'initial'}") %></p>
+  </div>
+
+  <div class="page-sections">
+    <%= render "shared/verifications/document_form", form_url: portal_verify_path %>
+  </div>
+</div>

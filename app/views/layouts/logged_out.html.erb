@@ -23,16 +23,25 @@
     <%= vite_stylesheet_tag "application.css" %>
     <%= vite_javascript_tag 'application' %>
   </head>
-  <body class="auth-layout">
-    <button id="lightswitch" class="lightswitch-btn" type="button" aria-label="Toggle theme">
-      <span class="lightswitch-moon"><%= inline_icon("moon-fill", size: 16) %></span>
-      <span class="lightswitch-sun" style="display: none;"><%= inline_icon("sun", size: 16) %></span>
-    </button>
-    <div class="auth-flash-wrapper">
-      <%= render "shared/flash" %>
-      <span id="async_flash"></span>
-    </div>
-    <%= yield %>
+  <body class="<%= content_for?(:portal_wrapper) ? '' : (content_for?(:body_class) ? yield(:body_class) : 'auth-layout') %>" hx-headers='{"X-CSRF-Token": "<%= form_authenticity_token %>"}' hx-boost="false">
+    <% if content_for?(:portal_wrapper) %>
+      <main class="container portal-container">
+        <%= render Components::Brand.new(identity: current_identity) %>
+        <%= render "shared/flash" %>
+        <span id="async_flash"></span>
+        <%= yield %>
+      </main>
+    <% else %>
+      <button id="lightswitch" class="lightswitch-btn" type="button" aria-label="Toggle theme">
+        <span class="lightswitch-moon"><%= inline_icon("moon-fill", size: 16) %></span>
+        <span class="lightswitch-sun" style="display: none;"><%= inline_icon("sun", size: 16) %></span>
+      </button>
+      <div class="auth-flash-wrapper">
+        <%= render "shared/flash" %>
+        <span id="async_flash"></span>
+      </div>
+      <%= yield %>
+    <% end %>
     <% unless Rails.env.production? %>
       <div class="environment <%= Rails.env %>" />
     <% end %>

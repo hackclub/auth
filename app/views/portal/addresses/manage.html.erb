@@ -1,0 +1,11 @@
+<% content_for(:portal_wrapper, true) %>
+<div class="container-sm">
+  <div class="page-header-centered">
+    <h1><%= t("portal.addresses.manage.title") %></h1>
+    <p><%= t("portal.addresses.manage.subtitle") %></p>
+  </div>
+
+  <div class="page-sections" id="portal-addresses">
+    <%= render "addresses/address_list", addresses: @addresses, address: @address, portal: true %>
+  </div>
+</div>
