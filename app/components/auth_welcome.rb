@@ -35,7 +35,7 @@ class Components::AuthWelcome < Components::Base
         action: login_url,
         method: "post"
       ) do
-        input(type: "hidden", name: "authenticity_token", value: helpers.form_authenticity_token)
+        input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
 
         div(style: "margin-bottom: 1rem;") do
           input(
@@ -49,7 +49,7 @@ class Components::AuthWelcome < Components::Base
           )
 
           small(style: "color: var(--muted-color); display: block; margin-top: 0.5rem;") do
-            plain helpers.t("logins.welcome.email_help")
+            plain t("logins.welcome.email_help")
           end
         end
 
@@ -58,7 +58,7 @@ class Components::AuthWelcome < Components::Base
           class: "primary",
           style: "width: 100%; margin-top: 1rem;"
         ) do
-          plain helpers.t("logins.welcome.continue")
+          plain t("logins.welcome.continue")
           whitespace
           plain "→"
         end
@@ -69,7 +69,7 @@ class Components::AuthWelcome < Components::Base
   def render_footer
     footer(class: "welcome-footer") do
       p do
-        plain helpers.t("logins.welcome.trouble_help")
+        plain t("logins.welcome.trouble_help")
         a(href: "mailto:auth@hackclub.com") { "auth@hackclub.com" }
         plain "."
       end
