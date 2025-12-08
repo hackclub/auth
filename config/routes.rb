@@ -289,6 +289,18 @@ Rails.application.routes.draw do
     collection do
       get :program_create_address
     end
+    member do
+      patch :make_primary
+    end
+  end
+
+  namespace :portal do
+    get "verify", to: "verifications#portal"
+    post "verify", to: "verifications#create"
+    delete "verify", to: "verifications#cancel"
+    get "address", to: "addresses#portal"
+    post "address", to: "addresses#create"
+    get "address/done", to: "addresses#done", as: :address_done
   end
 
   resources :identity_sessions, only: [ :index, :destroy ] do
