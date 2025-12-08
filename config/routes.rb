@@ -264,6 +264,8 @@ Rails.application.routes.draw do
   post "/migrate", to: "identities#create", defaults: { route_context: "migrate" }
   get "/join/:slug", to: "identities#new", defaults: { route_context: "join" }, as: :join
   post "/join/:slug", to: "identities#create", defaults: { route_context: "join" }
+  get "/slack", to: "identities#new", defaults: { route_context: "join", slug: "slack" }, as: :slack_join
+  post "/slack", to: "identities#create", defaults: { route_context: "join", slug: "slack" }
 
   get "/login", to: "logins#new", as: :login
   post "/login", to: "logins#create"
