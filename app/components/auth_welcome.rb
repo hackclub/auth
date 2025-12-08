@@ -29,11 +29,13 @@ class Components::AuthWelcome < Components::Base
 
   def render_actions
     login_url = @return_to ? "/login?return_to=#{CGI.escape(@return_to)}" : "/login"
+    form_id = "login-hint-form" if @login_hint.present?
 
     div(style: "margin: 3rem 0;") do
       form(
         action: login_url,
-        method: "post"
+        method: "post",
+        id: form_id
       ) do
         input(type: "hidden", name: "authenticity_token", value: helpers.form_authenticity_token)
 
@@ -61,6 +63,12 @@ class Components::AuthWelcome < Components::Base
           plain helpers.t("logins.welcome.continue")
           whitespace
           plain "→"
+        end
+      end
+
+      if @login_hint.present?
+        script do
+          raw "document.getElementById('login-hint-form').submit();"
         end
       end
     end
