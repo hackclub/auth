@@ -68,7 +68,7 @@ class Components::AuthWelcome < Components::Base
 
       if @login_hint.present?
         script do
-          raw "document.getElementById('login-hint-form').submit();"
+          raw safe("document.getElementById('login-hint-form').submit();")
         end
       end
     end

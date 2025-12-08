@@ -39,6 +39,11 @@ class StaticPagesController < ApplicationController
   private
 
   def valid_email_format?(email)
-    email.to_s.match?(/\A[^@\s]+@[^@\s]+\z/)
+    return false if email.blank?
+    return false if email.length > 254
+
+    # Only allow safe characters in emails - alphanumeric, common email symbols
+    # Reject anything that could be used for injection attacks
+    email.to_s.match?(/\A[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\z/)
   end
 end
