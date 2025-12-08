@@ -1,0 +1,9 @@
+<section class="section-card address-card" id="address-card-<%= address.id %>">
+  <h3><%= t("addresses.edit.subtitle") %></h3>
+  <% is_portal = local_assigns[:portal] %>
+  <%= render "addresses/form",
+             address: address,
+             url: is_portal ? address_path(address, portal: true) : address_path(address),
+             htmx_target: is_portal ? "#portal-addresses" : "#addresses-list",
+             portal: is_portal %>
+</section>

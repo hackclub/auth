@@ -3,14 +3,8 @@
 </div>
 
 <% if @addresses.any? %>
-  <div class="page-sections">
-    <% @addresses.each do |address| %>
-      <%= render 'address', address: address %>
-    <% end %>
-
-    <section class="section-card" style="text-align: center; padding: 2rem;">
-      <%= link_to "Add New Address", new_address_path, role: "button" %>
-    </section>
+  <div class="page-sections" id="addresses-list">
+    <%= render "addresses/address_list", addresses: @addresses, address: @address, portal: false %>
   </div>
 <% else %>
   <div class="empty-state">

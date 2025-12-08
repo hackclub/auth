@@ -1,0 +1,98 @@
+<% addresses.each do |addr| %>
+  <section class="section-card address-card" id="address-card-<%= addr.id %>">
+    <div class="address-header">
+      <span class="address-icon">📍</span>
+      <div class="address-info">
+        <div class="address-name">
+          <%= addr.first_name %> <%= addr.last_name %>
+          <% if current_identity.primary_address == addr %>
+            <span class="primary-badge"><%= t("addresses.primary") %></span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="address-details">
+      <%= addr.line_1 %>
+      <% if addr.line_2.present? %>
+        <br><%= addr.line_2 %>
+      <% end %>
+      <br><%= addr.city %>, <%= addr.state %> <%= addr.postal_code %>
+      <br><%= addr.country %>
+      <% if addr.phone_number.present? %>
+        <br><span class="address-phone"><%= addr.phone_number %></span>
+      <% end %>
+    </div>
+
+    <div class="address-actions">
+      <% unless current_identity.primary_address == addr %>
+        <% if local_assigns[:portal] %>
+          <button class="secondary small-btn"
+                  hx-patch="<%= address_path(addr, portal: true) %>"
+                  hx-target="#portal-addresses"
+                  hx-swap="innerHTML"
+                  hx-vals='{"make_primary": "true"}'>
+            <%= t("portal.addresses.manage.make_primary") %>
+          </button>
+        <% else %>
+          <button class="secondary small-btn"
+                  hx-patch="<%= address_path(addr) %>"
+                  hx-target="#addresses-list"
+                  hx-swap="innerHTML"
+                  hx-vals='{"make_primary": "true"}'>
+            <%= t("addresses.index.make_primary") %>
+          </button>
+        <% end %>
+      <% end %>
+
+      <button class="secondary small-btn"
+              hx-get="<%= local_assigns[:portal] ? edit_address_path(addr, portal: true) : edit_address_path(addr) %>"
+              hx-target="#address-card-<%= addr.id %>"
+              hx-swap="outerHTML">
+        <%= t("addresses.index.edit") %>
+      </button>
+
+      <% if addresses.size > 1 && current_identity.primary_address != addr %>
+        <% if local_assigns[:portal] %>
+          <button class="danger small-btn"
+                  hx-delete="<%= address_path(addr, portal: true) %>"
+                  hx-target="#portal-addresses"
+                  hx-swap="innerHTML"
+                  hx-confirm="<%= t("portal.addresses.manage.delete_confirm") %>">
+            <%= t("portal.addresses.manage.delete") %>
+          </button>
+        <% else %>
+          <button class="danger small-btn"
+                  hx-delete="<%= address_path(addr) %>"
+                  hx-target="#addresses-list"
+                  hx-swap="innerHTML"
+                  hx-confirm="<%= t("addresses.index.delete_confirmation") %>">
+            <%= t("addresses.index.delete") %>
+          </button>
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
+<section class="section-card add-address-card" x-data="{ showForm: false }">
+  <template x-if="!showForm">
+    <button @click="showForm = true" class="secondary add-address-btn">
+      <span class="add-icon">+</span>
+      <%= local_assigns[:portal] ? t("portal.addresses.manage.add_new") : t("addresses.add_new") %>
+    </button>
+  </template>
+  <template x-if="showForm">
+    <div class="address-form" x-init="htmx.process($el)">
+      <h3><%= local_assigns[:portal] ? t("portal.addresses.manage.add_new") : t("addresses.add_new") %></h3>
+      <% target = local_assigns[:portal] ? "#portal-addresses" : "#addresses-list" %>
+      <%= render "addresses/form", address: address, submit: local_assigns[:portal] ? t("portal.addresses.manage.add_button") : t("addresses.save"), url: local_assigns[:portal] ? addresses_path(portal: true) : addresses_path, from_program: true, htmx_target: target %>
+    </div>
+  </template>
+</section>
+
+<% if local_assigns[:portal] %>
+  <div class="portal-done-actions">
+    <%= link_to t("portal.addresses.manage.done"), portal_address_done_path, role: "button", class: "primary" %>
+  </div>
+<% end %>
