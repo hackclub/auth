@@ -13,6 +13,10 @@ Doorkeeper::OpenidConnect.configure do
 
   signing_key ENV["OIDC_SIGNING_KEY"]
 
+  protocol do
+    Rails.env.development? ? :http : :https
+  end
+
   signing_algorithm :rs256
 
   subject_types_supported [ :public ]
