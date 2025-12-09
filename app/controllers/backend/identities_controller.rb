@@ -116,12 +116,20 @@ module Backend
       )
 
       if slack_result[:success]
-        @identity.update(slack_id: slack_result[:slack_id])
-        @identity.create_activity(
-          :reprovision_slack,
-          owner: current_user,
-        )
-        flash[:notice] = "Slack account provisioned: #{slack_result[:message]}"
+        if @identity.update(slack_id: slack_result[:slack_id])
+          @identity.create_activity(
+            :reprovision_slack,
+            owner: current_user,
+          )
+          flash[:notice] = "Slack account provisioned: #{slack_result[:message]}"
+        else
+          existing_identity = Identity.find_by(slack_id: slack_result[:slack_id])
+          if existing_identity
+            flash[:error] = "This Slack account is already linked to #{existing_identity.full_name} (#{existing_identity.primary_email})"
+          else
+            flash[:error] = "Failed to update identity: #{@identity.errors.full_messages.join(', ')}"
+          end
+        end
       else
         flash[:error] = "Failed to provision Slack account: #{slack_result[:error]}"
       end
