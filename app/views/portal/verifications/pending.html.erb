@@ -1,0 +1,17 @@
+<% content_for(:portal_wrapper, true) %>
+<div class="container-sm">
+  <div class="page-header-centered">
+    <h1><%= t("portal.verifications.pending.title") %></h1>
+    <p><%= t("portal.verifications.pending.message") %></p>
+  </div>
+
+  <div class="page-sections">
+    <section class="section-card pending-card">
+      <div class="pending-icon">⏳</div>
+      <p><%= t("portal.verifications.pending.check_back") %></p>
+      <div class="portal-done-actions">
+        <%= link_to t("portal.verifications.pending.return_button"), portal_return_url, role: "button", class: "primary", data: { turbo: false } %>
+      </div>
+    </section>
+  </div>
+</div>

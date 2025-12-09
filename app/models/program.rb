@@ -32,6 +32,8 @@ class Program < ApplicationRecord
 
   enum :trust_level, { hq_official: 0, community_untrusted: 1, community_trusted: 2 }, default: :hq_official
 
+  scope :official, -> { where(trust_level: :hq_official) }
+
   AVAILABLE_SCOPES = [
     { name: "openid", description: "Enable OpenID Connect authentication" },
     { name: "profile", description: "See your name and profile information" },

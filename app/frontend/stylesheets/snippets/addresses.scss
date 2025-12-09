@@ -1,48 +1,119 @@
+// Portal address cards
+.address-card {
+  position: relative;
+}
+
 .address-header {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
+  display: flex;
+  align-items: flex-start;
   gap: $space-3;
   margin-bottom: $space-3;
 }
 
 .address-icon {
-  font-size: 1.75rem;
+  font-size: 1.25rem;
   line-height: 1;
+  opacity: 0.6;
 }
 
 .address-info {
+  flex: 1;
   min-width: 0;
 }
 
 .address-name {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--pico-color);
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex-wrap: wrap;
 }
 
 .primary-badge {
-  @include badge(var(--pico-primary-background), var(--pico-primary), $radius-sm);
-  font-weight: 500;
-  padding: 0.25rem 0.625rem;
-  letter-spacing: 0.025em;
+  @include badge(var(--pico-primary-background), var(--pico-primary-inverse), $radius-sm);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  letter-spacing: 0.04em;
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .address-details {
   font-size: 0.875rem;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--pico-muted-color);
   margin-bottom: $space-4;
+  padding-left: calc(1.25rem + #{$space-3});
+}
+
+.address-phone {
+  color: var(--pico-color);
+  font-weight: 500;
 }
 
 .address-actions {
   display: flex;
   gap: $space-2;
   flex-wrap: wrap;
+  padding-left: calc(1.25rem + #{$space-3});
 
   button {
     margin: 0;
+  }
+}
+
+// Add address section
+.add-address-card {
+  text-align: center;
+}
+
+.add-address-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  
+  .add-icon {
+    font-size: 1.25rem;
+    font-weight: 300;
+    line-height: 1;
+  }
+}
+
+// Portal done button
+.portal-done-actions {
+  margin-top: $space-5;
+  text-align: center;
+  
+  a[role="button"] {
+    min-width: 200px;
+  }
+}
+
+// Pending verification card
+.pending-card {
+  text-align: center;
+  padding: $space-8 $space-6;
+  
+  .pending-icon {
+    font-size: 3rem;
+    margin-bottom: $space-4;
+  }
+  
+  p {
+    color: var(--pico-muted-color);
+    margin-bottom: 0;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .portal-done-actions {
+    margin-top: $space-6;
   }
 }
 

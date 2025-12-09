@@ -14,7 +14,15 @@
   end
 %>
 
-<%= form_with model: address, url: local_assigns[:url], local: true do |f| %>
+<%
+  if local_assigns[:htmx_target]
+    htmx_method_key = address.persisted? ? "hx-patch" : "hx-post"
+    form_html_attrs = { htmx_method_key => local_assigns[:url], "hx-target" => local_assigns[:htmx_target], "hx-swap" => "innerHTML", "data-turbo" => "false" }
+  else
+    form_html_attrs = {}
+  end
+%>
+<%= form_with model: address, url: local_assigns[:url], local: true, html: form_html_attrs do |f| %>
   <% if local_assigns[:from_program] %>
     <%= f.hidden_field :from_program, value: true %>
   <% end %>
@@ -74,7 +82,16 @@
   <div class="form-actions">
     <%= f.submit local_assigns[:submit] || t("addresses.save") %>
     <% unless local_assigns[:from_program] %>
-      <%= link_to t("addresses.cancel"), addresses_path, role: "button", class: "secondary" %>
+      <% if local_assigns[:htmx_target] %>
+        <button type="button" class="secondary"
+                hx-get="<%= addresses_path(portal: local_assigns[:portal], refresh_list: true) %>"
+                hx-target="<%= local_assigns[:htmx_target] %>"
+                hx-swap="innerHTML">
+          <%= t("addresses.cancel") %>
+        </button>
+      <% else %>
+        <%= link_to t("addresses.cancel"), addresses_path, role: "button", class: "secondary" %>
+      <% end %>
     <% end %>
   </div>
 <% end %>
