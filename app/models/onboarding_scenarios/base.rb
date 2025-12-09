@@ -51,5 +51,8 @@ module OnboardingScenarios
 
     # Whether this scenario should provision a Slack account
     def should_create_slack? = true
+
+    # Whether Ralsei should message users via DM instead of a channel
+    def use_dm_channel? = false
   end
 end

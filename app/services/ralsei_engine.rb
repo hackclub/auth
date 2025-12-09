@@ -26,23 +26,32 @@ module RalseiEngine
     def send_message(identity, template_name)
       return unless identity.slack_id.present?
 
-      dm_channel_id = ensure_dm_channel(identity)
-      return unless dm_channel_id
+      channel_id = resolve_channel(identity)
+      return unless channel_id
 
       payload = render_template("slack/#{template_name}", identity)
 
       client.chat_postMessage(
-        channel: dm_channel_id,
+        channel: channel_id,
         username: "Ralsei",
         icon_url: RALSEI_PFP,
         **JSON.parse(payload, symbolize_names: true),
         unfurl_links: false,
       )
 
-      Rails.logger.info "RalseiEngine sent message to #{identity.slack_id} via DM #{dm_channel_id} (template: #{template_name})"
+      Rails.logger.info "RalseiEngine sent message to #{identity.slack_id} via #{channel_id} (template: #{template_name})"
     rescue => e
       Rails.logger.error "RalseiEngine failed to send message: #{e.message}"
       Honeybadger.notify(e, context: { identity_id: identity.id, template: template_name })
+    end
+
+    def resolve_channel(identity)
+      scenario = identity.onboarding_scenario_instance
+      if scenario&.use_dm_channel?
+        ensure_dm_channel(identity)
+      else
+        identity.slack_id
+      end
     end
 
     def ensure_dm_channel(identity)

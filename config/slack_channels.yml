@@ -6,6 +6,7 @@ production:
   hq_eng: C05SVRTCDGV
   neighbourhood: C01AS1YEM8A
   lounge: C0266FRGV
+  waiting_room: C0A24UHUMA7
 shared:
   announcements: C09N763H20Z
   library: C09MMSJSUKV
@@ -14,3 +15,4 @@ shared:
   hq_eng: C09N76HCM9P
   neighbourhood: C09MU9EC9GA
   lounge: C09NNJRQGP2
+  waiting_room: C09N763H20Z
