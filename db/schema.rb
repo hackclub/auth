@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_08_205405) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_10_001813) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -113,8 +113,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_08_205405) do
     t.string "credential_id"
     t.boolean "can_break_glass"
     t.bigint "identity_id"
-    t.index ["identity_id"], name: "index_backend_users_on_identity_id"
     t.string "seen_hints", default: [], array: true
+    t.index ["identity_id"], name: "index_backend_users_on_identity_id"
   end
 
   create_table "break_glass_records", force: :cascade do |t|
@@ -473,6 +473,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_08_205405) do
     t.boolean "active", default: true
     t.integer "trust_level", default: 0, null: false
     t.bigint "owner_identity_id"
+    t.string "onboarding_scenario"
     t.index ["owner_identity_id"], name: "index_oauth_applications_on_owner_identity_id"
     t.index ["program_key_bidx"], name: "index_oauth_applications_on_program_key_bidx", unique: true
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
@@ -490,6 +491,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_08_205405) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["key"], name: "index_settings_on_key", unique: true
+  end
+
+  create_table "slack_idp_groups", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "slack_group_id"
+    t.string "slug", null: false
+    t.datetime "synced_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slack_group_id"], name: "index_slack_idp_groups_on_slack_group_id", unique: true
+    t.index ["slug"], name: "index_slack_idp_groups_on_slug", unique: true
   end
 
   create_table "verifications", force: :cascade do |t|

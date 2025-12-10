@@ -13,4 +13,4 @@
   <%= render profile_completion %>
 <% end %>
 
-<%= render Components::SSOAppGrid.new(apps: @sso_apps) %>
+<%= render Components::SSOAppGrid.new(apps: @sso_apps, special_apps: @special_apps) %>

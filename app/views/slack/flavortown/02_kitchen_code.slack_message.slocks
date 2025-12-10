@@ -1,0 +1,18 @@
+section <<~MSG, markdown: true
+  _Flavorpheus leans against the counter, arms crossed._
+
+  This kitchen runs on trust. If you ever have a problem with another cook — burnt feelings, crossed wires, anything — reach out to our confidential moderation team:
+  email conduct@hackclub.com or DM <@U07K4TS9HQE>.
+
+  You can read the full <https://hackclub.com/conduct/|Code of Conduct> anytime.
+MSG
+
+context [
+  mrkdwn_text("By joining, you agreed to Slack's <https://slack.com/main-services-agreement|Terms of Service> & <https://slack.com/trust/privacy/privacy-policy|Privacy Policy>.")
+]
+
+section '_Flavorpheus raises an eyebrow._ "So — you ready to cook by the code?"', markdown: true
+
+actions [
+  button("let's cook!", "flavortown_agree", style: "primary")
+]

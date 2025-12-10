@@ -1,0 +1,2 @@
+module SpecialAppCards
+end

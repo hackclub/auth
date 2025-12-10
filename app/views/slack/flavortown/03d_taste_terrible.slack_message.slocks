@@ -1,0 +1,19 @@
+section <<~MSG, markdown: true
+  _Flavorpheus stares at you in silence._
+
+  ...
+
+  _She takes off her hat. Sets it on the counter. Breathes deeply._
+
+  I'm not mad. I'm just... disappointed.
+
+  *Why* would you say that. In a *kitchen*. To a *chef*.
+
+  _She puts the hat back on, composing herself._
+
+  Let's... try this again. Please.
+MSG
+
+actions [
+  button("I'm sorry :peefest:", "flavortown_try_again", style: "primary")
+]

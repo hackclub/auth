@@ -1,0 +1,13 @@
+section <<~MSG, markdown: true
+  _Flavorpheus stares at you for a long moment._
+
+  ...okay, I'm starting to think you're doing this on purpose.
+
+  *sighs and pinches the bridge of her nose*
+
+  The answer is *love*, chef. It's always love. It's literally the most cliché answer possible and yet here we are.
+MSG
+
+actions [
+  button("...love?", "flavortown_taste_correct", style: "primary")
+]

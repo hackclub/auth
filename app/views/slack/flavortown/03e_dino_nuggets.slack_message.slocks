@@ -1,0 +1,31 @@
+section <<~MSG, markdown: true
+  _Flavorpheus freezes._
+
+  _The kitchen goes silent. A pot stops boiling. Somewhere, a soufflé collapses._
+
+  ...Excuse me?
+
+  *EXCUSE ME?*
+
+  _She slams a spatula on the counter._
+
+  Do you have ANY idea— I am LITERALLY— that is MY FAMILY you're—
+
+  _She takes a shaky breath, gripping the counter edge._
+
+  You come into MY kitchen. You look ME in the eye. And you say *DINO NUGGETS*?!
+
+  _She's pacing now._
+
+  I KNEW someone would try this. I KNEW IT. Every single time. "Haha funny dinosaur chef, let's see how she handles the nugget question."
+
+  WELL I'LL TELL YOU HOW I HANDLE IT.
+
+  _She points a claw directly at you._
+
+  You're gonna sit there. You're gonna THINK about what you just said. And then you're gonna give me the REAL answer.
+MSG
+
+actions [
+  button("i-'m so sorry", "flavortown_try_again", style: "primary")
+]
