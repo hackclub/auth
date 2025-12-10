@@ -32,9 +32,13 @@
 
 .sso-app-card-form {
   margin: 0;
+  height: 100%;
 }
 
-button.sso-app-card.secondary {
+.sso-app-card.secondary {
+  text-decoration: none;
+  height: 100%;
+
   @include card($padding: 1.75rem, $radius: $radius-lg);
   display: flex;
   flex-direction: column;
@@ -106,6 +110,7 @@ button.sso-app-card.secondary {
   .app-info {
     flex: 1;
     min-width: 0;
+    text-align: left;
 
     h3 {
       font-size: 1.125rem;
@@ -134,6 +139,7 @@ button.sso-app-card.secondary {
     margin-top: auto;
     padding-top: $space-3;
     border-top: 1px solid var(--pico-card-border-color);
+    text-align: center;
 
     .launch-text {
       font-size: 0.9375rem;

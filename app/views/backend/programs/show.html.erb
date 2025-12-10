@@ -36,6 +36,12 @@
           <span class="detail-label">users</span>
           <span class="detail-value"><%= @identities_count %></span>
         </div>
+        <% if @program.onboarding_scenario.present? %>
+          <div class="detail-row">
+            <span class="detail-label">onboarding</span>
+            <span class="detail-value"><%= @program.onboarding_scenario.titleize %></span>
+          </div>
+        <% end %>
       </div>
     </div>
     <hr>

@@ -78,6 +78,10 @@ class Backend::ProgramsController < Backend::ApplicationController
       permitted_params += [ :description, :active, :trust_level, scopes_array: [] ]
     end
 
+    if policy(@program).update_onboarding_scenario?
+      permitted_params << :onboarding_scenario
+    end
+
     params.require(:program).permit(permitted_params)
   end
 end

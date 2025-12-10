@@ -3,6 +3,7 @@ class StaticPagesController < ApplicationController
 
   def home
     @sso_apps = SAMLService::Entities.service_providers.values.select { |sp| sp[:allow_idp_initiated] }
+    @special_apps = SpecialAppCards::Base.for_identity(current_identity)
   end
 
   def welcome
