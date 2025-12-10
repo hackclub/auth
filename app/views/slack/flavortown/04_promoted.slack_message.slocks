@@ -2,6 +2,12 @@ chan_esplanade = Rails.configuration.slack_channels.flavortown_esplanade
 chan_bulletin = Rails.configuration.slack_channels.flavortown_bulletin
 chan_help = Rails.configuration.slack_channels.flavortown_help
 chan_construction = Rails.configuration.slack_channels.flavortown_construction
+chan_library = Rails.configuration.slack_channels.library
+chan_lounge = Rails.configuration.slack_channels.lounge
+chan_welcome = Rails.configuration.slack_channels.welcome
+chan_happenings = Rails.configuration.slack_channels.happenings
+chan_community = Rails.configuration.slack_channels.community
+chan_neighbourhood = Rails.configuration.slack_channels.neighbourhood
 
 case @identity.promote_click_count
 when 0
@@ -116,6 +122,56 @@ when 7
     *takes a long sip of coffee*
 
     ...but <##{chan_esplanade}> is *right there*. :sparkling-heart:
+  MSG
+
+when 50
+  header "FIFTY?!"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus slams down a frying pan._
+
+    FIFTY CLICKS. You've clicked this button FIFTY TIMES. Do you not have HOBBIES? FRIENDS? A SOUFFLÉ TO TEND TO?
+
+    I'm not mad, I'm just... impressed? Concerned? Both? Go to <##{chan_esplanade}>, or build something in <##{chan_construction}>, or check out <##{chan_library}>. PLEASE. :dino_ehhh:
+  MSG
+
+when 99
+  header "you absolute gremlin"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus is visibly twitching._
+
+    Ninety-nine. NINETY. NINE. You are ONE click away from triple digits and I am ONE click away from a mental breakdown.
+
+    I'm BEGGING you. <##{chan_lounge}>. <##{chan_happenings}>. <##{chan_community}>. <##{chan_neighbourhood}>. LITERALLY ANYWHERE ELSE. :dino_caffeinated:
+  MSG
+
+when 100
+  header "I GIVE UP"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus throws her apron on the ground._
+
+    ONE HUNDRED CLICKS. ARE YOU HAPPY NOW? IS THIS WHAT YOU WANTED?
+
+    You know what? Fine. You win. You've out-clicked me. I hereby crown you the Button Monarch of Flavortown. :crown:
+
+    NOW WILL YOU *PLEASE* GO TO <##{chan_welcome}>, <##{chan_lounge}>, <##{chan_happenings}>, <##{chan_community}>, <##{chan_neighbourhood}>, <##{chan_library}>, OR LITERALLY ANY OTHER CHANNEL AND TALK TO ACTUAL HUMANS?!?! :orpheus-explode:
+  MSG
+
+when 101
+  header "...you're still here?"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus stares blankly._
+
+    I... I gave you the crown. I surrendered. What more do you want from me?
+
+    ...
+
+    You know what? I'm not even mad anymore. I'm impressed. You've broken me. Congratulations.
+
+    I'm going to go lie down. The channels are over there. You know where they are. You've always known. :tired-dino:
   MSG
 
 else
