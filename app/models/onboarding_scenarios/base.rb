@@ -54,5 +54,7 @@ module OnboardingScenarios
 
     # Whether Ralsei should message users via DM instead of a channel
     def use_dm_channel? = false
+
+    private def chans(*keys) = Rails.configuration.slack_channels.slice(*keys).values
   end
 end
