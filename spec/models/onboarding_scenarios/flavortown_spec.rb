@@ -60,7 +60,7 @@ RSpec.describe OnboardingScenarios::Flavortown do
 
     context "wrong answers" do
       it "goes to taste_wrong on first wrong answer" do
-        expect(scenario.handle_action("flavortown_taste_wrong")).to eq(:taste_wrong)
+        expect(scenario.handle_action("flavortown_taste_wrong_w0")).to eq(:taste_wrong)
       end
 
       it "allows retry from taste_wrong" do
@@ -68,13 +68,13 @@ RSpec.describe OnboardingScenarios::Flavortown do
       end
 
       it "gives up after second wrong answer" do
-        expect(scenario.handle_action("flavortown_taste_wrong_again")).to eq(:taste_gave_up)
+        expect(scenario.handle_action("flavortown_taste_wrong_again_w0")).to eq(:taste_gave_up)
       end
     end
 
     context "terrible answers" do
       it "goes to taste_terrible on incredibly wrong answer" do
-        expect(scenario.handle_action("flavortown_taste_incredibly_wrong")).to eq(:taste_terrible)
+        expect(scenario.handle_action("flavortown_taste_incredibly_wrong_t0")).to eq(:taste_terrible)
       end
 
       it "goes to dino_nuggets on dino nuggets answer" do
@@ -140,7 +140,7 @@ RSpec.describe OnboardingScenarios::Flavortown do
       step = scenario.handle_action("flavortown_agree")
       expect(step).to eq(:taste_test)
 
-      step = scenario.handle_action("flavortown_taste_wrong")
+      step = scenario.handle_action("flavortown_taste_wrong_w0")
       expect(step).to eq(:taste_wrong)
 
       step = scenario.handle_action("flavortown_try_again")
@@ -154,10 +154,10 @@ RSpec.describe OnboardingScenarios::Flavortown do
       scenario.handle_action("flavortown_continue")
       scenario.handle_action("flavortown_agree")
 
-      step = scenario.handle_action("flavortown_taste_wrong")
+      step = scenario.handle_action("flavortown_taste_wrong_w0")
       expect(step).to eq(:taste_wrong)
 
-      step = scenario.handle_action("flavortown_taste_wrong_again")
+      step = scenario.handle_action("flavortown_taste_wrong_again_w0")
       expect(step).to eq(:taste_gave_up)
     end
 
@@ -176,7 +176,7 @@ RSpec.describe OnboardingScenarios::Flavortown do
       scenario.handle_action("flavortown_continue")
       scenario.handle_action("flavortown_agree")
 
-      step = scenario.handle_action("flavortown_taste_incredibly_wrong")
+      step = scenario.handle_action("flavortown_taste_incredibly_wrong_t0")
       expect(step).to eq(:taste_terrible)
 
       step = scenario.handle_action("flavortown_try_again")

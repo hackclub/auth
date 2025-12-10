@@ -10,8 +10,8 @@ section <<~MSG, markdown: true
   *What makes a dish truly great?*
 MSG
 
-wrong_answers = OnboardingScenarios::Flavortown::WRONG_ANSWERS.map { |label, _, **opts| button(label, "flavortown_taste_wrong_again", **opts) }
-terrible_answers = OnboardingScenarios::Flavortown::TERRIBLE_ANSWERS.map { |label, _, **opts| button(label, "flavortown_taste_wrong_again", **opts) }
+wrong_answers = OnboardingScenarios::Flavortown::WRONG_ANSWERS.map.with_index { |(label, _, opts), i| button(label, "flavortown_taste_wrong_again_w#{i}", **opts) }
+terrible_answers = OnboardingScenarios::Flavortown::TERRIBLE_ANSWERS.map.with_index { |(label, _, opts), i| button(label, "flavortown_taste_wrong_again_t#{i}", **opts) }
 
 actions [
   button("Love", "flavortown_taste_correct", style: "primary"),

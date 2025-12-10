@@ -61,10 +61,10 @@ module OnboardingScenarios
       when "flavortown_continue" then :kitchen_code
       when "flavortown_agree" then :taste_test
       when "flavortown_taste_correct" then { step: :promoted, promote: true }
-      when /\Aflavortown_taste_wrong_\d+\z/ then :taste_wrong
+      when /\Aflavortown_taste_wrong_[wt]\d+\z/ then :taste_wrong
       when "flavortown_try_again" then :taste_test
-      when "flavortown_taste_wrong_again" then :taste_gave_up
-      when /\Aflavortown_taste_incredibly_wrong_\d+\z/ then :taste_terrible
+      when /\Aflavortown_taste_wrong_again_[wt]\d+\z/ then :taste_gave_up
+      when /\Aflavortown_taste_incredibly_wrong_[wt]\d+\z/ then :taste_terrible
       when "flavortown_dino_nuggets" then :dino_nuggets
       end
     end
