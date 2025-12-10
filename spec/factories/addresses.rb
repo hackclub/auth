@@ -9,5 +9,6 @@ FactoryBot.define do
     state { "CA" }
     postal_code { "90069" }
     country { "US" }
+    phone_number { "+18028675309" }
   end
 end
