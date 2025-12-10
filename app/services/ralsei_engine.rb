@@ -46,10 +46,10 @@ module RalseiEngine
 
     def handle_action(identity, action_id)
       scenario = identity.onboarding_scenario_instance
-      return false unless scenario
+      raise "No onboarding scenario for identity #{identity.public_id}" unless scenario
 
       result = scenario.handle_action(action_id)
-      return false unless result
+      raise "Unknown action #{action_id} for scenario #{scenario.class.name}" unless result
 
       case result
       when Symbol
