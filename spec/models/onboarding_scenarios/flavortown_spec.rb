@@ -16,8 +16,8 @@ RSpec.describe OnboardingScenarios::Flavortown do
         :welcome,
         :kitchen_code,
         :taste_test,
-        :taste_wrong,
-        :taste_gave_up,
+        :taste_retry,
+        :taste_reveal,
         :taste_terrible,
         :dino_nuggets,
         :promoted
@@ -28,8 +28,8 @@ RSpec.describe OnboardingScenarios::Flavortown do
       expect(scenario.dialogue_flow[:welcome]).to eq("flavortown/01_welcome")
       expect(scenario.dialogue_flow[:kitchen_code]).to eq("flavortown/02_kitchen_code")
       expect(scenario.dialogue_flow[:taste_test]).to eq("flavortown/03_taste_test")
-      expect(scenario.dialogue_flow[:taste_wrong]).to eq("flavortown/03b_taste_wrong")
-      expect(scenario.dialogue_flow[:taste_gave_up]).to eq("flavortown/03c_taste_incredibly_wrong")
+      expect(scenario.dialogue_flow[:taste_retry]).to eq("flavortown/03b_taste_retry")
+      expect(scenario.dialogue_flow[:taste_reveal]).to eq("flavortown/03c_taste_reveal")
       expect(scenario.dialogue_flow[:taste_terrible]).to eq("flavortown/03d_taste_terrible")
       expect(scenario.dialogue_flow[:dino_nuggets]).to eq("flavortown/03e_dino_nuggets")
       expect(scenario.dialogue_flow[:promoted]).to eq("flavortown/04_promoted")
@@ -59,22 +59,22 @@ RSpec.describe OnboardingScenarios::Flavortown do
     end
 
     context "wrong answers" do
-      it "goes to taste_wrong on first wrong answer" do
-        expect(scenario.handle_action("flavortown_taste_wrong_w0")).to eq(:taste_wrong)
+      it "goes to taste_retry on first wrong answer" do
+        expect(scenario.handle_action("flavortown_retry_w0")).to eq(:taste_retry)
       end
 
-      it "allows retry from taste_wrong" do
-        expect(scenario.handle_action("flavortown_try_again")).to eq(:taste_test)
+      it "allows retry from scolding screens" do
+        expect(scenario.handle_action("flavortown_try_again")).to eq(:taste_retry)
       end
 
-      it "gives up after second wrong answer" do
-        expect(scenario.handle_action("flavortown_taste_wrong_again_w0")).to eq(:taste_gave_up)
+      it "reveals answer after second wrong answer" do
+        expect(scenario.handle_action("flavortown_final_w0")).to eq(:taste_reveal)
       end
     end
 
     context "terrible answers" do
       it "goes to taste_terrible on incredibly wrong answer" do
-        expect(scenario.handle_action("flavortown_taste_incredibly_wrong_t0")).to eq(:taste_terrible)
+        expect(scenario.handle_action("flavortown_terrible_t0")).to eq(:taste_terrible)
       end
 
       it "goes to dino_nuggets on dino nuggets answer" do
@@ -140,25 +140,22 @@ RSpec.describe OnboardingScenarios::Flavortown do
       step = scenario.handle_action("flavortown_agree")
       expect(step).to eq(:taste_test)
 
-      step = scenario.handle_action("flavortown_taste_wrong_w0")
-      expect(step).to eq(:taste_wrong)
-
-      step = scenario.handle_action("flavortown_try_again")
-      expect(step).to eq(:taste_test)
+      step = scenario.handle_action("flavortown_retry_w0")
+      expect(step).to eq(:taste_retry)
 
       result = scenario.handle_action("flavortown_taste_correct")
       expect(result).to eq({ step: :promoted, promote: true })
     end
 
-    it "can complete the gave-up path (wrong twice)" do
+    it "can complete the reveal path (wrong twice)" do
       scenario.handle_action("flavortown_continue")
       scenario.handle_action("flavortown_agree")
 
-      step = scenario.handle_action("flavortown_taste_wrong_w0")
-      expect(step).to eq(:taste_wrong)
+      step = scenario.handle_action("flavortown_retry_w0")
+      expect(step).to eq(:taste_retry)
 
-      step = scenario.handle_action("flavortown_taste_wrong_again_w0")
-      expect(step).to eq(:taste_gave_up)
+      step = scenario.handle_action("flavortown_final_w0")
+      expect(step).to eq(:taste_reveal)
     end
 
     it "can complete the dino nuggets path" do
@@ -169,18 +166,18 @@ RSpec.describe OnboardingScenarios::Flavortown do
       expect(step).to eq(:dino_nuggets)
 
       step = scenario.handle_action("flavortown_try_again")
-      expect(step).to eq(:taste_test)
+      expect(step).to eq(:taste_retry)
     end
 
     it "can complete the terrible answer path" do
       scenario.handle_action("flavortown_continue")
       scenario.handle_action("flavortown_agree")
 
-      step = scenario.handle_action("flavortown_taste_incredibly_wrong_t0")
+      step = scenario.handle_action("flavortown_terrible_t0")
       expect(step).to eq(:taste_terrible)
 
       step = scenario.handle_action("flavortown_try_again")
-      expect(step).to eq(:taste_test)
+      expect(step).to eq(:taste_retry)
     end
   end
 end

@@ -8,13 +8,10 @@ section <<~MSG, markdown: true
   *What makes a dish truly great?*
 MSG
 
-wrong_answers = OnboardingScenarios::Flavortown::WRONG_ANSWERS.map.with_index { |(label, action, opts), i| button(label, "#{action}_w#{i}", **opts) }
-terrible_answers = OnboardingScenarios::Flavortown::TERRIBLE_ANSWERS.map.with_index { |(label, action, opts), i| button(label, "#{action}_t#{i}", **opts) }
+wrong_answers = OnboardingScenarios::Flavortown::WRONG_ANSWERS.map.with_index { |(label, _, opts), i| button(label, "flavortown_retry_w#{i}", **(opts || {})) }
+terrible_answers = OnboardingScenarios::Flavortown::TERRIBLE_ANSWERS.map.with_index { |(label, _, opts), i| button(label, "flavortown_terrible_t#{i}", **(opts || {})) }
 dino_nuggets = OnboardingScenarios::Flavortown::DINO_NUGGETS.then { |(label, action, opts)| button(label, action, **opts) }
 
-actions [
-  button("Love", "flavortown_taste_correct", style: "primary"),
-  *wrong_answers.sample(2),
-  *terrible_answers.sample(3),
-  dino_nuggets
-].shuffle
+love = button("Love", "flavortown_taste_correct", style: "primary")
+first_five = [love, *wrong_answers.sample(2), *terrible_answers.sample(2)].shuffle
+actions [*first_five, terrible_answers.sample(1).first, dino_nuggets].compact

@@ -48,8 +48,8 @@ module OnboardingScenarios
         welcome: "flavortown/01_welcome",
         kitchen_code: "flavortown/02_kitchen_code",
         taste_test: "flavortown/03_taste_test",
-        taste_wrong: "flavortown/03b_taste_wrong",
-        taste_gave_up: "flavortown/03c_taste_incredibly_wrong",
+        taste_retry: "flavortown/03b_taste_retry",
+        taste_reveal: "flavortown/03c_taste_reveal",
         taste_terrible: "flavortown/03d_taste_terrible",
         dino_nuggets: "flavortown/03e_dino_nuggets",
         promoted: "flavortown/04_promoted"
@@ -61,10 +61,10 @@ module OnboardingScenarios
       when "flavortown_continue" then :kitchen_code
       when "flavortown_agree" then :taste_test
       when "flavortown_taste_correct" then { step: :promoted, promote: true }
-      when /\Aflavortown_taste_wrong_[wt]\d+\z/ then :taste_wrong
-      when "flavortown_try_again" then :taste_test
-      when /\Aflavortown_taste_wrong_again_[wt]\d+\z/ then :taste_gave_up
-      when /\Aflavortown_taste_incredibly_wrong_[wt]\d+\z/ then :taste_terrible
+      when /\Aflavortown_retry_[wt]\d+\z/ then :taste_retry
+      when "flavortown_try_again" then :taste_retry
+      when /\Aflavortown_final_[wt]\d+\z/ then :taste_reveal
+      when /\Aflavortown_terrible_t\d+\z/ then :taste_terrible
       when "flavortown_dino_nuggets" then :dino_nuggets
       end
     end

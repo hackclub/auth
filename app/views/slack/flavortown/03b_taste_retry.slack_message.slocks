@@ -1,0 +1,18 @@
+header "The Taste Test (again)"
+
+section <<~MSG, markdown: true
+  _Flavorpheus winces slightly._
+
+  Mmm... not quite. That's a fine ingredient, but it's not *the* ingredient.
+
+  Think about what really makes food worth sharing. Let's try again:
+
+  *What makes a dish truly great?*
+MSG
+
+wrong_answers = OnboardingScenarios::Flavortown::WRONG_ANSWERS.map.with_index { |(label, _, opts), i| button(label, "flavortown_final_w#{i}", **(opts || {})) }
+terrible_answers = OnboardingScenarios::Flavortown::TERRIBLE_ANSWERS.map.with_index { |(label, _, opts), i| button(label, "flavortown_final_t#{i}", **(opts || {})) }
+
+love = button("Love", "flavortown_taste_correct", style: "primary")
+first_five = [love, *wrong_answers.sample(2), *terrible_answers.sample(2)].shuffle
+actions [*first_five, terrible_answers.sample(1).first].compact
