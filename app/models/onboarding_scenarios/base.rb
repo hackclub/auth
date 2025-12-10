@@ -77,12 +77,18 @@ module OnboardingScenarios
 
     # Resolve step to template path
     def template_for(step)
-      dialogue_flow.dig(step.to_sym, :template) || "tutorial/#{step}"
+      config = dialogue_flow[step.to_sym]
+      case config
+      when String then config
+      when Hash then config[:template] || "tutorial/#{step}"
+      else "tutorial/#{step}"
+      end
     end
 
     # Get next step in the flow
     def next_step(current_step)
-      dialogue_flow.dig(current_step.to_sym, :next)
+      config = dialogue_flow[current_step.to_sym]
+      config.is_a?(Hash) ? config[:next] : nil
     end
 
     # Bot persona - override to customize name/avatar
