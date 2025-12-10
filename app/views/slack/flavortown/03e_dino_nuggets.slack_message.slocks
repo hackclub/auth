@@ -27,5 +27,5 @@ section <<~MSG, markdown: true
 MSG
 
 actions [
-  button("I'm so sorry", "flavortown_try_again", style: "primary")
+  button("i-'m so sorry", "flavortown_try_again", style: "primary")
 ]
