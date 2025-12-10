@@ -29,7 +29,7 @@ class Slack::InteractivityController < ActionController::API
     when "tutorial_agree"
       Tutorial::AgreeJob.perform_later(current_identity)
     else
-      RalseiEngine.handle_action(current_identity, action_id)
+      Ralsei::HandleActionJob.perform_later(current_identity, action_id)
     end
 
     head :ok
