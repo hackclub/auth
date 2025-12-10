@@ -102,6 +102,7 @@ module RalseiEngine
     rescue => e
       Rails.logger.error "RalseiEngine failed to send message: #{e.message}"
       Honeybadger.notify(e, context: { identity_id: identity.id, template: template_name })
+      raise
     end
 
     def resolve_channel(identity)
