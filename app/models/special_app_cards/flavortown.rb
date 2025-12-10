@@ -8,7 +8,7 @@ module SpecialAppCards
 
     def friendly_name = "Flavortown"
 
-    def tagline = "Anyone can cook!"
+    def tagline = "anyone can cook!"
 
     def icon = "flavortown.png"
 
