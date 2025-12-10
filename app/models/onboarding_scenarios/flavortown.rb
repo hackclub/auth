@@ -36,7 +36,7 @@ module OnboardingScenarios
 
     def promotion_channels = chans(:flavortown_construction, :library, :lounge, :welcome, :happenings, :community, :neighbourhood)
 
-    def use_dm_channel? = true
+    def use_dm_channel? = false # slackbot is our friend!
 
     def bot_name = "Flavorpheus"
     def bot_icon_url = "https://hc-cdn.hel1.your-objectstorage.com/s/v3/3bc2db7b9c62b15230a4c1bcefca7131a6c491d2_icon_1.png"
