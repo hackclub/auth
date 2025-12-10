@@ -1,5 +1,23 @@
 module OnboardingScenarios
   class Flavortown < Base
+    WRONG_ANSWERS = [
+      [ "More butter", "flavortown_taste_wrong" ],
+      [ "MSG", "flavortown_taste_wrong" ],
+      [ "Salt", "flavortown_taste_wrong" ]
+    ].freeze
+
+    TERRIBLE_ANSWERS = [
+      [ "Poison", "flavortown_taste_incredibly_wrong" ],
+      [ "Bone hurting juice", "flavortown_taste_incredibly_wrong" ],
+      [ "Bone apple tea", "flavortown_taste_incredibly_wrong" ],
+      [ "Ómélêttè du fròmage", "flavortown_taste_incredibly_wrong" ],
+      [ "Spite", "flavortown_taste_incredibly_wrong" ],
+      [ "Raw chicken", "flavortown_taste_incredibly_wrong" ],
+      [ "One day blinding stew", "flavortown_taste_incredibly_wrong" ]
+    ].freeze
+
+    DINO_NUGGETS = [ "Dino nuggets", "flavortown_dino_nuggets", style: "danger" ].freeze
+
     def self.slug = "flavortown"
 
     def title = "ready to enroll in cooking school?"

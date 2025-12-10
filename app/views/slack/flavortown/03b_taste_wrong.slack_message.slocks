@@ -10,13 +10,13 @@ section <<~MSG, markdown: true
   *What makes a dish truly great?*
 MSG
 
-require_relative "_taste_answers"
-
-wrong_answers = FLAVORTOWN_WRONG_ANSWERS.map { |label, _| button(label, "flavortown_taste_wrong_again") }
-terrible_answers = FLAVORTOWN_TERRIBLE_ANSWERS.map { |label, _| button(label, "flavortown_taste_wrong_again") }
+wrong_answers = OnboardingScenarios::Flavortown::WRONG_ANSWERS.map { |label, _, **opts| button(label, "flavortown_taste_wrong_again", **opts) }
+terrible_answers = OnboardingScenarios::Flavortown::TERRIBLE_ANSWERS.map { |label, _, **opts| button(label, "flavortown_taste_wrong_again", **opts) }
+dino_nuggets = OnboardingScenarios::Flavortown::DINO_NUGGETS.then { |label, _, **opts| button(label, "flavortown_taste_wrong_again", **opts) }
 
 actions [
   button("Love", "flavortown_taste_correct", style: "primary"),
   *wrong_answers.sample(2),
-  *terrible_answers.sample(1)
+  *terrible_answers.sample,
+  dino_nuggets
 ].shuffle
