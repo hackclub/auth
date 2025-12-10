@@ -2,9 +2,7 @@ module OnboardingScenarios
   class Flavortown < Base
     def self.slug = "flavortown"
 
-    def title
-      "Set up your Hack Club account!"
-    end
+    def title = "ready to enroll in cooking school?"
 
     def form_fields
       [ :first_name, :last_name, :primary_email, :birthday, :country ]
