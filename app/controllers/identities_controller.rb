@@ -153,7 +153,30 @@ class IdentitiesController < ApplicationController
             scenario = OnboardingScenarios::Base.find_by_slug(params[:slug])
             return scenario if scenario
         end
+
+        # Check if this is an OAuth flow with a program that has a custom onboarding scenario
+        if (scenario = scenario_from_oauth_return_to)
+            return scenario
+        end
+
         OnboardingScenarios::DefaultJoin
+    end
+
+    def scenario_from_oauth_return_to
+        return nil unless params[:return_to].present?
+        return nil unless params[:return_to].start_with?("/oauth/authorize")
+
+        uri = URI.parse(params[:return_to])
+        query_params = URI.decode_www_form(uri.query || "").to_h
+        client_id = query_params["client_id"]
+        return nil unless client_id
+
+        program = Program.find_by(uid: client_id)
+        return nil unless program&.onboarding_scenario.present?
+
+        OnboardingScenarios::Base.find_by_slug(program.onboarding_scenario)
+    rescue URI::InvalidURIError
+        nil
     end
 
     def scenario_prefill_attributes

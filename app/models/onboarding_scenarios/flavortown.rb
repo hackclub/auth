@@ -1,5 +1,7 @@
 module OnboardingScenarios
   class Flavortown < Base
+    def self.slug = "flavortown"
+
     def title
       "Set up your Hack Club account!"
     end

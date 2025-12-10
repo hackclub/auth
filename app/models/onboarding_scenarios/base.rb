@@ -8,6 +8,10 @@ module OnboardingScenarios
         return nil if slug.blank?
         descendants&.find { |k| k.slug && k.slug.to_s == slug.to_s }
       end
+
+      def available_slugs
+        descendants&.filter_map(&:slug)&.sort || []
+      end
     end
 
     def initialize(identity)

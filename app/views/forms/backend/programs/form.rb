@@ -30,6 +30,28 @@ class Backend::Programs::Form < ApplicationForm
         end
       end
 
+      super_admin_tool do
+        div style: "margin: 1rem 0;" do
+          label(class: "field-label") { "Onboarding Scenario:" }
+          select(
+            name: "program[onboarding_scenario]",
+            class: "input-field",
+            style: "width: 100%; margin-bottom: 1rem;"
+          ) do
+            option(value: "", selected: model.onboarding_scenario.blank?) { "(default)" }
+            OnboardingScenarios::Base.available_slugs.each do |slug|
+              option(
+                value: slug,
+                selected: model.onboarding_scenario == slug
+              ) { slug.titleize }
+            end
+          end
+          small(style: "display: block; color: var(--muted-color); margin-top: -0.5rem;") do
+            plain "When users sign up through this OAuth app, they'll use this onboarding flow"
+          end
+        end
+      end
+
       div style: "margin: 1rem 0;" do
         label(class: "field-label") { "OAuth Scopes:" }
         # Hidden field to ensure empty scopes array is submitted when no checkboxes are checked

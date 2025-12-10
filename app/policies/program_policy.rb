@@ -13,6 +13,8 @@ class ProgramPolicy < ApplicationPolicy
 
   def update_scopes? = user_is_program_manager?
 
+  def update_onboarding_scenario? = user&.super_admin?
+
   class Scope < Scope
     def resolve
       if user.program_manager? || user.super_admin?
