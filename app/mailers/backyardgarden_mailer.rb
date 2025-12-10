@@ -4,8 +4,8 @@ class BackyardGarden_Mailer < ApplicationMailer
         @first_name = @identity.first_name
     
         mail(
-          to: @identity.primary_email,,
-          subject: Hack Club Onboarding
+          to: @identity.primary_email,
+          subject: "Hack Club Onboarding"
         )
       end
 
@@ -14,8 +14,8 @@ class BackyardGarden_Mailer < ApplicationMailer
         @first_name = @identity.first_name
     
         mail(
-          to: @identity.primary_email,,
-          subject: YSWS Onboarding
+          to: @identity.primary_email,
+          subject: "YSWS Onboarding"
         )
       end
 
@@ -24,8 +24,8 @@ class BackyardGarden_Mailer < ApplicationMailer
         @first_name = @identity.first_name
     
         mail(
-          to: @identity.primary_email,,
-          subject: Community Events Onboarding
+          to: @identity.primary_email,
+          subject: "Community Events Onboarding"
         )
       end
 
@@ -34,8 +34,8 @@ class BackyardGarden_Mailer < ApplicationMailer
         @first_name = @identity.first_name
     
         mail(
-          to: @identity.primary_email,,
-          subject: Putting the Club in Hack Club
+          to: @identity.primary_email,
+          subject: "Putting the Club in Hack Club"
         )
       end
 
