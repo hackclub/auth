@@ -59,6 +59,43 @@ module OnboardingScenarios
     # Whether Ralsei should message users via DM instead of a channel
     def use_dm_channel? = false
 
+    # Define the dialogue flow as an ordered list of steps
+    # Each step maps to a template and optionally defines the next step
+    def dialogue_flow
+      {
+        intro: { template: "tutorial/01_intro", next: :hacker_values },
+        hacker_values: { template: "tutorial/02_hacker_values", next: :welcome },
+        welcome: { template: "tutorial/03_welcome", next: nil }
+      }
+    end
+
+    # The first step in the flow
+    def first_step = :intro
+
+    # Get step config
+    def step_config(step) = dialogue_flow[step.to_sym]
+
+    # Resolve step to template path
+    def template_for(step)
+      dialogue_flow.dig(step.to_sym, :template) || "tutorial/#{step}"
+    end
+
+    # Get next step in the flow
+    def next_step(current_step)
+      dialogue_flow.dig(current_step.to_sym, :next)
+    end
+
+    # Bot persona - override to customize name/avatar
+    def bot_name = nil
+    def bot_icon_url = nil
+
+    # Custom dialogue flow hooks - override in subclasses
+    def before_first_message = nil
+    def after_promotion = nil
+
+    # Handle custom actions - return step symbol, template string, or hash
+    def handle_action(action_id) = nil
+
     private def chans(*keys) = Rails.configuration.slack_channels.slice(*keys).values
   end
 end

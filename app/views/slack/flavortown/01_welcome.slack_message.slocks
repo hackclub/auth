@@ -1,0 +1,25 @@
+header "🍳 Welcome to Flavortown!"
+
+section "Hello, #{@identity.first_name}! Pull up a chair — the stove's warm and there's coffee on.", markdown: true
+
+divider
+
+section <<~MSG, markdown: true
+  _Flavorpheus slides a menu across the counter toward you._
+
+  *_"The Flavortown Kitchen Handbook (3rd ed.)"_, Chef Flavorpheus*
+
+  _scrawled on a sticky note:_
+
+  > Cook with heart, share with friends.
+
+  _printed neatly below:_
+  > *The Flavortown Code*, _the short version_:
+  > • Be generous — with your time, your knowledge, and your leftovers.
+  > • Keep it clean — in the kitchen and in conversation.
+  > • Experiment boldly — but respect the fundamentals.
+MSG
+
+actions [
+  button("okay, chef!", "flavortown_continue", style: "primary")
+]

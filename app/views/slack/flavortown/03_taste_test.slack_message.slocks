@@ -1,0 +1,20 @@
+header "The Taste Test"
+
+section <<~MSG, markdown: true
+  _Flavorpheus sets three small bowls in front of you._
+
+  Alright, one last thing. Every cook here knows the secret ingredient. Let's see if you do too.
+
+  *What makes a dish truly great?*
+MSG
+
+require_relative "_taste_answers"
+
+wrong_answers = FLAVORTOWN_WRONG_ANSWERS.map { |label, action| button(label, action) }
+terrible_answers = FLAVORTOWN_TERRIBLE_ANSWERS.map { |label, action| button(label, action) }
+
+actions [
+  button("Love", "flavortown_taste_correct", style: "primary"),
+  *wrong_answers.sample(2),
+  *terrible_answers.sample(3)
+].shuffle

@@ -8,7 +8,6 @@ module OnboardingScenarios
       [ :first_name, :last_name, :primary_email, :birthday, :country ]
     end
 
-
     def slack_user_type = :multi_channel_guest
 
     def next_action = :home
@@ -18,5 +17,38 @@ module OnboardingScenarios
     def slack_channels = chans(:flavortown_bulletin, :flavortown_esplanade, :flavortown_help, :identity_help)
 
     def promotion_channels = chans(:flavortown_construction, :library, :lounge, :welcome, :happenings, :community, :neighbourhood)
+
+    def use_dm_channel? = true
+
+    def bot_name = "Flavorpheus"
+    def bot_icon_url = "https://hc-cdn.hel1.your-objectstorage.com/s/v3/3bc2db7b9c62b15230a4c1bcefca7131a6c491d2_icon_1.png"
+
+    def first_step = :welcome
+
+    def dialogue_flow
+      {
+        welcome: "flavortown/01_welcome",
+        kitchen_code: "flavortown/02_kitchen_code",
+        taste_test: "flavortown/03_taste_test",
+        taste_wrong: "flavortown/03b_taste_wrong",
+        taste_gave_up: "flavortown/03c_taste_incredibly_wrong",
+        taste_terrible: "flavortown/03d_taste_terrible",
+        dino_nuggets: "flavortown/03e_dino_nuggets",
+        promoted: "flavortown/04_promoted"
+      }
+    end
+
+    def handle_action(action_id)
+      case action_id
+      when "flavortown_continue" then :kitchen_code
+      when "flavortown_agree" then :taste_test
+      when "flavortown_taste_correct" then { step: :promoted, promote: true }
+      when "flavortown_taste_wrong" then :taste_wrong
+      when "flavortown_try_again" then :taste_test
+      when "flavortown_taste_wrong_again" then :taste_gave_up
+      when "flavortown_taste_incredibly_wrong" then :taste_terrible
+      when "flavortown_dino_nuggets" then :dino_nuggets
+      end
+    end
   end
 end

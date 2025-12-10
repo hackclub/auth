@@ -1,0 +1,167 @@
+chan_esplanade = Rails.configuration.slack_channels.flavortown_esplanade
+chan_bulletin = Rails.configuration.slack_channels.flavortown_bulletin
+chan_help = Rails.configuration.slack_channels.flavortown_help
+chan_construction = Rails.configuration.slack_channels.flavortown_construction
+
+case @identity.promote_click_count
+when 0
+  header "🎉 Welcome to the crew!"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus grins and tosses you an apron._
+
+    That's the one, #{@identity.first_name}. Love. Gets 'em every time.
+
+    ...I also would have accepted "garlic".
+
+    You're officially part of Flavortown now. The kitchen's yours to explore — go make something great.
+  MSG
+
+  divider
+
+  section <<~MSG, markdown: true
+    *<##{chan_esplanade}>* is the main hangout — introduce yourself, swap recipes, show off what you're cooking.
+
+    *<##{chan_bulletin}>* is where announcements go up — specials, events, the good stuff.
+
+    *<##{chan_help}>* if you need a hand with anything.
+
+    Now get in there and say hi! 🍕
+  MSG
+
+when 1
+  header "✨ you're already in!"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus looks up from the grill._
+
+    Hey, you're already on the crew! How's it going — found your way around yet?
+  MSG
+
+  divider
+
+  section <<~MSG, markdown: true
+    Quick refresher:
+
+    *<##{chan_esplanade}>* — the main hangout
+    *<##{chan_bulletin}>* — announcements
+    *<##{chan_help}>* — if you need anything
+
+    Make yourself at home, chef. 🍳
+  MSG
+
+when 2
+  header "back for seconds?"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus raises an eyebrow but smiles._
+
+    You already passed the taste test! Unless... you just wanted to hang out?
+
+    That's cool. The coffee's fresh. But the real action's in <##{chan_esplanade}>.
+  MSG
+
+when 3
+  header "okay, I see you"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus flips a spatula absently._
+
+    You really like this button, huh? I respect the commitment.
+
+    But seriously — <##{chan_esplanade}> has actual people to talk to. Just saying.
+  MSG
+
+when 4
+  header "are you... testing me?"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus sets down the spatula._
+
+    Four times. You've clicked this four times. Is this a quality assurance thing? Are you from the health department?
+
+    ...I'm kidding. Mostly. Go hang out in <##{chan_esplanade}>, chef. 😅
+  MSG
+
+when 5
+  header "alright, alright"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus pours two cups of coffee and slides one over._
+
+    Look, at this point we're friends. Sit down. Tell me about yourself.
+
+    Or go to <##{chan_esplanade}> and tell *them* about yourself. Your call. ☕
+  MSG
+
+when 6
+  header "the button whisperer"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus leans back and crosses her arms._
+
+    You know what? I admire your persistence. In the kitchen, that kind of dedication makes a great chef.
+
+    Channel it into <##{chan_construction}> and build something cool. For me? 🔧
+  MSG
+
+when 7
+  header "okay chef, I get it"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus sighs, but there's warmth in it._
+
+    You're not gonna stop, are you? Fine. I'll be here. We can do this forever.
+
+    *takes a long sip of coffee*
+
+    ...but <##{chan_esplanade}> is *right there*. 💚
+  MSG
+
+else
+  case @identity.promote_click_count % 4
+  when 0
+    header "regular customer"
+
+    section <<~MSG, markdown: true
+      _Flavorpheus waves without looking up._
+
+      The usual? One "you're already a member" with a side of "please go to <##{chan_esplanade}>"?
+
+      Coming right up. 🍳
+    MSG
+
+  when 1
+    header "ah, my favorite button-clicker"
+
+    section <<~MSG, markdown: true
+      _Flavorpheus is now just casually reading a cookbook._
+
+      Page 47 has a great soufflé recipe. Way more exciting than this button. Just saying.
+
+      <##{chan_esplanade}> also exists. In case you forgot. 💚
+    MSG
+
+  when 2
+    header "the legend returns"
+
+    section <<~MSG, markdown: true
+      _Flavorpheus doesn't even look surprised._
+
+      #{@identity.promote_click_count + 1} clicks. That's dedication. That's *art*.
+
+      Now imagine channeling that energy into an actual recipe. <##{chan_construction}> is waiting. ✨
+    MSG
+
+  when 3
+    header "one more click..."
+
+    section <<~MSG, markdown: true
+      _Flavorpheus smiles warmly._
+
+      You know, every click you make here is a click you're not making in <##{chan_esplanade}>.
+
+      But I appreciate the company. See you next time, chef. 🍕
+    MSG
+  end
+end
