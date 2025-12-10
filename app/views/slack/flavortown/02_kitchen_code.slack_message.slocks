@@ -11,7 +11,7 @@ context [
   mrkdwn_text("By joining, you agreed to Slack's <https://slack.com/main-services-agreement|Terms of Service> & <https://slack.com/trust/privacy/privacy-policy|Privacy Policy>.")
 ]
 
-section '_Flavorpheus raises an eyebrow._ "So — you ready to cook by the code?"', markdown: true
+section '_Flavorpheus raises an eyebrow._ "So — you ready to do the cooking by the book?"', markdown: true
 
 actions [
   button("let's cook!", "flavortown_agree", style: "primary")

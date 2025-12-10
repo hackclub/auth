@@ -2,10 +2,16 @@ chan_esplanade = Rails.configuration.slack_channels.flavortown_esplanade
 chan_bulletin = Rails.configuration.slack_channels.flavortown_bulletin
 chan_help = Rails.configuration.slack_channels.flavortown_help
 chan_construction = Rails.configuration.slack_channels.flavortown_construction
+chan_library = Rails.configuration.slack_channels.library
+chan_lounge = Rails.configuration.slack_channels.lounge
+chan_welcome = Rails.configuration.slack_channels.welcome
+chan_happenings = Rails.configuration.slack_channels.happenings
+chan_community = Rails.configuration.slack_channels.community
+chan_neighbourhood = Rails.configuration.slack_channels.neighbourhood
 
 case @identity.promote_click_count
 when 0
-  header "🎉 Welcome to the crew!"
+  header ":yay: Welcome to the crew!"
 
   section <<~MSG, markdown: true
     _Flavorpheus grins and tosses you an apron._
@@ -26,11 +32,11 @@ when 0
 
     *<##{chan_help}>* if you need a hand with anything.
 
-    Now get in there and say hi! 🍕
+    Now get in there and say hi! :hcb-pizza:
   MSG
 
 when 1
-  header "✨ you're already in!"
+  header ":rat-sparkling-heart: you're already in!"
 
   section <<~MSG, markdown: true
     _Flavorpheus looks up from the grill._
@@ -47,7 +53,7 @@ when 1
     *<##{chan_bulletin}>* — announcements
     *<##{chan_help}>* — if you need anything
 
-    Make yourself at home, chef. 🍳
+    Make yourself at home, chef. :eggcited:
   MSG
 
 when 2
@@ -80,7 +86,7 @@ when 4
 
     Four times. You've clicked this four times. Is this a quality assurance thing? Are you from the health department?
 
-    ...I'm kidding. Mostly. Go hang out in <##{chan_esplanade}>, chef. 😅
+    ...I'm kidding. Mostly. Go hang out in <##{chan_esplanade}>, chef. :v2:
   MSG
 
 when 5
@@ -115,11 +121,61 @@ when 7
 
     *takes a long sip of coffee*
 
-    ...but <##{chan_esplanade}> is *right there*. 💚
+    ...but <##{chan_esplanade}> is *right there*. :sparkling-heart:
+  MSG
+
+when 50
+  header "FIFTY?!"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus slams down a frying pan._
+
+    FIFTY CLICKS. You've clicked this button FIFTY TIMES. Do you not have HOBBIES? FRIENDS? A SOUFFLÉ TO TEND TO?
+
+    I'm not mad, I'm just... impressed? Concerned? Both? Go to <##{chan_esplanade}>, or build something in <##{chan_construction}>, or check out <##{chan_library}>. PLEASE. :dino_ehhh:
+  MSG
+
+when 99
+  header "you absolute gremlin"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus is visibly twitching._
+
+    Ninety-nine. NINETY. NINE. You are ONE click away from triple digits and I am ONE click away from a mental breakdown.
+
+    I'm BEGGING you. <##{chan_lounge}>. <##{chan_happenings}>. <##{chan_community}>. <##{chan_neighbourhood}>. LITERALLY ANYWHERE ELSE. :dino_caffeinated:
+  MSG
+
+when 100
+  header "I GIVE UP"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus throws her apron on the ground._
+
+    ONE HUNDRED CLICKS. ARE YOU HAPPY NOW? IS THIS WHAT YOU WANTED?
+
+    You know what? Fine. You win. You've out-clicked me. I hereby crown you the Button Monarch of Flavortown. :crown:
+
+    NOW WILL YOU *PLEASE* GO TO <##{chan_welcome}>, <##{chan_lounge}>, <##{chan_happenings}>, <##{chan_community}>, <##{chan_neighbourhood}>, <##{chan_library}>, OR LITERALLY ANY OTHER CHANNEL AND TALK TO ACTUAL HUMANS?!?! :orpheus-explode:
+  MSG
+
+when 101
+  header "...you're still here?"
+
+  section <<~MSG, markdown: true
+    _Flavorpheus stares blankly._
+
+    I... I gave you the crown. I surrendered. What more do you want from me?
+
+    ...
+
+    You know what? I'm not even mad anymore. I'm impressed. You've broken me. Congratulations.
+
+    I'm going to go lie down. The channels are over there. You know where they are. You've always known. :tired-dino:
   MSG
 
 else
-  case @identity.promote_click_count % 4
+  case @identity.promote_click_count % 12
   when 0
     header "regular customer"
 
@@ -128,7 +184,7 @@ else
 
       The usual? One "you're already a member" with a side of "please go to <##{chan_esplanade}>"?
 
-      Coming right up. 🍳
+      Coming right up. :chefparrot:
     MSG
 
   when 1
@@ -139,7 +195,7 @@ else
 
       Page 47 has a great soufflé recipe. Way more exciting than this button. Just saying.
 
-      <##{chan_esplanade}> also exists. In case you forgot. 💚
+      <##{chan_esplanade}> also exists. In case you forgot. :time-to-stop:
     MSG
 
   when 2
@@ -161,7 +217,95 @@ else
 
       You know, every click you make here is a click you're not making in <##{chan_esplanade}>.
 
-      But I appreciate the company. See you next time, chef. 🍕
+      But I appreciate the company. See you next time, chef. :orpheus-dance:
+    MSG
+
+  when 4
+    header "the return of the clicker"
+
+    section <<~MSG, markdown: true
+      _Flavorpheus is doing a crossword puzzle._
+
+      Six letters, starts with "C", ends with "licker". Hmm. Can't quite figure it out.
+
+      Oh wait, it's you. It's always you. <##{chan_lounge}> has puzzles too, you know. :crossword:
+    MSG
+
+  when 5
+    header "click click click"
+
+    section <<~MSG, markdown: true
+      _Flavorpheus is stress-baking._
+
+      You know what? Every time you click, I make another cookie. I now have #{@identity.promote_click_count + 1} cookies.
+
+      I don't even like cookies. Please. <##{chan_happenings}>. Go see what's happening. :half-eaten-cookie:
+    MSG
+
+  when 6
+    header "our most loyal patron"
+
+    section <<~MSG, markdown: true
+      _Flavorpheus hangs up a portrait of you on the wall._
+
+      I'm putting you in the Hall of Fame. Right next to the fire extinguisher. Because you're both things I never expected to use this much.
+
+      Now go make some friends in <##{chan_lounge}>. :frame-with-picture:
+    MSG
+
+  when 7
+    header "we meet again"
+
+    section <<~MSG, markdown: true
+      _Flavorpheus is teaching a cooking class, but stops mid-sentence._
+
+      Class, this is the one I told you about. The Button Chef. Legend has it they've never actually cooked anything, but they sure can click.
+
+      Anyway, <##{chan_neighbourhood}> has actual neighbors you can talk to. Just a thought. :peefest:
+    MSG
+
+  when 8
+    header "old friend"
+
+    section <<~MSG, markdown: true
+      _Flavorpheus is meditating in the corner._
+
+      I have achieved inner peace. Your clicks no longer disturb me. I am one with the button.
+
+      ...okay that's a lie, please go to <##{chan_library}> and read something. :meditate-wx:
+    MSG
+
+  when 9
+    header "déjà vu"
+
+    section <<~MSG, markdown: true
+      _Flavorpheus squints at you._
+
+      Have we... have we done this before? Wait, of course we have. We've done this #{@identity.promote_click_count + 1} times.
+
+      You know what you haven't done #{@identity.promote_click_count + 1} times? Visited <##{chan_welcome}>. :thonk-cool:
+    MSG
+
+  when 10
+    header "the saga continues"
+
+    section <<~MSG, markdown: true
+      _Flavorpheus is writing in a journal._
+
+      "Day #{@identity.promote_click_count + 1}. They clicked again. I no longer remember a time before the clicks. The clicks are eternal. The clicks are life."
+
+      Anyway, <##{chan_bulletin}> has announcements. Real ones. Not about you. :click:
+    MSG
+
+  when 11
+    header "at this point we're family"
+
+    section <<~MSG, markdown: true
+      _Flavorpheus pulls up a chair._
+
+      You know what? Sit down. Tell me about your day. We're past formalities now. We've been through too much together.
+
+      But also maybe check out <##{chan_help}> if you actually need something? :blob_cozy:
     MSG
   end
 end
