@@ -60,6 +60,7 @@ module RalseiEngine
         promote_user(identity) if result[:promote]
         send_step(identity, result[:step]) if result[:step]
         send_message(identity, result[:template]) if result[:template]
+        identity.increment!(:promote_click_count, 1) if result[:promote]
       end
 
       true
@@ -77,7 +78,6 @@ module RalseiEngine
       end
 
       scenario&.after_promotion
-      identity.increment!(:promote_click_count, 1)
       Rails.logger.info "RalseiEngine: promoted #{identity.public_id}"
     end
 

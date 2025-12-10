@@ -62,7 +62,7 @@ module OnboardingScenarios
       when "flavortown_agree" then :taste_test
       when "flavortown_taste_correct" then { step: :promoted, promote: true }
       when /\Aflavortown_retry_[wt]\d+\z/ then :taste_retry
-      when "flavortown_try_again" then :taste_retry
+      when "flavortown_try_again" then :taste_reveal
       when /\Aflavortown_final_[wt]\d+\z/ then :taste_reveal
       when /\Aflavortown_terrible_t\d+\z/ then :taste_terrible
       when "flavortown_dino_nuggets" then :dino_nuggets
