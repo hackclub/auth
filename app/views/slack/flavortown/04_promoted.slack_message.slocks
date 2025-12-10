@@ -5,7 +5,7 @@ chan_construction = Rails.configuration.slack_channels.flavortown_construction
 
 case @identity.promote_click_count
 when 0
-  header "🎉 Welcome to the crew!"
+  header ":yay: Welcome to the crew!"
 
   section <<~MSG, markdown: true
     _Flavorpheus grins and tosses you an apron._
@@ -26,11 +26,11 @@ when 0
 
     *<##{chan_help}>* if you need a hand with anything.
 
-    Now get in there and say hi! 🍕
+    Now get in there and say hi! :hcb-pizza:
   MSG
 
 when 1
-  header "✨ you're already in!"
+  header ":rat-sparkling-heart: you're already in!"
 
   section <<~MSG, markdown: true
     _Flavorpheus looks up from the grill._
@@ -47,7 +47,7 @@ when 1
     *<##{chan_bulletin}>* — announcements
     *<##{chan_help}>* — if you need anything
 
-    Make yourself at home, chef. 🍳
+    Make yourself at home, chef. :eggcited:
   MSG
 
 when 2
@@ -80,7 +80,7 @@ when 4
 
     Four times. You've clicked this four times. Is this a quality assurance thing? Are you from the health department?
 
-    ...I'm kidding. Mostly. Go hang out in <##{chan_esplanade}>, chef. 😅
+    ...I'm kidding. Mostly. Go hang out in <##{chan_esplanade}>, chef. :v2:
   MSG
 
 when 5
@@ -115,7 +115,7 @@ when 7
 
     *takes a long sip of coffee*
 
-    ...but <##{chan_esplanade}> is *right there*. 💚
+    ...but <##{chan_esplanade}> is *right there*. :sparkling-heart:
   MSG
 
 else
@@ -128,7 +128,7 @@ else
 
       The usual? One "you're already a member" with a side of "please go to <##{chan_esplanade}>"?
 
-      Coming right up. 🍳
+      Coming right up. :chefparrot:
     MSG
 
   when 1
@@ -139,7 +139,7 @@ else
 
       Page 47 has a great soufflé recipe. Way more exciting than this button. Just saying.
 
-      <##{chan_esplanade}> also exists. In case you forgot. 💚
+      <##{chan_esplanade}> also exists. In case you forgot. :time-to-stop:
     MSG
 
   when 2
@@ -161,7 +161,7 @@ else
 
       You know, every click you make here is a click you're not making in <##{chan_esplanade}>.
 
-      But I appreciate the company. See you next time, chef. 🍕
+      But I appreciate the company. See you next time, chef. :orpheus-dance:
     MSG
   end
 end
