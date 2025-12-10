@@ -57,22 +57,18 @@ module OnboardingScenarios
     end
 
     def handle_action(action_id)
+      return { step: :promoted, promote: true } if identity_promoted?
+
       case action_id
       when "flavortown_continue" then :kitchen_code
       when "flavortown_agree" then :taste_test
       when "flavortown_taste_correct" then { step: :promoted, promote: true }
-      when /\Aflavortown_retry_[wt]\d+\z/ then promote_click_or(:taste_retry)
+      when /\Aflavortown_retry_[wt]\d+\z/ then :taste_retry
       when "flavortown_try_again" then :taste_reveal
-      when /\Aflavortown_final_[wt]\d+\z/ then promote_click_or(:taste_reveal)
-      when /\Aflavortown_terrible_t\d+\z/ then promote_click_or(:taste_terrible)
-      when "flavortown_dino_nuggets" then promote_click_or(:dino_nuggets)
+      when /\Aflavortown_final_[wt]\d+\z/ then :taste_reveal
+      when /\Aflavortown_terrible_t\d+\z/ then :taste_terrible
+      when "flavortown_dino_nuggets" then :dino_nuggets
       end
-    end
-
-    private
-
-    def promote_click_or(step)
-      @identity.promote_click_count >= 1 ? { step: :promoted, promote: true } : step
     end
   end
 end

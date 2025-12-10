@@ -102,6 +102,10 @@ module OnboardingScenarios
     # Handle custom actions - return step symbol, template string, or hash
     def handle_action(action_id) = nil
 
-    private def chans(*keys) = Rails.configuration.slack_channels.slice(*keys).values
+    private
+
+    def chans(*keys) = Rails.configuration.slack_channels.slice(*keys).values
+
+    def identity_promoted? = @identity.promote_click_count >= 1
   end
 end
