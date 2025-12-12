@@ -222,7 +222,7 @@ en:
     authorizations:
       new:
         prompt: Authorize %{client_name} to use your account?
-        able_to: This application will be able to
+        able_to: "This application will be able to:"
         deny: Deny
         authorize: Authorize →
         banners:
@@ -235,26 +235,26 @@ en:
         scopes:
           basic_info:
             title: See basic information about you
-            email_label: "Email:"
-            name_label: "Name:"
-            verification_status_label: "Verification status:"
           email:
             title: See your email address
-            email_label: "Email:"
           name:
             title: See your name
-            name_label: "Name:"
           slack_id:
             title: See your Slack ID
-            slack_id_label: "Slack ID:"
-            not_set: Not set
           verification_status:
             title: See your verification status
-            verification_status_label: "Verification status:"
-            ysws_eligible_label: "YSWS eligible:"
           profile:
             title: See your profile information
-            name_label: "Name:"
+          phone:
+            title: See your phone number
+          birthdate:
+            title: See your date of birth
+          address:
+            title: See your mailing address
+          legal_name:
+            title: See your legal name
+          set_slack_id:
+            title: Link Slack accounts to identities
   authorized_applications:
     none: You haven't authorized any apps yet.
     created_at: Authorized

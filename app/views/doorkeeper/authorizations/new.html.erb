@@ -16,26 +16,36 @@
       <%
         scopes = @pre_auth.scopes.map(&:to_s)
         not_set = t('.data.not_set')
-
-        consent_fields = OAuthScope.consent_fields_for(scopes, current_identity)
-        data_items = consent_fields.map { |f| { label: t(".data.#{f[:key]}"), value: f[:value] || not_set } }
+        scope_data = OAuthScope.consent_data_by_scope(scopes, current_identity)
         unknown_scopes = scopes.reject { |s| OAuthScope.known?(s) }
       %>
 
-      <% if data_items.any? || unknown_scopes.any? %>
+      <% if scope_data.any? || unknown_scopes.any? %>
         <div class="oauth-permissions">
           <fieldset>
             <legend><%= t('.able_to') %></legend>
             <ul class="permissions-list">
-              <% data_items.each do |item| %>
-                <li class="permission-item">
-                  <span class="permission-label"><%= item[:label] %></span>
-                  <span class="permission-value"><%= item[:value] %></span>
+              <% scope_data.each do |scope_name, data| %>
+                <li class="permission-item<%= ' permission-item--action' unless data[:fields].any? %>">
+                  <div class="permission-header">
+                    <% if data[:icon] %><%= inline_icon(data[:icon], size: 16) %><% end %>
+                    <span class="permission-title"><%= t("#{scope_name}.title", scope: '.scopes', default: data[:description]) %></span>
+                  </div>
+                  <% if data[:fields].any? %>
+                    <ul class="permission-details">
+                      <% data[:fields].each do |field| %>
+                        <li>
+                          <span><%= t("#{scope_name}.#{field[:key]}_label", scope: '.scopes', default: t(".data.#{field[:key]}") + ":") %></span>
+                          <%= field[:value] || not_set %>
+                        </li>
+                      <% end %>
+                    </ul>
+                  <% end %>
                 </li>
               <% end %>
               <% unknown_scopes.each do |scope| %>
-                <li class="permission-item">
-                  <span class="permission-label"><%= t(scope, scope: [:doorkeeper, :scopes], default: scope.humanize) %></span>
+                <li class="permission-item permission-item--action">
+                  <span class="permission-title"><%= t(scope, scope: [:doorkeeper, :scopes], default: scope.humanize) %></span>
                 </li>
               <% end %>
             </ul>
