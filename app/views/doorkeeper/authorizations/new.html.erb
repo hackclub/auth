@@ -13,68 +13,35 @@
     </header>
 
     <% if @pre_auth.scopes.count > 0 %>
-      <div class="oauth-permissions">
-        <fieldset>
-          <legend><%= t('.able_to') %></legend>
-          <ul class="permissions-list">
-            <% @pre_auth.scopes.each do |scope| %>
-              <li>
-                <% case scope %>
-                <% when "basic_info" %>
-                  <div class="permission-item">
-                    <strong><%= t('.scopes.basic_info.title') %></strong>
-                    <ul class="permission-details">
-                      <li><span><%= t('.scopes.basic_info.email_label') %></span> <%= current_identity.primary_email %></li>
-                      <li><span><%= t('.scopes.basic_info.name_label') %></span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
-                      <li><span><%= t('.scopes.basic_info.verification_status_label') %></span> <%= current_identity.verification_status %></li>
-                    </ul>
-                  </div>
-                <% when "email" %>
-                  <div class="permission-item">
-                    <strong><%= t('.scopes.email.title') %></strong>
-                    <ul class="permission-details">
-                      <li><span><%= t('.scopes.email.email_label') %></span> <%= current_identity.primary_email %></li>
-                    </ul>
-                  </div>
-                <% when "name" %>
-                  <div class="permission-item">
-                    <strong><%= t('.scopes.name.title') %></strong>
-                    <ul class="permission-details">
-                      <li><span><%= t('.scopes.name.name_label') %></span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
-                    </ul>
-                  </div>
-                <% when "slack_id" %>
-                  <div class="permission-item">
-                    <strong><%= t('.scopes.slack_id.title') %></strong>
-                    <ul class="permission-details">
-                      <li><span><%= t('.scopes.slack_id.slack_id_label') %></span> <%= current_identity.slack_id || t('.scopes.slack_id.not_set') %></li>
-                    </ul>
-                  </div>
-                <% when "verification_status" %>
-                  <div class="permission-item">
-                    <strong><%= t('.scopes.verification_status.title') %></strong>
-                    <ul class="permission-details">
-                      <li><span><%= t('.scopes.verification_status.verification_status_label') %></span> <%= current_identity.verification_status %></li>
-                      <li><span><%= t('.scopes.verification_status.ysws_eligible_label') %></span> <%= current_identity.ysws_eligible ? 'Yes' : 'No' %></li>
-                    </ul>
-                  </div>
-                <% when "profile" %>
-                  <div class="permission-item">
-                    <strong><%= t('.scopes.profile.title') %></strong>
-                    <ul class="permission-details">
-                      <li><span><%= t('.scopes.profile.name_label') %></span> <%= current_identity.first_name %> <%= current_identity.last_name %></li>
-                    </ul>
-                  </div>
-                <% else %>
-                  <div class="permission-item">
-                    <strong><%= t scope, scope: [:doorkeeper, :scopes] %></strong>
-                  </div>
-                <% end %>
-              </li>
-            <% end %>
-          </ul>
-        </fieldset>
-      </div>
+      <%
+        scopes = @pre_auth.scopes.map(&:to_s)
+        not_set = t('.data.not_set')
+
+        consent_fields = OAuthScope.consent_fields_for(scopes, current_identity)
+        data_items = consent_fields.map { |f| { label: t(".data.#{f[:key]}"), value: f[:value] || not_set } }
+        unknown_scopes = scopes.reject { |s| OAuthScope.known?(s) }
+      %>
+
+      <% if data_items.any? || unknown_scopes.any? %>
+        <div class="oauth-permissions">
+          <fieldset>
+            <legend><%= t('.able_to') %></legend>
+            <ul class="permissions-list">
+              <% data_items.each do |item| %>
+                <li class="permission-item">
+                  <span class="permission-label"><%= item[:label] %></span>
+                  <span class="permission-value"><%= item[:value] %></span>
+                </li>
+              <% end %>
+              <% unknown_scopes.each do |scope| %>
+                <li class="permission-item">
+                  <span class="permission-label"><%= t(scope, scope: [:doorkeeper, :scopes], default: scope.humanize) %></span>
+                </li>
+              <% end %>
+            </ul>
+          </fieldset>
+        </div>
+      <% end %>
     <% end %>
 
     <% auth_label = t('.authorize') %>

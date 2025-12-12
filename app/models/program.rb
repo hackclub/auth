@@ -34,22 +34,8 @@ class Program < ApplicationRecord
 
   scope :official, -> { where(trust_level: :hq_official) }
 
-  AVAILABLE_SCOPES = [
-    { name: "openid", description: "Enable OpenID Connect authentication" },
-    { name: "profile", description: "See your name and profile information" },
-    { name: "email", description: "See your email address" },
-    { name: "phone", description: "See your phone number" },
-    { name: "birthdate", description: "See your date of birth" },
-    { name: "address", description: "View your mailing address(es)" },
-    { name: "verification_status", description: "See your verification status and YSWS eligibility" },
-    { name: "slack_id", description: "See your Slack ID" },
-    { name: "basic_info", description: "See basic information about you (email, name, verification status)" },
-    { name: "name", description: "See your name" },
-    { name: "legal_name", description: "See your legal name" },
-    { name: "set_slack_id", description: "Associate Slack IDs with identities" }
-  ].freeze
-
-  COMMUNITY_ALLOWED_SCOPES = %w[openid profile email name slack_id verification_status].freeze
+  AVAILABLE_SCOPES = OAuthScope::ALL.map { |s| { name: s.name, description: s.description } }.freeze
+  COMMUNITY_ALLOWED_SCOPES = OAuthScope::COMMUNITY_ALLOWED
 
   has_many :access_grants, class_name: "Doorkeeper::AccessGrant", foreign_key: :application_id, dependent: :delete_all
   has_many :identities, through: :access_grants, source: :resource_owner, source_type: "Identity"

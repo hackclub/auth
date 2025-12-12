@@ -69,7 +69,28 @@ en:
       new:
         title: 'Grant access to your information'
         prompt: "You're signing in to %{client_name} with your Hack Club account."
-        able_to: 'This application will be able to'
+        able_to: 'This application will be able to see:'
+        authorize: 'Authorize'
+        deny: 'Deny'
+        data:
+          email: 'Email'
+          name: 'Name'
+          verification_status: 'Verification status'
+          ysws_eligible: 'YSWS eligible'
+          slack_id: 'Slack ID'
+          phone: 'Phone number'
+          birthdate: 'Birthday'
+          legal_name: 'Legal name'
+          address: 'Mailing address'
+          rejection_reason: 'Rejection reason'
+          not_set: 'Not set'
+        banners:
+          community_untrusted:
+            title: 'Community Application'
+            message_html: 'This application was created by a community member and has not been reviewed by Hack Club.'
+          community_trusted:
+            title: 'Trusted Community Application'
+            message_html: 'This application was created by a community member and has been reviewed by Hack Club.'
       show:
         title: 'Authorization code'
       form_post:
