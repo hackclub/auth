@@ -1,0 +1,17 @@
+<div class="page-header">
+  <h1><%= t(".title") %></h1>
+</div>
+
+<div class="page-sections">
+  <section class="section-card">
+    <div class="banner warning">
+      <h4><%= t(".heading") %></h4>
+      <p><%= t(".body", old_email: @email_change_request.old_email, new_email: @email_change_request.new_email) %></p>
+    </div>
+
+    <div class="form-actions" style="margin-top: 1.5rem;">
+      <%= button_to t(".confirm_cancel"), cancel_email_change_path(@email_change_request), method: :post, class: "button danger" %>
+      <%= link_to t(".back"), email_change_path(@email_change_request), class: "button secondary" %>
+    </div>
+  </section>
+</div>

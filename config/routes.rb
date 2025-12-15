@@ -260,6 +260,7 @@ Rails.application.routes.draw do
 
   resources :email_changes, only: [ :new, :create, :show ] do
     member do
+      get :cancel, action: :cancel_confirmation
       post :cancel
     end
     collection do

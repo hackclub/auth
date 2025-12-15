@@ -55,11 +55,12 @@ en:
       subject: "[Hack Club] Confirm your email change request"
       greeting: "Hey %{first_name},"
       body: "Someone (hopefully you!) requested to change your Hack Club account email to %{new_email}."
-      instruction: "Click the button below to confirm you own this email address and approve this change."
+      instruction_html: "Click the button below to confirm you own this email address and approve this change."
+      instruction_text: "Use this link to confirm that you own this email address and approve this change."
       verify_button: "Yes, change my email"
       expiry: "This link expires in 24 hours."
-      not_you_html: "<strong>Didn't request this?</strong> Someone may have access to your account. <a href='%{cancel_url}'>Cancel this request immediately</a>, change your password, and review your connected sessions."
-      not_you_text: "DIDN'T REQUEST THIS? Someone may have access to your account. Cancel this request immediately: %{cancel_url} — then change your password and review your connected sessions."
+      not_you_html: "<strong>Didn't request this?</strong> Someone may have access to your account.<br/> <a href='%{cancel_url}'>Cancel this request immediately</a>, review your connected sessions, and email <a href='mailto:auth@hackclub.com'>auth@hackclub.com</a>."
+      not_you_text: "DIDN'T REQUEST THIS? Someone may have access to your account. Cancel this request immediately, review your connected sessions, and email auth@hackclub.com. \n\n%{cancel_url}"
       signature: "– Hack Club"
     verify_new_email:
       subject: "[Hack Club] Verify your new email address"
@@ -610,6 +611,12 @@ en:
       success: New email verified!
       email_changed: Your email has been changed successfully!
       invalid_or_expired: This verification link is invalid or has expired.
+    cancel_confirmation:
+      title: Cancel email change
+      heading: Are you sure?
+      body: "This will cancel the pending request to change your email from %{old_email} to %{new_email}."
+      confirm_cancel: Yes, cancel this request
+      back: Go back
     cancel:
       success: Email change request cancelled.
       already_completed: This request has already been completed or cancelled.

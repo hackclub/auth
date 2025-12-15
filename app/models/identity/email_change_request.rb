@@ -31,11 +31,17 @@
 #  fk_rails_...  (identity_id => identities.id)
 #
 class Identity::EmailChangeRequest < ApplicationRecord
+  include PublicIdentifiable
+
   EXPIRATION = 24.hours
+
+  set_public_id_prefix "emc"
 
   has_paper_trail
 
   belongs_to :identity
+
+  alias_method :to_param, :public_id
 
   has_encrypted :old_email_token
   blind_index :old_email_token

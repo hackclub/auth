@@ -1,7 +1,7 @@
 class EmailChangesController < ApplicationController
   skip_before_action :authenticate_identity!, only: [ :verify_old, :verify_new ]
 
-  before_action :set_email_change_request, only: [ :show, :cancel ]
+  before_action :set_email_change_request, only: [ :show, :cancel_confirmation, :cancel ]
   before_action :require_step_up_for_email_change, only: [ :new, :create ]
 
   def new
@@ -88,6 +88,9 @@ class EmailChangesController < ApplicationController
     redirect_to root_path
   end
 
+  def cancel_confirmation
+  end
+
   def cancel
     if @email_change_request.cancel!
       flash[:success] = t(".success")
@@ -101,7 +104,7 @@ class EmailChangesController < ApplicationController
   private
 
   def set_email_change_request
-    @email_change_request = current_identity.email_change_requests.find(params[:id])
+    @email_change_request = current_identity.email_change_requests.find_by_public_id!(params[:id])
   end
 
   def email_change_params
