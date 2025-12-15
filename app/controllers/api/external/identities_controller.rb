@@ -38,11 +38,11 @@ module API
       private
 
       def set_cors_headers
-        response.set_header('Access-Control-Allow-Origin', '*')
-        response.set_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        response.set_header("Access-Control-Allow-Origin", "*")
+        response.set_header("Access-Control-Allow-Methods", "GET, OPTIONS")
         response.set_header(
-          'Access-Control-Allow-Headers',
-          'Content-Type, Authorization'
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization"
         )
       end
     end
