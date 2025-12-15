@@ -147,6 +147,7 @@ en:
     developer: Developer
     docs: Docs
     logout: Sign out
+    backend: Admin
   developer_apps:
     index:
       title: Developers' corner
