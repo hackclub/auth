@@ -1,16 +1,17 @@
 <% content_for(:portal_wrapper, true) %>
 <div class="container-sm">
-  <div class="page-sections">
-    <article>
-        <h1>hey! <%= emoji_image "hyper-dino-wave-flip.gif" %></h1>
-        <p>We're excited to send you stuff!</p>
-        <p>First, we need to verify you're under 18.</p>
-        <p>In the past year, Hack Club has given out ~$1M in grants to students like you, and with that comes a lot of adults trying to slip in.</p>
-        <p>This quick check helps us make sure our resources go to real teenage hackers.</p>
+  <article class="section-card" style="position: relative;">
+    <% if portal_onboarding_scenario&.logo_path %>
+      <%= vite_image_tag portal_onboarding_scenario.logo_path, alt: "Logo", style: "position: absolute; top: 1.5rem; right: 1.5rem; height: 90px;" %>
+    <% end %>
+    <h1>hey! <%= emoji_image "hyper-dino-wave-flip.gif" %></h1>
+    <p>We're excited to send you stuff!</p>
+    <p>First, we need to verify you're under 18.</p>
+    <p>In the past year, Hack Club has given out ~$1M in grants to students like you, and with that comes a lot of adults trying to slip in.</p>
+    <p>This quick check helps us make sure our resources go to real teenage hackers.</p>
 
-      <div class="status-actions">
-        <%= link_to "alright! →", portal_verify_document_path, role: "button" %>
-      </div>
-    </article>
-  </div>
+    <div class="status-actions">
+      <%= link_to "alright! →", portal_verify_document_path, role: "button" %>
+    </div>
+  </article>
 </div>

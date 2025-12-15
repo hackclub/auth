@@ -7,15 +7,13 @@
   dark_bg = scenario&.dark_mode_background_path
 %>
 <% if light_bg || dark_bg %>
-  <% content_for(:head) do %>
-    <style>
-      body { background-size: cover; background-position: center; }
-      <% if light_bg %>html[data-theme="light"] body { background-image: url('<%= vite_asset_path(light_bg) %>'); }<% end %>
-      <% if dark_bg %>html[data-theme="dark"] body { background-image: url('<%= vite_asset_path(dark_bg) %>'); }<% end %>
-    </style>
-  <% end %>
+  <style>
+    body { background-size: cover; background-position: center; }
+    <% if light_bg %>html[data-theme="light"] body { background-image: url('<%= vite_asset_path(light_bg) %>'); }<% end %>
+    <% if dark_bg %>html[data-theme="dark"] body { background-image: url('<%= vite_asset_path(dark_bg) %>'); }<% end %>
+  </style>
 <% end %>
-<div class="auth-container">
+<div class="auth-container<%= ' has-background' if light_bg || dark_bg %>">
   <div class="auth-brand">
     <%= vite_image_tag "images/hc-square.png", alt: "Hack Club logo", class: "brand-logo" %>
     <% if custom_logo_path %>

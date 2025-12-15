@@ -12,6 +12,10 @@
   @include dark-mode {
     background: #1a1d23;
   }
+  
+  &.has-background {
+    background: transparent;
+  }
 }
 
 .auth-brand {

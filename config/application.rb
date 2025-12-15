@@ -53,7 +53,7 @@ module IdentityVault
     end
 
     config.to_prepare do
-      Doorkeeper::ApplicationController.layout "application"
+      Doorkeeper::ApplicationController.layout "logged_out"
       Doorkeeper::ApplicationController.skip_before_action :authenticate_identity!
       Backend::NoAuthController.skip_after_action :verify_authorized
     end
