@@ -2,8 +2,8 @@ module PortalFlow
   extend ActiveSupport::Concern
 
   included do
-    before_action :validate_portal_return_url, only: [ :portal ]
-    before_action :store_return_url, only: [ :portal ]
+    before_action :validate_portal_return_url, only: [ :start, :portal ]
+    before_action :store_return_url, only: [ :start, :portal ]
   end
 
   private

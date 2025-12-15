@@ -1,6 +1,18 @@
 class Portal::VerificationsController < Portal::BaseController
   include VerificationFlow
 
+  def start
+    @identity = current_identity
+    status = @identity.verification_status
+
+    case status
+    when "verified"
+      redirect_to_portal_return(status: :verified)
+    when "pending"
+      redirect_to_portal_return(status: :pending)
+    end
+  end
+
   def portal
     @identity = current_identity
     status = @identity.verification_status
