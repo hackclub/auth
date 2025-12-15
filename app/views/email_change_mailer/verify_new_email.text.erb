@@ -1,6 +1,9 @@
 <%= t(".greeting", first_name: @first_name) %>
 
-<%= t(".body", old_email: @old_email) %>
+<%= t(".body") %>
+
+<%= t(".change_summary") %>
+<%= @old_email %> → <%= @email_change_request.new_email %>
 
 <%= t(".instruction") %>
 

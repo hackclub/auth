@@ -1,6 +1,9 @@
 <%= t(".greeting", first_name: @first_name) %>
 
-<%= t(".body", new_email: @new_email) %>
+<%= t(".body") %>
+
+<%= t(".change_summary") %>
+<%= @identity.primary_email %> → <%= @new_email %>
 
 <%= t(".instruction_text") %>
 
@@ -8,6 +11,8 @@
 
 <%= t(".expiry") %>
 
-<%= t(".not_you_text", cancel_url: @cancel_url) %>
+<%= t(".not_you_title") %>
+<%= t(".not_you_body_text") %>
+<%= @cancel_url %>
 
 <%= t(".signature") %>

@@ -1,15 +1,25 @@
 <p class="greeting"><%= t(".greeting", first_name: @first_name) %></p>
 
-<p class="body-text"><%= t(".body", new_email: @new_email) %></p>
+<p class="body-text"><%= t(".body") %></p>
 
-<p class="body-text"><%= t(".instruction_html") %></p>
-
-<p style="margin: 24px 0;">
-  <%= link_to t(".verify_button"), @verify_url, class: "button" %>
+<p class="body-text" style="font-size: 18px; margin: 24px 0;">
+  <span style="color: #6b7280;"><%= @identity.primary_email %></span>
+  <span style="color: #9ca3af; margin: 0 8px;">→</span>
+  <strong><%= @new_email %></strong>
 </p>
 
-<p class="secondary-text"><%= t(".expiry") %></p>
+<p class="body-text"><%= t(".instruction") %></p>
 
-<p class="secondary-text"><%= t(".not_you_html", cancel_url: @cancel_url) %></p>
+<div class="button-container">
+  <%= link_to t(".verify_button"), @verify_url, class: "button" %>
+  <br/><br/>
+  <p class="hint left"><%= t(".expiry") %></p>
+</div>
+
+
+<p class="secondary-text">
+  <strong><%= t(".not_you_title") %></strong>
+  <%= t(".not_you_body_html", cancel_url: @cancel_url).html_safe %>
+</p>
 
 <p class="signature"><%= simple_format(t(".signature")) %></p>
