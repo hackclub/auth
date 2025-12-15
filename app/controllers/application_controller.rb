@@ -2,6 +2,7 @@ class ApplicationController < ActionController::Base
   include PublicActivity::StoreController
   include IsSneaky
   include SessionsHelper
+  include StepUpAuthenticatable
 
   helper_method :current_identity, :identity_signed_in?, :current_onboarding_step, :current_user
 

@@ -5,8 +5,8 @@ class EmailChangeMailer < ApplicationMailer
     @first_name = @identity.first_name
     @token = email_change_request.old_email_token
     @new_email = email_change_request.new_email
-    @verify_url = verify_old_email_change_url(token: @token)
-    @cancel_url = cancel_email_change_url(id: email_change_request.id)
+    @verify_url = verify_old_email_changes_url(token: @token)
+    @cancel_url = cancel_email_change_url(email_change_request)
     @env_prefix = env_prefix
 
     mail(
@@ -22,7 +22,7 @@ class EmailChangeMailer < ApplicationMailer
     @first_name = @identity.first_name
     @token = email_change_request.new_email_token
     @old_email = email_change_request.old_email
-    @verify_url = verify_new_email_change_url(token: @token)
+    @verify_url = verify_new_email_changes_url(token: @token)
     @env_prefix = env_prefix
 
     mail(

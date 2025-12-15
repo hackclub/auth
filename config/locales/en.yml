@@ -58,8 +58,8 @@ en:
       instruction: "Click the button below to confirm you own this email address and approve this change."
       verify_button: "Yes, change my email"
       expiry: "This link expires in 24 hours."
-      not_you_html: "Didn't request this? <a href='%{cancel_url}'>Cancel the request</a> and review your account security."
-      not_you_text: "Didn't request this? Cancel it here: %{cancel_url}"
+      not_you_html: "<strong>Didn't request this?</strong> Someone may have access to your account. <a href='%{cancel_url}'>Cancel this request immediately</a>, change your password, and review your connected sessions."
+      not_you_text: "DIDN'T REQUEST THIS? Someone may have access to your account. Cancel this request immediately: %{cancel_url} — then change your password and review your connected sessions."
       signature: "– Hack Club"
     verify_new_email:
       subject: "[Hack Club] Verify your new email address"
@@ -76,7 +76,7 @@ en:
       body: "Your Hack Club account email address has been successfully changed."
       old_email_label: "Old email:"
       new_email_label: "New email:"
-      not_you: "If you didn't make this change, please contact us immediately at auth@hackclub.com."
+      not_you: "If you didn't make this change, your account may be compromised. Contact us immediately at auth@hackclub.com and review your connected sessions."
       signature: "– Hack Club"
   verification_mailer:
     approved:

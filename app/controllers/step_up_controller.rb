@@ -1,13 +1,21 @@
 class StepUpController < ApplicationController
+  helper_method :step_up_cancel_path
+
   def new
-    @action = params[:action_type] # e.g., "remove_totp", "disable_2fa", "oidc_reauth"
+    @action = params[:action_type] # e.g., "remove_totp", "disable_2fa", "oidc_reauth", "email_change"
     @return_to = params[:return_to]
     @available_methods = current_identity.available_step_up_methods
-    @available_methods << :email # Email is always available as fallback
+    @available_methods << :email unless @action == "email_change" # Email fallback not available for email change (already verifying old email)
     @code_sent = params[:code_sent].present?
   end
 
   def send_email_code
+    if params[:action_type] == "email_change"
+      flash[:error] = "Email verification is not available for this action"
+      redirect_to new_step_up_path(action_type: params[:action_type], return_to: params[:return_to])
+      return
+    end
+
     send_step_up_email_code
     flash[:notice] = "A verification code has been sent to your email"
     redirect_to new_step_up_path(
@@ -26,6 +34,12 @@ class StepUpController < ApplicationController
     if code.blank?
       flash[:error] = "Please enter your verification code"
       redirect_to new_step_up_path(action_type: action_type, method: method, return_to: params[:return_to], code_sent: method == :email)
+      return
+    end
+
+    if action_type == "email_change" && method == :email
+      flash[:error] = "Email verification is not available for this action"
+      redirect_to new_step_up_path(action_type: action_type, return_to: params[:return_to])
       return
     end
 
@@ -77,11 +91,13 @@ class StepUpController < ApplicationController
         current_identity.backup_codes.active.each(&:mark_discarded!)
       end
 
+      consume_step_up!
       redirect_to security_path, notice: "Two-factor authentication disabled"
 
     when "disable_2fa"
       current_identity.update!(use_two_factor_authentication: false)
       TwoFactorMailer.required_authentication_disabled(current_identity).deliver_later
+      consume_step_up!
       redirect_to security_path, notice: "2FA requirement disabled"
 
     when "oidc_reauth"
@@ -89,12 +105,23 @@ class StepUpController < ApplicationController
       safe_path = safe_internal_redirect(params[:return_to])
       redirect_to safe_path || root_path
 
+    when "email_change"
+      # Email change step-up completed, redirect to the email change form
+      safe_path = safe_internal_redirect(params[:return_to])
+      redirect_to safe_path || new_email_change_path
+
     else
       redirect_to security_path, alert: "Unknown action"
     end
   end
 
   def resend_email
+    if params[:action_type] == "email_change"
+      flash[:error] = "Email verification is not available for this action"
+      redirect_to new_step_up_path(action_type: params[:action_type], return_to: params[:return_to])
+      return
+    end
+
     send_step_up_email_code
     flash[:notice] = "A new code has been sent to your email"
     redirect_to new_step_up_path(
@@ -110,6 +137,15 @@ class StepUpController < ApplicationController
   def send_step_up_email_code
     login_code = current_identity.v2_login_codes.create!
     IdentityMailer.v2_login_code(login_code).deliver_later
+  end
+
+  def step_up_cancel_path(action_type)
+    case action_type
+    when "email_change"
+      edit_identity_path
+    else
+      security_path
+    end
   end
 
   # Prevent open redirect attacks - only allow internal paths

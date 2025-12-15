@@ -44,6 +44,20 @@ class IdentitySession < ApplicationRecord
     update_column(:last_seen, Time.current)
   end
 
+  STEP_UP_DURATION = 15.minutes
+
+  def recently_stepped_up?
+    last_step_up_at.present? && last_step_up_at > STEP_UP_DURATION.ago
+  end
+
+  def record_step_up!
+    update!(last_step_up_at: Time.current)
+  end
+
+  def clear_step_up!
+    update!(last_step_up_at: nil)
+  end
+
   private
 
   def identity_is_unlocked
