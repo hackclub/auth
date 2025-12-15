@@ -1,9 +1,11 @@
 <% content_for(:portal_wrapper, true) %>
 <div class="container-sm">
+  <% if portal_onboarding_scenario&.logo_path %>
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <%= vite_image_tag portal_onboarding_scenario.logo_path, alt: "Logo", style: "height: 150px;" %>
+    </div>
+  <% end %>
   <article class="section-card" style="position: relative;">
-    <% if portal_onboarding_scenario&.logo_path %>
-      <%= vite_image_tag portal_onboarding_scenario.logo_path, alt: "Logo", style: "position: absolute; top: 1.5rem; right: 1.5rem; height: 90px;" %>
-    <% end %>
     <h1>hey! <%= emoji_image "hyper-dino-wave-flip.gif" %></h1>
     <p>We're excited to send you stuff!</p>
     <p>First, we need to verify you're under 18.</p>

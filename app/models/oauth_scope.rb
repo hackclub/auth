@@ -76,7 +76,7 @@ class OAuthScope
       consent_fields: [
         { key: :address, value: ->(ident) {
           addr = ident.primary_address
-          addr ? [addr.line_1, addr.city, addr.state, addr.country].compact.join(", ") : nil
+          addr ? [ addr.line_1, addr.city, addr.state, addr.country ].compact.join(", ") : nil
         } }
       ]
     ),
@@ -102,7 +102,7 @@ class OAuthScope
       description: "See your legal name",
       icon: "card-id",
       consent_fields: [
-        { key: :legal_name, value: ->(ident) { [ident.legal_first_name, ident.legal_last_name].compact.join(" ").presence } }
+        { key: :legal_name, value: ->(ident) { [ ident.legal_first_name, ident.legal_last_name ].compact.join(" ").presence } }
       ]
     ),
     new(
@@ -191,7 +191,7 @@ class OAuthScope
     scope_names.flat_map do |name|
       scope = find(name)
       next [] unless scope
-      [scope] + scope.includes.filter_map { |n| find(n) }
+      [ scope ] + scope.includes.filter_map { |n| find(n) }
     end
   end
 end
