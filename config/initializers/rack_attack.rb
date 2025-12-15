@@ -35,6 +35,12 @@ class Rack::Attack
     end
   end
 
+  throttle("email_change/ip", limit: 3, period: 1.hour) do |req|
+    if req.path == "/email_changes" && req.post?
+      req.ip
+    end
+  end
+
   self.throttled_responder = lambda do |env|
     headers = {
       "Content-Type" => "text/html",
