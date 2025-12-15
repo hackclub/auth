@@ -72,6 +72,7 @@ module OnboardingScenarios
     end
 
     def logo_path = "images/flavortown/logo.avif"
-    def background_url = nil
+    def background_path = "images/flavortown/hero-bg.webp"
+    def dark_mode_background_path = "images/flavortown/bg-dark.png"
   end
 end

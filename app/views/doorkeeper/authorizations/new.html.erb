@@ -3,19 +3,26 @@
   scenario_class = application&.onboarding_scenario_class
   scenario = scenario_class&.new(current_identity)
   custom_logo_path = scenario&.logo_path
-  custom_background = scenario&.background_url
+  light_bg = scenario&.background_path
+  dark_bg = scenario&.dark_mode_background_path
 %>
-<% if custom_background %>
-  <% content_for(:body_style) { "background-image: url('#{custom_background}'); background-size: cover; background-position: center;" } %>
+<% if light_bg || dark_bg %>
+  <% content_for(:head) do %>
+    <style>
+      body { background-size: cover; background-position: center; }
+      <% if light_bg %>html[data-theme="light"] body { background-image: url('<%= vite_asset_path(light_bg) %>'); }<% end %>
+      <% if dark_bg %>html[data-theme="dark"] body { background-image: url('<%= vite_asset_path(dark_bg) %>'); }<% end %>
+    </style>
+  <% end %>
 <% end %>
 <div class="auth-container">
   <div class="auth-brand">
     <%= vite_image_tag "images/hc-square.png", alt: "Hack Club logo", class: "brand-logo" %>
     <% if custom_logo_path %>
-      <span>+</span>
-      <%= vite_image_tag custom_logo_path, alt: "Logo", class: "brand-logo" %>
+      <span class="brand-plus">×</span>
+      <%= vite_image_tag custom_logo_path, alt: "Logo", class: "brand-logo brand-logo--custom" %>
     <% end %>
-    <span><%= t("brand") %></span>
+    <span class="brand-text"><%= t("brand") %></span>
   </div>
   <div class="auth-card oauth-consent">
     <header>

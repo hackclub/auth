@@ -25,8 +25,8 @@ class Components::AuthWelcome < Components::Base
   def render_brand
     div(class: "auth-brand") do
       vite_image_tag "images/hc-square.png", alt: "Hack Club logo", class: "brand-logo"
-      span { "+" }
-      vite_image_tag @logo_path, alt: "Logo", class: "brand-logo"
+      span(class: "brand-plus") { "×" }
+      vite_image_tag @logo_path, alt: "Logo", class: "brand-logo brand-logo--custom"
     end
   end
 
