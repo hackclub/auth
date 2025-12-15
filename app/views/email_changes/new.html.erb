@@ -1,42 +1,39 @@
 <div class="page-header">
   <h1><%= t(".title") %></h1>
+  <p><%= t(".verification_info") %></p>
 </div>
 
 <div class="page-sections">
-  <% if @pending_request %>
-    <section class="section-card">
-      <div class="banner warning">
-        <h4><%= t(".pending_request_title") %></h4>
-        <p><%= t(".pending_request_body", new_email: @pending_request.new_email) %></p>
-        <p>
-          <%= link_to t(".view_pending"), email_change_path(@pending_request), class: "button secondary" %>
-          <%= button_to t(".cancel_pending"), cancel_email_change_path(@pending_request), method: :post, class: "button danger", data: { confirm: t(".cancel_confirm") } %>
-        </p>
-      </div>
-    </section>
-  <% end %>
-
-  <section class="section-card">
-    <h3><%= t(".current_email") %></h3>
-    <p class="current-email"><%= current_identity.primary_email %></p>
-  </section>
-
   <%= form_with url: email_changes_path, method: :post, local: true, scope: :email_change do |f| %>
     <section class="section-card">
-      <h3><%= t(".new_email") %></h3>
+      <table style="width: 100%; border-collapse: collapse; border: none; background: none;">
+        <tbody>
+          <tr style="background: none;">
+            <td style="width: 40%; vertical-align: top; background: none;">
+              <div class="email-label"><%= t(".current_email") %></div>
+            </td>
+            <td style="width: 1%; vertical-align: top; text-align: center; background: none;"></td>
+            <td style="width: 59%; vertical-align: top; background: none;  padding-left: 0;">
+              <div class="email-label"><%= t(".new_email") %></div>
+            </td>
+          </tr>
+          <tr style="height: 2.5rem; background: none;">
+            <td style="vertical-align: middle; background: none;">
+              <div class="email-value"><%= current_identity.primary_email %></div>
+            </td>
+            <td style="vertical-align: middle; text-align: center; background: none;">
+              <div class="arrow">→</div>
+            </td>
+            <td style="vertical-align: middle; padding: 0; background: none;">
+              <%= f.email_field :new_email, required: true, placeholder: "new@electronic.mail", autocomplete: "email", style: "margin: 0; height: 100%;" %>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-      <div>
-        <%= f.label :new_email, t(".new_email_label") %>
-        <%= f.email_field :new_email, required: true, placeholder: "newemail@example.com", autocomplete: "email" %>
-      </div>
-
-      <div class="banner info" style="margin-top: 1rem;">
-        <p><%= t(".verification_info") %></p>
-      </div>
-
-      <div class="form-actions">
-        <%= f.submit t(".submit"), class: "button primary" %>
-        <%= link_to t(".cancel"), edit_identity_path, class: "button secondary" %>
+      <div class="form-actions" style="margin-top: 2rem;">
+        <%= f.submit t(".submit") %>
+        <%= link_to t(".cancel"), edit_identity_path, class: "secondary", role: "button" %>
       </div>
     </section>
   <% end %>

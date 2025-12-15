@@ -158,7 +158,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
     return unless new_email.present? && old_email.present?
 
     if new_email.downcase == old_email.downcase
-      errors.add(:new_email, "must be different from current email")
+      errors.add(:new_email, "can't be your current email, ya goof!")
     end
   end
 

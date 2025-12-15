@@ -5,12 +5,16 @@ class EmailChangesController < ApplicationController
   before_action :require_step_up_for_email_change, only: [ :new, :create ]
 
   def new
+    pending_request = current_identity.email_change_requests.pending.first
+    if pending_request
+      redirect_to email_change_path(pending_request), notice: t(".pending_redirect")
+      return
+    end
+
     @email_change_request = Identity::EmailChangeRequest.new
-    @pending_request = current_identity.email_change_requests.pending.first
   end
 
   def show
-    @email_change_request = current_identity.email_change_requests.find(params[:id])
   end
 
   def create
@@ -18,7 +22,7 @@ class EmailChangesController < ApplicationController
 
     if new_email.blank?
       flash[:error] = t(".email_required")
-      return redirect_to edit_identity_path
+      return redirect_to new_email_change_path
     end
 
     existing_pending = current_identity.email_change_requests.pending.first
@@ -40,7 +44,7 @@ class EmailChangesController < ApplicationController
       redirect_to email_change_path(@email_change_request)
     else
       flash[:error] = @email_change_request.errors.full_messages.to_sentence
-      redirect_to edit_identity_path
+      redirect_to new_email_change_path
     end
   end
 

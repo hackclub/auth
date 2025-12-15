@@ -24,6 +24,33 @@ $tool-label-position-left: 3px;
   padding-top: $tool-padding-top;
 }
 
+@keyframes missing-i18n-text {
+  0%, 100% {
+    color: magenta;
+  }
+  50% {
+    color: red;
+  }
+}
+
+@keyframes missing-i18n-border {
+  0%, 100% {
+    border-color: red;
+  }
+  50% {
+    border-color: magenta;
+  }
+}
+
+.translation_missing {
+  @include admin-tool("NO I18N!", $admin-red);
+  animation: missing-i18n-border 1s infinite, missing-i18n-text 1s infinite;
+  
+  &::before {
+    animation: missing-i18n-text 1s infinite;
+  }
+}
+
 .super-admin-tool {
   @include admin-tool("super admin", $admin-red);
 }

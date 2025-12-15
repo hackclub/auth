@@ -1,110 +1,64 @@
 <div class="page-header">
-  <h1><%= t(".title") %></h1>
+  <% if @email_change_request.completed? %>
+    <h1><%= t(".title_completed") %></h1>
+  <% elsif @email_change_request.cancelled? %>
+    <h1><%= t(".title_cancelled") %></h1>
+  <% elsif @email_change_request.expired? %>
+    <h1><%= t(".title_expired") %></h1>
+  <% else %>
+    <h1><%= t(".title_pending") %></h1>
+  <% end %>
 </div>
 
 <div class="page-sections">
   <section class="section-card">
-    <% if @email_change_request.completed? %>
-      <div class="banner success">
-        <h4><%= t(".completed_title") %></h4>
-        <p><%= t(".completed_body") %></p>
-      </div>
-    <% elsif @email_change_request.cancelled? %>
-      <div class="banner warning">
-        <h4><%= t(".cancelled_title") %></h4>
-        <p><%= t(".cancelled_body") %></p>
-      </div>
+    <% if @email_change_request.pending? %>
+      <p><%= t(".pending_instructions") %></p>
     <% elsif @email_change_request.expired? %>
-      <div class="banner danger">
-        <h4><%= t(".expired_title") %></h4>
-        <p><%= t(".expired_body") %></p>
-      </div>
-    <% else %>
-      <div class="banner info">
-        <h4><%= t(".pending_title") %></h4>
-        <p><%= t(".pending_body") %></p>
-      </div>
+      <p><%= t(".expired_instructions") %></p>
     <% end %>
 
-    <div class="email-change-details">
-      <h3><%= t(".details") %></h3>
+    <div class="email-change-summary">
+      <div class="email-arrow">
+        <div class="email-item">
+          <div class="email-label"><%= t(".old_email") %></div>
+          <div class="email-value"><%= @email_change_request.old_email %></div>
+          <% if @email_change_request.pending? %>
+            <div class="email-verification-status">
+              <% if @email_change_request.old_email_verified? %>
+                <span class="verification-badge verified"><%= t(".verified") %></span>
+              <% else %>
+                <span class="verification-badge pending"><%= t(".awaiting_verification") %></span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
 
-      <div class="detail-row">
-        <span class="label"><%= t(".old_email") %></span>
-        <span class="value"><%= @email_change_request.old_email %></span>
-        <% if @email_change_request.old_email_verified? %>
-          <span class="badge success"><%= t(".verified") %></span>
-        <% elsif @email_change_request.pending? %>
-          <span class="badge warning"><%= t(".awaiting_verification") %></span>
-        <% end %>
-      </div>
+        <span class="arrow">→</span>
 
-      <div class="detail-row">
-        <span class="label"><%= t(".new_email") %></span>
-        <span class="value"><%= @email_change_request.new_email %></span>
-        <% if @email_change_request.new_email_verified? %>
-          <span class="badge success"><%= t(".verified") %></span>
-        <% elsif @email_change_request.pending? %>
-          <span class="badge warning"><%= t(".awaiting_verification") %></span>
-        <% end %>
-      </div>
-
-      <div class="detail-row">
-        <span class="label"><%= t(".requested_at") %></span>
-        <span class="value"><%= l(@email_change_request.created_at, format: :long) %></span>
-      </div>
-
-      <div class="detail-row">
-        <span class="label"><%= t(".expires_at") %></span>
-        <span class="value"><%= l(@email_change_request.expires_at, format: :long) %></span>
+        <div class="email-item">
+          <div class="email-label"><%= t(".new_email") %></div>
+          <div class="email-value"><%= @email_change_request.new_email %></div>
+          <% if @email_change_request.pending? %>
+            <div class="email-verification-status">
+              <% if @email_change_request.new_email_verified? %>
+                <span class="verification-badge verified"><%= t(".verified") %></span>
+              <% else %>
+                <span class="verification-badge pending"><%= t(".awaiting_verification") %></span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
       </div>
     </div>
 
-    <% if @email_change_request.pending? %>
-      <div class="form-actions" style="margin-top: 1.5rem;">
-        <%= button_to t(".cancel_request"), cancel_email_change_path(@email_change_request), method: :post, class: "button danger", data: { confirm: t(".cancel_confirm") } %>
-      </div>
-    <% end %>
-
-    <div class="form-actions" style="margin-top: 1rem;">
-      <%= link_to t(".back"), edit_identity_path, class: "button secondary" %>
+    <div class="form-actions">
+      <% if @email_change_request.pending? %>
+        <%= link_to t(".cancel_request"), cancel_email_change_path(@email_change_request), class: "danger", role: "button" %>
+      <% elsif @email_change_request.expired? || @email_change_request.cancelled? %>
+        <%= link_to t(".start_new"), new_email_change_path, role: "button" %>
+      <% end %>
+      <%= link_to t(".back"), edit_identity_path, class: "secondary", role: "button" %>
     </div>
   </section>
 </div>
-
-<style>
-  .email-change-details {
-    margin-top: 1.5rem;
-  }
-  .detail-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--border-color);
-  }
-  .detail-row:last-child {
-    border-bottom: none;
-  }
-  .detail-row .label {
-    font-weight: 600;
-    min-width: 120px;
-  }
-  .detail-row .value {
-    flex: 1;
-  }
-  .badge {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-weight: 600;
-  }
-  .badge.success {
-    background-color: var(--success-bg);
-    color: var(--success-fg);
-  }
-  .badge.warning {
-    background-color: var(--warning-bg);
-    color: var(--warning-fg);
-  }
-</style>

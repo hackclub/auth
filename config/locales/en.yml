@@ -576,31 +576,21 @@ en:
       submit: Request email change
       cancel: Cancel
       verification_info: We'll send verification emails to both your current email and your new email. You must confirm both to complete the change.
-      pending_request_title: You have a pending email change request
-      pending_request_body: "You've already requested to change your email to %{new_email}."
-      view_pending: View request
-      cancel_pending: Cancel request
-      cancel_confirm: Are you sure you want to cancel this email change request?
+      pending_redirect: You already have a pending email change request.
     show:
-      title: Email change request
-      details: Request details
-      old_email: Current email
-      new_email: New email
-      requested_at: Requested at
-      expires_at: Expires at
+      title_pending: Check your email
+      title_completed: Email changed!
+      title_cancelled: Request cancelled
+      title_expired: Request expired
+      old_email: From
+      new_email: To
       verified: Verified
-      awaiting_verification: Awaiting verification
-      cancel_request: Cancel request
-      cancel_confirm: Are you sure you want to cancel this email change request?
+      awaiting_verification: Waiting...
+      pending_instructions: We sent verification links to both addresses. Click the link in each email to confirm the change.
+      expired_instructions: This request has expired. You can start a new one if you still want to change your email.
+      cancel_request: Cancel this request
+      start_new: Start a new request
       back: Back to profile
-      completed_title: Email changed successfully
-      completed_body: Your email address has been updated.
-      cancelled_title: Request cancelled
-      cancelled_body: This email change request was cancelled.
-      expired_title: Request expired
-      expired_body: This email change request has expired. Please start a new request if you still want to change your email.
-      pending_title: Verification in progress
-      pending_body: Check your email! We've sent verification links to both your current and new email addresses.
     create:
       email_required: Please enter a new email address.
       success: Email change request created. Check both email addresses for verification links.
@@ -613,11 +603,10 @@ en:
       email_changed: Your email has been changed successfully!
       invalid_or_expired: This verification link is invalid or has expired.
     cancel_confirmation:
-      title: Cancel email change
-      heading: Are you sure?
-      body: "This will cancel the pending request to change your email from %{old_email} to %{new_email}."
-      confirm_cancel: Yes, cancel this request
-      back: Go back
+      title: Cancel email change?
+      explanation: This will stop the pending email change. You can always start a new request later.
+      confirm_cancel: Yes, cancel it
+      nevermind: Nevermind
     cancel:
       success: Email change request cancelled.
       already_completed: This request has already been completed or cancelled.

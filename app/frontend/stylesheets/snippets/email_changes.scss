@@ -1,0 +1,88 @@
+// Email change request pages
+
+.email-change-summary {
+  margin: $space-5 0;
+}
+
+.email-arrow {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+  
+  @media (max-width: 500px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $space-2;
+    
+    .arrow {
+      transform: rotate(90deg);
+      text-align: center;
+    }
+  }
+}
+.email-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted-strong);
+  margin-bottom: 0.25rem;
+}
+.email-item {
+  
+  .email-value {
+    font-size: 1rem;
+    font-weight: 500;
+    word-break: break-all;
+  }
+  
+  &.cancelled .email-value {
+    text-decoration: line-through;
+    color: var(--text-muted-strong);
+  }
+}
+
+.email-arrow .arrow {
+  color: var(--text-muted-strong);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.email-verification-status {
+  margin-top: $space-1;
+}
+
+.verification-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  &.verified {
+    background: var(--success-bg);
+    color: var(--success-fg-strong);
+  }
+
+  &.pending {
+    background: var(--warning-bg);
+    color: var(--warning-fg-strong);
+  }
+}
+
+.request-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted-strong);
+  margin-bottom: $space-5;
+
+  .separator {
+    margin: 0 0.5rem;
+  }
+
+  @media (max-width: 500px) {
+    .separator { display: none; }
+    span { display: block; margin-bottom: 0.25rem; }
+  }
+}
