@@ -1,0 +1,15 @@
+<p class="greeting"><%= t(".greeting", first_name: @first_name) %></p>
+
+<p class="body-text"><%= t(".body", old_email: @old_email) %></p>
+
+<p class="body-text"><%= t(".instruction") %></p>
+
+<p style="margin: 24px 0;">
+  <%= link_to t(".verify_button"), @verify_url, class: "button" %>
+</p>
+
+<p class="secondary-text"><%= t(".expiry") %></p>
+
+<p class="secondary-text"><%= t(".not_you") %></p>
+
+<p class="signature"><%= simple_format(t(".signature")) %></p>

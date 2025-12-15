@@ -50,6 +50,34 @@ en:
       subject: "[Hack Club] Two-factor authentication requirement removed"
       greeting: "Hey %{first_name},"
       body: "The two-factor authentication requirement has been removed from your Hack Club account. Your authentication methods are still available if you want to re-enable this requirement later."
+  email_change_mailer:
+    verify_old_email:
+      subject: "[Hack Club] Confirm your email change request"
+      greeting: "Hey %{first_name},"
+      body: "Someone (hopefully you!) requested to change your Hack Club account email to %{new_email}."
+      instruction: "Click the button below to confirm you own this email address and approve this change."
+      verify_button: "Yes, change my email"
+      expiry: "This link expires in 24 hours."
+      not_you_html: "Didn't request this? <a href='%{cancel_url}'>Cancel the request</a> and review your account security."
+      not_you_text: "Didn't request this? Cancel it here: %{cancel_url}"
+      signature: "– Hack Club"
+    verify_new_email:
+      subject: "[Hack Club] Verify your new email address"
+      greeting: "Hey %{first_name},"
+      body: "You're changing your Hack Club account email from %{old_email} to this address."
+      instruction: "Click the button below to verify you own this email address."
+      verify_button: "Verify this email"
+      expiry: "This link expires in 24 hours."
+      not_you: "Didn't request this? You can safely ignore this email."
+      signature: "– Hack Club"
+    email_changed_notification:
+      subject: "[Hack Club] Your email address has been changed"
+      greeting: "Hey %{first_name},"
+      body: "Your Hack Club account email address has been successfully changed."
+      old_email_label: "Old email:"
+      new_email_label: "New email:"
+      not_you: "If you didn't make this change, please contact us immediately at auth@hackclub.com."
+      signature: "– Hack Club"
   verification_mailer:
     approved:
       subject: "[Hack Club] Your identity verification has been approved!"
@@ -281,7 +309,7 @@ en:
       developer_mode: Developer mode
       developer_mode_description: Wanna OAuth some OAuth? Check this box.
       save: Save changes
-      no_email_change_yet: Changing your email will be available in a future release.
+      change_email: Change email
       super_secret_settings: "Super secret settings"
       saml_debug: "debug your SAML assertions?"
     new:
@@ -537,6 +565,54 @@ en:
           title: Get verified for YSWS
           subtitle: Verify your age and identity to participate in programs and compete for prizes
           start_verification: Start Verification
+  email_changes:
+    new:
+      title: Change your email
+      current_email: Current email
+      new_email: New email
+      new_email_label: New email address
+      submit: Request email change
+      cancel: Cancel
+      verification_info: We'll send verification emails to both your current email and your new email. You must confirm both to complete the change.
+      pending_request_title: You have a pending email change request
+      pending_request_body: "You've already requested to change your email to %{new_email}."
+      view_pending: View request
+      cancel_pending: Cancel request
+      cancel_confirm: Are you sure you want to cancel this email change request?
+    show:
+      title: Email change request
+      details: Request details
+      old_email: Current email
+      new_email: New email
+      requested_at: Requested at
+      expires_at: Expires at
+      verified: Verified
+      awaiting_verification: Awaiting verification
+      cancel_request: Cancel request
+      cancel_confirm: Are you sure you want to cancel this email change request?
+      back: Back to profile
+      completed_title: Email changed successfully
+      completed_body: Your email address has been updated.
+      cancelled_title: Request cancelled
+      cancelled_body: This email change request was cancelled.
+      expired_title: Request expired
+      expired_body: This email change request has expired. Please start a new request if you still want to change your email.
+      pending_title: Verification in progress
+      pending_body: Check your email! We've sent verification links to both your current and new email addresses.
+    create:
+      email_required: Please enter a new email address.
+      success: Email change request created. Check both email addresses for verification links.
+    verify_old:
+      success: Current email verified!
+      email_changed: Your email has been changed successfully!
+      invalid_or_expired: This verification link is invalid or has expired.
+    verify_new:
+      success: New email verified!
+      email_changed: Your email has been changed successfully!
+      invalid_or_expired: This verification link is invalid or has expired.
+    cancel:
+      success: Email change request cancelled.
+      already_completed: This request has already been completed or cancelled.
   auth:
     sign_in_or_create: "Sign in or create a Hack Club Auth account to continue"
   portal:

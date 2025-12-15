@@ -54,6 +54,7 @@ class Identity < ApplicationRecord
   has_many :v2_login_codes, class_name: "Identity::V2LoginCode", dependent: :destroy
   has_many :totps, class_name: "Identity::TOTP", dependent: :destroy
   has_many :backup_codes, class_name: "Identity::BackupCode", dependent: :destroy
+  has_many :email_change_requests, class_name: "Identity::EmailChangeRequest", dependent: :destroy
 
   has_one :backend_user, class_name: "Backend::User", dependent: :destroy
 

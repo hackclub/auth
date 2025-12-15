@@ -50,7 +50,9 @@
   <section class="section-card">
     <h3><%= t "identities.email" %></h3>
     <%= text_field_tag :primary_email, @identity.primary_email, readonly: true, autocomplete: "off" %>
-    <small class="usn"><%= t ".no_email_change_yet" %></small>
+    <div class="form-actions" style="margin-top: 0.5rem;">
+      <%= link_to t(".change_email"), new_email_change_path, class: "button secondary" %>
+    </div>
   </section>
 
   <%= form_with model: @identity, url: identity_path, method: :patch, local: true do |f| %>
