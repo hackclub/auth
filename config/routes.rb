@@ -342,6 +342,7 @@ Rails.application.routes.draw do
     end
     namespace :external do
       get "/check", to: "identities#check"
+      options "/check", to: "identities#options"
     end
   end
 
