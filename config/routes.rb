@@ -295,8 +295,9 @@ Rails.application.routes.draw do
   end
 
   namespace :portal do
-    get "verify", to: "verifications#portal"
-    post "verify", to: "verifications#create"
+    get "verify", to: "verifications#start"
+    get "verify/document", to: "verifications#portal", as: :verify_document
+    post "verify/document", to: "verifications#create"
     delete "verify", to: "verifications#cancel"
     get "address", to: "addresses#portal"
     post "address", to: "addresses#create"

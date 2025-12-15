@@ -57,4 +57,8 @@ module ApplicationHelper
     options.each { |key, value| svg[key.to_s] = value }
     doc.to_html.html_safe
   end
+
+  def emoji_image(name, alt: name)
+    vite_image_tag("images/emoji/#{name}", alt: alt, style: "height: 1em; vertical-align: baseline;")
+  end
 end
