@@ -1,15 +1,17 @@
 class Components::AuthWelcome < Components::Base
   include Phlex::Rails::Helpers::DistanceOfTimeInWordsToNow
 
-  def initialize(headline:, subtitle:, return_to: nil, login_hint: nil)
+  def initialize(headline:, subtitle:, return_to: nil, login_hint: nil, logo_path: nil)
     @headline = headline
     @subtitle = subtitle
     @return_to = return_to
     @login_hint = login_hint
+    @logo_path = logo_path
   end
 
   def view_template
     div(class: "auth-container") do
+      render_brand if @logo_path
       div(class: "auth-card") do
         render_header
         render_actions
@@ -19,6 +21,14 @@ class Components::AuthWelcome < Components::Base
   end
 
   private
+
+  def render_brand
+    div(class: "auth-brand") do
+      vite_image_tag "images/hc-square.png", alt: "Hack Club logo", class: "brand-logo"
+      span { "+" }
+      vite_image_tag @logo_path, alt: "Logo", class: "brand-logo"
+    end
+  end
 
   def render_header
     header do

@@ -86,6 +86,38 @@ class Program < ApplicationRecord
 
   def authorized_for_identity?(identity) = authorized_tokens.exists?(resource_owner: identity)
 
+  def onboarding_scenario_class
+    return nil if onboarding_scenario.blank?
+    OnboardingScenarios::Base.find_by_slug(onboarding_scenario)
+  end
+
+  def onboarding_scenario_instance(identity = nil)
+    onboarding_scenario_class&.new(identity)
+  end
+
+  def self.find_by_redirect_uri_host(url)
+    return nil if url.blank?
+    begin
+      uri = URI.parse(url)
+      host = uri.host
+      return nil unless host
+
+      find_each do |program|
+        program.redirect_uri.to_s.split("\n").each do |redirect_uri|
+          begin
+            redirect_host = URI.parse(redirect_uri.strip).host
+            return program if redirect_host == host
+          rescue URI::InvalidURIError
+            next
+          end
+        end
+      end
+      nil
+    rescue URI::InvalidURIError
+      nil
+    end
+  end
+
   private
 
   def validate_community_scopes

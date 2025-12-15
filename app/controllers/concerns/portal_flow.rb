@@ -4,12 +4,23 @@ module PortalFlow
   included do
     before_action :validate_portal_return_url, only: [ :start, :portal ]
     before_action :store_return_url, only: [ :start, :portal ]
+    helper_method :portal_onboarding_scenario
   end
 
   private
 
   def portal_return_url
     session[:portal_return_to] || params[:return_to]
+  end
+
+  def portal_program
+    @portal_program ||= Program.find_by_redirect_uri_host(portal_return_url)
+  end
+
+  def portal_onboarding_scenario
+    return @portal_onboarding_scenario if defined?(@portal_onboarding_scenario)
+    scenario_class = portal_program&.onboarding_scenario_class
+    @portal_onboarding_scenario = scenario_class&.new(current_identity)
   end
 
   def store_return_url

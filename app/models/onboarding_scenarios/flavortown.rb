@@ -70,5 +70,8 @@ module OnboardingScenarios
       when "flavortown_dino_nuggets" then :dino_nuggets
       end
     end
+
+    def logo_path = "images/flavortown/logo.avif"
+    def background_url = nil
   end
 end

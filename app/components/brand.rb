@@ -1,6 +1,7 @@
 class Components::Brand < Components::Base
-  def initialize(identity:)
+  def initialize(identity:, logo_path: nil)
     @identity = identity
+    @logo_path = logo_path
   end
 
   def view_template
@@ -21,5 +22,9 @@ class Components::Brand < Components::Base
 
   def logo
     vite_image_tag "images/hc-square.png", alt: "Hack Club logo", class: "brand-logo"
+    if @logo_path
+      span { "+" }
+      vite_image_tag @logo_path, alt: "Logo", class: "brand-logo"
+    end
   end
 end

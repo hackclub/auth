@@ -1,7 +1,13 @@
 <% service_name = @program&.name || "the application" %>
+<% scenario_class = @program&.onboarding_scenario_class %>
+<% scenario = scenario_class&.new(nil) %>
+<% if scenario&.background_url %>
+  <% content_for(:body_style) { "background-image: url('#{scenario.background_url}'); background-size: cover; background-position: center;" } %>
+<% end %>
 <%= render Components::AuthWelcome.new(
   headline: "Continue to #{service_name}",
   subtitle: "Sign in or create an account to continue",
   return_to: @return_to,
-  login_hint: @login_hint
+  login_hint: @login_hint,
+  logo_path: scenario&.logo_path
 ) %>

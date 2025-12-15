@@ -23,10 +23,17 @@
     <%= vite_stylesheet_tag "application.css" %>
     <%= vite_javascript_tag 'application' %>
   </head>
-  <body class="<%= content_for?(:portal_wrapper) ? '' : (content_for?(:body_class) ? yield(:body_class) : 'auth-layout') %>" hx-headers='{"X-CSRF-Token": "<%= form_authenticity_token %>"}' hx-boost="false">
+  <%
+    body_style = content_for?(:body_style) ? yield(:body_style) : nil
+    portal_scenario = respond_to?(:portal_onboarding_scenario) ? portal_onboarding_scenario : nil
+    if content_for?(:portal_wrapper) && portal_scenario&.background_url
+      body_style = "background-image: url('#{portal_scenario.background_url}'); background-size: cover; background-position: center;"
+    end
+  %>
+  <body class="<%= content_for?(:portal_wrapper) ? '' : (content_for?(:body_class) ? yield(:body_class) : 'auth-layout') %>" hx-headers='{"X-CSRF-Token": "<%= form_authenticity_token %>"}' hx-boost="false"<%= " style=\"#{body_style}\"".html_safe if body_style %>>
     <% if content_for?(:portal_wrapper) %>
       <main class="container portal-container">
-        <%= render Components::Brand.new(identity: current_identity) %>
+        <%= render Components::Brand.new(identity: current_identity, logo_path: portal_scenario&.logo_path) %>
         <%= render "shared/flash" %>
         <span id="async_flash"></span>
         <%= yield %>
