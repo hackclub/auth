@@ -1,6 +1,8 @@
 module API
   module External
     class IdentitiesController < ApplicationController
+      before_action :set_cors_headers, only: %i[check options]
+
       def check
         ident = if (public_id = params[:idv_id]).present?
                   Identity.find_by_public_id(public_id)
@@ -29,6 +31,19 @@ module API
         render json: {
           result:
         }
+      end
+
+      def options = head :ok
+
+      private
+
+      def set_cors_headers
+        response.set_header("Access-Control-Allow-Origin", "*")
+        response.set_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        response.set_header(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization"
+        )
       end
     end
   end
