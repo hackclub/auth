@@ -4,7 +4,7 @@
       <% if current_user.super_admin? %>
         <b>Super admin:</b>
         <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: backend_identities_path) do %>
+          <%= render Components::Backend::Item.new(icon: "⭢", href: backend_flipper_path) do %>
             <b>Flipper?</b>&nbsp;<i>(i hardly know 'er!)</i>
             <p class="shortcode">&nbsp; [ FLIP ]</p>
           <% end %>
