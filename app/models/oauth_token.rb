@@ -33,7 +33,8 @@ class OAuthToken < ApplicationRecord
   include PublicActivity::Model
   tracked owner: proc { |controller, record| record.resource_owner }, recipient: proc { |controller, record| record.resource_owner }, only: [ :create, :revoke ]
 
-  PREFIX = "idntk."
+  ACCESS_TOKEN_PREFIX = "idntk."
+  REFRESH_TOKEN_PREFIX = "idnrf."
   SIZE = 32
 
   scope :not_expired, -> { where(expires_in: nil).or(where("(oauth_access_tokens.created_at + make_interval(secs => expires_in)) >= ?", Time.now)) }
@@ -49,15 +50,24 @@ class OAuthToken < ApplicationRecord
   belongs_to :resource_owner, class_name: "Identity"
 
   def generate_token
-    self.token = self.class.generate
+    @raw_token = self.class.generate_access_token
+    secret_strategy.store_secret(self, :token, @raw_token)
+  end
+
+  def generate_refresh_token
+    @raw_refresh_token = self.class.generate_refresh_token
+    Doorkeeper.config.token_secret_strategy.store_secret(self, :refresh_token, @raw_refresh_token)
   end
 
   def active?
     !revoked_at? && (expires_in.nil? || expires_in > 0)
   end
 
-  def self.generate(options = {})
-    token_size = options.delete(:size) || SIZE
-    PREFIX + SecureRandom.urlsafe_base64(token_size)
+  def self.generate_access_token(size: SIZE)
+    ACCESS_TOKEN_PREFIX + SecureRandom.urlsafe_base64(size)
+  end
+
+  def self.generate_refresh_token(size: SIZE)
+    REFRESH_TOKEN_PREFIX + SecureRandom.urlsafe_base64(size)
   end
 end

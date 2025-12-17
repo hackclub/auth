@@ -2,7 +2,7 @@ FactoryBot.define do
   factory :oauth_token do
     association :resource_owner, factory: :identity
     association :application, factory: :program
-    token { OAuthToken.generate }
+    token { OAuthToken.generate_access_token }
     scopes { "basic_info" }
     expires_in { nil }
     revoked_at { nil }
