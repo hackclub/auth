@@ -12,23 +12,43 @@
   @include dark-mode {
     background: #1a1d23;
   }
+  
+  &.has-background {
+    background: transparent;
+  }
 }
 
 .auth-brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   
-  img {
-    width: 32px;
-    height: 32px;
+  .brand-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    object-fit: contain;
+    
+    &--custom {
+      border: 1px solid var(--surface-2-border);
+      background: var(--surface-1);
+    }
   }
   
-  span {
+  .brand-plus {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    opacity: 0.5;
+  }
+  
+  .brand-text {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--text-strong);
+    margin-left: 0.25rem;
   }
 }
 

@@ -1,15 +1,48 @@
 .brand {
-    &>h1 {
-        display: inline;
-        margin-left: 1rem;
-        vertical-align: middle;
-        font-size: 29px;
-    }
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-strong);
+  }
+}
 
-    & img {
-        width: 50px;
-        display: inline;
-    }
+.portal-container {
+  min-height: 100vh;
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+  
+  > .brand {
+    margin-bottom: 1.5rem;
+  }
+}
 
-    margin-bottom: 1rem;
+.brand-logos {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: contain;
+  
+  &--custom {
+    border: 1px solid var(--surface-2-border);
+    background: var(--surface-1);
+  }
+}
+
+.brand-plus {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  opacity: 0.6;
 }

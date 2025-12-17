@@ -1,12 +1,30 @@
-<div class="auth-container">
+<%
+  application = Program.find_by(uid: @pre_auth.client.uid)
+  scenario_class = application&.onboarding_scenario_class
+  scenario = scenario_class&.new(current_identity)
+  custom_logo_path = scenario&.logo_path
+  light_bg = scenario&.background_path
+  dark_bg = scenario&.dark_mode_background_path
+%>
+<% if light_bg || dark_bg %>
+  <style>
+    body { background-size: cover; background-position: center; }
+    <% if light_bg %>html[data-theme="light"] body { background-image: url('<%= vite_asset_path(light_bg) %>'); }<% end %>
+    <% if dark_bg %>html[data-theme="dark"] body { background-image: url('<%= vite_asset_path(dark_bg) %>'); }<% end %>
+  </style>
+<% end %>
+<div class="auth-container<%= ' has-background' if light_bg || dark_bg %>">
   <div class="auth-brand">
     <%= vite_image_tag "images/hc-square.png", alt: "Hack Club logo", class: "brand-logo" %>
-    <span><%= t("brand") %></span>
+    <% if custom_logo_path %>
+      <span class="brand-plus">×</span>
+      <%= vite_image_tag custom_logo_path, alt: "Logo", class: "brand-logo brand-logo--custom" %>
+    <% end %>
+    <span class="brand-text"><%= t("brand") %></span>
   </div>
   <div class="auth-card oauth-consent">
     <header>
       <h1><%= session.dig(:stashed_data, "splash_message") || "Continue to #{@pre_auth.client.name}?" %></h1>
-      <% application = Program.find_by(uid: @pre_auth.client.uid) %>
       <small>
         <%= raw t('.prompt', client_name: content_tag(:strong) { @pre_auth.client.name }) %>
       </small>

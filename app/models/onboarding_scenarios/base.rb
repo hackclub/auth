@@ -95,6 +95,12 @@ module OnboardingScenarios
     def bot_name = nil
     def bot_icon_url = nil
 
+    # Branding - override to customize logo/background for welcome, OAuth, and portal pages
+    # logo_path: vite asset path like "images/flavortown.png"
+    def logo_path = nil
+    def background_path = nil
+    def dark_mode_background_path = background_path
+
     # Custom dialogue flow hooks - override in subclasses
     def before_first_message = nil
     def after_promotion = nil
