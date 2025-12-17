@@ -88,11 +88,49 @@ Make a POST request to exchange the authorization code for an access token:
 
 ```json
 {
-  "access_token": "idntk.mraowj2z72e1x8i2a60o88j3h7d0f1"
+  "access_token": "idntk.mraowj2z72e1x8i2a60o88j3h7d0f1",
+  "token_type": "Bearer",
+  "expires_in": 15778800,
+  "refresh_token": "idnrf.abc123xyz789...",
+  "scope": "openid profile"
 }
 ```
 
-Store this access token securely - you'll use it to authenticate API requests.
+Store both tokens securely - you'll use the access token to authenticate API requests, and the refresh token to obtain new access tokens.
+
+### Refreshing Access Tokens
+
+Access tokens expire after 6 months. Use the refresh token to obtain a new access token without requiring user interaction:
+
+<%= render Components::APIExample.new(method: "POST", url: oauth_token_url) %>
+
+**Request body:**
+
+```json
+{
+  "client_id": "your_client_id",
+  "client_secret": "your_client_secret",
+  "refresh_token": "idnrf.abc123xyz789...",
+  "grant_type": "refresh_token"
+}
+```
+
+**Response:**
+
+```json
+{
+  "access_token": "idntk.new_access_token...",
+  "token_type": "Bearer",
+  "expires_in": 15778800,
+  "refresh_token": "idnrf.new_refresh_token...",
+  "scope": "openid profile"
+}
+```
+
+<div class="banner info">
+<b>Refresh token rotation:</b><br/>
+Each time you refresh an access token, you'll receive a new refresh token. The previous refresh token is invalidated once the new access token is used. Always store the latest refresh token from each response.
+</div>
 
 ### Step 5: Make authenticated API requests
 
