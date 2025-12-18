@@ -61,4 +61,11 @@ module ApplicationHelper
   def emoji_image(name, alt: name)
     vite_image_tag("images/emoji/#{name}", alt: alt, style: "height: 1em; vertical-align: baseline;")
   end
+
+  def google_places_api_script_tag
+    api_key = Rails.application.credentials.dig(:google, :places_api_key)
+    return unless api_key.present?
+
+    tag.script(src: "https://maps.googleapis.com/maps/api/js?key=#{api_key}&libraries=places", async: true, defer: true)
+  end
 end

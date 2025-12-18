@@ -14,6 +14,8 @@
   end
 %>
 
+<%= google_places_api_script_tag %>
+
 <%
   if local_assigns[:htmx_target]
     htmx_method_key = address.persisted? ? "hx-patch" : "hx-post"
@@ -22,7 +24,7 @@
     form_html_attrs = {}
   end
 %>
-<%= form_with model: address, url: local_assigns[:url], local: true, html: form_html_attrs do |f| %>
+<%= form_with model: address, url: local_assigns[:url], local: true, html: form_html_attrs.merge("x-data": "addressAutocomplete") do |f| %>
   <% if local_assigns[:from_program] %>
     <%= f.hidden_field :from_program, value: true %>
   <% end %>
@@ -43,12 +45,12 @@
     <%= f.text_field :last_name, placeholder: t("addresses.last_name"), required: true %>
   </div>
 
-  <%= f.text_field :line_1, placeholder: t("addresses.line_1"), required: true %>
-  <%= f.text_field :line_2, placeholder: "#{t("addresses.line_2")} (optional)" %>
+  <%= f.text_field :line_1, placeholder: t("addresses.line_1"), required: true, "x-ref": "line1", autocomplete: "off" %>
+  <%= f.text_field :line_2, placeholder: "#{t("addresses.line_2")} (optional)", "x-ref": "line2" %>
 
   <div class="grid">
-    <%= f.text_field :city, placeholder: t("addresses.city"), required: true %>
-    <%= f.text_field :state, placeholder: t("addresses.state"), required: true %>
+    <%= f.text_field :city, placeholder: t("addresses.city"), required: true, "x-ref": "city" %>
+    <%= f.text_field :state, placeholder: t("addresses.state"), required: true, "x-ref": "state" %>
   </div>
 
   <div x-data="{
@@ -60,11 +62,11 @@
          }
        }">
     <div class="grid">
-      <%= f.text_field :postal_code, placeholder: t("addresses.postal_code"), required: true %>
+      <%= f.text_field :postal_code, placeholder: t("addresses.postal_code"), required: true, "x-ref": "postalCode" %>
       <%= f.collection_select :country, Address.countries_for_select,
                               :first, :last,
                               { include_blank: "Country" },
-                              { required: true, "@change": "updateCallingCode($event.target)" } %>
+                              { required: true, "@change": "updateCallingCode($event.target)", "x-ref": "country" } %>
     </div>
 
     <div class="grid" style="grid-template-columns: auto 1fr; margin-top: 1rem;">
