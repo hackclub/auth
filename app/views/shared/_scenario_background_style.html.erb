@@ -1,0 +1,9 @@
+<% light_bg = scenario&.background_path %>
+<% dark_bg = scenario&.dark_mode_background_path %>
+<% if light_bg || dark_bg %>
+  <style>
+    body { background-size: cover; background-position: center; }
+    <% if light_bg %>html[data-theme="light"] body { background-image: url('<%= vite_asset_path(light_bg) %>'); }<% end %>
+    <% if dark_bg %>html[data-theme="dark"] body { background-image: url('<%= vite_asset_path(dark_bg) %>'); }<% end %>
+  </style>
+<% end %>

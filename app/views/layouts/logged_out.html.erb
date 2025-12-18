@@ -26,16 +26,10 @@
   <%
     body_style = content_for?(:body_style) ? yield(:body_style) : nil
     portal_scenario = respond_to?(:portal_onboarding_scenario) ? portal_onboarding_scenario : nil
-    light_bg = portal_scenario&.background_path
-    dark_bg = portal_scenario&.dark_mode_background_path
   %>
   <body class="<%= content_for?(:portal_wrapper) ? '' : (content_for?(:body_class) ? yield(:body_class) : 'auth-layout') %>" hx-headers='{"X-CSRF-Token": "<%= form_authenticity_token %>"}' hx-boost="false"<%= " style=\"#{body_style}\"".html_safe if body_style %>>
-    <% if content_for?(:portal_wrapper) && (light_bg || dark_bg) %>
-      <style>
-        body { background-size: cover; background-position: center; }
-        <% if light_bg %>html[data-theme="light"] body { background-image: url('<%= vite_asset_path(light_bg) %>'); }<% end %>
-        <% if dark_bg %>html[data-theme="dark"] body { background-image: url('<%= vite_asset_path(dark_bg) %>'); }<% end %>
-      </style>
+    <% if content_for?(:portal_wrapper) %>
+      <%= render "shared/scenario_background_style", scenario: portal_scenario %>
     <% end %>
     <% if content_for?(:portal_wrapper) %>
       <main class="container portal-container">
