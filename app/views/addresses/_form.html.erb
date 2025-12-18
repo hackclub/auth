@@ -14,7 +14,10 @@
   end
 %>
 
-<%= google_places_api_script_tag %>
+<% content_for :head do %>
+  <%= vite_javascript_tag 'address-autocomplete' %>
+  <%= google_places_api_script_tag %>
+<% end %>
 
 <%
   if local_assigns[:htmx_target]
@@ -45,7 +48,8 @@
     <%= f.text_field :last_name, placeholder: t("addresses.last_name"), required: true %>
   </div>
 
-  <%= f.text_field :line_1, placeholder: t("addresses.line_1"), required: true, "x-ref": "line1", autocomplete: "off" %>
+  <gmp-place-autocomplete placeholder="<%= t("addresses.line_1") %>" x-ref="autocomplete" style="width: 100%;"></gmp-place-autocomplete>
+  <%= f.hidden_field :line_1, "x-ref": "line1" %>
   <%= f.text_field :line_2, placeholder: "#{t("addresses.line_2")} (optional)", "x-ref": "line2" %>
 
   <div class="grid">
