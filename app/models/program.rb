@@ -102,17 +102,23 @@ class Program < ApplicationRecord
       host = uri.host
       return nil unless host
 
+      matching_programs = []
       find_each do |program|
         program.redirect_uri.to_s.split("\n").each do |redirect_uri|
           begin
             redirect_host = URI.parse(redirect_uri.strip).host
-            return program if redirect_host == host
+            if redirect_host == host
+              matching_programs << program
+              break
+            end
           rescue URI::InvalidURIError
             next
           end
         end
       end
-      nil
+      
+      # Prefer programs with onboarding scenarios set
+      return matching_programs.find { |p| p.onboarding_scenario.present? } || matching_programs.first
     rescue URI::InvalidURIError
       nil
     end
