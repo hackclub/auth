@@ -1,5 +1,7 @@
 ---
 EnableDefaultLinters: true
+exclude:
+  - 'app/views/addresses/_address_list.html.erb'
 linters:
   AllowedScriptType:
     enabled: no

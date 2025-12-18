@@ -116,9 +116,9 @@ class Program < ApplicationRecord
           end
         end
       end
-      
+
       # Prefer programs with onboarding scenarios set
-      return matching_programs.find { |p| p.onboarding_scenario.present? } || matching_programs.first
+      matching_programs.find { |p| p.onboarding_scenario.present? } || matching_programs.first
     rescue URI::InvalidURIError
       nil
     end
