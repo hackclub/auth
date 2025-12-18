@@ -27,7 +27,7 @@
     form_html_attrs = {}
   end
 %>
-<%= form_with model: address, url: local_assigns[:url], local: true, html: form_html_attrs.merge("x-data": "addressAutocomplete") do |f| %>
+<%= form_with model: address, url: local_assigns[:url], local: true, html: form_html_attrs.merge("x-data": "addressAutocomplete", "@alpine:init": "Object.assign($data, { callingCodes: #{country_calling_codes.to_json}, callingCode: '#{initial_calling_code}', selectedCountry: '#{initial_country}' })") do |f| %>
   <% if local_assigns[:from_program] %>
     <%= f.hidden_field :from_program, value: true %>
   <% end %>
@@ -48,7 +48,9 @@
     <%= f.text_field :last_name, placeholder: t("addresses.last_name"), required: true %>
   </div>
 
-  <gmp-place-autocomplete placeholder="Address line 1" x-ref="autocomplete" style="width: 100%;"></gmp-place-autocomplete>
+  <div x-init="setTimeout(() => $refs.autocomplete.shadowRoot?.querySelector('input')?.focus(), 100)">
+    <gmp-place-autocomplete placeholder="Address line 1" x-ref="autocomplete" style="width: 100%;"></gmp-place-autocomplete>
+  </div>
   <%= f.hidden_field :line_1, "x-ref": "line1" %>
   <%= f.text_field :line_2, placeholder: "#{t("addresses.line_2")} (optional)", "x-ref": "line2" %>
 
@@ -57,28 +59,13 @@
     <%= f.text_field :state, placeholder: t("addresses.state"), required: true, "x-ref": "state" %>
   </div>
 
-  <div x-data="{
-         callingCodes: <%= country_calling_codes.to_json %>,
-         callingCode: '<%= initial_calling_code %>',
-         selectedCountry: '<%= initial_country %>',
-         updateCallingCode(countrySelect) {
-           const code = this.callingCodes[countrySelect.value];
-           if (code) this.callingCode = code;
-           this.updateAutocompleteCountry(countrySelect.value);
-         },
-         updateAutocompleteCountry(country) {
-           this.selectedCountry = country;
-           if (country && this.$refs.autocomplete) {
-             this.$refs.autocomplete.includedRegionCodes = [country];
-           }
-         }
-       }">
-    <div class="grid">
+  <div>
+     <div class="grid">
       <%= f.text_field :postal_code, placeholder: t("addresses.postal_code"), required: true, "x-ref": "postalCode" %>
       <%= f.collection_select :country, Address.countries_for_select,
                               :first, :last,
                               { include_blank: "Country" },
-                              { required: true, "@change": "updateCallingCode($event.target)", "x-ref": "country" } %>
+                              { required: true, "@change": "updateCallingCode($el)", "x-ref": "country" } %>
     </div>
 
     <div class="grid" style="grid-template-columns: auto 1fr; margin-top: 1rem;">

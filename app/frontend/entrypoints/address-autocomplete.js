@@ -7,23 +7,40 @@ Element.prototype.attachShadow = function(init) {
     const style = document.createElement('style');
     style.textContent = `
       :host {
-        background: transparent !important;
-        color-scheme: inherit !important;
+        background: var(--theme-background-input);
+        border: none;
+        box-shadow: inset 0 0 0 1px var(--theme-border);
+        color: var(--theme-text);
+        display: block;
+      }
+      :host:focus-within {
+        outline: none;
+        box-shadow: inset 0 0 0 2px var(--theme-focused-foreground);
       }
       .widget-container {
         border: none !important;
         background: transparent !important;
+        padding: 0 !important;
       }
       .input-container {
         padding: 0 !important;
+        background: transparent !important;
       }
       .focus-ring {
         display: none !important;
       }
       input {
-        font-family: Inter, system-ui, sans-serif !important;
-        font-size: 0.9375rem !important;
-        padding: 0.5rem 1rem !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: var(--theme-text);
+        font-family: var(--font-family-mono);
+        font-size: var(--font-size);
+        line-height: calc(var(--theme-line-height-base) * 1rem);
+        padding: 0 1ch;
+      }
+      input::placeholder {
+        color: var(--theme-border);
       }
     `;
     shadow.appendChild(style);
@@ -34,8 +51,25 @@ Element.prototype.attachShadow = function(init) {
 
 function createAddressAutocomplete() {
   return {
+    callingCodes: {},
+    callingCode: '1',
+    selectedCountry: 'US',
+
     init() {
       this.initAutocomplete()
+    },
+
+    updateCallingCode(countrySelect) {
+      const code = this.callingCodes[countrySelect.value];
+      if (code) this.callingCode = code;
+      this.updateAutocompleteCountry(countrySelect.value);
+    },
+
+    updateAutocompleteCountry(country) {
+      this.selectedCountry = country;
+      if (country && this.$refs.autocomplete) {
+        this.$refs.autocomplete.includedRegionCodes = [country];
+      }
     },
 
     async initAutocomplete() {
@@ -48,6 +82,11 @@ function createAddressAutocomplete() {
 
       const autocomplete = this.$refs.autocomplete
       if (!autocomplete) return
+
+      const input = autocomplete.shadowRoot?.querySelector('input')
+      if (input && !input.placeholder) {
+        input.placeholder = 'Address line 1'
+      }
 
       autocomplete.addEventListener('gmp-select', async ({ placePrediction }) => {
         await this.fillAddress(placePrediction)
@@ -95,7 +134,7 @@ function createAddressAutocomplete() {
 
       const line1 = [streetNumber, route].filter(Boolean).join(' ')
       if (this.$refs.line1) this.$refs.line1.value = line1
-      if (this.$refs.postalCode) this.$refs.postalCode.value = postalCode
+      if (this.$refs.postalCode && postalCode) this.$refs.postalCode.value = postalCode
 
       if (this.$refs.line2) this.$refs.line2.focus()
     }
