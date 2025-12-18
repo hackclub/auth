@@ -48,7 +48,7 @@
     <%= f.text_field :last_name, placeholder: t("addresses.last_name"), required: true %>
   </div>
 
-  <gmp-place-autocomplete placeholder="<%= t("addresses.line_1") %>" x-ref="autocomplete" style="width: 100%;"></gmp-place-autocomplete>
+  <gmp-place-autocomplete placeholder="Address line 1" x-ref="autocomplete" style="width: 100%;"></gmp-place-autocomplete>
   <%= f.hidden_field :line_1, "x-ref": "line1" %>
   <%= f.text_field :line_2, placeholder: "#{t("addresses.line_2")} (optional)", "x-ref": "line2" %>
 
@@ -60,9 +60,17 @@
   <div x-data="{
          callingCodes: <%= country_calling_codes.to_json %>,
          callingCode: '<%= initial_calling_code %>',
+         selectedCountry: '<%= initial_country %>',
          updateCallingCode(countrySelect) {
            const code = this.callingCodes[countrySelect.value];
            if (code) this.callingCode = code;
+           this.updateAutocompleteCountry(countrySelect.value);
+         },
+         updateAutocompleteCountry(country) {
+           this.selectedCountry = country;
+           if (country && this.$refs.autocomplete) {
+             this.$refs.autocomplete.includedRegionCodes = [country];
+           }
          }
        }">
     <div class="grid">
