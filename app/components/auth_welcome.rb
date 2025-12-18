@@ -1,16 +1,17 @@
 class Components::AuthWelcome < Components::Base
   include Phlex::Rails::Helpers::DistanceOfTimeInWordsToNow
 
-  def initialize(headline:, subtitle:, return_to: nil, login_hint: nil, logo_path: nil)
+  def initialize(headline:, subtitle:, return_to: nil, login_hint: nil, logo_path: nil, has_background: false)
     @headline = headline
     @subtitle = subtitle
     @return_to = return_to
     @login_hint = login_hint
     @logo_path = logo_path
+    @has_background = has_background
   end
 
   def view_template
-    div(class: "auth-container") do
+    div(class: ["auth-container", @has_background && "has-background"]) do
       render_brand if @logo_path
       div(class: "auth-card") do
         render_header
