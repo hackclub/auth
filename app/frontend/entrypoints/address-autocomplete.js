@@ -1,3 +1,9 @@
+// Google Maps callback - fired when the API is fully loaded
+window.onGoogleMapsLoaded = function() {
+  window.googleMapsReady = true
+  window.dispatchEvent(new CustomEvent('google-maps-loaded'))
+}
+
 // Override attachShadow to inject custom styles into gmp-place-autocomplete
 const originalAttachShadow = Element.prototype.attachShadow;
 Element.prototype.attachShadow = function(init) {
@@ -56,7 +62,11 @@ function createAddressAutocomplete() {
     selectedCountry: 'US',
 
     init() {
-      this.initAutocomplete()
+      if (window.googleMapsReady) {
+        this.initAutocomplete()
+      } else {
+        window.addEventListener('google-maps-loaded', () => this.initAutocomplete(), { once: true })
+      }
     },
 
     updateCallingCode(countrySelect) {
@@ -73,23 +83,34 @@ function createAddressAutocomplete() {
     },
 
     async initAutocomplete() {
-      if (typeof google === 'undefined' || !google.maps) {
-        setTimeout(() => this.initAutocomplete(), 100)
-        return
-      }
-
-      await google.maps.importLibrary('places')
+      await customElements.whenDefined('gmp-place-autocomplete')
 
       const autocomplete = this.$refs.autocomplete
       if (!autocomplete) return
 
-      const input = autocomplete.shadowRoot?.querySelector('input')
-      if (input && !input.placeholder) {
-        input.placeholder = 'Address line 1'
-      }
-
       autocomplete.addEventListener('gmp-select', async ({ placePrediction }) => {
         await this.fillAddress(placePrediction)
+      })
+
+      // Wait for shadow DOM input to be created
+      const input = await this.waitForInput(autocomplete)
+      if (input) {
+        input.placeholder = 'Address line 1'
+        input.focus()
+      }
+    },
+
+    waitForInput(autocomplete) {
+      return new Promise(resolve => {
+        const check = () => {
+          const input = autocomplete.shadowRoot?.querySelector('input')
+          if (input) {
+            resolve(input)
+          } else {
+            requestAnimationFrame(check)
+          }
+        }
+        check()
       })
     },
 

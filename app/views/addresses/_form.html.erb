@@ -48,7 +48,7 @@
     <%= f.text_field :last_name, placeholder: t("addresses.last_name"), required: true %>
   </div>
 
-  <div x-init="setTimeout(() => $refs.autocomplete.shadowRoot?.querySelector('input')?.focus(), 100)">
+  <div>
     <gmp-place-autocomplete placeholder="Address line 1" x-ref="autocomplete" style="width: 100%;"></gmp-place-autocomplete>
   </div>
   <%= f.hidden_field :line_1, "x-ref": "line1" %>

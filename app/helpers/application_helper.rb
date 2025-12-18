@@ -66,6 +66,6 @@ module ApplicationHelper
     api_key = Rails.application.credentials.dig(:google, :places_api_key)
     return unless api_key.present?
 
-    tag.script(src: "https://maps.googleapis.com/maps/api/js?key=#{api_key}&loading=async&libraries=places", async: true, defer: true)
+    tag.script(src: "https://maps.googleapis.com/maps/api/js?key=#{api_key}&loading=async&libraries=places&callback=onGoogleMapsLoaded", async: true, defer: true)
   end
 end
