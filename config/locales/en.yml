@@ -78,15 +78,15 @@ en:
       body: "We got your documents and they're in the queue for review. We'll let you know as soon as we've had a look!"
       signature: "Best,\nthe Hack Club team"
   errors:
-   attributes:
-     primary_email:
-       temporary: "seems to be a disposable email address. Please use a permanent email address to create your account (or if this is a false positive email nora@hackclub.com!)"
-       invalid_format: "is not shaped like a valid email address. Please check the format and try again."
-       no_mx_record: "doesn't seem to have a valid mail server? Please check the domain and try again."
+    attributes:
+      primary_email:
+        temporary: "seems to be a disposable email address. Please use a permanent email address to create your account (or if this is a false positive email nora@hackclub.com!)"
+        invalid_format: "is not shaped like a valid email address. Please check the format and try again."
+        no_mx_record: "doesn't seem to have a valid mail server? Please check the domain and try again."
   activerecord:
     attributes:
       backend_user:
-          slack_id: Slack ID
+        slack_id: Slack ID
   brand: Hack Club Auth
   home:
     apps:
@@ -547,11 +547,11 @@ en:
         check_back: We'll email you once the review is complete. You can close this window.
         return_button: Return to app
     addresses:
-       title: We'll need your address...
-       subtitle: Please use a real address — we're going to send you something here!
-       note_html: "Write your address exactly as it would appear on a letter or package addressed to you.<br>Don't forget to include your apartment number if you have one!"
-       submit: Continue →
-    manage:
+      title: We'll need your address...
+      subtitle: Please use a real address — we're going to send you something here!
+      note_html: "Write your address exactly as it would appear on a letter or package addressed to you.<br>Don't forget to include your apartment number if you have one!"
+      submit: Continue →
+      manage:
         title: Your addresses
         subtitle: Select or add an address for shipping
         make_primary: Set as primary
