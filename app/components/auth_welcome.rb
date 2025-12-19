@@ -11,7 +11,7 @@ class Components::AuthWelcome < Components::Base
   end
 
   def view_template
-    div(class: ["auth-container", @has_background && "has-background"]) do
+    div(class: [ "auth-container", @has_background && "has-background" ]) do
       render_brand if @logo_path
       div(class: "auth-card") do
         render_header
