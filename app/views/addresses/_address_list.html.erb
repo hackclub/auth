@@ -77,8 +77,9 @@
 
 <section class="section-card add-address-card" x-data="{ showForm: false }">
   <template x-if="!showForm">
-    <button
-      <%= local_assigns[:portal] ? t("portal.addresses.manage.add_new") : t("addresses.add_new") %>>
+    <button @click="showForm = true" class="primary">
+      <%= local_assigns[:portal] ? t("portal.addresses.manage.add_new") : t("addresses.add_new") %>
+    </button>
   </template>
   <template x-if="showForm">
     <div class="address-form" x-init="htmx.process($el)">

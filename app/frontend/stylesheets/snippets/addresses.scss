@@ -169,3 +169,24 @@
     button, input[type="submit"] { font-weight: 500; border-radius: $radius-md; }
   }
 }
+
+// Google Places Autocomplete styling
+gmp-place-autocomplete {
+  display: block;
+  width: 100%;
+  margin-bottom: $space-3;
+  background-color: var(--pico-form-element-background-color);
+  border: 1px solid var(--pico-form-element-border-color);
+  border-radius: 10px;
+  color-scheme: light;
+}
+
+[data-theme="dark"] gmp-place-autocomplete {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) gmp-place-autocomplete {
+    color-scheme: dark;
+  }
+}

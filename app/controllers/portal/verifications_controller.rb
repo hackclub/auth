@@ -1,6 +1,9 @@
 class Portal::VerificationsController < Portal::BaseController
   include VerificationFlow
 
+  before_action :validate_portal_return_url, only: [ :start ]
+  before_action :store_return_url, only: [ :start ]
+
   def start
     @identity = current_identity
     status = @identity.verification_status
