@@ -19,7 +19,8 @@ module ApplicationHelper
     block ||= ->(_) { clipboard_value }
     return yield if options.delete(:if) == false
 
-    css_classes = "pointer tooltipped tooltipped--#{tooltip_direction} #{options.delete(:class)}"
+    additional_class = options.delete(:class)
+    css_classes = "pointer tooltipped tooltipped--#{tooltip_direction}#{" #{additional_class}" if additional_class}"
     tag.span "data-copy-to-clipboard": clipboard_value, class: css_classes, "aria-label": options.delete(:label) || "click to copy...", **options, &block
   end
 
