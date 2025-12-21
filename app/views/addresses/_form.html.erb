@@ -48,10 +48,10 @@
     <%= f.text_field :last_name, placeholder: t("addresses.last_name"), required: true %>
   </div>
 
-  <div>
+  <div x-show="!$refs.line1?.value">
     <gmp-place-autocomplete placeholder="Address line 1" x-ref="autocomplete" style="width: 100%;"></gmp-place-autocomplete>
   </div>
-  <%= f.hidden_field :line_1, "x-ref": "line1" %>
+  <%= f.text_field :line_1, placeholder: t("addresses.line_1"), required: true, "x-ref": "line1" %>
   <%= f.text_field :line_2, placeholder: "#{t("addresses.line_2")} (optional)", "x-ref": "line2" %>
 
   <div class="grid">

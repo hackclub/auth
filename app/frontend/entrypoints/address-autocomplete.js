@@ -116,12 +116,13 @@ function createAddressAutocomplete() {
 
     async fillAddress(placePrediction) {
       const place = placePrediction.toPlace()
-      await place.fetchFields({ fields: ['addressComponents'] })
+      await place.fetchFields({ fields: ['addressComponents', 'formattedAddress'] })
 
       if (!place.addressComponents) return
 
       let streetNumber = ''
       let route = ''
+      let premise = ''
       let postalCode = ''
 
       for (const component of place.addressComponents) {
@@ -132,6 +133,9 @@ function createAddressAutocomplete() {
         }
         if (types.includes('route')) {
           route = component.shortText
+        }
+        if (types.includes('premise') || types.includes('subpremise')) {
+          premise = component.longText
         }
         if (types.includes('postal_code')) {
           postalCode = component.longText
@@ -153,7 +157,12 @@ function createAddressAutocomplete() {
         }
       }
 
-      const line1 = [streetNumber, route].filter(Boolean).join(' ')
+      let line1 = [streetNumber, route].filter(Boolean).join(' ')
+      if (!line1 && premise) {
+        line1 = premise
+      } else if (!line1 && place.formattedAddress) {
+        line1 = place.formattedAddress.split(',')[0] || ''
+      }
       if (this.$refs.line1) this.$refs.line1.value = line1
       if (this.$refs.postalCode && postalCode) this.$refs.postalCode.value = postalCode
 
