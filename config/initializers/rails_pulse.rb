@@ -136,7 +136,8 @@ RailsPulse.configure do |config|
   # Uncomment and configure one of the following patterns based on your authentication system:
 
   # Enable/disable authentication (enabled by default in production)
-  # config.authentication_enabled = Rails.env.production?
+  config.authentication_enabled = false
+  # we have SuperAdminConstraint in routes/
 
   # Where to redirect unauthorized users
   # config.authentication_redirect_path = "/"
