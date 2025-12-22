@@ -13,5 +13,6 @@ terrible_answers = OnboardingScenarios::Flavortown::TERRIBLE_ANSWERS.map.with_in
 dino_nuggets = OnboardingScenarios::Flavortown::DINO_NUGGETS.then { |(label, action, opts)| button(label, action, **opts) }
 
 love = button("Love", "flavortown_taste_correct", style: "primary")
-first_five = [love, *wrong_answers.sample(2), *terrible_answers.sample(2)].shuffle
-actions [*first_five, terrible_answers.sample(1).first, dino_nuggets].compact
+sampled_terrible = terrible_answers.sample(3)
+first_five = [love, *wrong_answers.sample(2), *sampled_terrible.take(2)].shuffle
+actions [*first_five, sampled_terrible.last, dino_nuggets].compact
