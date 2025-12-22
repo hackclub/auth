@@ -22,8 +22,13 @@ default: &default
 
 
 development:
-  <<: *default
-  database: identity_vault_development
+  primary:
+    <<: *default
+    database: identity_vault_development
+  rails_pulse:
+    <<: *default
+    database: identity_vault_rails_pulse_development
+    migrations_paths: db/rails_pulse_migrate
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
@@ -56,8 +61,13 @@ development:
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  <<: *default
-  database: identity_vault_test
+  primary:
+    <<: *default
+    database: identity_vault_test
+  rails_pulse:
+    <<: *default
+    database: identity_vault_rails_pulse_test
+    migrations_paths: db/rails_pulse_migrate
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -80,7 +90,10 @@ test:
 # for a full overview on how database connection configuration can be specified.
 #
 production:
-  <<: *default
-  database: identity_vault_production
-  username: identity_vault
-  password: <%= ENV["IDENTITY_VAULT_DATABASE_PASSWORD"] %>
+  primary:
+    <<: *default
+    database: identity_vault_production
+  rails_pulse:
+    <<: *default
+    database: identity_vault_rails_pulse_production
+    migrations_paths: db/rails_pulse_migrate
