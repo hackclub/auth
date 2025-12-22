@@ -49,7 +49,7 @@
   </div>
 
   <div x-show="!$refs.line1?.value">
-    <gmp-place-autocomplete placeholder="Address line 1" x-ref="autocomplete" style="width: 100%;"></gmp-place-autocomplete>
+    <gmp-place-autocomplete placeholder="Type your address..." x-ref="autocomplete" style="width: 100%;"></gmp-place-autocomplete>
   </div>
   <%= f.text_field :line_1, placeholder: t("addresses.line_1"), required: true, "x-ref": "line1" %>
   <%= f.text_field :line_2, placeholder: "#{t("addresses.line_2")} (optional)", "x-ref": "line2" %>
