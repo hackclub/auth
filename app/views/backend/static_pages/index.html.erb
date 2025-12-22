@@ -22,6 +22,12 @@
           <% end %>
         </div>
         <div data-navigable-item>
+          <%= render Components::Backend::Item.new(icon: "⭢", href: "/backend/rails_pulse") do %>
+            <b>Rails Pulse</b>
+            <p class="shortcode">&nbsp; [ PLSE ]</p>
+          <% end %>
+        </div>
+        <div data-navigable-item>
           <%= render Components::Backend::Item.new(icon: "⭢", href: backend_users_path) do %>
             <b>Manage users</b>
             <p class="shortcode">&nbsp; [ USRS ]</p>

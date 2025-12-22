@@ -42,7 +42,8 @@ module Shortcodes
           Shortcode.new(code: "USRS", label: "Backend users", controller: "backend/users", action: "index", icon: "⭢", role: :super_admin, path_override: nil),
           Shortcode.new(code: "JOBS", label: "Job queue", controller: "good_job/jobs", action: "index", icon: "⭢", role: :super_admin, path_override: "/backend/good_job"),
           Shortcode.new(code: "FLIP", label: "Feature flags", controller: "flipper/features", action: "index", icon: "⭢", role: :super_admin, path_override: "/backend/flipper"),
-          Shortcode.new(code: "ORWL", label: "Console audit", controller: "audits1984/audits", action: "index", icon: "⭢", role: :super_admin, path_override: "/backend/console_audit")
+          Shortcode.new(code: "ORWL", label: "Console audit", controller: "audits1984/audits", action: "index", icon: "⭢", role: :super_admin, path_override: "/backend/console_audit"),
+          Shortcode.new(code: "PLSE", label: "Rails Pulse", controller: "rails_pulse/dashboard", action: "index", icon: "⭢", role: :super_admin, path_override: "/backend/rails_pulse")
         ]
       end
 
