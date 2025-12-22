@@ -8,6 +8,8 @@ class IdentitiesController < ApplicationController
     before_action :set_return_to, only: [ :new, :create ]
     before_action :ensure_no_user!, only: [ :new, :create ]
 
+    helper_method :portal_onboarding_scenario
+
     def edit
         @identity = current_identity
     end
@@ -193,6 +195,8 @@ class IdentitiesController < ApplicationController
     def set_return_to
         @return_to = params[:return_to] if params[:return_to].present?
     end
+
+    def portal_onboarding_scenario = @onboarding_scenario
 
     def identity_params
         params.require(:identity).permit(:first_name, :last_name, :phone_number, :developer_mode, :saml_debug)
