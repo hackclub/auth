@@ -56,7 +56,7 @@ RailsPulse.configure do |config|
   # Rails Pulse from tracking its own requests. Leave as nil for default '/rails_pulse'.
   # Examples:
   #   config.mount_path = "/admin/monitoring"
-  config.mount_path = nil
+  config.mount_path = "/backend/rails_pulse"
 
   # Manual route filtering
   # Specify additional routes, requests, or queries to ignore from performance tracking.
