@@ -4,5 +4,6 @@ class Tutorial::BeginJob < ApplicationJob
   def perform(identity)
     sleep 1
     RalseiEngine.send_first_message(identity)
+    identity.touch(:onboarding_flow_started_at)
   end
 end

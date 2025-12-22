@@ -246,6 +246,10 @@ class LoginsController < ApplicationController
         scenario = scenario_for_identity(@identity)
         if @identity.slack_id.blank? && (scenario.should_create_slack? || @attempt.next_action == "slack")
             provision_slack_on_first_login(scenario)
+        elsif @identity.slack_id.present? && @identity.onboarding_flow_started_at.nil? && scenario.slack_onboarding_flow == :internal_tutorial
+            if Flipper.enabled?(:are_we_enterprise_yet, @identity) && SlackService.user_is_restricted?(user_id: @identity.slack_id)
+                Tutorial::BeginJob.perform_later(@identity)
+            end
         end
 
         if @attempt.next_action == "slack"
@@ -287,7 +291,9 @@ class LoginsController < ApplicationController
                 )
             end
 
-            if Flipper.enabled?(:are_we_enterprise_yet, current_identity) && scenario.slack_onboarding_flow == :internal_tutorial
+            should_onboard = slack_result[:should_onboard] || scenario.slack_onboarding_flow == :internal_tutorial
+            is_restricted = slack_result[:created] || SlackService.user_is_restricted?(user_id: slack_result[:slack_id])
+            if Flipper.enabled?(:are_we_enterprise_yet, current_identity) && should_onboard && @identity.onboarding_flow_started_at.nil? && is_restricted
                 Tutorial::BeginJob.perform_later(@identity)
             end
 

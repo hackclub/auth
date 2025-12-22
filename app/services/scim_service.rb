@@ -28,7 +28,9 @@ module SCIMService
           success: true,
           slack_id: existing_slack_id,
           created: false,
-          message: "Linked existing Slack account"
+          message: "Linked existing Slack account",
+          user_type: scenario.slack_user_type,
+          should_onboard: scenario.slack_onboarding_flow == :internal_tutorial
         }
       end
 

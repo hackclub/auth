@@ -65,5 +65,16 @@ module SlackService
       Rails.logger.warn "Could not check if user #{user_id} is in workspace: #{e.message}"
       false
     end
+
+    def user_is_restricted?(user_id:)
+      response = client.users_info(user: user_id)
+      user = response.dig("user")
+      return false unless user
+
+      user["is_restricted"] == true || user["is_ultra_restricted"] == true
+    rescue => e
+      Rails.logger.warn "Could not check if user #{user_id} is restricted: #{e.message}"
+      false
+    end
   end
 end
