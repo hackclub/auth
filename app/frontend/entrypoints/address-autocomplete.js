@@ -55,11 +55,11 @@ Element.prototype.attachShadow = function(init) {
   return originalAttachShadow.call(this, init);
 };
 
-function createAddressAutocomplete() {
+function createAddressAutocomplete(initialData = {}) {
   return {
-    callingCodes: {},
-    callingCode: '1',
-    selectedCountry: 'US',
+    callingCodes: initialData.callingCodes || {},
+    callingCode: initialData.callingCode || '1',
+    selectedCountry: initialData.selectedCountry || 'US',
 
     init() {
       if (window.googleMapsReady) {
