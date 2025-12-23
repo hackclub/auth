@@ -1,6 +1,23 @@
 # Fix for RailsPulse RequestCollector middleware to handle blank paths/methods
-# This prevents ActiveRecord::RecordInvalid errors when requests have blank paths
-# which can happen with certain malformed requests or edge cases in production
+#
+# Issue: ActiveRecord::RecordInvalid: Validation failed: Route can't be blank
+# This error occurs in production when RailsPulse tries to track requests with blank
+# paths or methods, which can happen with:
+#   - Malformed HTTP requests
+#   - Certain edge cases in the middleware chain
+#   - Unusual client behavior
+#
+# Root cause: The gem's find_or_create_route method doesn't validate path/method
+# before calling find_or_create_by, which raises an exception when validations fail
+# on the RailsPulse::Route model (which requires both method and path to be present).
+#
+# Solution: Monkey-patch the find_or_create_route method to:
+#   1. Check if path or method is blank before attempting database operations
+#   2. Return nil for invalid routes (existing middleware code handles nil gracefully)
+#   3. Rescue any remaining validation errors to prevent middleware crashes
+#
+# This ensures the middleware chain continues to work even when encountering
+# problematic requests, while logging the issues for debugging.
 
 Rails.application.config.after_initialize do
   if defined?(RailsPulse::Middleware::RequestCollector)
