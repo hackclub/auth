@@ -27,7 +27,7 @@
     form_html_attrs = {}
   end
 %>
-<%= form_with model: address, url: local_assigns[:url], local: true, html: form_html_attrs.merge("x-data": "addressAutocomplete", "@alpine:init": "Object.assign($data, { callingCodes: #{country_calling_codes.to_json}, callingCode: '#{initial_calling_code}', selectedCountry: '#{initial_country}' })") do |f| %>
+<%= form_with model: address, url: local_assigns[:url], local: true, html: form_html_attrs.merge("x-data": "addressAutocomplete(#{({ callingCodes: country_calling_codes, callingCode: initial_calling_code, selectedCountry: initial_country }).to_json})") do |f| %>
   <% if local_assigns[:from_program] %>
     <%= f.hidden_field :from_program, value: true %>
   <% end %>
