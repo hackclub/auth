@@ -92,7 +92,7 @@ test:
 production:
   primary:
     <<: *default
-    database: identity_vault_production
+    database: identity_vault_prod
   rails_pulse:
     <<: *default
     database: identity_vault_rails_pulse_production
