@@ -97,3 +97,12 @@ production:
     <<: *default
     database: identity_vault_rails_pulse_production
     migrations_paths: db/rails_pulse_migrate
+
+staging:
+  primary:
+    <<: *default
+    database: identity_vault_staging
+  rails_pulse:
+    <<: *default
+    database: identity_vault_rails_pulse_staging
+    migrations_paths: db/rails_pulse_migrate
