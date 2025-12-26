@@ -13,4 +13,5 @@ Rails.application.configure do
       class: "RailsPulse::CleanupJob"
     }
   }
+  config.good_job.enable_cron = true
 end
