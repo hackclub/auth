@@ -680,6 +680,7 @@ DEPENDENCIES
   rails_pulse
   rails_semantic_logger (~> 4.17)
   redcarpet (~> 3.6)
+  rexml
   rotp (~> 6.3)
   rqrcode (~> 2.0)
   rspec-rails (~> 7.1)
