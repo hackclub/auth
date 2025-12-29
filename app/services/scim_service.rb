@@ -154,7 +154,10 @@ module SCIMService
       }
     rescue => e
       Rails.logger.error "Error creating Slack user: #{e.message}"
-      Honeybadger.notify(e, context: { identity_id: identity.id, email: identity.primary_email })
+      Sentry.capture_exception(e, extra: {
+        identity_public_id: identity.public_id,
+        identity_email: identity.primary_email
+      })
 
       {
         success: false,

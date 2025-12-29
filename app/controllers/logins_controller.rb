@@ -294,12 +294,13 @@ class LoginsController < ApplicationController
             slack_result
         else
             Rails.logger.error "Slack provisioning failed for #{@identity.id}: #{slack_result[:error]}"
-            Honeybadger.notify(
+            Sentry.capture_message(
                 "Slack provisioning failed on first login",
-                context: {
-                    identity_id: @identity.id,
-                    email: @identity.primary_email,
-                    error: slack_result[:error]
+                level: :error,
+                extra: {
+                    identity_public_id: @identity.public_id,
+                    identity_email: @identity.primary_email,
+                    slack_error: slack_result[:error]
                 }
             )
             if scenario.should_create_slack? || @attempt.next_action == "slack"

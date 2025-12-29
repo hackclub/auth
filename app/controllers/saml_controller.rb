@@ -113,12 +113,13 @@ class SAMLController < ApplicationController
       Rails.logger.info "Slack provisioning successful via SCIM for #{current_identity.id}: #{slack_result[:message]}"
     else
       Rails.logger.error "Slack provisioning failed via SCIM for #{current_identity.id}: #{slack_result[:error]}"
-      Honeybadger.notify(
+      Sentry.capture_message(
         "Slack provisioning failed via SCIM",
-        context: {
-          identity_id: current_identity.id,
-          email: current_identity.primary_email,
-          error: slack_result[:error]
+        level: :error,
+        extra: {
+          identity_public_id: current_identity.public_id,
+          identity_email: current_identity.primary_email,
+          slack_error: slack_result[:error]
         }
       )
       flash[:error] = "We couldn't create your Slack account. Please contact support."
