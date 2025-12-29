@@ -1,6 +1,7 @@
 class ErrorsController < ApplicationController
   skip_before_action :authenticate_identity!
-  layout "minimal"
+  skip_before_action :set_honeybadger_context
+  layout "errors"
 
   def not_found
     @event_id = request.env["sentry.error_event_id"]
