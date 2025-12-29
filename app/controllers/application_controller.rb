@@ -98,7 +98,7 @@ class ApplicationController < ActionController::Base
     event_id = Sentry.capture_exception(e)
     flash[:error] = "sorry, couldn't find that object... (404)"
     flash[:sentry_event_id] = event_id if event_id
-    redirect_to root_path
+    redirect_to root_path unless request.path == "/"
   end
 
   rescue_from StandardError do |e|
@@ -106,10 +106,8 @@ class ApplicationController < ActionController::Base
     flash[:error] = "Something went wrong. Please try again."
     flash[:sentry_event_id] = event_id if event_id
 
-    # Re-raise in development to see full error
     raise e if Rails.env.development?
-
-    redirect_to root_path
+    redirect_to root_path unless request.path == "/"
   end
 
   private

@@ -91,14 +91,14 @@ module Backend
       event_id = Sentry.capture_exception(e)
       flash[:error] = "you don't seem to be authorized to do that?"
       flash[:sentry_event_id] = event_id if event_id
-      redirect_to backend_root_path
+      redirect_to backend_root_path unless request.path == "/backend" || request.path == "/backend/"
     end
 
     rescue_from ActiveRecord::RecordNotFound do |e|
       event_id = Sentry.capture_exception(e)
       flash[:error] = "sorry, couldn't find that object... (404)"
       flash[:sentry_event_id] = event_id if event_id
-      redirect_to backend_root_path
+      redirect_to backend_root_path unless request.path == "/backend" || request.path == "/backend/"
     end
   end
 end
