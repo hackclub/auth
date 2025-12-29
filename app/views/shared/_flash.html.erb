@@ -1,7 +1,7 @@
 <% flash.each do |type, message| %>
   <% next if type == "sentry_event_id" %> <!-- Skip event_id from being rendered as message -->
   <% if message.present? %>
-    <%= render Components::Banner.new(kind: type, event_id: flash[:sentry_event_id]) do %>
+    <%= render Components::Banner.new(kind: type, event_id: %w[error alert danger].include?(type) ? flash[:sentry_event_id] : nil) do %>
       <%= message %>
     <% end %>
   <% end %>
