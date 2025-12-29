@@ -74,8 +74,6 @@ module Backend
       Sentry.set_context(:identity, {
         identity_public_id: current_identity.public_id,
         identity_email: current_identity.primary_email,
-        identity_phone: current_identity.phone_number,
-        identity_country: current_identity.country,
         slack_id: current_identity.slack_id
       }.compact)
 
