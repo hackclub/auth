@@ -254,9 +254,6 @@ GEM
       hashids (~> 1.0)
     hashids (1.0.6)
     hashie (5.0.0)
-    honeybadger (5.28.0)
-      logger
-      ostruct
     htmlentities (4.4.2)
     http (5.2.0)
       addressable (~> 2.8)
@@ -537,6 +534,12 @@ GEM
     securerandom (0.4.1)
     semantic_logger (4.16.1)
       concurrent-ruby (~> 1.0)
+    sentry-rails (5.28.1)
+      railties (>= 5.0)
+      sentry-ruby (~> 5.28.1)
+    sentry-ruby (5.28.1)
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.0.2)
     serve_byte_range (1.0.0)
       rack (>= 1.0)
     slack-ruby-client (2.6.0)
@@ -636,7 +639,6 @@ DEPENDENCIES
   geocoder (~> 1.8)
   good_job (~> 4.10)
   hashid-rails (~> 1.4)
-  honeybadger (~> 5.28)
   http (~> 5.2)
   image_processing (~> 1.2)
   jb (~> 0.8.2)
@@ -667,6 +669,8 @@ DEPENDENCIES
   rubocop-rails-omakase
   ruby-vips (~> 2.2)
   saml2 (~> 3.2)
+  sentry-rails (~> 5.22)
+  sentry-ruby (~> 5.22)
   slack-ruby-client (~> 2.6)
   slocks (~> 0.1.0)
   superform (~> 0.5.1)
