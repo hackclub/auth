@@ -1,6 +1,6 @@
 <%= render Components::PublicActivity::Snippet.new(activity) do %>
   <%
-    app_name = activity.trackable&.application&.name || "(deleted app #{activity.trackable_id})"
+    app_name = activity.trackable&.application&.name || "(deleted app #{activity.trackable&.application_id})"
     app_link = if defined?(current_user) && current_user.is_a?(Backend::User) && activity.trackable&.application
       link_to app_name, backend_program_path(activity.trackable.application)
     else
