@@ -51,21 +51,55 @@ module Backend
     end
 
     def set_honeybadger_context
-      Honeybadger.context({
-        user_id: current_user&.id,
+      return unless current_identity
+
+      # Set user context with public_id
+      Sentry.set_user(
+        id: current_identity.public_id,  # Use identity public_id (ident!xyz)
+        username: current_user&.username,
+        email: current_identity.primary_email
+      )
+
+      # Set backend user context
+      Sentry.set_context(:user, {
         user_username: current_user&.username,
-        identity_id: current_identity&.id,
-        identity_email: current_identity&.primary_email
-      })
+        user_identity_public_id: current_user&.identity&.public_id,
+        user_slack_id: current_user&.slack_id,
+        is_super_admin: current_user&.super_admin?,
+        is_program_manager: current_user&.program_manager?,
+        can_break_glass: current_user&.can_break_glass?
+      }.compact)
+
+      # Set identity context (the identity being acted upon)
+      Sentry.set_context(:identity, {
+        identity_public_id: current_identity.public_id,
+        identity_email: current_identity.primary_email,
+        identity_phone: current_identity.phone_number,
+        identity_country: current_identity.country,
+        slack_id: current_identity.slack_id
+      }.compact)
+
+      # Set impersonation context if applicable
+      if current_impersonator
+        Sentry.set_context(:impersonation, {
+          impersonator_username: current_impersonator.username,
+          impersonator_identity_public_id: current_impersonator.identity&.public_id,
+          is_impersonating: true
+        }.compact)
+      end
     end
 
     rescue_from Pundit::NotAuthorizedError do |e|
+      event_id = Sentry.capture_exception(e)
       flash[:error] = "you don't seem to be authorized to do that?"
+      flash[:sentry_event_id] = event_id if event_id
       redirect_to backend_root_path
     end
 
     rescue_from ActiveRecord::RecordNotFound do |e|
+      event_id = Sentry.capture_exception(e)
       flash[:error] = "sorry, couldn't find that object... (404)"
+      flash[:sentry_event_id] = event_id if event_id
       redirect_to backend_root_path
     end
   end
