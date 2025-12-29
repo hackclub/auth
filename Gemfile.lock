@@ -162,7 +162,6 @@ GEM
     countries (7.1.1)
       unaccent (~> 0.3)
     crass (1.0.6)
-    css-zero (1.1.15)
     css_parser (1.21.1)
       addressable
     csv (3.3.5)
@@ -250,8 +249,6 @@ GEM
       fugit (>= 1.11.0)
       railties (>= 6.1.0)
       thor (>= 1.0.0)
-    groupdate (6.7.0)
-      activesupport (>= 7.1)
     hashid-rails (1.4.1)
       activerecord (>= 4.0)
       hashids (~> 1.0)
@@ -368,9 +365,6 @@ GEM
       nokogiri (~> 1.13)
     openssl (3.3.2)
     ostruct (0.6.1)
-    pagy (43.2.2)
-      json
-      yaml
     paper_trail (16.0.0)
       activerecord (>= 6.1)
       request_store (~> 1.4)
@@ -453,14 +447,6 @@ GEM
     rails-html-sanitizer (1.6.2)
       loofah (~> 2.21)
       nokogiri (>= 1.15.7, != 1.16.7, != 1.16.6, != 1.16.5, != 1.16.4, != 1.16.3, != 1.16.2, != 1.16.1, != 1.16.0.rc1, != 1.16.0)
-    rails_pulse (0.2.4)
-      css-zero (~> 1.1, >= 1.1.4)
-      groupdate (~> 6.0)
-      pagy (>= 8, < 44)
-      rails (>= 7.1.0, < 9.0.0)
-      ransack (~> 4.0)
-      request_store (~> 1.5)
-      turbo-rails (~> 2.0.11)
     rails_semantic_logger (4.17.0)
       rack
       railties (>= 5.1)
@@ -475,10 +461,6 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.2.1)
-    ransack (4.4.1)
-      activerecord (>= 7.2)
-      activesupport (>= 7.2)
-      i18n
     rdoc (6.14.0)
       erb
       psych (>= 4.0.0)
@@ -610,7 +592,6 @@ GEM
     websocket-extensions (0.1.5)
     wicked (2.0.0)
       railties (>= 3.0.7)
-    yaml (0.4.0)
     zeitwerk (2.7.3)
 
 PLATFORMS
@@ -677,7 +658,6 @@ DEPENDENCIES
   pundit (~> 2.5)
   rack-attack (~> 6.7)
   rails (~> 8.0.2)
-  rails_pulse
   rails_semantic_logger (~> 4.17)
   redcarpet (~> 3.6)
   rexml

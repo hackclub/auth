@@ -185,7 +185,6 @@ Rails.application.routes.draw do
       mount GoodJob::Engine => "good_job"
       mount Audits1984::Engine => "/console_audit"
       mount Flipper::UI.app(Flipper) => "/flipper", as: :flipper
-      mount RailsPulse::Engine => "rails_pulse"
     end
     resources :audit_logs, only: [ :index ]
     get "dashboard", to: "dashboard#show", as: :dashboard
