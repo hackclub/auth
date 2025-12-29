@@ -1,24 +1,101 @@
-<div class="min-h-screen flex items-center justify-center p-4">
-  <div class="max-w-md w-full text-center">
-    <h1 class="text-6xl font-bold text-gray-800 mb-4">404</h1>
-    <h2 class="text-2xl font-semibold text-gray-700 mb-4">Page Not Found</h2>
-    <p class="text-gray-600 mb-6">The page you were looking for doesn't exist.</p>
+<style>
+  .error-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    text-align: center;
+  }
+  .error-page-content {
+    max-width: 600px;
+  }
+  .error-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    color: var(--pico-primary);
+  }
+  .error-code {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--pico-primary);
+    margin-bottom: 0.5rem;
+    line-height: 1;
+  }
+  .error-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .error-description {
+    margin-bottom: 2rem;
+    opacity: 0.8;
+  }
+  .error-id-box {
+    background: var(--pico-card-background-color);
+    border: 2px solid var(--pico-primary);
+    border-radius: var(--pico-border-radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .error-id-label {
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+  }
+  .error-id-code {
+    display: block;
+    font-family: monospace;
+    font-size: 0.9rem;
+    padding: 0.75rem 1rem;
+    background: var(--pico-background-color);
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+  }
+  .error-id-code:hover {
+    border-color: var(--pico-primary);
+    background: var(--pico-primary-focus);
+  }
+  .copy-feedback {
+    display: none;
+    margin-top: 0.5rem;
+    color: #2ecc71;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .copy-feedback.show {
+    display: block;
+  }
+</style>
+
+<div class="error-page">
+  <div class="error-page-content">
+    <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+
+    <div class="error-code">404</div>
+    <h1 class="error-title">Page Not Found</h1>
+    <p class="error-description">The page you were looking for doesn't exist.</p>
 
     <% if @event_id.present? %>
-      <div class="bg-gray-100 border border-gray-300 rounded-lg p-4 mb-6">
-        <p class="text-sm text-gray-700 mb-2">Error ID:</p>
+      <div class="error-id-box">
+        <p class="error-id-label">Error ID:</p>
         <code
-          class="error-id-code text-sm font-mono bg-white px-3 py-2 rounded border border-gray-300 cursor-pointer hover:bg-gray-50 inline-block"
+          class="error-id-code"
           data-error-id="<%= @event_id %>"
           onclick="copyErrorId(this)"
           title="Click to copy"
         >
           <%= @event_id %>
         </code>
-        <span class="copy-feedback text-green-600 text-sm ml-2 hidden">✓ Copied!</span>
+        <div class="copy-feedback">✓ Copied to clipboard!</div>
       </div>
     <% end %>
 
-    <%= link_to "Go back home", root_path, class: "inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition" %>
+    <%= link_to "Go back home", root_path, role: "button" %>
   </div>
 </div>

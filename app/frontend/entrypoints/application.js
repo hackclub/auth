@@ -17,16 +17,20 @@ document.addEventListener('htmx:configRequest', (event) => {
 // Copy error ID to clipboard
 window.copyErrorId = function(element) {
   const errorId = element.dataset.errorId;
-  const feedback = element.nextElementSibling;
+  const feedback = element.nextElementSibling || element.parentElement.querySelector('.copy-feedback');
 
   navigator.clipboard.writeText(errorId).then(() => {
     // Show feedback
-    feedback.classList.remove('hidden');
+    if (feedback) {
+      feedback.classList.add('show');
+      feedback.classList.remove('hidden');
 
-    // Hide after 2 seconds
-    setTimeout(() => {
-      feedback.classList.add('hidden');
-    }, 2000);
+      // Hide after 2 seconds
+      setTimeout(() => {
+        feedback.classList.remove('show');
+        feedback.classList.add('hidden');
+      }, 2000);
+    }
   }).catch(err => {
     console.error('Failed to copy:', err);
   });
