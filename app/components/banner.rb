@@ -1,18 +1,37 @@
 # frozen_string_literal: true
 
 class Components::Banner < Components::Base
-  def initialize(kind:)
+  def initialize(kind:, event_id: nil)
     @kind = kind
+    @event_id = event_id
   end
 
   def view_template(&block)
     div(class: "banner flex #{banner_class}") do
       render_icon
-      yield
+      div(class: "flex-1") do
+        yield
+        render_event_id if @event_id.present?
+      end
     end
   end
 
   private
+
+  def render_event_id
+    div(class: "error-id-container mt-1") do
+      small(class: "error-id-text text-sm opacity-75") do
+        plain "Error ID: "
+        code(
+          class: "error-id-code cursor-pointer hover:opacity-80",
+          data_error_id: @event_id,
+          onclick: "copyErrorId(this)",
+          title: "Click to copy"
+        ) { @event_id }
+        span(class: "copy-feedback ml-1 hidden") { " ✓ Copied!" }
+      end
+    end
+  end
 
   def banner_class
     case @kind.to_sym

@@ -47,9 +47,18 @@ class ApplicationController < ActionController::Base
   end
 
   def set_honeybadger_context
-    Honeybadger.context({
-      identity_id: current_identity&.id
-    })
+    return unless current_identity
+
+    Sentry.set_user(
+      id: current_identity.public_id,  # Use public_id (ident!xyz) not database ID
+      email: current_identity.primary_email
+    )
+
+    Sentry.set_context(:identity, {
+      identity_public_id: current_identity.public_id,
+      identity_email: current_identity.primary_email,
+      slack_id: current_identity.slack_id
+    }.compact)
   end
 
   # Best-effort country detection from request IP; returns ISO3166 alpha-2.
@@ -86,8 +95,19 @@ class ApplicationController < ActionController::Base
   end
 
   rescue_from ActiveRecord::RecordNotFound do |e|
+    event_id = Sentry.capture_exception(e)
     flash[:error] = "sorry, couldn't find that object... (404)"
-    redirect_to root_path
+    flash[:sentry_event_id] = event_id if event_id
+    redirect_to root_path unless request.path == "/"
+  end
+
+  rescue_from StandardError do |e|
+    event_id = Sentry.capture_exception(e)
+    flash[:error] = "Something went wrong. Please try again."
+    flash[:sentry_event_id] = event_id if event_id
+
+    raise e if Rails.env.development?
+    redirect_to root_path unless request.path == "/"
   end
 
   private

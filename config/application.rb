@@ -49,8 +49,11 @@ module IdentityVault
     unless Rails.env.development?
       config.rails_semantic_logger.add_file_appender = false
       config.semantic_logger.add_appender(io: $stdout, formatter: :json)
-      config.semantic_logger.add_appender(appender: :honeybadger_insights)
+      config.semantic_logger.add_appender(appender: :sentry_ruby)
     end
+
+    # Use dynamic error pages to display Sentry event IDs
+    config.exceptions_app = self.routes
 
     config.to_prepare do
       Doorkeeper::ApplicationController.layout "logged_out"

@@ -101,7 +101,10 @@ module RalseiEngine
       Rails.logger.info "RalseiEngine sent message to #{identity.slack_id} via #{channel_id} (template: #{template_name})"
     rescue => e
       Rails.logger.error "RalseiEngine failed to send message: #{e.message}"
-      Honeybadger.notify(e, context: { identity_id: identity.id, template: template_name })
+      Sentry.capture_exception(e, extra: {
+        identity_public_id: identity.public_id,
+        ralsei_template: template_name
+      })
       raise
     end
 
@@ -128,7 +131,9 @@ module RalseiEngine
       dm_channel_id
     rescue => e
       Rails.logger.error "RalseiEngine failed to open DM channel: #{e.message}"
-      Honeybadger.notify(e, context: { identity_id: identity.id })
+      Sentry.capture_exception(e, extra: {
+        identity_public_id: identity.public_id
+      })
       nil
     end
 

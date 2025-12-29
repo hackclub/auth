@@ -47,7 +47,8 @@ gem "vite_rails"
 
 gem "pundit", "~> 2.5"
 
-gem "honeybadger", "~> 5.28"
+gem "sentry-ruby", "~> 5.22"
+gem "sentry-rails", "~> 5.22"
 
 gem "http", "~> 5.2"
 
@@ -152,4 +153,3 @@ end
 gem "premailer-rails", "~> 1.12"
 
 gem "openssl", "~> 3.3"
-
