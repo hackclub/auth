@@ -1,10 +1,4 @@
-class ErrorsController < ApplicationController
-  skip_before_action :authenticate_identity!
-  skip_before_action :set_honeybadger_context
-
-  # Skip rescue_from handlers to prevent error loops
-  skip_around_action :handle_errors, raise: false
-
+class ErrorsController < ActionController::Base
   layout "errors"
 
   def not_found
