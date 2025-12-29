@@ -13,3 +13,21 @@ document.addEventListener('htmx:configRequest', (event) => {
     event.detail.headers['X-CSRF-Token'] = csrfToken;
   }
 });
+
+// Copy error ID to clipboard
+window.copyErrorId = function(element) {
+  const errorId = element.dataset.errorId;
+  const feedback = element.nextElementSibling;
+
+  navigator.clipboard.writeText(errorId).then(() => {
+    // Show feedback
+    feedback.classList.remove('hidden');
+
+    // Hide after 2 seconds
+    setTimeout(() => {
+      feedback.classList.add('hidden');
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+  });
+};
