@@ -49,6 +49,8 @@ class Verification::DocumentVerification < Verification
 
   belongs_to :identity_document, class_name: "Identity::Document"
 
+  after_create_commit :check_for_resemblances
+
   # This is the main verification type for document-based verifications
   # All existing verification functionality lives here
 
@@ -142,5 +144,9 @@ class Verification::DocumentVerification < Verification
     if rejection_reason == "other" && rejection_reason_details.blank?
       errors.add(:rejection_reason_details, "must be provided when rejection reason details is 'other'")
     end
+  end
+
+  def check_for_resemblances
+    Identity::NoticeResemblancesJob.perform_later(identity)
   end
 end
