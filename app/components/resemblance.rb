@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Components::Resemblance < Components::Base
+  include Phlex::Rails::Helpers::Routes
+
   attr_reader :resemblance
 
   def initialize(resemblance)
@@ -10,9 +12,17 @@ class Components::Resemblance < Components::Base
   def view_template
     div class: "lowered resemblance" do
       div class: "section" do
-        div(class: "section-header") { h3 { resemblance_title } }
+        div(class: "section-header") { h3 { @resemblance.title } }
         div class: "section-content" do
-          render @resemblance
+          detail_row("this identity", @resemblance.current_label)
+          detail_row("matches") do
+            a(href: backend_identity_path(@resemblance.past_identity), target: "_blank") { @resemblance.matched_label }
+            if @resemblance.matched_verification
+              plain " ("
+              a(href: backend_verification_path(@resemblance.matched_verification), target: "_blank") { "verification" }
+              plain ")"
+            end
+          end
         end
       end
       div class: "section" do
@@ -27,16 +37,10 @@ class Components::Resemblance < Components::Base
 
   private
 
-  def resemblance_title
-    case @resemblance
-    when Identity::Resemblance::NameResemblance
-      "name match"
-    when Identity::Resemblance::ReusedDocumentResemblance
-      "document reuse"
-    when Identity::Resemblance::EmailSubaddressResemblance
-      "email subaddressing"
-    else
-      "resemblance"
+  def detail_row(label, value = nil, &block)
+    div class: "detail-row" do
+      span(class: "detail-label") { label }
+      span(class: "detail-value") { block ? yield : value }
     end
   end
 end

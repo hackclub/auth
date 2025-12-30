@@ -28,4 +28,9 @@
 class Identity::Resemblance::ReusedDocumentResemblance < Identity::Resemblance
   belongs_to :document, class_name: "Identity::Document"
   belongs_to :past_document, class_name: "Identity::Document"
+
+  def title = "document reuse"
+  def current_label = document.document_type.humanize
+  def matched_label = past_identity.full_name
+  def matched_verification = past_document.verification
 end

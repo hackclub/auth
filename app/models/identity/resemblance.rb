@@ -28,4 +28,9 @@
 class Identity::Resemblance < ApplicationRecord
   belongs_to :identity
   belongs_to :past_identity, class_name: "Identity"
+
+  def title = "resemblance"
+  def current_label = identity.full_name
+  def matched_label = past_identity.full_name
+  def matched_verification = nil
 end

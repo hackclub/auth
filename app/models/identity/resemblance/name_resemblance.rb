@@ -26,4 +26,5 @@
 #  fk_rails_...  (past_identity_id => identities.id)
 #
 class Identity::Resemblance::NameResemblance < Identity::Resemblance
+  def title = "name match"
 end

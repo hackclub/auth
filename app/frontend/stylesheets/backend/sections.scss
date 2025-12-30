@@ -35,6 +35,14 @@ hr {
   background: var(--theme-button-background);
   box-shadow: inset 0 0 0 1px var(--theme-border);
   padding: calc(var(--font-size) * 0.5) 2ch;
+
+  &.resemblance {
+    margin-top: calc(var(--font-size) * 0.5);
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
 }
 
 .raised {

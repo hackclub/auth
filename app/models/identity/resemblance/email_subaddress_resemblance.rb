@@ -26,4 +26,7 @@
 #  fk_rails_...  (past_identity_id => identities.id)
 #
 class Identity::Resemblance::EmailSubaddressResemblance < Identity::Resemblance
+  def title = "email subaddressing"
+  def current_label = identity.primary_email
+  def matched_label = past_identity.primary_email
 end
