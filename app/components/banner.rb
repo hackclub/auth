@@ -7,9 +7,9 @@ class Components::Banner < Components::Base
   end
 
   def view_template(&block)
-    div(class: "banner flex #{banner_class}") do
+    div(class: "banner flex-row align-start #{banner_class}") do
       render_icon
-      div(class: "flex-1") do
+      div(class: "grow") do
         yield
         render_event_id if @event_id.present?
       end
