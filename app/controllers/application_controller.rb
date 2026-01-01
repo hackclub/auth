@@ -19,6 +19,8 @@ class ApplicationController < ActionController::Base
 
   def user_for_paper_trail = current_identity&.id
 
+  def info_for_paper_trail = { extra_data: { ip: request.remote_ip, user_agent: request.user_agent }.compact_blank }
+
   def identity_signed_in? = !!current_identity
 
 
