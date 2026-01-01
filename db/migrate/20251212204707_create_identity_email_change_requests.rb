@@ -20,6 +20,6 @@ class CreateIdentityEmailChangeRequests < ActiveRecord::Migration[8.0]
 
     add_index :identity_email_change_requests, :old_email_token_bidx
     add_index :identity_email_change_requests, :new_email_token_bidx
-    add_index :identity_email_change_requests, [:identity_id, :completed_at], name: "idx_email_change_requests_identity_completed"
+    add_index :identity_email_change_requests, [ :identity_id, :completed_at ], name: "idx_email_change_requests_identity_completed"
   end
 end
