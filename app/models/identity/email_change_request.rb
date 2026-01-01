@@ -90,7 +90,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
 
   def verify_old_email!(token)
     return false unless pending?
-    return false unless old_email_token == token
+    return false unless ActiveSupport::SecurityUtils.secure_compare(old_email_token.to_s, token.to_s)
 
     update!(old_email_verified_at: Time.current)
     identity.create_activity :email_change_verified_old,
@@ -103,7 +103,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
 
   def verify_new_email!(token)
     return false unless pending?
-    return false unless new_email_token == token
+    return false unless ActiveSupport::SecurityUtils.secure_compare(new_email_token.to_s, token.to_s)
 
     update!(new_email_verified_at: Time.current)
     identity.create_activity :email_change_verified_new,
