@@ -3,6 +3,8 @@ class EmailChangesController < ApplicationController
 
   before_action :set_email_change_request, only: [ :show, :cancel_confirmation, :cancel ]
   before_action :require_step_up_for_email_change, only: [ :new, :create ]
+  before_action :require_email_change_feature_enabled, except: [ :verify_old, :verify_new, :confirm_verify_old, :confirm_verify_new ]
+  before_action :require_email_change_feature_enabled_for_verification, only: [ :verify_old, :verify_new, :confirm_verify_old, :confirm_verify_new ]
 
   def new
     pending_request = current_identity.email_change_requests.pending.first
@@ -132,5 +134,22 @@ class EmailChangesController < ApplicationController
 
   def require_step_up_for_email_change
     require_step_up("email_change", return_to: new_email_change_path)
+  end
+
+  def require_email_change_feature_enabled
+    unless Flipper.enabled?(:email_change, current_identity)
+      redirect_to edit_identity_path, alert: t("errors.feature_not_available")
+    end
+  end
+
+  def require_email_change_feature_enabled_for_verification
+    token = params[:token]
+    email_change_request = Identity::EmailChangeRequest.pending.find_by(old_email_token: token) ||
+                          Identity::EmailChangeRequest.pending.find_by(new_email_token: token)
+    
+    if email_change_request && !Flipper.enabled?(:email_change, email_change_request.identity)
+      flash[:error] = t("errors.feature_not_available")
+      redirect_to root_path
+    end
   end
 end

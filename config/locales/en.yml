@@ -108,6 +108,7 @@ en:
       body: "We got your documents and they're in the queue for review. We'll let you know as soon as we've had a look!"
       signature: "Best,\nthe Hack Club team"
   errors:
+    feature_not_available: "This feature is not currently available."
     attributes:
       primary_email:
         temporary: "seems to be a disposable email address. Please use a permanent email address to create your account (or if this is a false positive email nora@hackclub.com!)"
