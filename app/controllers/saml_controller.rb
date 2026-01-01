@@ -129,21 +129,20 @@ class SAMLController < ApplicationController
   def try_assign_to_slack_workspace
     return unless current_identity.slack_id.present?
 
-    # Check if user is already in workspace
-    if SlackService.user_in_workspace?(user_id: current_identity.slack_id)
+    case SlackService.user_workspace_status(user_id: current_identity.slack_id)
+    when :in_workspace
       current_identity.update(is_in_workspace: true) unless current_identity.is_in_workspace
-      return
+    when :not_in_workspace
+      scenario = current_identity.onboarding_scenario_instance
+      return unless scenario.slack_channels.any?
+
+      AssignSlackWorkspaceJob.perform_later(
+        slack_id: current_identity.slack_id,
+        user_type: :multi_channel_guest,
+        channel_ids: scenario.slack_channels,
+        identity_id: current_identity.id
+      )
     end
-
-    scenario = current_identity.onboarding_scenario_instance
-    return unless scenario.slack_channels.any?
-
-    AssignSlackWorkspaceJob.perform_later(
-      slack_id: current_identity.slack_id,
-      user_type: :multi_channel_guest,
-      channel_ids: scenario.slack_channels,
-      identity_id: current_identity.id
-    )
   end
 
   def check_enterprise_features!

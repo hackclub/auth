@@ -52,18 +52,18 @@ module SlackService
       false
     end
 
-    def user_in_workspace?(user_id:)
+    def user_workspace_status(user_id:)
       response = client.users_info(user: user_id)
       user = response.dig("user")
 
-      return false unless user
-      return false if user["deleted"]
+      return :unknown unless user
+      return :deactivated if user["deleted"]
 
       teams = user["teams"] || []
-      teams.include?(team_id)
+      teams.include?(team_id) ? :in_workspace : :not_in_workspace
     rescue => e
-      Rails.logger.warn "Could not check if user #{user_id} is in workspace: #{e.message}"
-      false
+      Rails.logger.warn "Could not check workspace status for user #{user_id}: #{e.message}"
+      :unknown
     end
   end
 end
