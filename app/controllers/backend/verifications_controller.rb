@@ -143,15 +143,15 @@ module Backend
         .find_by_public_id!(params[:id])
 
       ActiveRecord::Associations::Preloader.new(
-        records: [@verification.identity],
-        associations: { resemblances: [:past_identity] }
+        records: [ @verification.identity ],
+        associations: { resemblances: [ :past_identity ] }
       ).call
 
       doc_resemblances = @verification.identity.resemblances.select { |r| r.is_a?(Identity::Resemblance::ReusedDocumentResemblance) }
       if doc_resemblances.any?
         ActiveRecord::Associations::Preloader.new(
           records: doc_resemblances,
-          associations: [:document, { past_document: :verification }]
+          associations: [ :document, { past_document: :verification } ]
         ).call
       end
     end
