@@ -59,18 +59,18 @@ RSpec.describe OnboardingScenarios::Flavortown do
     end
 
     context "wrong answers" do
-      it "goes to taste_retry on first wrong answer" do
-        expect(scenario.handle_action("flavortown_retry_w0")).to eq(:taste_retry)
-      end
+       it "goes to taste_retry on first wrong answer" do
+         expect(scenario.handle_action("flavortown_retry_w0")).to eq(:taste_retry)
+       end
 
-      it "allows retry from scolding screens" do
-        expect(scenario.handle_action("flavortown_try_again")).to eq(:taste_retry)
-      end
+       it "reveals answer from scolding screens" do
+         expect(scenario.handle_action("flavortown_try_again")).to eq(:taste_reveal)
+       end
 
-      it "reveals answer after second wrong answer" do
-        expect(scenario.handle_action("flavortown_final_w0")).to eq(:taste_reveal)
-      end
-    end
+       it "reveals answer after second wrong answer" do
+         expect(scenario.handle_action("flavortown_final_w0")).to eq(:taste_reveal)
+       end
+     end
 
     context "terrible answers" do
       it "goes to taste_terrible on incredibly wrong answer" do
@@ -104,9 +104,9 @@ RSpec.describe OnboardingScenarios::Flavortown do
       expect(scenario.slack_user_type).to eq(:multi_channel_guest)
     end
 
-    it "uses DM channel" do
-      expect(scenario.use_dm_channel?).to be true
-    end
+    it "does not use DM channel" do
+       expect(scenario.use_dm_channel?).to be false
+     end
 
     it "has initial slack channels" do
       expect(scenario.slack_channels).to be_an(Array)
@@ -159,25 +159,25 @@ RSpec.describe OnboardingScenarios::Flavortown do
     end
 
     it "can complete the dino nuggets path" do
-      scenario.handle_action("flavortown_continue")
-      scenario.handle_action("flavortown_agree")
+       scenario.handle_action("flavortown_continue")
+       scenario.handle_action("flavortown_agree")
 
-      step = scenario.handle_action("flavortown_dino_nuggets")
-      expect(step).to eq(:dino_nuggets)
+       step = scenario.handle_action("flavortown_dino_nuggets")
+       expect(step).to eq(:dino_nuggets)
 
-      step = scenario.handle_action("flavortown_try_again")
-      expect(step).to eq(:taste_retry)
-    end
+       step = scenario.handle_action("flavortown_try_again")
+       expect(step).to eq(:taste_reveal)
+     end
 
     it "can complete the terrible answer path" do
-      scenario.handle_action("flavortown_continue")
-      scenario.handle_action("flavortown_agree")
+       scenario.handle_action("flavortown_continue")
+       scenario.handle_action("flavortown_agree")
 
-      step = scenario.handle_action("flavortown_terrible_t0")
-      expect(step).to eq(:taste_terrible)
+       step = scenario.handle_action("flavortown_terrible_t0")
+       expect(step).to eq(:taste_terrible)
 
-      step = scenario.handle_action("flavortown_try_again")
-      expect(step).to eq(:taste_retry)
-    end
+       step = scenario.handle_action("flavortown_try_again")
+       expect(step).to eq(:taste_reveal)
+     end
   end
 end
