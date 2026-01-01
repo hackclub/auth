@@ -58,7 +58,7 @@ class EmailChangesController < ApplicationController
   def confirm_verify_old
     @email_change_request = Identity::EmailChangeRequest.pending.find_by!(old_email_token: params[:token])
 
-    if @email_change_request.verify_old_email!(params[:token])
+    if @email_change_request.verify_old_email!(params[:token], verified_from_ip: request.remote_ip)
       flash[:success] = t("email_changes.verify_old.success")
       if @email_change_request.completed?
         flash[:success] = t("email_changes.verify_old.email_changed")
@@ -88,7 +88,7 @@ class EmailChangesController < ApplicationController
   def confirm_verify_new
     @email_change_request = Identity::EmailChangeRequest.pending.find_by!(new_email_token: params[:token])
 
-    if @email_change_request.verify_new_email!(params[:token])
+    if @email_change_request.verify_new_email!(params[:token], verified_from_ip: request.remote_ip)
       flash[:success] = t("email_changes.verify_new.success")
       if @email_change_request.completed?
         flash[:success] = t("email_changes.verify_new.email_changed")

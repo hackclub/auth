@@ -107,6 +107,11 @@ RSpec.describe Identity::EmailChangeRequest do
       request.cancel!
       expect(request.verify_old_email!(request.old_email_token)).to be false
     end
+
+    it "records verification IP address" do
+      request.verify_old_email!(request.old_email_token, verified_from_ip: "192.168.1.100")
+      expect(request.reload.old_email_verified_from_ip).to eq("192.168.1.100")
+    end
   end
 
   describe "#verify_new_email!" do
@@ -125,6 +130,11 @@ RSpec.describe Identity::EmailChangeRequest do
     it "returns false if request is not pending" do
       request.cancel!
       expect(request.verify_new_email!(request.new_email_token)).to be false
+    end
+
+    it "records verification IP address" do
+      request.verify_new_email!(request.new_email_token, verified_from_ip: "10.0.0.50")
+      expect(request.reload.new_email_verified_from_ip).to eq("10.0.0.50")
     end
   end
 
@@ -186,6 +196,14 @@ RSpec.describe Identity::EmailChangeRequest do
       request.update!(completed_at: Time.current)
       expect(request.cancel!).to be false
     end
+
+    it "creates a cancellation activity record" do
+      request.cancel!
+      activity = identity.activities.find_by(key: "identity.email_change_cancelled")
+      expect(activity).to be_present
+      expect(activity.parameters[:old_email]).to eq(request.old_email)
+      expect(activity.parameters[:new_email]).to eq(request.new_email)
+    end
   end
 
   describe "#complete_if_ready! race condition protection" do
@@ -217,10 +235,13 @@ RSpec.describe Identity::EmailChangeRequest do
   end
 
   describe "scopes" do
+    let(:identity2) { create(:identity) }
+    let(:identity3) { create(:identity) }
+    let(:identity4) { create(:identity) }
     let!(:pending_request) { create(:email_change_request, identity: identity, new_email: "pending@hackclub.com") }
-    let!(:completed_request) { create(:email_change_request, identity: identity, new_email: "completed@hackclub.com", completed_at: Time.current) }
-    let!(:cancelled_request) { create(:email_change_request, identity: identity, new_email: "cancelled@hackclub.com", cancelled_at: Time.current) }
-    let!(:expired_request) { create(:email_change_request, identity: identity, new_email: "expired@hackclub.com", expires_at: 1.hour.ago) }
+    let!(:completed_request) { create(:email_change_request, identity: identity2, new_email: "completed@hackclub.com", completed_at: Time.current) }
+    let!(:cancelled_request) { create(:email_change_request, identity: identity3, new_email: "cancelled@hackclub.com", cancelled_at: Time.current) }
+    let!(:expired_request) { create(:email_change_request, identity: identity4, new_email: "expired@hackclub.com", expires_at: 1.hour.ago) }
 
     describe ".pending" do
       it "returns only pending requests" do
@@ -242,6 +263,20 @@ RSpec.describe Identity::EmailChangeRequest do
 
       request.update!(cancelled_at: Time.current)
       expect(request.versions.count).to eq(2)
+    end
+  end
+
+  describe "email normalization" do
+    it "normalizes new_email to lowercase and strips whitespace" do
+      request = build(:email_change_request, identity: identity, new_email: "  NEW@HACKCLUB.COM  ")
+      request.valid?
+      expect(request.new_email).to eq("new@hackclub.com")
+    end
+
+    it "normalizes old_email to lowercase and strips whitespace" do
+      request = build(:email_change_request, identity: identity, new_email: "new@hackclub.com", old_email: "  OLD@HACKCLUB.COM  ")
+      request.valid?
+      expect(request.old_email).to eq("old@hackclub.com")
     end
   end
 end

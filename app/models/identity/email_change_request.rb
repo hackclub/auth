@@ -57,6 +57,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
   scope :pending, -> { where(completed_at: nil, cancelled_at: nil).where("expires_at > ?", Time.current) }
   scope :completed, -> { where.not(completed_at: nil) }
 
+  before_validation :normalize_emails
   before_validation :set_defaults, on: :create
   before_create :generate_tokens
   after_create :track_email_change_requested
@@ -89,11 +90,11 @@ class Identity::EmailChangeRequest < ApplicationRecord
     old_email_verified? && new_email_verified?
   end
 
-  def verify_old_email!(token)
+  def verify_old_email!(token, verified_from_ip: nil)
     return false unless pending?
     return false unless ActiveSupport::SecurityUtils.secure_compare(old_email_token.to_s, token.to_s)
 
-    update!(old_email_verified_at: Time.current)
+    update!(old_email_verified_at: Time.current, old_email_verified_from_ip: verified_from_ip)
     identity.create_activity :email_change_verified_old,
       owner: identity,
       recipient: identity,
@@ -102,11 +103,11 @@ class Identity::EmailChangeRequest < ApplicationRecord
     true
   end
 
-  def verify_new_email!(token)
+  def verify_new_email!(token, verified_from_ip: nil)
     return false unless pending?
     return false unless ActiveSupport::SecurityUtils.secure_compare(new_email_token.to_s, token.to_s)
 
-    update!(new_email_verified_at: Time.current)
+    update!(new_email_verified_at: Time.current, new_email_verified_from_ip: verified_from_ip)
     identity.create_activity :email_change_verified_new,
       owner: identity,
       recipient: identity,
@@ -118,7 +119,13 @@ class Identity::EmailChangeRequest < ApplicationRecord
   def cancel!
     return false unless pending?
 
-    update!(cancelled_at: Time.current)
+    transaction do
+      update!(cancelled_at: Time.current)
+      identity.create_activity :email_change_cancelled,
+        owner: identity,
+        recipient: identity,
+        parameters: { old_email: old_email, new_email: new_email }
+    end
     true
   end
 
@@ -146,6 +153,11 @@ class Identity::EmailChangeRequest < ApplicationRecord
 
   private
 
+  def normalize_emails
+    self.new_email = new_email.to_s.strip.downcase.presence
+    self.old_email = old_email.to_s.strip.downcase.presence
+  end
+
   def set_defaults
     self.expires_at ||= EXPIRATION.from_now
     self.old_email ||= identity&.primary_email
@@ -159,7 +171,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
   def new_email_not_taken
     return unless new_email.present?
 
-    existing = Identity.where.not(id: identity_id).find_by(primary_email: new_email.downcase)
+    existing = Identity.where.not(id: identity_id).find_by(primary_email: new_email)
     errors.add(:new_email, "is already taken by another account") if existing
   end
 

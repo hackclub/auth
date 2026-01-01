@@ -65,6 +65,22 @@ RSpec.describe "StepUp", type: :request do
 
         expect(response).to redirect_to("/email_changes/new")
         expect(session.reload.last_step_up_at).to be_within(5.seconds).of(Time.current)
+        expect(session.reload.last_step_up_action).to eq("email_change")
+      end
+
+      it "binds step-up to specific action type" do
+        code = ROTP::TOTP.new(totp.secret).now
+
+        post "/step_up/verify", params: {
+          action_type: "oidc_reauth",
+          method: "totp",
+          code: code,
+          return_to: "/oauth/authorize"
+        }
+
+        expect(session.reload.last_step_up_action).to eq("oidc_reauth")
+        expect(session.recently_stepped_up?(for_action: "oidc_reauth")).to be true
+        expect(session.recently_stepped_up?(for_action: "email_change")).to be false
       end
     end
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_12_204707) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_01_170716) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -355,7 +355,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_12_204707) do
     t.string "requested_from_ip"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "old_email_verified_from_ip"
+    t.string "new_email_verified_from_ip"
     t.index ["identity_id", "completed_at"], name: "idx_email_change_requests_identity_completed"
+    t.index ["identity_id"], name: "idx_unique_pending_email_change_per_identity", unique: true, where: "((completed_at IS NULL) AND (cancelled_at IS NULL))"
     t.index ["identity_id"], name: "index_identity_email_change_requests_on_identity_id"
     t.index ["new_email_token_bidx"], name: "index_identity_email_change_requests_on_new_email_token_bidx"
     t.index ["old_email_token_bidx"], name: "index_identity_email_change_requests_on_old_email_token_bidx"
@@ -404,6 +407,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_12_204707) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "last_step_up_at"
+    t.string "last_step_up_action"
     t.index ["identity_id"], name: "index_identity_sessions_on_identity_id"
   end
 

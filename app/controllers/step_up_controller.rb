@@ -76,8 +76,8 @@ class StepUpController < ApplicationController
       return
     end
 
-    # Mark step-up as completed on the identity session
-    current_session.update!(last_step_up_at: Time.current)
+    # Mark step-up as completed on the identity session, bound to the specific action
+    current_session.record_step_up!(action: action_type)
 
     # Execute the verified action
     case action_type

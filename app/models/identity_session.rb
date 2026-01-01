@@ -46,16 +46,21 @@ class IdentitySession < ApplicationRecord
 
   STEP_UP_DURATION = 15.minutes
 
-  def recently_stepped_up?
-    last_step_up_at.present? && last_step_up_at > STEP_UP_DURATION.ago
+  def recently_stepped_up?(for_action: nil)
+    return false unless last_step_up_at.present? && last_step_up_at > STEP_UP_DURATION.ago
+
+    # If a specific action is required, verify the step-up was for that action
+    return true if for_action.nil?
+
+    last_step_up_action == for_action.to_s
   end
 
-  def record_step_up!
-    update!(last_step_up_at: Time.current)
+  def record_step_up!(action:)
+    update!(last_step_up_at: Time.current, last_step_up_action: action.to_s)
   end
 
   def clear_step_up!
-    update!(last_step_up_at: nil)
+    update!(last_step_up_at: nil, last_step_up_action: nil)
   end
 
   private

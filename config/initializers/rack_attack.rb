@@ -42,7 +42,7 @@ class Rack::Attack
   end
 
   throttle("email_change_verify/ip", limit: 10, period: 5.minutes) do |req|
-    if req.path.match?(%r{^/email_changes/verify/(old|new)$}) && req.post?
+    if req.path.match?(%r{^/email_changes/verify/(old|new)$}) && %w[GET POST].include?(req.request_method)
       req.ip
     end
   end

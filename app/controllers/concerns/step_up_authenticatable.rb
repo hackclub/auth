@@ -9,14 +9,14 @@ module StepUpAuthenticatable
 
   def require_step_up(action_type, return_to: nil)
     return unless current_identity.has_two_factor_method?
-    return if current_session.recently_stepped_up?
+    return if current_session.recently_stepped_up?(for_action: action_type)
 
     redirect_to new_step_up_path(action_type: action_type, return_to: return_to || request.fullpath)
     false
   end
 
-  def step_up_required?
-    current_identity.has_two_factor_method? && !current_session.recently_stepped_up?
+  def step_up_required?(action_type = nil)
+    current_identity.has_two_factor_method? && !current_session.recently_stepped_up?(for_action: action_type)
   end
 
   def consume_step_up!
