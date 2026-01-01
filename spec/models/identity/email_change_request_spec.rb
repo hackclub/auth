@@ -81,14 +81,9 @@ RSpec.describe Identity::EmailChangeRequest do
     end
   end
 
-  describe "#generate_tokens!" do
-    it "generates tokens for both emails" do
+  describe "automatic token generation" do
+    it "generates tokens on create" do
       request = create(:email_change_request, identity: identity, new_email: "new@hackclub.com")
-      expect(request.old_email_token).to be_nil
-      expect(request.new_email_token).to be_nil
-
-      request.generate_tokens!
-
       expect(request.old_email_token).to be_present
       expect(request.new_email_token).to be_present
       expect(request.old_email_token).not_to eq(request.new_email_token)
@@ -96,11 +91,7 @@ RSpec.describe Identity::EmailChangeRequest do
   end
 
   describe "#verify_old_email!" do
-    let(:request) do
-      req = create(:email_change_request, identity: identity, new_email: "new@hackclub.com")
-      req.generate_tokens!
-      req
-    end
+    let(:request) { create(:email_change_request, identity: identity, new_email: "new@hackclub.com") }
 
     it "verifies old email with correct token" do
       expect(request.verify_old_email!(request.old_email_token)).to be true
@@ -119,11 +110,7 @@ RSpec.describe Identity::EmailChangeRequest do
   end
 
   describe "#verify_new_email!" do
-    let(:request) do
-      req = create(:email_change_request, identity: identity, new_email: "new@hackclub.com")
-      req.generate_tokens!
-      req
-    end
+    let(:request) { create(:email_change_request, identity: identity, new_email: "new@hackclub.com") }
 
     it "verifies new email with correct token" do
       expect(request.verify_new_email!(request.new_email_token)).to be true
@@ -142,11 +129,7 @@ RSpec.describe Identity::EmailChangeRequest do
   end
 
   describe "#complete_if_ready!" do
-    let(:request) do
-      req = create(:email_change_request, identity: identity, new_email: "new@hackclub.com")
-      req.generate_tokens!
-      req
-    end
+    let(:request) { create(:email_change_request, identity: identity, new_email: "new@hackclub.com") }
 
     it "completes when both emails are verified" do
       request.verify_old_email!(request.old_email_token)
@@ -206,11 +189,7 @@ RSpec.describe Identity::EmailChangeRequest do
   end
 
   describe "#complete_if_ready! race condition protection" do
-    let(:request) do
-      req = create(:email_change_request, identity: identity, new_email: "new@hackclub.com")
-      req.generate_tokens!
-      req
-    end
+    let(:request) { create(:email_change_request, identity: identity, new_email: "new@hackclub.com") }
 
     it "does not complete if request was cancelled" do
       request.verify_old_email!(request.old_email_token)
@@ -261,7 +240,7 @@ RSpec.describe Identity::EmailChangeRequest do
       request = create(:email_change_request, identity: identity, new_email: "new@hackclub.com")
       expect(request.versions.count).to eq(1)
 
-      request.generate_tokens!
+      request.update!(cancelled_at: Time.current)
       expect(request.versions.count).to eq(2)
     end
   end

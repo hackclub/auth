@@ -58,6 +58,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
   scope :completed, -> { where.not(completed_at: nil) }
 
   before_validation :set_defaults, on: :create
+  before_create :generate_tokens
   after_create :track_email_change_requested
 
   def pending?
@@ -138,12 +139,6 @@ class Identity::EmailChangeRequest < ApplicationRecord
     EmailChangeMailer.email_changed_notification(self).deliver_later
   end
 
-  def generate_tokens!
-    self.old_email_token = SecureRandom.urlsafe_base64(32)
-    self.new_email_token = SecureRandom.urlsafe_base64(32)
-    save!
-  end
-
   def send_verification_emails!
     EmailChangeMailer.verify_old_email(self).deliver_later
     EmailChangeMailer.verify_new_email(self).deliver_later
@@ -154,6 +149,11 @@ class Identity::EmailChangeRequest < ApplicationRecord
   def set_defaults
     self.expires_at ||= EXPIRATION.from_now
     self.old_email ||= identity&.primary_email
+  end
+
+  def generate_tokens
+    self.old_email_token ||= SecureRandom.urlsafe_base64(32)
+    self.new_email_token ||= SecureRandom.urlsafe_base64(32)
   end
 
   def new_email_not_taken

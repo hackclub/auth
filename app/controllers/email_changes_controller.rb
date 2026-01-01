@@ -37,7 +37,6 @@ class EmailChangesController < ApplicationController
     )
 
     if @email_change_request.save
-      @email_change_request.generate_tokens!
       @email_change_request.send_verification_emails!
       consume_step_up!
       flash[:success] = t(".success")
