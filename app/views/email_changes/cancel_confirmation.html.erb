@@ -1,0 +1,28 @@
+<div class="page-header">
+  <h1><%= t(".title") %></h1>
+</div>
+
+<div class="page-sections">
+  <section class="section-card">
+    <p><%= t(".explanation") %></p>
+
+    <div class="email-change-summary">
+      <div class="email-arrow">
+        <div class="email-item">
+          <div class="email-value"><%= @email_change_request.old_email %></div>
+        </div>
+
+        <span class="arrow">→</span>
+
+        <div class="email-item cancelled">
+          <div class="email-value"><%= @email_change_request.new_email %></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <%= button_to t(".confirm_cancel"), cancel_email_change_path(@email_change_request), method: :post, class: "danger" %>
+      <%= link_to t(".nevermind"), email_change_path(@email_change_request), class: "secondary", role: "button" %>
+    </div>
+  </section>
+</div>

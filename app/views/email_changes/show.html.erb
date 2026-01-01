@@ -1,0 +1,64 @@
+<div class="page-header">
+  <% if @email_change_request.completed? %>
+    <h1><%= t(".title_completed") %></h1>
+  <% elsif @email_change_request.cancelled? %>
+    <h1><%= t(".title_cancelled") %></h1>
+  <% elsif @email_change_request.expired? %>
+    <h1><%= t(".title_expired") %></h1>
+  <% else %>
+    <h1><%= t(".title_pending") %></h1>
+  <% end %>
+</div>
+
+<div class="page-sections">
+  <section class="section-card">
+    <% if @email_change_request.pending? %>
+      <p><%= t(".pending_instructions") %></p>
+    <% elsif @email_change_request.expired? %>
+      <p><%= t(".expired_instructions") %></p>
+    <% end %>
+
+    <div class="email-change-summary">
+      <div class="email-arrow">
+        <div class="email-item">
+          <div class="email-label"><%= t(".old_email") %></div>
+          <div class="email-value"><%= @email_change_request.old_email %></div>
+          <% if @email_change_request.pending? %>
+            <div class="email-verification-status">
+              <% if @email_change_request.old_email_verified? %>
+                <span class="verification-badge verified"><%= t(".verified") %></span>
+              <% else %>
+                <span class="verification-badge pending"><%= t(".awaiting_verification") %></span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <span class="arrow">→</span>
+
+        <div class="email-item">
+          <div class="email-label"><%= t(".new_email") %></div>
+          <div class="email-value"><%= @email_change_request.new_email %></div>
+          <% if @email_change_request.pending? %>
+            <div class="email-verification-status">
+              <% if @email_change_request.new_email_verified? %>
+                <span class="verification-badge verified"><%= t(".verified") %></span>
+              <% else %>
+                <span class="verification-badge pending"><%= t(".awaiting_verification") %></span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <% if @email_change_request.pending? %>
+        <%= link_to t(".cancel_request"), cancel_email_change_path(@email_change_request), class: "danger", role: "button" %>
+      <% elsif @email_change_request.expired? || @email_change_request.cancelled? %>
+        <%= link_to t(".start_new"), new_email_change_path, role: "button" %>
+      <% end %>
+      <%= link_to t(".back"), edit_identity_path, class: "secondary", role: "button" %>
+    </div>
+  </section>
+</div>

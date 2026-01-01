@@ -2,6 +2,7 @@ class ApplicationController < ActionController::Base
   include PublicActivity::StoreController
   include IsSneaky
   include SessionsHelper
+  include StepUpAuthenticatable
 
   helper_method :current_identity, :identity_signed_in?, :current_onboarding_step, :current_user
 
@@ -17,6 +18,8 @@ class ApplicationController < ActionController::Base
   alias_method :user_for_public_activity, :current_identity
 
   def user_for_paper_trail = current_identity&.id
+
+  def info_for_paper_trail = { extra_data: { ip: request.remote_ip, user_agent: request.user_agent }.compact_blank }
 
   def identity_signed_in? = !!current_identity
 

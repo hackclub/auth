@@ -50,6 +50,36 @@ en:
       subject: "[Hack Club] Two-factor authentication requirement removed"
       greeting: "Hey %{first_name},"
       body: "The two-factor authentication requirement has been removed from your Hack Club account. Your authentication methods are still available if you want to re-enable this requirement later."
+  email_change_mailer:
+    verify_old_email:
+      subject: "[Hack Club] Confirm your email change request"
+      greeting: "Hey %{first_name},"
+      body: "We received a request to change the email address on your Hack Club account:"
+      instruction: "To approve this change, click the button below."
+      instruction_text: "To approve this change, use the link below."
+      verify_button: "Yes, change my email"
+      expiry: "This link expires in 24 hours."
+      not_you_title: "Didn't request this?"
+      not_you_body_html: "Someone may have access to your account.<br/> <a href='%{cancel_url}'>Cancel this request</a>, review your sessions, and contact <a href='mailto:auth@hackclub.com'>auth@hackclub.com</a>."
+      not_you_body_text: "Someone may have access to your account. Cancel this request using the link below, review your sessions, and contact auth@hackclub.com."
+      signature: "– Hack Club"
+    verify_new_email:
+      subject: "[Hack Club] Verify your new email address"
+      greeting: "Hey %{first_name},"
+      body: "You're almost done changing your email address:"
+      instruction: "Click the button below to verify you have access to this email."
+      verify_button: "Verify this email"
+      expiry: "This link expires in 24 hours."
+      not_you: "Didn't request this? You can safely ignore this email."
+      signature: "– Hack Club"
+    email_changed_notification:
+      subject: "[Hack Club] Your email address has been changed"
+      greeting: "Hey %{first_name},"
+      body: "Your Hack Club account email was successfully changed:"
+      not_you_title: "Didn't make this change?"
+      not_you_body_html: "Your account may be compromised.<br/> Contact us at <a href='mailto:auth@hackclub.com'>auth@hackclub.com</a> and review your sessions."
+      not_you_body_text: "Your account may be compromised.\n Contact us at auth@hackclub.com and review your sessions."
+      signature: "– Hack Club"
   verification_mailer:
     approved:
       subject: "[Hack Club] Your identity verification has been approved!"
@@ -78,6 +108,7 @@ en:
       body: "We got your documents and they're in the queue for review. We'll let you know as soon as we've had a look!"
       signature: "Best,\nthe Hack Club team"
   errors:
+    feature_not_available: "This feature is not currently available."
     attributes:
       primary_email:
         temporary: "seems to be a disposable email address. Please use a permanent email address to create your account (or if this is a false positive email nora@hackclub.com!)"
@@ -117,6 +148,7 @@ en:
     developer: Developer
     docs: Docs
     logout: Sign out
+    backend: Admin
   developer_apps:
     index:
       title: Developers' corner
@@ -281,7 +313,7 @@ en:
       developer_mode: Developer mode
       developer_mode_description: Wanna OAuth some OAuth? Check this box.
       save: Save changes
-      no_email_change_yet: Changing your email will be available in a future release.
+      change_email: Change email
       super_secret_settings: "Super secret settings"
       saml_debug: "debug your SAML assertions?"
     new:
@@ -537,6 +569,56 @@ en:
           title: Get verified for YSWS
           subtitle: Verify your age and identity to participate in programs and compete for prizes
           start_verification: Start Verification
+  email_changes:
+    new:
+      title: Change your email
+      current_email: Current email
+      new_email: New email
+      new_email_label: New email address
+      submit: Request email change
+      cancel: Cancel
+      verification_info: We'll send verification emails to both your current email and your new email. You must confirm both to complete the change.
+      slack_warning_html: Changing your email may affect signing into Slack. Be forewarned.
+      pending_redirect: You already have a pending email change request.
+    show:
+      title_pending: Check your email
+      title_completed: Email changed!
+      title_cancelled: Request cancelled
+      title_expired: Request expired
+      old_email: From
+      new_email: To
+      verified: Verified
+      awaiting_verification: Waiting...
+      pending_instructions: We sent verification links to both addresses. Click the link in each email to confirm the change.
+      expired_instructions: This request has expired. You can start a new one if you still want to change your email.
+      cancel_request: Cancel this request
+      start_new: Start a new request
+      back: Back to profile
+    create:
+      email_required: Please enter a new email address.
+      success: Email change request created. Check both email addresses for verification links.
+    verify_old:
+      title: Confirm email change
+      explanation: You're approving a change to your account's email address. Click the button below to confirm.
+      confirm: Approve email change
+      success: Current email verified!
+      email_changed: Your email has been changed successfully!
+      invalid_or_expired: This verification link is invalid or has expired.
+    verify_new:
+      title: Verify your new email
+      explanation: Click the button below to verify you have access to this email address.
+      confirm: Verify email
+      success: New email verified!
+      email_changed: Your email has been changed successfully!
+      invalid_or_expired: This verification link is invalid or has expired.
+    cancel_confirmation:
+      title: Cancel email change?
+      explanation: This will stop the pending email change. You can always start a new request later.
+      confirm_cancel: Yes, cancel it
+      nevermind: Nevermind
+    cancel:
+      success: Email change request cancelled.
+      already_completed: This request has already been completed or cancelled.
   auth:
     sign_in_or_create: "Sign in or create a Hack Club Auth account to continue"
   portal:

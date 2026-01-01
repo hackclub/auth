@@ -1,0 +1,47 @@
+<div class="page-header">
+  <h1><%= t(".title") %></h1>
+  <p><%= t(".verification_info") %></p>
+</div>
+
+<div class="page-sections">
+  <div class="banner warning">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+    <%= t ".slack_warning_html" %>
+  </div>
+
+  <%= form_with url: email_changes_path, method: :post, local: true, scope: :email_change do |f| %>
+    <section class="section-card">
+      <table style="width: 100%; border-collapse: collapse; border: none; background: none;">
+        <tbody>
+          <tr style="background: none;">
+            <td style="width: 40%; vertical-align: top; background: none;">
+              <div class="email-label"><%= t(".current_email") %></div>
+            </td>
+            <td style="width: 1%; vertical-align: top; text-align: center; background: none;"></td>
+            <td style="width: 59%; vertical-align: top; background: none;  padding-left: 0;">
+              <div class="email-label"><%= t(".new_email") %></div>
+            </td>
+          </tr>
+          <tr style="height: 2.5rem; background: none;">
+            <td style="vertical-align: middle; background: none;">
+              <div class="email-value"><%= current_identity.primary_email %></div>
+            </td>
+            <td style="vertical-align: middle; text-align: center; background: none;">
+              <div class="arrow">→</div>
+            </td>
+            <td style="vertical-align: middle; padding: 0; background: none;">
+              <%= f.email_field :new_email, required: true, placeholder: "new@electronic.mail", autocomplete: "email", style: "margin: 0; height: 100%;" %>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="form-actions" style="margin-top: 2rem;">
+        <%= f.submit t(".submit") %>
+        <%= link_to t(".cancel"), edit_identity_path, class: "secondary", role: "button" %>
+      </div>
+    </section>
+  <% end %>
+</div>

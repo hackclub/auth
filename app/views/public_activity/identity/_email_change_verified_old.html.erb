@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  verified old email (<%= activity.parameters[:old_email] %>) for email change.
+<% end %>

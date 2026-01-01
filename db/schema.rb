@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_10_001813) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_01_170716) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -301,6 +301,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_10_001813) do
     t.boolean "saml_debug"
     t.boolean "is_in_workspace", default: false, null: false
     t.string "slack_dm_channel_id"
+    t.index "lower((primary_email)::text)", name: "idx_identities_unique_primary_email", unique: true, where: "(deleted_at IS NULL)"
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
     t.index ["legacy_migrated_at"], name: "index_identities_on_legacy_migrated_at"
@@ -336,6 +337,31 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_10_001813) do
     t.datetime "deleted_at"
     t.index ["deleted_at"], name: "index_identity_documents_on_deleted_at"
     t.index ["identity_id"], name: "index_identity_documents_on_identity_id"
+  end
+
+  create_table "identity_email_change_requests", force: :cascade do |t|
+    t.bigint "identity_id", null: false
+    t.string "new_email", null: false
+    t.string "old_email", null: false
+    t.datetime "old_email_verified_at"
+    t.datetime "new_email_verified_at"
+    t.text "old_email_token_ciphertext"
+    t.string "old_email_token_bidx"
+    t.text "new_email_token_ciphertext"
+    t.string "new_email_token_bidx"
+    t.datetime "completed_at"
+    t.datetime "expires_at", null: false
+    t.datetime "cancelled_at"
+    t.string "requested_from_ip"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "old_email_verified_from_ip"
+    t.string "new_email_verified_from_ip"
+    t.index ["identity_id", "completed_at"], name: "idx_email_change_requests_identity_completed"
+    t.index ["identity_id"], name: "idx_unique_pending_email_change_per_identity", unique: true, where: "((completed_at IS NULL) AND (cancelled_at IS NULL))"
+    t.index ["identity_id"], name: "index_identity_email_change_requests_on_identity_id"
+    t.index ["new_email_token_bidx"], name: "index_identity_email_change_requests_on_new_email_token_bidx"
+    t.index ["old_email_token_bidx"], name: "index_identity_email_change_requests_on_old_email_token_bidx"
   end
 
   create_table "identity_login_codes", force: :cascade do |t|
@@ -381,6 +407,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_10_001813) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "last_step_up_at"
+    t.string "last_step_up_action"
     t.index ["identity_id"], name: "index_identity_sessions_on_identity_id"
   end
 
@@ -557,6 +584,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_10_001813) do
   add_foreign_key "identity_aadhaar_records", "identities"
   add_foreign_key "identity_backup_codes", "identities"
   add_foreign_key "identity_documents", "identities"
+  add_foreign_key "identity_email_change_requests", "identities"
   add_foreign_key "identity_login_codes", "identities"
   add_foreign_key "identity_resemblances", "identities"
   add_foreign_key "identity_resemblances", "identities", column: "past_identity_id"

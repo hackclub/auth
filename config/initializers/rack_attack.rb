@@ -35,6 +35,18 @@ class Rack::Attack
     end
   end
 
+  throttle("email_change/ip", limit: 3, period: 1.hour) do |req|
+    if req.path == "/email_changes" && req.post?
+      req.ip
+    end
+  end
+
+  throttle("email_change_verify/ip", limit: 10, period: 5.minutes) do |req|
+    if req.path.match?(%r{^/email_changes/verify/(old|new)$}) && %w[GET POST].include?(req.request_method)
+      req.ip
+    end
+  end
+
   self.throttled_responder = lambda do |env|
     headers = {
       "Content-Type" => "text/html",

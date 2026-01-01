@@ -254,7 +254,20 @@ Rails.application.routes.draw do
   resource :identity, only: [ :edit, :update ] do
     collection do
       post :toggle_2fa
-    get :confirm_disable_2fa
+      get :confirm_disable_2fa
+    end
+  end
+
+  resources :email_changes, only: [ :new, :create, :show ] do
+    member do
+      get :cancel, action: :cancel_confirmation
+      post :cancel
+    end
+    collection do
+      get "verify/old", to: "email_changes#verify_old", as: :verify_old
+      post "verify/old", to: "email_changes#confirm_verify_old", as: :confirm_verify_old
+      get "verify/new", to: "email_changes#verify_new", as: :verify_new
+      post "verify/new", to: "email_changes#confirm_verify_new", as: :confirm_verify_new
     end
   end
 
