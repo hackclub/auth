@@ -94,12 +94,14 @@ class Identity::EmailChangeRequest < ApplicationRecord
     return false unless pending?
     return false unless ActiveSupport::SecurityUtils.secure_compare(old_email_token.to_s, token.to_s)
 
-    update!(old_email_verified_at: Time.current, old_email_verified_from_ip: verified_from_ip)
-    identity.create_activity :email_change_verified_old,
-      owner: identity,
-      recipient: identity,
-      parameters: { old_email: old_email, new_email: new_email }
-    complete_if_ready!
+    transaction do
+      update!(old_email_verified_at: Time.current, old_email_verified_from_ip: verified_from_ip)
+      identity.create_activity :email_change_verified_old,
+        owner: identity,
+        recipient: identity,
+        parameters: { old_email: old_email, new_email: new_email }
+      complete_if_ready!
+    end
     true
   end
 
@@ -107,12 +109,14 @@ class Identity::EmailChangeRequest < ApplicationRecord
     return false unless pending?
     return false unless ActiveSupport::SecurityUtils.secure_compare(new_email_token.to_s, token.to_s)
 
-    update!(new_email_verified_at: Time.current, new_email_verified_from_ip: verified_from_ip)
-    identity.create_activity :email_change_verified_new,
-      owner: identity,
-      recipient: identity,
-      parameters: { old_email: old_email, new_email: new_email }
-    complete_if_ready!
+    transaction do
+      update!(new_email_verified_at: Time.current, new_email_verified_from_ip: verified_from_ip)
+      identity.create_activity :email_change_verified_new,
+        owner: identity,
+        recipient: identity,
+        parameters: { old_email: old_email, new_email: new_email }
+      complete_if_ready!
+    end
     true
   end
 
