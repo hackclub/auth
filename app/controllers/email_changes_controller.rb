@@ -1,5 +1,5 @@
 class EmailChangesController < ApplicationController
-  skip_before_action :authenticate_identity!, only: [ :verify_old, :verify_new ]
+  skip_before_action :authenticate_identity!, only: [ :verify_old, :verify_new, :confirm_verify_old, :confirm_verify_new ]
 
   before_action :set_email_change_request, only: [ :show, :cancel_confirmation, :cancel ]
   before_action :require_step_up_for_email_change, only: [ :new, :create ]
@@ -50,36 +50,22 @@ class EmailChangesController < ApplicationController
 
   def verify_old
     @email_change_request = Identity::EmailChangeRequest.pending.find_by!(old_email_token: params[:token])
-
-    if @email_change_request.verify_old_email!(params[:token])
-      flash[:success] = t(".success")
-      if @email_change_request.completed?
-        flash[:success] = t(".email_changed")
-      end
-    else
-      flash[:error] = t(".invalid_or_expired")
-    end
-
-    if identity_signed_in?
-      redirect_to email_change_path(@email_change_request)
-    else
-      redirect_to login_path
-    end
+    @token = params[:token]
   rescue ActiveRecord::RecordNotFound
     flash[:error] = t(".invalid_or_expired")
     redirect_to root_path
   end
 
-  def verify_new
-    @email_change_request = Identity::EmailChangeRequest.pending.find_by!(new_email_token: params[:token])
+  def confirm_verify_old
+    @email_change_request = Identity::EmailChangeRequest.pending.find_by!(old_email_token: params[:token])
 
-    if @email_change_request.verify_new_email!(params[:token])
-      flash[:success] = t(".success")
+    if @email_change_request.verify_old_email!(params[:token])
+      flash[:success] = t("email_changes.verify_old.success")
       if @email_change_request.completed?
-        flash[:success] = t(".email_changed")
+        flash[:success] = t("email_changes.verify_old.email_changed")
       end
     else
-      flash[:error] = t(".invalid_or_expired")
+      flash[:error] = t("email_changes.verify_old.invalid_or_expired")
     end
 
     if identity_signed_in?
@@ -88,7 +74,37 @@ class EmailChangesController < ApplicationController
       redirect_to login_path
     end
   rescue ActiveRecord::RecordNotFound
+    flash[:error] = t("email_changes.verify_old.invalid_or_expired")
+    redirect_to root_path
+  end
+
+  def verify_new
+    @email_change_request = Identity::EmailChangeRequest.pending.find_by!(new_email_token: params[:token])
+    @token = params[:token]
+  rescue ActiveRecord::RecordNotFound
     flash[:error] = t(".invalid_or_expired")
+    redirect_to root_path
+  end
+
+  def confirm_verify_new
+    @email_change_request = Identity::EmailChangeRequest.pending.find_by!(new_email_token: params[:token])
+
+    if @email_change_request.verify_new_email!(params[:token])
+      flash[:success] = t("email_changes.verify_new.success")
+      if @email_change_request.completed?
+        flash[:success] = t("email_changes.verify_new.email_changed")
+      end
+    else
+      flash[:error] = t("email_changes.verify_new.invalid_or_expired")
+    end
+
+    if identity_signed_in?
+      redirect_to email_change_path(@email_change_request)
+    else
+      redirect_to login_path
+    end
+  rescue ActiveRecord::RecordNotFound
+    flash[:error] = t("email_changes.verify_new.invalid_or_expired")
     redirect_to root_path
   end
 

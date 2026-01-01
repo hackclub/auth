@@ -19,7 +19,7 @@ RSpec.describe Identity::EmailChangeRequest do
     it "requires new_email to be different from old_email" do
       request = build(:email_change_request, identity: identity, new_email: identity.primary_email)
       expect(request).not_to be_valid
-      expect(request.errors[:new_email]).to include("must be different from current email")
+      expect(request.errors[:new_email]).to include("can't be your current email, ya goof!")
     end
 
     it "rejects email already taken by another identity" do

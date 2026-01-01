@@ -577,6 +577,7 @@ en:
       submit: Request email change
       cancel: Cancel
       verification_info: We'll send verification emails to both your current email and your new email. You must confirm both to complete the change.
+      slack_warning_html: Changing your email may affect signing into Slack. Be forewarned.
       pending_redirect: You already have a pending email change request.
     show:
       title_pending: Check your email
@@ -596,10 +597,16 @@ en:
       email_required: Please enter a new email address.
       success: Email change request created. Check both email addresses for verification links.
     verify_old:
+      title: Confirm email change
+      explanation: You're approving a change to your account's email address. Click the button below to confirm.
+      confirm: Approve email change
       success: Current email verified!
       email_changed: Your email has been changed successfully!
       invalid_or_expired: This verification link is invalid or has expired.
     verify_new:
+      title: Verify your new email
+      explanation: Click the button below to verify you have access to this email address.
+      confirm: Verify email
       success: New email verified!
       email_changed: Your email has been changed successfully!
       invalid_or_expired: This verification link is invalid or has expired.

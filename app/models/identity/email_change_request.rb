@@ -58,6 +58,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
   scope :completed, -> { where.not(completed_at: nil) }
 
   before_validation :set_defaults, on: :create
+  after_create :track_email_change_requested
 
   def pending?
     completed_at.nil? && cancelled_at.nil? && !expired?
@@ -92,6 +93,10 @@ class Identity::EmailChangeRequest < ApplicationRecord
     return false unless old_email_token == token
 
     update!(old_email_verified_at: Time.current)
+    identity.create_activity :email_change_verified_old,
+      owner: identity,
+      recipient: identity,
+      parameters: { old_email: old_email, new_email: new_email }
     complete_if_ready!
     true
   end
@@ -101,6 +106,10 @@ class Identity::EmailChangeRequest < ApplicationRecord
     return false unless new_email_token == token
 
     update!(new_email_verified_at: Time.current)
+    identity.create_activity :email_change_verified_new,
+      owner: identity,
+      recipient: identity,
+      parameters: { old_email: old_email, new_email: new_email }
     complete_if_ready!
     true
   end
@@ -160,6 +169,13 @@ class Identity::EmailChangeRequest < ApplicationRecord
     if new_email.downcase == old_email.downcase
       errors.add(:new_email, "can't be your current email, ya goof!")
     end
+  end
+
+  def track_email_change_requested
+    identity.create_activity :email_change_requested,
+      owner: identity,
+      recipient: identity,
+      parameters: { old_email: old_email, new_email: new_email }
   end
 
   def validate_new_email

@@ -265,7 +265,9 @@ Rails.application.routes.draw do
     end
     collection do
       get "verify/old", to: "email_changes#verify_old", as: :verify_old
+      post "verify/old", to: "email_changes#confirm_verify_old", as: :confirm_verify_old
       get "verify/new", to: "email_changes#verify_new", as: :verify_new
+      post "verify/new", to: "email_changes#confirm_verify_new", as: :confirm_verify_new
     end
   end
 
