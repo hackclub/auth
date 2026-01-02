@@ -146,7 +146,7 @@ class EmailChangesController < ApplicationController
     token = params[:token]
     email_change_request = Identity::EmailChangeRequest.pending.find_by(old_email_token: token) ||
                           Identity::EmailChangeRequest.pending.find_by(new_email_token: token)
-    
+
     if email_change_request && !Flipper.enabled?(:email_change, email_change_request.identity)
       flash[:error] = t("errors.feature_not_available")
       redirect_to root_path
