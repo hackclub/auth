@@ -267,6 +267,7 @@ module CountryEnumable
         VU: 240,
         WF: 245,
         WS: 193,
+        XK: 250,
         YE: 247,
         YT: 143,
         ZA: 207,
