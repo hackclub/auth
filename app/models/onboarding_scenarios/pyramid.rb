@@ -11,7 +11,7 @@ module OnboardingScenarios
     end
 
     def accepts_adults = true
-    
+
     def should_create_slack? = false
 
     def next_action = :home
