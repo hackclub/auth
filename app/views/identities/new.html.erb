@@ -1,4 +1,10 @@
-<div class="auth-container">
+<%= render "shared/scenario_background_style", scenario: @onboarding_scenario %>
+<div class="auth-container<%= ' has-background' if @onboarding_scenario&.background_path || @onboarding_scenario&.dark_mode_background_path %>">
+  <% if @onboarding_scenario&.logo_path %>
+    <div class="auth-brand">
+      <%= vite_image_tag @onboarding_scenario.logo_path, alt: "Logo", class: "brand-logo brand-logo--custom" %>
+    </div>
+  <% end %>
   <div class="auth-card">
     <header>
       <h1><%= @onboarding_scenario.title %></h1>
