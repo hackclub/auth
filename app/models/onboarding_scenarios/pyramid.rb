@@ -3,7 +3,7 @@ module OnboardingScenarios
     def self.slug = "pyramid"
 
     def title
-      "Join the Pyramid"
+      "Join the Pyramid!"
     end
 
     def form_fields
@@ -11,6 +11,8 @@ module OnboardingScenarios
     end
 
     def accepts_adults = true
+    
+    def should_create_slack? = false
 
     def next_action = :home
   end
