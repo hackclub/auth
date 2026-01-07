@@ -101,5 +101,44 @@
         </div>
       </div>
     </div>
+    <hr>
+    <div class="section">
+      <div class="section-header"><h3>🌍 rejections by country</h3></div>
+      <div class="section-content">
+        <% if @rejections_by_country.any? %>
+          <table>
+            <thead>
+              <tr>
+                <th>country</th>
+                <th>rejections</th>
+                <th>top reason</th>
+                <th>breakdown</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @rejections_by_country.each do |country, data| %>
+                <tr>
+                  <td><b><%= country %></b></td>
+                  <td><%= data[:total] %></td>
+                  <td><%= data[:top_reason] %> (<%= data[:top_reason_count] %>)</td>
+                  <td>
+                    <details>
+                      <summary>view all</summary>
+                      <ul style="margin: 0.5rem 0 0 1rem; padding: 0;">
+                        <% data[:reasons].each do |reason, count| %>
+                          <li><%= reason %>: <%= count %></li>
+                        <% end %>
+                      </ul>
+                    </details>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <div class="empty-state">no rejections</div>
+        <% end %>
+      </div>
+    </div>
   <% end %>
 </div>

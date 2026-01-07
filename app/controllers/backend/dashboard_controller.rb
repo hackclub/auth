@@ -33,6 +33,9 @@ module Backend
       # Calculate rejection reason breakdown
       @rejection_breakdown = calculate_rejection_breakdown(@verifications.rejected)
 
+      # Calculate rejections by country
+      @rejections_by_country = calculate_rejections_by_country(@verifications.rejected)
+
       # Get leaderboard data
       activity_counts = PublicActivity::Activity
         .where(key: [ "verification.approve", "verification.reject" ])
@@ -93,6 +96,35 @@ module Backend
       end
 
       breakdown.sort_by { |_, data| -data[:count] }.to_h
+    end
+
+    def calculate_rejections_by_country(rejected_verifications)
+      return {} if rejected_verifications.empty?
+
+      by_country = {}
+
+      rejected_verifications.includes(:identity).each do |verification|
+        next unless verification.rejection_reason.present?
+        next unless verification.identity&.country.present?
+
+        country_code = verification.identity.country
+        country_name = ISO3166::Country[country_code]&.common_name || country_code
+
+        by_country[country_name] ||= { total: 0, reasons: {} }
+        by_country[country_name][:total] += 1
+
+        reason_name = verification.try(:rejection_reason_name) || verification.rejection_reason.humanize
+        by_country[country_name][:reasons][reason_name] ||= 0
+        by_country[country_name][:reasons][reason_name] += 1
+      end
+
+      # Sort countries by total rejections, and reasons within each country by count
+      by_country.transform_values do |data|
+        data[:reasons] = data[:reasons].sort_by { |_, count| -count }.to_h
+        data[:top_reason] = data[:reasons].first&.first
+        data[:top_reason_count] = data[:reasons].first&.last || 0
+        data
+      end.sort_by { |_, data| -data[:total] }.to_h
     end
   end
 end
