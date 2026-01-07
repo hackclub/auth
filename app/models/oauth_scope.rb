@@ -85,8 +85,13 @@ class OAuthScope
       description: "See your verification status and YSWS eligibility",
       icon: "check",
       consent_fields: [
-        { key: :verification_status, value: ->(ident) { ident.verification_status } },
-        { key: :ysws_eligible, value: ->(ident) { ident.ysws_eligible ? "Yes" : "No" } }
+        { key: :verification_status, value: ->(ident) { ident.verification_status.humanize } },
+        { key: :ysws_eligible, value: ->(ident) {
+          if ident.verification_status == "needs_submission"
+            "?"
+          else
+            ident.ysws_eligible ? "Yes" : "No"
+          end } }
       ]
     ),
     new(
