@@ -23,6 +23,7 @@
       <%= form_with url: resend_login_attempt_path(@attempt), method: :post, style: "margin: 0;" do %>
         <%= button_tag t(".resend"), type: "submit", class: "secondary" %>
       <% end %>
+      <p><small>Can't find it? Check your spam folder.</small></p>
 
       <p style="margin-top: 1rem;">
         <%= t(".wrong_email") %>
