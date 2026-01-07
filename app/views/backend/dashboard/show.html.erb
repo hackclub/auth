@@ -103,30 +103,43 @@
     </div>
     <hr>
     <div class="section">
-      <div class="section-header"><h3>🌍 rejections by country</h3></div>
       <div class="section-content">
         <% if @rejections_by_country.any? %>
           <table>
             <thead>
               <tr>
                 <th>country</th>
-                <th>rejections</th>
-                <th>top reason</th>
+                <th>fatal</th>
+                <th>total rejected</th>
+                <th>fatal %</th>
                 <th>breakdown</th>
               </tr>
             </thead>
             <tbody>
               <% @rejections_by_country.each do |country, data| %>
+                <% next if data[:fatal] == 0 %>
                 <tr>
                   <td><b><%= country %></b></td>
+                  <td style="color: var(--color-red-50);"><b><%= data[:fatal] %></b></td>
                   <td><%= data[:total] %></td>
-                  <td><%= data[:top_reason] %> (<%= data[:top_reason_count] %>)</td>
+                  <td>
+                    <% if data[:fatal_rate] >= 50 %>
+                      <span class="badge danger"><%= data[:fatal_rate] %>%</span>
+                    <% elsif data[:fatal_rate] >= 25 %>
+                      <span class="badge warning"><%= data[:fatal_rate] %>%</span>
+                    <% else %>
+                      <%= data[:fatal_rate] %>%
+                    <% end %>
+                  </td>
                   <td>
                     <details>
                       <summary>view all</summary>
                       <ul style="margin: 0.5rem 0 0 1rem; padding: 0;">
-                        <% data[:reasons].each do |reason, count| %>
-                          <li><%= reason %>: <%= count %></li>
+                        <% data[:reasons].each do |reason, r| %>
+                          <li>
+                            <%= reason %>: <%= r[:count] %>
+                            <% if r[:fatal] %><span class="badge danger">fatal</span><% end %>
+                          </li>
                         <% end %>
                       </ul>
                     </details>
@@ -136,7 +149,7 @@
             </tbody>
           </table>
         <% else %>
-          <div class="empty-state">no rejections</div>
+          <div class="empty-state">none</div>
         <% end %>
       </div>
     </div>

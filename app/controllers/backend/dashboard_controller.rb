@@ -110,21 +110,21 @@ module Backend
         country_code = verification.identity.country
         country_name = ISO3166::Country[country_code]&.common_name || country_code
 
-        by_country[country_name] ||= { total: 0, reasons: {} }
+        by_country[country_name] ||= { total: 0, fatal: 0, reasons: {} }
         by_country[country_name][:total] += 1
+        by_country[country_name][:fatal] += 1 if verification.fatal?
 
         reason_name = verification.try(:rejection_reason_name) || verification.rejection_reason.humanize
-        by_country[country_name][:reasons][reason_name] ||= 0
-        by_country[country_name][:reasons][reason_name] += 1
+        by_country[country_name][:reasons][reason_name] ||= { count: 0, fatal: verification.fatal? }
+        by_country[country_name][:reasons][reason_name][:count] += 1
       end
 
-      # Sort countries by total rejections, and reasons within each country by count
+      # Calculate fraud rate and sort by fatal count (most suspicious first)
       by_country.transform_values do |data|
-        data[:reasons] = data[:reasons].sort_by { |_, count| -count }.to_h
-        data[:top_reason] = data[:reasons].first&.first
-        data[:top_reason_count] = data[:reasons].first&.last || 0
+        data[:reasons] = data[:reasons].sort_by { |_, r| [ r[:fatal] ? 0 : 1, -r[:count] ] }.to_h
+        data[:fatal_rate] = data[:total] > 0 ? (data[:fatal].to_f / data[:total] * 100).round(1) : 0
         data
-      end.sort_by { |_, data| -data[:total] }.to_h
+      end.sort_by { |_, data| [ -data[:fatal], -data[:total] ] }.to_h
     end
   end
 end
