@@ -31,6 +31,6 @@ class Identity::Resemblance < ApplicationRecord
 
   def title = "resemblance"
   def current_label = identity.full_name
-  def matched_label = past_identity.full_name
+  def matched_label = past_identity&.full_name || "[deleted]"
   def matched_verification = nil
 end

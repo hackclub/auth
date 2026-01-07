@@ -16,7 +16,11 @@ class Components::Resemblance < Components::Base
         div class: "section-content" do
           detail_row("this identity", @resemblance.current_label)
           detail_row("matches") do
-            a(href: backend_identity_path(@resemblance.past_identity), target: "_blank") { @resemblance.matched_label }
+            if @resemblance.past_identity
+              a(href: backend_identity_path(@resemblance.past_identity), target: "_blank") { @resemblance.matched_label }
+            else
+              span(class: "text-muted") { "[deleted identity]" }
+            end
             if @resemblance.matched_verification
               plain " ("
               a(href: backend_verification_path(@resemblance.matched_verification), target: "_blank") { "verification" }
@@ -28,7 +32,11 @@ class Components::Resemblance < Components::Base
       div class: "section" do
         div(class: "section-header") { h3 { "matched identity" } }
         div class: "section-content" do
-          render Components::Identity.new(@resemblance.past_identity)
+          if @resemblance.past_identity
+            render Components::Identity.new(@resemblance.past_identity)
+          else
+            plain "[deleted identity]"
+          end
         end
       end
       render Components::Inspector.new(@resemblance)
