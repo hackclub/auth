@@ -3,7 +3,7 @@ module OnboardingScenarios
     def self.slug = "stasis"
 
     def title
-      "Ready to join us in Austin?"
+      "Ready to hack hardware with us?"
     end
 
     def form_fields

@@ -12,7 +12,7 @@ RSpec.describe OnboardingScenarios::Stasis do
 
   describe "#title" do
     it "returns the Austin join message" do
-      expect(scenario.title).to eq("Ready to join us in Austin?")
+      expect(scenario.title).to eq("Ready to hack hardware with us?")
     end
   end
 
