@@ -45,7 +45,7 @@ class LoginsController < ApplicationController
         }
 
         send_v2_login_code(identity, attempt)
-        track_event("login.code_sent", is_signup: attempt.provenance == "signup")
+        track_event("login.code_sent", is_signup: attempt.provenance == "signup", scenario: analytics_scenario_for(identity))
         redirect_to login_attempt_path(id: attempt.to_param), status: :see_other
     rescue => e
         flash[:error] = e.message
@@ -96,7 +96,7 @@ class LoginsController < ApplicationController
             return
         end
 
-        track_event("login.code_verified")
+        track_event("login.code_verified", scenario: analytics_scenario_for(@identity))
 
         factors = (@attempt.authentication_factors || {}).dup
         factors[:email] = true
@@ -253,7 +253,7 @@ class LoginsController < ApplicationController
             @attempt.update!(session: session)
         end
 
-        track_event("login.completed", has_mfa: @identity.use_two_factor_authentication?, next_action: @attempt.next_action)
+        track_event("login.completed", has_mfa: @identity.use_two_factor_authentication?, next_action: @attempt.next_action, scenario: analytics_scenario_for(@identity))
 
         scenario = scenario_for_identity(@identity)
         if @identity.slack_id.blank? && (scenario.should_create_slack? || @attempt.next_action == "slack")

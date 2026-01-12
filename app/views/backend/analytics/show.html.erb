@@ -1,0 +1,229 @@
+<div class="grid">
+  <%= render Components::Backend::Card.new(title: "signup analytics") do %>
+    <div class="section">
+      <div class="section-header">
+        <h3>overview</h3>
+        <%= form_tag backend_analytics_path, method: :get do %>
+          <%= select_tag :time_period,
+              options_for_select([
+                ["today", "today"],
+                ["this week", "this_week"],
+                ["this month", "this_month"],
+                ["last 30 days", "last_30_days"],
+                ["all time", "all_time"]
+              ], @time_period),
+              onchange: "this.form.submit()" %>
+        <% end %>
+      </div>
+      <div class="section-content">
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-value"><%= @overview[:total_signups_started] %></div>
+            <div class="stat-label">signups started</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="color: var(--color-green-50);"><%= @overview[:total_signups_completed] %></div>
+            <div class="stat-label">completed</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="color: var(--color-daybreak);"><%= @overview[:conversion_rate] %>%</div>
+            <div class="stat-label">conversion</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value"><%= @overview[:total_logins_completed] %></div>
+            <div class="stat-label">logins</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value"><%= @overview[:dialogue_promotions] %></div>
+            <div class="stat-label">promoted</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="section">
+      <div class="section-header"><h3>signup trends</h3></div>
+      <div class="section-content">
+        <% if @signup_trends.any? %>
+          <%= line_chart @signup_trends, height: "200px", colors: ["#33d6a6"] %>
+        <% else %>
+          <div class="empty-state">no data yet</div>
+        <% end %>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="two-col">
+      <div class="section">
+        <div class="section-header"><h3>signup funnel</h3></div>
+        <div class="section-content">
+          <table>
+            <thead>
+              <tr>
+                <th>step</th>
+                <th>count</th>
+                <th>conversion</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% started = @signup_funnel["signup.started"].to_f %>
+              <% @signup_funnel.each do |event, count| %>
+                <tr>
+                  <td><%= event.split(".").last %></td>
+                  <td><b><%= count %></b></td>
+                  <td><%= started > 0 ? "#{(count / started * 100).round(1)}%" : "-" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header"><h3>rejection breakdown</h3></div>
+        <div class="section-content">
+          <table>
+            <thead>
+              <tr>
+                <th>type</th>
+                <th>count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="color: var(--color-red-50);">age: too old (19+)</td>
+                <td><b><%= @rejection_breakdown[:age_rejections][:too_old] %></b></td>
+              </tr>
+              <tr>
+                <td style="color: var(--color-red-50);">age: under 13</td>
+                <td><b><%= @rejection_breakdown[:age_rejections][:under_13] %></b></td>
+              </tr>
+              <tr>
+                <td>validation errors</td>
+                <td><b><%= @rejection_breakdown[:validation_errors] %></b></td>
+              </tr>
+              <tr>
+                <td>existing accounts</td>
+                <td><b><%= @rejection_breakdown[:existing_accounts] %></b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="two-col">
+      <div class="section">
+        <div class="section-header"><h3>by scenario</h3></div>
+        <div class="section-content">
+          <% if @scenario_comparison.any? %>
+            <table>
+              <thead>
+                <tr>
+                  <th>scenario</th>
+                  <th>signups</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @scenario_comparison.each do |scenario, count| %>
+                  <tr>
+                    <td><%= scenario || "default" %></td>
+                    <td><b><%= count %></b></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% else %>
+            <div class="empty-state">no data</div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header"><h3>top countries</h3></div>
+        <div class="section-content">
+          <% if @country_breakdown.any? %>
+            <table>
+              <thead>
+                <tr>
+                  <th>country</th>
+                  <th>signups</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @country_breakdown.each do |country, count| %>
+                  <tr>
+                    <td><%= country.present? ? ISO3166::Country[country]&.common_name || country : "unknown" %></td>
+                    <td><b><%= count %></b></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% else %>
+            <div class="empty-state">no data</div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="two-col">
+      <div class="section">
+        <div class="section-header"><h3>login funnel</h3></div>
+        <div class="section-content">
+          <table>
+            <thead>
+              <tr>
+                <th>step</th>
+                <th>count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @login_funnel.each do |event, count| %>
+                <tr>
+                  <td><%= event.split(".").last.gsub("_", " ") %></td>
+                  <td><b><%= count %></b></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header"><h3>dialogue funnel</h3></div>
+        <div class="section-content">
+          <table>
+            <thead>
+              <tr>
+                <th>step</th>
+                <th>count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>first interaction</td>
+                <td><b><%= @dialogue_funnel[:first_interaction] %></b></td>
+              </tr>
+              <tr>
+                <td style="color: var(--color-green-50);">promoted</td>
+                <td><b><%= @dialogue_funnel[:promoted] %></b></td>
+              </tr>
+            </tbody>
+          </table>
+          <% if @dialogue_funnel[:first_interaction] > 0 %>
+            <p style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--color-muted);">
+              <%= ((@dialogue_funnel[:promoted].to_f / @dialogue_funnel[:first_interaction]) * 100).round(1) %>% completion rate
+            </p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

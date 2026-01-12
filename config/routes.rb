@@ -188,6 +188,7 @@ Rails.application.routes.draw do
     end
     resources :audit_logs, only: [ :index ]
     get "dashboard", to: "dashboard#show", as: :dashboard
+    get "analytics", to: "analytics#show", as: :analytics
     root "static_pages#index", as: :root
     get "login", to: "static_pages#login", as: :login
     get "session_dump", to: "static_pages#session_dump", as: :session_dump unless Rails.env.production?
