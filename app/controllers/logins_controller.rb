@@ -69,7 +69,7 @@ class LoginsController < ApplicationController
         login_code = Identity::V2LoginCode.active.find_by(identity: @identity, code: code)
 
         unless login_code
-            track_event("login.code_failed", reason: "invalid")
+            track_event("login.code_failed", reason: "invalid", scenario: analytics_scenario_for(@identity))
             flash.now[:error] = "Invalid or expired code, please try again"
             render :email, status: :unprocessable_entity
             return
