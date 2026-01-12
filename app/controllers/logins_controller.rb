@@ -2,6 +2,7 @@ class LoginsController < ApplicationController
   layout "logged_out"
     include SAMLHelper
     include SafeUrlValidation
+    include AhoyAnalytics
 
     skip_before_action :authenticate_identity!
     before_action :set_return_to, only: [ :new, :create ]
@@ -44,6 +45,7 @@ class LoginsController < ApplicationController
         }
 
         send_v2_login_code(identity, attempt)
+        track_event("login.code_sent", is_signup: attempt.provenance == "signup")
         redirect_to login_attempt_path(id: attempt.to_param), status: :see_other
     rescue => e
         flash[:error] = e.message
@@ -67,6 +69,7 @@ class LoginsController < ApplicationController
         login_code = Identity::V2LoginCode.active.find_by(identity: @identity, code: code)
 
         unless login_code
+            track_event("login.code_failed", reason: "invalid")
             flash.now[:error] = "Invalid or expired code, please try again"
             render :email, status: :unprocessable_entity
             return
@@ -87,10 +90,13 @@ class LoginsController < ApplicationController
         )
 
         unless updated == 1
+            track_event("login.code_failed", reason: "used")
             flash.now[:error] = "This code has already been used"
             render :email, status: :unprocessable_entity
             return
         end
+
+        track_event("login.code_verified")
 
         factors = (@attempt.authentication_factors || {}).dup
         factors[:email] = true
@@ -105,6 +111,7 @@ class LoginsController < ApplicationController
 
     def resend
         send_v2_login_code(@attempt.identity, @attempt)
+        track_event("login.code_resent")
         flash[:notice] = "A new code has been sent to #{@identity.primary_email}"
         redirect_to login_attempt_path(id: @attempt.to_param), status: :see_other
     end
@@ -121,11 +128,13 @@ class LoginsController < ApplicationController
 
         totp_instance = @identity.totp
         unless totp_instance&.verify(code, drift_behind: 1, drift_ahead: 1)
+            track_event("mfa.totp_failed")
             flash.now[:error] = "Invalid TOTP code, please try again"
             render :totp, status: :unprocessable_entity
             return
         end
 
+        track_event("mfa.totp_succeeded")
         factors = (@attempt.authentication_factors || {}).dup
         factors[:totp] = true
         @attempt.update!(authentication_factors: factors)
@@ -149,6 +158,7 @@ class LoginsController < ApplicationController
         end
 
         backup.mark_used!
+        track_event("mfa.backup_code_used")
 
         factors = (@attempt.authentication_factors || {}).dup
         factors[:backup_code] = true
@@ -243,6 +253,8 @@ class LoginsController < ApplicationController
             @attempt.update!(session: session)
         end
 
+        track_event("login.completed", has_mfa: @identity.use_two_factor_authentication?, next_action: @attempt.next_action)
+
         scenario = scenario_for_identity(@identity)
         if @identity.slack_id.blank? && (scenario.should_create_slack? || @attempt.next_action == "slack")
             provision_slack_on_first_login(scenario)
@@ -274,6 +286,7 @@ class LoginsController < ApplicationController
         )
 
         if slack_result[:success]
+            track_event("slack.provisioned", scenario: scenario.class.slug, user_type: slack_result[:user_type].to_s)
             @identity.update(slack_id: slack_result[:slack_id])
             Rails.logger.info "Slack provisioning successful for #{@identity.id}: #{slack_result[:message]}"
 
@@ -293,6 +306,7 @@ class LoginsController < ApplicationController
 
             slack_result
         else
+            track_event("slack.provision_failed", scenario: scenario.class.slug, error_type: slack_result[:error].to_s.truncate(100))
             Rails.logger.error "Slack provisioning failed for #{@identity.id}: #{slack_result[:error]}"
             Sentry.capture_message(
                 "Slack provisioning failed on first login",
