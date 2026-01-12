@@ -1,6 +1,7 @@
 class IdentitiesController < ApplicationController
   layout "logged_out", only: [ :new, :create ]
     include SafeUrlValidation
+    include AhoyAnalytics
 
     skip_before_action :authenticate_identity!, only: [ :new, :create ]
     before_action :set_identity, except: [ :new, :create ]
@@ -40,6 +41,8 @@ class IdentitiesController < ApplicationController
         flash.clear
         @prefill_attributes = scenario_prefill_attributes
 
+        track_event("signup.started", scenario: analytics_scenario, country: detected_country_alpha2)
+
         # Permit fields defined by the scenario
         attrs = params.require(:identity).permit(*@onboarding_scenario.form_fields).to_h.symbolize_keys
 
@@ -56,6 +59,7 @@ class IdentitiesController < ApplicationController
         if attrs[:primary_email].present?
             existing_identity = Identity.find_by(primary_email: attrs[:primary_email])
             if existing_identity.present?
+              track_event("signup.existing_account", scenario: analytics_scenario)
               flash[:info] = t(".account_exists")
               return redirect_to login_path(email: attrs[:primary_email], return_to: @return_to)
             end
@@ -76,6 +80,7 @@ class IdentitiesController < ApplicationController
             age = Identity.calculate_age(birthday)
 
             if age >= 19 && !@onboarding_scenario.accepts_adults
+              track_event("signup.age_rejected", scenario: analytics_scenario, rejection_type: "too_old")
               @age_restriction = "Hack Club is a community for teenagers. <br/>Unfortunately, you are not eligible to join.".html_safe
               @identity = Identity.new(@prefill_attributes.merge(attrs))
               render :new, status: :unprocessable_entity
@@ -83,6 +88,7 @@ class IdentitiesController < ApplicationController
             end
 
             if age < 13 && !@onboarding_scenario.accepts_under13
+              track_event("signup.age_rejected", scenario: analytics_scenario, rejection_type: "under_13")
               age_diff = (13 - age).round
               diff_text = case age_diff
               when 0 then "once you're 13"
@@ -103,6 +109,8 @@ class IdentitiesController < ApplicationController
         @identity = Identity.new(attrs)
 
         if @identity.save
+            track_event("signup.completed", scenario: analytics_scenario, country: @identity.country)
+
             # If returning to an OAuth flow, skip Slack provisioning redirect
             next_action = if @return_to.present? && @return_to.start_with?("/oauth/authorize")
                             "home"
@@ -131,6 +139,10 @@ class IdentitiesController < ApplicationController
 
             redirect_to login_attempt_path(id: login_attempt.to_param), status: :see_other
         else
+            track_event("signup.validation_failed",
+              scenario: analytics_scenario,
+              error_fields: @identity.errors.attribute_names.map(&:to_s)
+            )
             render :new, status: :unprocessable_entity
         end
     end
