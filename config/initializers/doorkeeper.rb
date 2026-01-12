@@ -503,8 +503,9 @@ Doorkeeper.configure do
         scopes: scopes
       )
     end
-  rescue => e
-    Rails.logger.warn("OAuth analytics tracking failed: #{e.message} - #{e.backtrace.first(3).join("\n")}")
+  rescue StandardError => e
+    backtrace = (e.backtrace || []).join("\n")
+    Rails.logger.warn("OAuth analytics tracking failed: #{e.message}\n#{backtrace}")
   end
 
   # Under some circumstances you might want to have applications auto-approved,
