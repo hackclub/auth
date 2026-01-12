@@ -1,6 +1,7 @@
 class VerificationsController < ApplicationController
   include Wicked::Wizard
   include VerificationFlow
+  include AhoyAnalytics
 
   before_action :set_identity
 
@@ -55,6 +56,7 @@ class VerificationsController < ApplicationController
   end
 
   def on_verification_success
+    track_event("verification.submitted", verification_type: "document")
     flash[:success] = "Your documents have been submitted for review! We'll email you when they're processed."
     redirect_to root_path
   end

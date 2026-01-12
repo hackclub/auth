@@ -485,6 +485,19 @@ Doorkeeper.configure do
   #   Rails.logger.info(context.issued_token)
   # end
 
+  # Analytics: Track OAuth authorization grants
+  after_successful_authorization do |controller, context|
+    if controller.respond_to?(:ahoy, true)
+      app = context.auth&.token&.application
+      controller.send(:ahoy)&.track("oauth.authorized",
+        program_slug: app&.slug,
+        scopes: context.auth&.token&.scopes&.to_a
+      )
+    end
+  rescue => e
+    Rails.logger.warn("OAuth analytics tracking failed: #{e.message}")
+  end
+
   # Under some circumstances you might want to have applications auto-approved,
   # so that the user skips the authorization step.
   # For example if dealing with a trusted application.
