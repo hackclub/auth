@@ -90,7 +90,7 @@ class LoginsController < ApplicationController
         )
 
         unless updated == 1
-            track_event("login.code_failed", reason: "used")
+            track_event("login.code_failed", reason: "used", scenario: analytics_scenario_for(@identity))
             flash.now[:error] = "This code has already been used"
             render :email, status: :unprocessable_entity
             return
@@ -111,7 +111,7 @@ class LoginsController < ApplicationController
 
     def resend
         send_v2_login_code(@attempt.identity, @attempt)
-        track_event("login.code_resent")
+        track_event("login.code_resent", scenario: analytics_scenario_for(@identity))
         flash[:notice] = "A new code has been sent to #{@identity.primary_email}"
         redirect_to login_attempt_path(id: @attempt.to_param), status: :see_other
     end
@@ -128,13 +128,13 @@ class LoginsController < ApplicationController
 
         totp_instance = @identity.totp
         unless totp_instance&.verify(code, drift_behind: 1, drift_ahead: 1)
-            track_event("mfa.totp_failed")
+            track_event("mfa.totp_failed", scenario: analytics_scenario_for(@identity))
             flash.now[:error] = "Invalid TOTP code, please try again"
             render :totp, status: :unprocessable_entity
             return
         end
 
-        track_event("mfa.totp_succeeded")
+        track_event("mfa.totp_succeeded", scenario: analytics_scenario_for(@identity))
         factors = (@attempt.authentication_factors || {}).dup
         factors[:totp] = true
         @attempt.update!(authentication_factors: factors)
@@ -158,7 +158,7 @@ class LoginsController < ApplicationController
         end
 
         backup.mark_used!
-        track_event("mfa.backup_code_used")
+        track_event("mfa.backup_code_used", scenario: analytics_scenario_for(@identity))
 
         factors = (@attempt.authentication_factors || {}).dup
         factors[:backup_code] = true

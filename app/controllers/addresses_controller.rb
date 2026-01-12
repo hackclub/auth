@@ -159,7 +159,7 @@ class AddressesController < ApplicationController
     @address = current_identity.addresses.new(address_params)
 
     if @address.save
-      track_event("address.created", country: @address.country, is_first: current_identity.addresses.count == 1)
+      track_event("address.created", country: @address.country, is_first: current_identity.addresses.count == 1, scenario: analytics_scenario_for(current_identity))
       set_primary_if_needed
       true
     else

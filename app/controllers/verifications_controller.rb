@@ -56,7 +56,7 @@ class VerificationsController < ApplicationController
   end
 
   def on_verification_success
-    track_event("verification.submitted", verification_type: "document")
+    track_event("verification.submitted", verification_type: "document", scenario: analytics_scenario_for(@identity))
     flash[:success] = "Your documents have been submitted for review! We'll email you when they're processed."
     redirect_to root_path
   end

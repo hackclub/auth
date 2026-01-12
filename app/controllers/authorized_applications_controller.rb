@@ -11,7 +11,7 @@ class AuthorizedApplicationsController < ApplicationController
 
   def destroy
     token = current_identity.access_tokens.find(params[:id])
-    track_event("oauth.revoked", program_slug: token.application&.slug)
+    track_event("oauth.revoked", program_slug: token.application&.slug, scenario: analytics_scenario_for(current_identity))
     token.revoke
     token.create_activity :revoke, owner: current_identity, recipient: current_identity
 
