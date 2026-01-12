@@ -45,7 +45,8 @@ namespace :analytics do
     # Delete visits that have no remaining events
     visits_deleted = Ahoy::Visit
       .where("started_at < ?", cutoff)
-      .where.not(id: Ahoy::Event.select(:visit_id).where.not(visit_id: nil))
+      .left_joins(:events)
+      .where(ahoy_events: { id: nil })
       .delete_all
     puts "Deleted #{visits_deleted} orphaned visits"
 
