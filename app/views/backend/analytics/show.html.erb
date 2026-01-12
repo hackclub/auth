@@ -72,7 +72,7 @@
               <% started = @signup_funnel["signup.started"].to_f %>
               <% @signup_funnel.each do |event, count| %>
                 <tr>
-                  <td><%= event.split(".").last %></td>
+                  <td><%= link_to event.split(".").last, "https://github.com/hackclub/auth/search?q=%22#{event}%22", target: "_blank" %></td>
                   <td><b><%= count %></b></td>
                   <td><%= started > 0 ? "#{(count / started * 100).round(1)}%" : "-" %></td>
                 </tr>
@@ -187,7 +187,7 @@
             <tbody>
               <% @login_funnel.each do |event, count| %>
                 <tr>
-                  <td><%= event.split(".").last.gsub("_", " ") %></td>
+                  <td><%= link_to event.split(".").last.gsub("_", " "), "https://github.com/hackclub/auth/search?q=%22#{event}%22", target: "_blank" %></td>
                   <td><b><%= count %></b></td>
                 </tr>
               <% end %>
