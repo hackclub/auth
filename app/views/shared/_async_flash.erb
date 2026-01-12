@@ -9,7 +9,7 @@
                        else 'info'
                        end %>
       <% auto_dismiss = [:success, :notice, :info].include?(type.to_sym) %>
-      <div class="banner <%= alert_class %>" role="alert" style="animation: slideInDown 0.3s ease-out;">
+      <div class="banner flex-row align-start <%= alert_class %>" role="alert" style="animation: slideInDown 0.3s ease-out;">
         <% case type.to_sym %>
         <% when :success %>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
