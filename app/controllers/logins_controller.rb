@@ -45,7 +45,7 @@ class LoginsController < ApplicationController
         }
 
         send_v2_login_code(identity, attempt)
-        track_event("login.code_sent", is_signup: attempt.provenance == "signup", scenario: analytics_scenario_for(identity))
+        track_event("login.code_sent", is_signup: attempt.provenance == "signup", scenario: analytics_scenario_from_return_to(@return_to))
         redirect_to login_attempt_path(id: attempt.to_param), status: :see_other
     rescue => e
         flash[:error] = e.message
@@ -69,7 +69,7 @@ class LoginsController < ApplicationController
         login_code = Identity::V2LoginCode.active.find_by(identity: @identity, code: code)
 
         unless login_code
-            track_event("login.code_failed", reason: "invalid", scenario: analytics_scenario_for(@identity))
+            track_event("login.code_failed", reason: "invalid", scenario: analytics_scenario_from_return_to(@attempt.return_to))
             flash.now[:error] = "Invalid or expired code, please try again"
             render :email, status: :unprocessable_entity
             return
@@ -90,13 +90,13 @@ class LoginsController < ApplicationController
         )
 
         unless updated == 1
-            track_event("login.code_failed", reason: "used", scenario: analytics_scenario_for(@identity))
+            track_event("login.code_failed", reason: "used", scenario: analytics_scenario_from_return_to(@attempt.return_to))
             flash.now[:error] = "This code has already been used"
             render :email, status: :unprocessable_entity
             return
         end
 
-        track_event("login.code_verified", scenario: analytics_scenario_for(@identity))
+        track_event("login.code_verified", scenario: analytics_scenario_from_return_to(@attempt.return_to))
 
         factors = (@attempt.authentication_factors || {}).dup
         factors[:email] = true
@@ -111,7 +111,7 @@ class LoginsController < ApplicationController
 
     def resend
         send_v2_login_code(@attempt.identity, @attempt)
-        track_event("login.code_resent", scenario: analytics_scenario_for(@identity))
+        track_event("login.code_resent", scenario: analytics_scenario_from_return_to(@attempt.return_to))
         flash[:notice] = "A new code has been sent to #{@identity.primary_email}"
         redirect_to login_attempt_path(id: @attempt.to_param), status: :see_other
     end
@@ -128,13 +128,13 @@ class LoginsController < ApplicationController
 
         totp_instance = @identity.totp
         unless totp_instance&.verify(code, drift_behind: 1, drift_ahead: 1)
-            track_event("mfa.totp_failed", scenario: analytics_scenario_for(@identity))
+            track_event("mfa.totp_failed", scenario: analytics_scenario_from_return_to(@attempt.return_to))
             flash.now[:error] = "Invalid TOTP code, please try again"
             render :totp, status: :unprocessable_entity
             return
         end
 
-        track_event("mfa.totp_succeeded", scenario: analytics_scenario_for(@identity))
+        track_event("mfa.totp_succeeded", scenario: analytics_scenario_from_return_to(@attempt.return_to))
         factors = (@attempt.authentication_factors || {}).dup
         factors[:totp] = true
         @attempt.update!(authentication_factors: factors)
@@ -158,7 +158,7 @@ class LoginsController < ApplicationController
         end
 
         backup.mark_used!
-        track_event("mfa.backup_code_used", scenario: analytics_scenario_for(@identity))
+        track_event("mfa.backup_code_used", scenario: analytics_scenario_from_return_to(@attempt.return_to))
 
         factors = (@attempt.authentication_factors || {}).dup
         factors[:backup_code] = true
@@ -253,7 +253,7 @@ class LoginsController < ApplicationController
             @attempt.update!(session: session)
         end
 
-        track_event("login.completed", has_mfa: @identity.use_two_factor_authentication?, next_action: @attempt.next_action, scenario: analytics_scenario_for(@identity))
+        track_event("login.completed", has_mfa: @identity.use_two_factor_authentication?, next_action: @attempt.next_action, scenario: analytics_scenario_from_return_to(@attempt.return_to))
 
         scenario = scenario_for_identity(@identity)
         if @identity.slack_id.blank? && (scenario.should_create_slack? || @attempt.next_action == "slack")

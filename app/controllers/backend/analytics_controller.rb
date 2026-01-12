@@ -7,22 +7,33 @@ module Backend
 
       @time_period = params[:time_period] || "this_month"
       @start_date, @end_date = date_range_for(@time_period)
+      @scenario = params[:scenario].presence
+      @available_scenarios = OnboardingScenarios::Base.available_slugs
 
       @analytics = AnalyticsService.new(
         start_date: @start_date,
-        end_date: @end_date
+        end_date: @end_date,
+        scenario: @scenario
       )
 
       @overview = @analytics.overview
+      @program_funnel = @analytics.program_funnel if @scenario
       @signup_funnel = @analytics.signup_funnel
       @rejection_breakdown = @analytics.rejection_breakdown
       @login_funnel = @analytics.login_funnel
+      @oauth_funnel = @analytics.oauth_funnel
       @dialogue_funnel = @analytics.dialogue_funnel
-      @scenario_comparison = @analytics.scenario_comparison
+      @scenario_comparison = @analytics.scenario_comparison unless @scenario
       @country_breakdown = @analytics.country_breakdown.first(10).to_h
 
-      # Daily trends for charts
-      @signup_trends = @analytics.daily_trends("signup.completed")
+      # Daily trends for charts - show oauth.authorized when filtering by scenario
+      if @scenario
+        @primary_trends = @analytics.daily_trends("oauth.authorized")
+        @primary_trends_label = "authorizations"
+      else
+        @primary_trends = @analytics.daily_trends("signup.completed")
+        @primary_trends_label = "signups"
+      end
       @rejection_trends = @analytics.daily_trends("signup.age_rejected")
     end
 

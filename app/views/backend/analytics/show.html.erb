@@ -3,7 +3,7 @@
     <div class="section">
       <div class="section-header">
         <h3>overview</h3>
-        <%= form_tag backend_analytics_path, method: :get do %>
+        <%= form_tag backend_analytics_path, method: :get, class: "analytics-filters" do %>
           <%= select_tag :time_period,
               options_for_select([
                 ["today", "today"],
@@ -13,41 +13,82 @@
                 ["all time", "all_time"]
               ], @time_period),
               onchange: "this.form.submit()" %>
+          <%= select_tag :scenario,
+              options_for_select(
+                [["all scenarios", ""]] + @available_scenarios.map { |s| [s, s] },
+                @scenario
+              ),
+              onchange: "this.form.submit()" %>
         <% end %>
       </div>
       <div class="section-content">
-        <div class="stats-grid">
-          <div class="stat">
-            <div class="stat-value"><%= @overview[:total_signups_started] %></div>
-            <div class="stat-label">signups started</div>
+        <% if @scenario %>
+          <%# Program-centric view when filtering by scenario %>
+          <div class="stats-grid">
+            <div class="stat">
+              <div class="stat-value"><%= @overview[:visitors] %></div>
+              <div class="stat-label">visitors</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value"><%= @overview[:new_signups] %></div>
+              <div class="stat-label">new signups</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value"><%= @overview[:returning_logins] %></div>
+              <div class="stat-label">returning</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" style="color: var(--color-green-50);"><%= @overview[:authorized] %></div>
+              <div class="stat-label">authorized</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" style="color: var(--color-red-50);"><%= @overview[:denied] %></div>
+              <div class="stat-label">denied</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" style="color: var(--color-daybreak);"><%= @overview[:conversion_rate] %>%</div>
+              <div class="stat-label">conversion</div>
+            </div>
           </div>
-          <div class="stat">
-            <div class="stat-value" style="color: var(--color-green-50);"><%= @overview[:total_signups_completed] %></div>
-            <div class="stat-label">completed</div>
+        <% else %>
+          <%# Global platform view %>
+          <div class="stats-grid">
+            <div class="stat">
+              <div class="stat-value"><%= @overview[:total_signups_started] %></div>
+              <div class="stat-label">signups started</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" style="color: var(--color-green-50);"><%= @overview[:total_signups_completed] %></div>
+              <div class="stat-label">completed</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" style="color: var(--color-daybreak);"><%= @overview[:conversion_rate] %>%</div>
+              <div class="stat-label">conversion</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value"><%= @overview[:total_logins_completed] %></div>
+              <div class="stat-label">logins</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value"><%= @overview[:total_oauth_authorized] %></div>
+              <div class="stat-label">oauth</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value"><%= @overview[:slack_provisioned] %></div>
+              <div class="stat-label">slack provisioned</div>
+            </div>
           </div>
-          <div class="stat">
-            <div class="stat-value" style="color: var(--color-daybreak);"><%= @overview[:conversion_rate] %>%</div>
-            <div class="stat-label">conversion</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value"><%= @overview[:total_logins_completed] %></div>
-            <div class="stat-label">logins</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value"><%= @overview[:dialogue_promotions] %></div>
-            <div class="stat-label">promoted</div>
-          </div>
-        </div>
+        <% end %>
       </div>
     </div>
 
     <hr>
 
     <div class="section">
-      <div class="section-header"><h3>signup trends</h3></div>
+      <div class="section-header"><h3><%= @primary_trends_label %> trends</h3></div>
       <div class="section-content">
-        <% if @signup_trends.any? %>
-          <%= line_chart @signup_trends, height: "200px", colors: ["#33d6a6"] %>
+        <% if @primary_trends.any? %>
+          <%= line_chart @primary_trends, height: "200px", colors: ["#33d6a6"] %>
         <% else %>
           <div class="empty-state">no data yet</div>
         <% end %>
@@ -55,6 +96,48 @@
     </div>
 
     <hr>
+
+    <% if @scenario && @program_funnel %>
+      <div class="section">
+        <div class="section-header"><h3>user journey</h3></div>
+        <div class="section-content">
+          <table>
+            <thead>
+              <tr>
+                <th>step</th>
+                <th>count</th>
+                <th>conversion</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% started = @program_funnel[:started].to_f %>
+              <tr>
+                <td>started (signup + login)</td>
+                <td><b><%= @program_funnel[:started] %></b></td>
+                <td>100%</td>
+              </tr>
+              <tr>
+                <td>authenticated</td>
+                <td><b><%= @program_funnel[:authenticated] %></b></td>
+                <td><%= started > 0 ? "#{(@program_funnel[:authenticated] / started * 100).round(1)}%" : "-" %></td>
+              </tr>
+              <tr>
+                <td style="color: var(--color-green-50);">authorized (completed)</td>
+                <td><b><%= @program_funnel[:authorized] %></b></td>
+                <td><%= started > 0 ? "#{(@program_funnel[:authorized] / started * 100).round(1)}%" : "-" %></td>
+              </tr>
+              <tr>
+                <td style="color: var(--color-red-50);">denied</td>
+                <td><b><%= @program_funnel[:denied] %></b></td>
+                <td><%= started > 0 ? "#{(@program_funnel[:denied] / started * 100).round(1)}%" : "-" %></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <hr>
+    <% end %>
 
     <div class="two-col">
       <div class="section">
@@ -196,6 +279,38 @@
         </div>
       </div>
 
+      <div class="section">
+        <div class="section-header"><h3>oauth</h3></div>
+        <div class="section-content">
+          <table>
+            <thead>
+              <tr>
+                <th>event</th>
+                <th>count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="color: var(--color-green-50);">authorized</td>
+                <td><b><%= @oauth_funnel[:authorized] %></b></td>
+              </tr>
+              <tr>
+                <td style="color: var(--color-red-50);">denied</td>
+                <td><b><%= @oauth_funnel[:denied] %></b></td>
+              </tr>
+              <tr>
+                <td>revoked</td>
+                <td><b><%= @oauth_funnel[:revoked] %></b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="two-col">
       <div class="section">
         <div class="section-header"><h3>dialogue funnel</h3></div>
         <div class="section-content">

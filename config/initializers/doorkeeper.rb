@@ -488,14 +488,23 @@ Doorkeeper.configure do
   # Analytics: Track OAuth authorization grants
   after_successful_authorization do |controller, context|
     if controller.respond_to?(:ahoy, true)
-      app = context.auth&.token&.application
+      # Get the application from pre_auth (available on CodeResponse/TokenResponse)
+      pre_auth = context.auth&.pre_auth
+      app = pre_auth&.client&.application
+      scenario = app&.onboarding_scenario
+      scopes = pre_auth&.scopes&.to_s
+
+      Rails.logger.info("[OAuth Analytics] Tracking oauth.authorized: app=#{app&.name}, scenario=#{scenario}")
+
       controller.send(:ahoy)&.track("oauth.authorized",
-        program_slug: app&.slug,
-        scopes: context.auth&.token&.scopes&.to_a
+        program_name: app&.name,
+        program_id: app&.id,
+        scenario: scenario,
+        scopes: scopes
       )
     end
   rescue => e
-    Rails.logger.warn("OAuth analytics tracking failed: #{e.message}")
+    Rails.logger.warn("OAuth analytics tracking failed: #{e.message} - #{e.backtrace.first(3).join("\n")}")
   end
 
   # Under some circumstances you might want to have applications auto-approved,

@@ -18,6 +18,15 @@ class AnalyticsService
     login.completed
   ].freeze
 
+  # Complete user journey for program operators
+  PROGRAM_FUNNEL_EVENTS = %w[
+    signup.started
+    login.code_sent
+    signup.completed
+    login.completed
+    oauth.authorized
+  ].freeze
+
   def initialize(start_date:, end_date:, scenario: nil)
     @start_date = start_date
     @end_date = end_date
@@ -50,10 +59,9 @@ class AnalyticsService
     result = {}
 
     # Age rejections by type
-    age_rejections = events_in_range
-      .by_name("signup.age_rejected")
-      .group("properties->>'rejection_type'")
-      .count
+    scope = events_in_range.by_name("signup.age_rejected")
+    scope = scope.by_scenario(@scenario) if @scenario
+    age_rejections = scope.group("properties->>'rejection_type'").count
 
     result[:age_rejections] = {
       too_old: age_rejections["too_old"] || 0,
@@ -61,10 +69,14 @@ class AnalyticsService
     }
 
     # Validation errors
-    result[:validation_errors] = events_in_range.by_name("signup.validation_failed").count
+    validation_scope = events_in_range.by_name("signup.validation_failed")
+    validation_scope = validation_scope.by_scenario(@scenario) if @scenario
+    result[:validation_errors] = validation_scope.count
 
     # Existing accounts
-    result[:existing_accounts] = events_in_range.by_name("signup.existing_account").count
+    existing_scope = events_in_range.by_name("signup.existing_account")
+    existing_scope = existing_scope.by_scenario(@scenario) if @scenario
+    result[:existing_accounts] = existing_scope.count
 
     result
   end
@@ -72,15 +84,32 @@ class AnalyticsService
   # Login funnel: code_sent -> completed
   def login_funnel
     LOGIN_FUNNEL_EVENTS.each_with_object({}) do |event, result|
-      result[event] = events_in_range.by_name(event).count
+      scope = events_in_range.by_name(event)
+      scope = scope.by_scenario(@scenario) if @scenario
+      result[event] = scope.count
     end
   end
 
   # Dialogue funnel
   def dialogue_funnel
+    first_scope = events_in_range.by_name("dialogue.first_interaction")
+    first_scope = first_scope.by_scenario(@scenario) if @scenario
+
+    promoted_scope = events_in_range.by_name("dialogue.promoted")
+    promoted_scope = promoted_scope.by_scenario(@scenario) if @scenario
+
     {
-      first_interaction: events_in_range.by_name("dialogue.first_interaction").count,
-      promoted: events_in_range.by_name("dialogue.promoted").count
+      first_interaction: first_scope.count,
+      promoted: promoted_scope.count
+    }
+  end
+
+  # OAuth funnel
+  def oauth_funnel
+    {
+      authorized: scoped_count("oauth.authorized"),
+      denied: scoped_count("oauth.denied"),
+      revoked: scoped_count("oauth.revoked")
     }
   end
 
@@ -96,8 +125,9 @@ class AnalyticsService
 
   # Country breakdown
   def country_breakdown
-    events_in_range
-      .by_name("signup.started")
+    scope = events_in_range.by_name("signup.started")
+    scope = scope.by_scenario(@scenario) if @scenario
+    scope
       .group("properties->>'country'")
       .count
       .sort_by { |_, v| -v }
@@ -106,22 +136,48 @@ class AnalyticsService
 
   # Daily trends for charting
   def daily_trends(event_name)
-    events_in_range
-      .by_name(event_name)
-      .group_by_day(:time)
-      .count
+    scope = events_in_range.by_name(event_name)
+    scope = scope.by_scenario(@scenario) if @scenario
+    scope.group_by_day(:time).count
   end
 
-  # Overview stats
+  # Overview stats - when filtering by scenario, show program-centric metrics
   def overview
+    if @scenario
+      # Program-centric view: what matters is users delivered to the program
+      started = scoped_count("signup.started") + scoped_count("login.code_sent")
+      authorized = scoped_count("oauth.authorized")
+      conversion = started > 0 ? ((authorized.to_f / started) * 100).round(2) : 0
+
+      {
+        visitors: started,
+        new_signups: scoped_count("signup.completed"),
+        returning_logins: scoped_count("login.completed"),
+        authorized: authorized,
+        denied: scoped_count("oauth.denied"),
+        conversion_rate: conversion
+      }
+    else
+      # Global view: overall platform health
+      {
+        total_signups_started: scoped_count("signup.started"),
+        total_signups_completed: scoped_count("signup.completed"),
+        total_logins_completed: scoped_count("login.completed"),
+        total_oauth_authorized: scoped_count("oauth.authorized"),
+        total_verifications: scoped_count("verification.submitted"),
+        slack_provisioned: scoped_count("slack.provisioned"),
+        conversion_rate: signup_conversion_rate
+      }
+    end
+  end
+
+  # Program funnel: full journey from arrival to authorization
+  def program_funnel
     {
-      total_signups_started: events_in_range.by_name("signup.started").count,
-      total_signups_completed: events_in_range.by_name("signup.completed").count,
-      total_logins_completed: events_in_range.by_name("login.completed").count,
-      total_verifications: events_in_range.by_name("verification.submitted").count,
-      total_addresses: events_in_range.by_name("address.created").count,
-      dialogue_promotions: events_in_range.by_name("dialogue.promoted").count,
-      conversion_rate: signup_conversion_rate
+      started: scoped_count("signup.started") + scoped_count("login.code_sent"),
+      authenticated: scoped_count("signup.completed") + scoped_count("login.completed"),
+      authorized: scoped_count("oauth.authorized"),
+      denied: scoped_count("oauth.denied")
     }
   end
 
@@ -129,5 +185,11 @@ class AnalyticsService
 
   def events_in_range
     Ahoy::Event.in_range(@start_date, @end_date)
+  end
+
+  def scoped_count(event_name)
+    scope = events_in_range.by_name(event_name)
+    scope = scope.by_scenario(@scenario) if @scenario
+    scope.count
   end
 end
