@@ -147,7 +147,7 @@ class AnalyticsService
       # Program-centric view: what matters is users delivered to the program
       started = scoped_count("signup.started") + scoped_count("login.code_sent")
       authorized = scoped_count("oauth.authorized")
-      conversion = started > 0 ? ((authorized.to_f / started) * 100).round(2) : 0
+      conversion = started > 0 ? [ (authorized.to_f / started) * 100, 100 ].min.round(2) : 0
 
       {
         visitors: started,
