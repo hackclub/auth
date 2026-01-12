@@ -494,7 +494,6 @@ Doorkeeper.configure do
       scenario = app&.onboarding_scenario
       scopes = pre_auth&.scopes&.to_s
 
-      Rails.logger.info("[OAuth Analytics] Tracking oauth.authorized: app=#{app&.name}, scenario=#{scenario}")
 
       controller.send(:ahoy)&.track("oauth.authorized",
         program_name: app&.name,
@@ -504,8 +503,6 @@ Doorkeeper.configure do
       )
     end
   rescue StandardError => e
-    backtrace = (e.backtrace || []).join("\n")
-    Rails.logger.warn("OAuth analytics tracking failed: #{e.message}\n#{backtrace}")
   end
 
   # Under some circumstances you might want to have applications auto-approved,

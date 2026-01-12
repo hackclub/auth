@@ -9,8 +9,8 @@ module AhoyAnalytics
     return unless analytics_enabled?
 
     ahoy.track(name, properties)
-  rescue => e
-    Rails.logger.warn("Analytics tracking failed: #{e.message}")
+  rescue
+    # Silently ignore analytics failures
   end
 
   def analytics_enabled?

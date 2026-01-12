@@ -166,8 +166,8 @@ module RalseiEngine
         properties: properties,
         time: Time.current
       )
-    rescue => e
-      Rails.logger.warn("Dialogue analytics tracking failed: #{e.message}")
+    rescue
+      # Silently ignore analytics failures
     end
   end
 end
