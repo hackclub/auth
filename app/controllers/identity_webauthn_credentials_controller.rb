@@ -81,7 +81,7 @@ class IdentityWebauthnCredentialsController < ApplicationController
   private
 
   def require_step_up_for_destroy
-    return if current_session.step_up_valid_for?(action: "remove_passkey")
+    return if current_session.recently_stepped_up?(for_action: "remove_passkey")
 
     session[:pending_destroy_credential_id] = params[:id]
     redirect_to new_step_up_path(
