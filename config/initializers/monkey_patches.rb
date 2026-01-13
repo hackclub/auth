@@ -10,8 +10,22 @@ Rails.application.config.to_prepare do
   end
 
   class Doorkeeper::AuthorizationsController
+    include AhoyAnalytics
+
     layout "logged_out"
     before_action :hide_some_data_away, only: :new
+    after_action :track_oauth_denied, only: :destroy
+
+    private
+
+    def track_oauth_denied
+      app = Program.find_by(uid: params[:client_id])
+      track_event("oauth.denied",
+        program_name: app&.name,
+        program_id: app&.id,
+        scenario: app&.onboarding_scenario
+      )
+    end
   end
 
   class Doorkeeper::RedirectUriValidator

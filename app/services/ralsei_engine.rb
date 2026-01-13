@@ -48,6 +48,11 @@ module RalseiEngine
       scenario = identity.onboarding_scenario_instance
       raise "No onboarding scenario for identity #{identity.public_id}" unless scenario
 
+      # Track first interaction (before processing, when count is 0)
+      if identity.promote_click_count == 0
+        track_dialogue_event("dialogue.first_interaction", scenario: scenario.class.slug)
+      end
+
       result = scenario.handle_action(action_id)
       raise "Unknown action #{action_id} for scenario #{scenario.class.name}" unless result
 
@@ -77,6 +82,7 @@ module RalseiEngine
         SlackService.add_to_channels(user_id: identity.slack_id, channel_ids: promotion_channels)
       end
 
+      track_dialogue_event("dialogue.promoted", scenario: scenario&.class&.slug)
       scenario&.after_promotion
       Rails.logger.info "RalseiEngine: promoted #{identity.public_id}"
     end
@@ -149,6 +155,19 @@ module RalseiEngine
 
     def client
       @client ||= SlackService.client
+    end
+
+    # Track dialogue events directly (no request context in background jobs)
+    def track_dialogue_event(name, properties = {})
+      return if ENV["DISABLE_ANALYTICS"] == "true"
+
+      Ahoy::Event.create!(
+        name: name,
+        properties: properties,
+        time: Time.current
+      )
+    rescue
+      # Silently ignore analytics failures
     end
   end
 end

@@ -25,6 +25,10 @@ development:
   primary:
     <<: *default
     database: identity_vault_development
+  analytics:
+    <<: *default
+    database: identity_vault_analytics_development
+    migrations_paths: db/analytics_migrate
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
@@ -60,6 +64,10 @@ test:
   primary:
     <<: *default
     database: identity_vault_test
+  analytics:
+    <<: *default
+    database: identity_vault_analytics_test
+    migrations_paths: db/analytics_migrate
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -85,8 +93,18 @@ production:
   primary:
     <<: *default
     database: identity_vault_prod
+  analytics:
+    <<: *default
+    url: <%= ENV['ANALYTICS_DATABASE_URL'] %>
+    database: identity_vault_analytics_prod
+    migrations_paths: db/analytics_migrate
 
 staging:
   primary:
     <<: *default
     database: identity_vault_staging
+  analytics:
+    <<: *default
+    url: <%= ENV['ANALYTICS_DATABASE_URL'] %>
+    database: identity_vault_analytics_staging
+    migrations_paths: db/analytics_migrate

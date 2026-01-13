@@ -1,6 +1,7 @@
 class AddressesController < ApplicationController
   include IsSneaky
   include AddressManagement
+  include AhoyAnalytics
 
   before_action :set_address, only: [ :show, :edit, :update, :destroy, :make_primary ]
   before_action :hide_some_data_away, only: %i[program_create_address]
@@ -158,6 +159,7 @@ class AddressesController < ApplicationController
     @address = current_identity.addresses.new(address_params)
 
     if @address.save
+      track_event("address.created", country: @address.country, is_first: current_identity.addresses.count == 1, scenario: analytics_scenario_for(current_identity))
       set_primary_if_needed
       true
     else

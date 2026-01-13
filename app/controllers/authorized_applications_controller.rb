@@ -1,4 +1,6 @@
 class AuthorizedApplicationsController < ApplicationController
+  include AhoyAnalytics
+
   def index
     @access_tokens = current_identity.access_tokens
       .includes(:application)
@@ -9,6 +11,7 @@ class AuthorizedApplicationsController < ApplicationController
 
   def destroy
     token = current_identity.access_tokens.find(params[:id])
+    track_event("oauth.revoked", program_name: token.application&.name, program_id: token.application&.id, scenario: token.application&.onboarding_scenario)
     token.revoke
     token.create_activity :revoke, owner: current_identity, recipient: current_identity
 

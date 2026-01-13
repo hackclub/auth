@@ -87,6 +87,10 @@ gem "public_activity", "~> 3.0"
 
 gem "paper_trail", "~> 16.0"
 
+gem "ahoy_matey", "~> 5.0"
+gem "chartkick", "~> 5.0"
+gem "groupdate", "~> 6.0"
+
 gem "good_job", "~> 4.10"
 
 group :development do

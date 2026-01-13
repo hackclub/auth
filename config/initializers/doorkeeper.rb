@@ -485,6 +485,26 @@ Doorkeeper.configure do
   #   Rails.logger.info(context.issued_token)
   # end
 
+  # Analytics: Track OAuth authorization grants
+  after_successful_authorization do |controller, context|
+    if controller.respond_to?(:ahoy, true)
+      # Get the application from pre_auth (available on CodeResponse/TokenResponse)
+      pre_auth = context.auth&.pre_auth
+      app = pre_auth&.client&.application
+      scenario = app&.onboarding_scenario
+      scopes = pre_auth&.scopes&.to_s
+
+
+      controller.send(:ahoy)&.track("oauth.authorized",
+        program_name: app&.name,
+        program_id: app&.id,
+        scenario: scenario,
+        scopes: scopes
+      )
+    end
+  rescue StandardError => e
+  end
+
   # Under some circumstances you might want to have applications auto-approved,
   # so that the user skips the authorization step.
   # For example if dealing with a trusted application.
