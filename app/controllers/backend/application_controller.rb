@@ -45,8 +45,9 @@ module Backend
     end
 
     def require_2fa!
-      unless current_identity&.use_two_factor_authentication?
-        redirect_to root_path, alert: "You must enable Two-Factor Authentication to access the backend."
+      login_attempt = current_session&.login_attempt
+      unless login_attempt&.authenticated_with_totp || login_attempt&.authenticated_with_webauthn
+        redirect_to root_path, alert: "You must authenticate with TOTP or passkey to access the backend."
       end
     end
 
