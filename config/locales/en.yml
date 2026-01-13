@@ -393,11 +393,14 @@ en:
       security_link: Security
     security:
       heading: Security
-      sessions: Active sessions
-      applications: Linked apps
-      mfa: 2-Factor Authentication
-      backup_codes: Backup Codes
+      sessions: Active Sessions
+      mfa: Authenticator App
       webauthn: Passkeys
+      backup_codes: Backup Codes
+      applications: Connected Apps
+      activity: Activity Log
+      activity_description: View your recent account activity and security events.
+      view_activity_log: View Activity Log
   identity_backup_codes:
     totp_heading: "Save your backup codes"
     save_warning_title: Save these codes now!

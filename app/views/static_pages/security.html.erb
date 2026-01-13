@@ -10,11 +10,6 @@
   </section>
 
   <section class="section-card">
-    <h3><%= t ".applications" %></h3>
-    <%= render Components::BootlegTurbo.new(authorized_applications_path, id: "authorized-apps-container", hx_swap: "innerHTML") %>
-  </section>
-
-  <section class="section-card">
     <h3><%= t ".mfa" %></h3>
     <%= render Components::BootlegTurbo.new(identity_totps_path, id: "totp-container", hx_swap: "innerHTML") %>
   </section>
@@ -30,9 +25,14 @@
   </section>
 
   <section class="section-card">
-    <h3>Activity Log</h3>
-    <p>View your recent account activity and security events.</p>
-    <%= link_to "View Activity Log", audit_logs_path, class: "button" %>
+    <h3><%= t ".applications" %></h3>
+    <%= render Components::BootlegTurbo.new(authorized_applications_path, id: "authorized-apps-container", hx_swap: "innerHTML") %>
+  </section>
+
+  <section class="section-card">
+    <h3><%= t ".activity" %></h3>
+    <p><%= t ".activity_description" %></p>
+    <%= link_to t(".view_activity_log"), audit_logs_path, class: "button" %>
   </section>
 
 </div>
