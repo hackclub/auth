@@ -234,6 +234,7 @@ en:
     save: Save address
     cancel: Cancel
     primary: Primary
+    add_new: Add New Address
     index:
       title: Your Addresses
       edit: Edit
