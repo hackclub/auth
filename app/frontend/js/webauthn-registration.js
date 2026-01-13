@@ -13,7 +13,7 @@ export function webauthnRegister() {
         },
 
         async getRegistrationOptions() {
-            const response = await fetch('/identity_webauthn_credentials/options', {
+            const response = await fetch('/passkeys/options', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
