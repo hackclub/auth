@@ -174,8 +174,11 @@ class StepUpController < ApplicationController
 
     when "remove_passkey"
       credential_id = session.delete(:pending_destroy_credential_id)
-      if credential_id
-        redirect_to identity_webauthn_credential_path(credential_id), method: :delete
+      credential = current_identity.webauthn_credentials.find_by(id: credential_id) if credential_id
+      if credential
+        credential.destroy
+        consume_step_up!
+        redirect_to security_path, notice: t("identity_webauthn_credentials.successfully_removed")
       else
         redirect_to security_path
       end

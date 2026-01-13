@@ -1,8 +1,6 @@
 class IdentityWebauthnCredentialsController < ApplicationController
   include WebauthnAuthenticatable
 
-  before_action :require_step_up_for_destroy, only: [ :destroy ]
-
   def index
     @webauthn_credentials = current_identity.webauthn_credentials.order(created_at: :desc)
     render layout: request.headers["HX-Request"] ? "htmx" : false
@@ -69,24 +67,7 @@ class IdentityWebauthnCredentialsController < ApplicationController
   end
 
   def destroy
-    credential = current_identity.webauthn_credentials.find(params[:id])
-    credential.destroy
-
-    consume_step_up!
-
-    flash[:success] = t(".successfully_removed")
-    redirect_to security_path
-  end
-
-  private
-
-  def require_step_up_for_destroy
-    return if current_session.recently_stepped_up?(for_action: "remove_passkey")
-
     session[:pending_destroy_credential_id] = params[:id]
-    redirect_to new_step_up_path(
-      action_type: "remove_passkey",
-      return_to: identity_webauthn_credential_path(params[:id])
-    )
+    redirect_to new_step_up_path(action_type: "remove_passkey")
   end
 end
