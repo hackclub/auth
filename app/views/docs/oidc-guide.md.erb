@@ -92,7 +92,7 @@ Include the access token in the Authorization header:
 Authorization: Bearer idntk.abc123...
 ```
 
-Slack's OIDC solution provides a `picture` field in its claims that gives you a URL to the user's PFP. HCA doesn't currently have this feature, but you can get similar functionality with [cachet](https://cachet.dunkirk.sh/swagger#tag/users/GET/users/{id}/r).
+Slack's OIDC solution provides a `picture` field in its claims that gives you a URL to the user's PFP. HCA doesn't currently have this feature, but you can get similar functionality with [cachet](https://cachet.dunkirk.sh/swagger#tag/users/GET/users/{slack_id}/r) if you take the Slack ID claim.
 
 ## Scopes and Claims
 
