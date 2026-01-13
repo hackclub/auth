@@ -30,6 +30,8 @@ class SAMLController < ApplicationController
       redirect_to saml_welcome_path(return_to: request.fullpath) and return
     end
 
+    set_honeybadger_context
+
     # Try to assign to Slack workspace if not yet done
     if params[:slug] == "slack"
       provision_slack_via_scim_if_needed
@@ -54,6 +56,8 @@ class SAMLController < ApplicationController
     unless current_identity
       redirect_to saml_welcome_path(return_to: request.fullpath) and return
     end
+
+    set_honeybadger_context
 
     # Only check replay after authentication, since unauthenticated users will be redirected
     # back to this same URL after login
