@@ -1,3 +1,8 @@
+.security-sections {
+  max-width: 900px;
+  margin: 2rem auto 0;
+}
+
 .loading-text {
   color: var(--text-muted-strong);
   font-size: 0.95rem;
@@ -8,7 +13,7 @@
 .totp-disabled {
   text-align: center;
   padding: $space-6 $space-3;
-  
+
   p {
     color: var(--text-muted-strong);
     margin-bottom: $space-5;
@@ -26,28 +31,28 @@
   display: flex;
   align-items: center;
   gap: $space-4;
-  
+
   .status-icon {
     font-size: 2rem;
     flex-shrink: 0;
   }
-  
+
   .status-info {
     flex: 1;
-    
+
     strong {
       display: block;
       font-size: 1rem;
       margin-bottom: 0.25rem;
     }
-    
+
     p.status-detail {
       margin: 0;
       font-size: 0.9rem;
       color: var(--text-muted-strong);
     }
   }
-  
+
   button {
     font-size: 0.875rem !important;
     padding: $space-1 $space-3 !important;
@@ -65,13 +70,13 @@
 .totp-setup-header {
   text-align: center;
   margin-bottom: $space-5;
-  
+
   h3 {
     margin: 0 0 $space-1;
     font-size: 1.5rem;
     font-weight: 700;
   }
-  
+
   .step-indicator {
     margin: 0;
     font-size: 0.9rem;
@@ -94,13 +99,13 @@
   margin-bottom: $space-5;
   background: var(--surface-2);
   border-radius: $radius-lg;
-  
+
   p {
     margin-bottom: $space-5;
     font-weight: 600;
     font-size: 0.95rem;
   }
-  
+
   .qr {
     display: block;
     width: min(60vw, 200px) !important;
@@ -110,15 +115,15 @@
     padding: $space-3;
     border-radius: $radius-md;
   }
-  
+
   details {
     margin-top: $space-5;
-    
+
     summary {
       cursor: pointer;
       font-size: 0.9rem;
       color: var(--text-muted-strong);
-      
+
       &:hover {
         color: var(--pico-primary);
       }
@@ -134,7 +139,7 @@
       word-break: break-all;
       font-family: $font-mono;
     }
-    
+
     .copy-secret-btn {
       margin-top: $space-2;
       font-size: 0.875rem !important;
@@ -157,11 +162,12 @@
   display: flex;
   gap: $space-3;
   margin-top: $space-5;
-  
+
   @media (max-width: 480px) {
     flex-direction: column;
-    
-    button, input[type="submit"] {
+
+    button,
+    input[type="submit"] {
       width: 100%;
     }
   }
@@ -171,7 +177,7 @@
   margin-top: $space-5;
   padding-top: $space-5;
   border-top: 1px solid var(--surface-2-border);
-  
+
   details {
     summary {
       cursor: pointer;
@@ -180,12 +186,12 @@
       display: flex;
       align-items: center;
       gap: $space-2;
-      
+
       &:hover {
         color: var(--pico-primary);
       }
     }
-    
+
     p {
       margin-top: $space-3;
       padding-left: $space-6;
@@ -201,7 +207,7 @@
 .sessions-actions {
   margin-bottom: $space-4;
   text-align: right;
-  
+
   button {
     font-size: 0.875rem !important;
     padding: $space-1 $space-3 !important;
@@ -215,19 +221,42 @@
   gap: $space-3;
 }
 
+.session-card {
+  @include card($padding: $space-4, $radius: $radius-lg);
+  @include transition-default();
+
+  @include dark-mode {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.1),
+      0 2px 6px rgba(0, 0, 0, 0.06);
+
+    @include dark-mode {
+      box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
 .current-session {
   background: linear-gradient(135deg, #f7fee7, #ecfccb);
   border-color: #84cc16;
   border-width: 1px;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.08),
     0 1px 4px rgba(0, 0, 0, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  
+
   @include dark-mode {
     background: linear-gradient(135deg, rgba(132, 204, 22, 0.15), rgba(132, 204, 22, 0.08));
     border-color: #84cc16;
-    box-shadow: 
+    box-shadow:
       0 2px 8px rgba(0, 0, 0, 0.3),
       0 1px 4px rgba(0, 0, 0, 0.2);
   }
@@ -260,14 +289,14 @@
   @include badge(#84cc16, #1a1d23, 4px);
   margin-left: $space-1;
   float: right;
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  
+
   @include dark-mode {
     background: #84cc16;
     color: #1a1d23;
-    box-shadow: 
+    box-shadow:
       0 1px 3px rgba(132, 204, 22, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
@@ -285,7 +314,7 @@
   font-size: 0.85rem;
   color: var(--text-muted-strong);
   margin-bottom: $space-3;
-  
+
   div {
     display: flex;
     gap: $space-1;
@@ -300,6 +329,7 @@
 .backup-code-method {
   color: #dc2626;
   background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(153, 27, 27, 0.15));
+
   @include dark-mode {
     color: #fca5a5;
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.25));
@@ -340,12 +370,12 @@
   border-radius: $radius-md;
   font-size: 0.9rem;
   line-height: 1.5;
-  
+
   @include dark-mode {
     background: color-mix(in srgb, #d97706 15%, #1f2937 85%);
     color: #fbbf24;
   }
-  
+
   strong {
     font-weight: 600;
   }
@@ -381,16 +411,18 @@
   gap: $space-3;
   flex-wrap: wrap;
   margin-bottom: $space-5;
-  
-  button, a {
+
+  button,
+  a {
     flex: 1;
     min-width: 140px;
   }
-  
+
   @media (max-width: 480px) {
     flex-direction: column;
-    
-    button, a {
+
+    button,
+    a {
       width: 100%;
       min-width: unset;
     }
@@ -400,7 +432,7 @@
 .backup-codes-confirmation {
   padding-top: $space-5;
   border-top: 1px solid var(--surface-2-border);
-  
+
   label {
     display: flex;
     align-items: center;
@@ -409,15 +441,15 @@
     font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
-    
+
     input[type="checkbox"] {
       margin: 0;
     }
   }
-  
+
   button {
     width: 100%;
-    
+
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
@@ -429,23 +461,23 @@
   display: flex;
   align-items: center;
   gap: $space-4;
-  
+
   .status-info {
     flex: 1;
-    
+
     strong {
       display: block;
       font-size: 1rem;
       margin-bottom: 0.25rem;
     }
-    
+
     .status-detail {
       margin: 0;
       font-size: 0.9rem;
       color: var(--text-muted-strong);
     }
   }
-  
+
   button {
     font-size: 0.875rem !important;
     padding: $space-1 $space-3 !important;
@@ -459,4 +491,75 @@
   padding: $space-6 $space-3;
   color: var(--text-muted-strong);
   font-size: 0.95rem;
+}
+
+// WebAuthn!
+.webauthn-disabled {
+  text-align: center;
+  padding: $space-6 $space-3;
+
+  p {
+    color: var(--text-muted-strong);
+    margin-bottom: $space-5;
+    font-size: 0.95rem;
+  }
+}
+
+.webauthn-setup-description {
+  margin-bottom: $space-5;
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--text-muted-strong);
+}
+
+// Inline confirmation for delete actions
+.confirmation-inline {
+  padding: $space-4;
+  background: var(--surface-2);
+  border-radius: $radius-md;
+  border: 1px solid var(--surface-2-border);
+
+  [data-theme="dark"] & {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .confirmation-text {
+    margin: 0 0 $space-4;
+    font-size: 0.9rem;
+    color: var(--text-strong);
+    line-height: 1.5;
+  }
+
+  .confirmation-actions {
+    display: flex;
+    gap: $space-2;
+    justify-content: flex-end;
+
+    @media (max-width: 480px) {
+      flex-direction: column;
+
+      button,
+      form {
+        width: 100%;
+      }
+    }
+
+    button,
+    form button {
+      font-size: 0.875rem !important;
+      padding: $space-1 $space-3 !important;
+      width: auto !important;
+      margin: 0 !important;
+      min-width: 80px;
+
+      @media (max-width: 480px) {
+        width: 100% !important;
+      }
+    }
+
+    form {
+      display: inline-block;
+    }
+  }
 }

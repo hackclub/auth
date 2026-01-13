@@ -291,6 +291,10 @@ Rails.application.routes.draw do
   post "/login/:id/totp", to: "logins#verify_totp", as: :verify_totp_login_attempt
   get "/login/:id/backup_code", to: "logins#backup_code", as: :backup_code_login_attempt
   post "/login/:id/backup_code", to: "logins#verify_backup_code", as: :verify_backup_code_login_attempt
+  get "/login/:id/webauthn", to: "logins#webauthn", as: :webauthn_login_attempt
+  post "/login/:id/webauthn/options", to: "logins#webauthn_options", as: :webauthn_options_login_attempt
+  post "/login/:id/webauthn/verify", to: "logins#verify_webauthn", as: :verify_webauthn_login_attempt
+  post "/login/:id/webauthn/skip", to: "logins#skip_webauthn", as: :skip_webauthn_login_attempt
 
   delete "/logout", to: "sessions#logout", as: :logout
 
@@ -330,11 +334,19 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :identity_webauthn_credentials, only: [ :index, :new, :create, :destroy ] do
+    collection do
+      post :options
+    end
+  end
+
   # Step-up authentication flow
   get "/step_up", to: "step_up#new", as: :new_step_up
   post "/step_up/verify", to: "step_up#verify", as: :verify_step_up
   post "/step_up/send_email_code", to: "step_up#send_email_code", as: :send_step_up_email_code
   post "/step_up/resend_email", to: "step_up#resend_email", as: :resend_step_up_email
+  post "/step_up/webauthn/options", to: "step_up#webauthn_options", as: :step_up_webauthn_options
+  post "/step_up/webauthn/verify", to: "step_up#verify_webauthn", as: :verify_step_up_webauthn
 
   resources :identity_backup_codes, only: [ :index, :create ] do
     patch :confirm, on: :collection

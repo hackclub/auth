@@ -1,0 +1,73 @@
+class Identity::WebauthnCredential < ApplicationRecord
+  belongs_to :identity
+
+  has_paper_trail
+
+  include PublicActivity::Model
+  tracked owner: proc { |controller, record| record.identity }, recipient: proc { |controller, record| record.identity }, only: [ :create, :destroy ]
+
+  scope :active, -> { where(compromised_at: nil) }
+  scope :compromised, -> { where.not(compromised_at: nil) }
+
+  validates :external_id, presence: true, uniqueness: true
+  validates :public_key, presence: true
+  validates :sign_count, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :nickname, length: { maximum: 50 }, allow_blank: true
+
+  before_validation :set_initial_sign_count, on: :create
+
+  # WebAuthn credential IDs and public keys are binary data that need to be
+  # base64url encoded for storage and transmission
+  def webauthn_id
+    Base64.urlsafe_decode64(external_id)
+  end
+
+  def webauthn_id=(value)
+    self.external_id = Base64.urlsafe_encode64(value, padding: false)
+  end
+
+  def webauthn_public_key
+    Base64.urlsafe_decode64(public_key)
+  end
+
+  def webauthn_public_key=(value)
+    self.public_key = Base64.urlsafe_encode64(value, padding: false)
+  end
+
+  # Increment the sign count after successful authentication
+  # This helps detect credential cloning attacks
+  def increment_sign_count!
+    increment!(:sign_count)
+  end
+
+  # Mark credential as potentially compromised (e.g., sign count anomaly)
+  def mark_as_compromised!
+    update!(compromised_at: Time.current)
+    Rails.logger.warn "WebAuthn credential marked as compromised: id=#{id}, identity_id=#{identity_id}"
+  end
+
+  def compromised?
+    compromised_at.present?
+  end
+
+  def active?
+    !compromised?
+  end
+
+  # Human-readable display for the credential
+  def display_name
+    nickname.presence || "Passkey created #{created_at.strftime('%b %d, %Y')}"
+  end
+
+  # Class method to get all decoded credential IDs for a collection
+  # Useful for building WebAuthn allow/exclude lists
+  def self.raw_credential_ids
+    pluck(:external_id).map { |id| Base64.urlsafe_decode64(id) }
+  end
+
+  private
+
+  def set_initial_sign_count
+    self.sign_count ||= 0
+  end
+end

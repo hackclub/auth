@@ -1,0 +1,46 @@
+<div class="auth-container" x-data="webauthnAuth()">
+  <div class="auth-card passkey-auth" x-show="browserSupported">
+    <header>
+      <h1><%= t(".title") %></h1>
+      <small><%= t(".subtitle") %></small>
+    </header>
+
+    <div x-show="error" x-cloak role="alert">
+      <strong>Authentication Failed</strong>
+      <p x-text="error"></p>
+    </div>
+
+    <%= form_with url: verify_webauthn_login_attempt_path(@attempt), method: :post, local: true, id: "webauthn-form" do |form| %>
+      <%= form.hidden_field :credential_data, id: "credential-data" %>
+    <% end %>
+
+    <div class="passkey-prompt">
+      <button
+        type="button"
+        class="webauthn-button"
+        x-on:click="authenticate()"
+        x-bind:disabled="loading">
+        <span class="webauthn-icon"><%= inline_icon("fingerprint", size: 16) %></span>
+        <span x-show="!loading"><%= t(".authenticate") %></span>
+        <span x-show="loading" x-cloak><%= t(".authenticating") %>...</span>
+      </button>
+    </div>
+
+    <footer>
+      <p>
+        <%= t(".prefer_email") %>
+        <%= button_to t(".use_email_code"),
+            skip_webauthn_login_attempt_path(@attempt),
+            method: :post,
+            class: "secondary small-btn" %>
+      </p>
+    </footer>
+  </div>
+
+  <div x-show="!browserSupported" x-cloak class="auth-card">
+    <div class="alert alert-warning">
+      <strong>Browser Not Supported</strong>
+      <p><%= t(".browser_not_supported") %></p>
+    </div>
+  </div>
+</div>

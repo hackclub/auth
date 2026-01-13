@@ -335,6 +335,7 @@ en:
     email: Email
     totp: TOTP
     backup_code: Backup code
+    webauthn: Passkey
   logins:
     new:
       title: Welcome back!
@@ -371,6 +372,14 @@ en:
       verify: Verify
       lost_authenticator: Lost your authenticator?
       use_backup_code: Use a backup code instead
+    webauthn:
+      title: Welcome back!
+      subtitle: Use the passkey saved on this device or another nearby device
+      authenticate: Use passkey
+      authenticating: Authenticating
+      browser_not_supported: Your browser doesn't support passkeys. Please use a modern browser or use email code instead.
+      prefer_email: Don't have a passkey?
+      use_email_code: Use email code instead
   saml:
     http_post:
       title: SAMLing...
@@ -384,10 +393,14 @@ en:
       security_link: Security
     security:
       heading: Security
-      sessions: Active sessions
-      applications: Linked apps
-      mfa: 2-Factor Authentication
+      sessions: Active Sessions
+      mfa: Authenticator App
+      webauthn: Passkeys
       backup_codes: Backup Codes
+      applications: Connected Apps
+      activity: Activity Log
+      activity_description: View your recent account activity and security events.
+      view_activity_log: View Activity Log
   identity_backup_codes:
     totp_heading: "Save your backup codes"
     save_warning_title: Save these codes now!
@@ -415,7 +428,7 @@ en:
       require_2fa_description: When enabled, you must use a second factor (authenticator app or backup code) to sign in.
       disable_requirement: Disable Requirement
       enable_requirement: Enable Requirement
-      setup_description: Add an extra layer of security by requiring a second factor in addition to your email.
+      setup_description: Add an extra layer of security to email sign-ins by requiring a code from an authenticator app.
       setup_authenticator: Set up two-factor authentication
     show:
       heading: Set up two-factor authentication
@@ -451,6 +464,17 @@ en:
     auth_type: Login method
     terminate: Log out
     terminate_confirmation: Log out this session?
+  identity_webauthn_credentials:
+    index:
+      setup_description: Sign in securely using a passkey stored on your device. Passkeys don't require two-factor authentication.
+      setup_webauthn: Set up passkey
+    added: Added
+    created_at: Created
+    last_used: Last used
+    remove: Remove
+    remove_confirmation: Are you sure you want to remove this passkey? You won't be able to use it to sign in anymore.
+    successfully_added: passkey added!
+    successfully_removed: passkey removed!
   step_up:
     new:
       title: Gotta confirm it's you...
@@ -462,13 +486,18 @@ en:
         backup_code:
           title: Backup Code
           description: Use one of your backup codes
+        webauthn:
+          title: Passkey
+          description: Use your passkey to verify
       cancel: Cancel
       enter_code_labels:
         totp: Enter authenticator code
         backup_code: Enter backup code
+        webauthn: Verify with passkey
       enter_code_descriptions:
         totp: Enter the 6-digit code from your authenticator app
         backup_code: Enter one of your backup codes
+        webauthn: Use your passkey to confirm your identity
       code_label: Enter code
       backup_placeholder: XXXXXXXXXX
       totp_placeholder: "000000"

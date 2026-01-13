@@ -13,7 +13,7 @@
         <% if @available_methods.include?(:totp) %>
           <%= link_to new_step_up_path(action_type: @action, method: :totp, return_to: @return_to),
               class: "step-up-method-option" do %>
-            <div><%= inline_icon("private", size: 32) %></div>
+            <div><%= inline_icon("clock", size: 32) %></div>
             <div style="flex: 1;">
               <div style="font-weight: 600;"><%= t(".methods.totp.title") %></div>
               <small><%= t(".methods.totp.description") %></small>
@@ -24,7 +24,7 @@
         <% if @available_methods.include?(:backup_code) %>
           <%= link_to new_step_up_path(action_type: @action, method: :backup_code, return_to: @return_to),
               class: "step-up-method-option" do %>
-            <div><%= inline_icon("private", size: 32) %></div>
+            <div><%= inline_icon("docs", size: 32) %></div>
             <div style="flex: 1;">
               <div style="font-weight: 600;"><%= t(".methods.backup_code.title") %></div>
               <small><%= t(".methods.backup_code.description") %></small>
@@ -32,13 +32,13 @@
           <% end %>
         <% end %>
 
-        <% if @available_methods.include?(:sms) %>
-          <%= link_to new_step_up_path(action_type: @action, method: :sms, return_to: @return_to),
+        <% if @available_methods.include?(:webauthn) %>
+          <%= link_to new_step_up_path(action_type: @action, method: :webauthn, return_to: @return_to),
               class: "step-up-method-option" do %>
-            <div><%= inline_icon("message", size: 32) %></div>
+            <div><%= inline_icon("fingerprint", size: 32) %></div>
             <div style="flex: 1;">
-              <div style="font-weight: 600;"><%= t(".methods.sms.title") %></div>
-              <small><%= t(".methods.sms.description") %></small>
+              <div style="font-weight: 600;"><%= t(".methods.webauthn.title", default: "Passkey") %></div>
+              <small><%= t(".methods.webauthn.description", default: "Use your passkey to verify") %></small>
             </div>
           <% end %>
         <% end %>
@@ -77,6 +77,42 @@
 
       <footer>
         <p><%= link_to t(".cancel"), step_up_cancel_path(@action) %></p>
+      </footer>
+
+    <% elsif method == :webauthn %>
+      <%# Show WebAuthn/Passkey authentication %>
+      <header>
+        <h1><%= t(".enter_code_labels.webauthn", default: "Verify with passkey") %></h1>
+        <small><%= t(".enter_code_descriptions.webauthn", default: "Use your passkey to confirm your identity") %></small>
+      </header>
+
+      <div x-data="stepUpWebauthn()" x-init="init()">
+        <div x-show="loading" style="text-align: center; padding: 2rem;">
+          <p>Waiting for passkey...</p>
+        </div>
+
+        <div x-show="error" x-cloak style="margin: 1rem 0;">
+          <div class="alert alert-error" x-text="error"></div>
+          <button @click="authenticate()" class="btn" style="width: 100%; margin-top: 1rem;">
+            Try again
+          </button>
+        </div>
+
+        <div x-show="!browserSupported" x-cloak>
+          <div class="alert alert-error">
+            Your browser doesn't support passkeys. Please use a different verification method.
+          </div>
+        </div>
+
+        <%= form_with url: verify_step_up_webauthn_path, method: :post, local: true, id: "step-up-webauthn-form" do |f| %>
+          <%= f.hidden_field :action_type, value: @action %>
+          <%= f.hidden_field :return_to, value: @return_to %>
+          <%= f.hidden_field :credential_data, id: "step-up-credential-data" %>
+        <% end %>
+      </div>
+
+      <footer>
+        <p><%= link_to t(".use_different_method"), new_step_up_path(action_type: @action, return_to: @return_to) %></p>
       </footer>
 
     <% else %>
