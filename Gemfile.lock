@@ -206,13 +206,13 @@ GEM
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
-    faraday-mashify (1.0.0)
+    faraday-mashify (1.0.2)
       faraday (~> 2.0)
       hashie
-    faraday-multipart (1.1.0)
+    faraday-multipart (1.2.0)
       multipart-post (~> 2.0)
-    faraday-net_http (3.4.0)
-      net-http (>= 0.5.0)
+    faraday-net_http (3.4.2)
+      net-http (~> 0.5)
     ffi (1.17.2-aarch64-linux-gnu)
     ffi (1.17.2-aarch64-linux-musl)
     ffi (1.17.2-arm-linux-gnu)
@@ -261,7 +261,8 @@ GEM
       activerecord (>= 4.0)
       hashids (~> 1.0)
     hashids (1.0.6)
-    hashie (5.0.0)
+    hashie (5.1.0)
+      logger
     htmlentities (4.4.2)
     http (5.2.0)
       addressable (~> 2.8)
@@ -284,7 +285,7 @@ GEM
       reline (>= 0.4.2)
     jb (0.8.2)
     jmespath (1.6.2)
-    json (2.12.0)
+    json (2.18.0)
     jwt (3.1.2)
       base64
     kaminari (1.2.2)
@@ -338,8 +339,8 @@ GEM
     msgpack (1.8.0)
     multipart-post (2.4.1)
     mutex_m (0.3.0)
-    net-http (0.6.0)
-      uri
+    net-http (0.9.1)
+      uri (>= 0.11.1)
     net-imap (0.5.8)
       date
       net-protocol
@@ -369,7 +370,7 @@ GEM
     nokogiri-xmlsec-instructure (0.12.0)
       nokogiri (~> 1.13)
     openssl (3.3.2)
-    ostruct (0.6.1)
+    ostruct (0.6.3)
     paper_trail (16.0.0)
       activerecord (>= 6.1)
       request_store (~> 1.4)
@@ -551,8 +552,8 @@ GEM
       concurrent-ruby (~> 1.0, >= 1.0.2)
     serve_byte_range (1.0.0)
       rack (>= 1.0)
-    slack-ruby-client (2.6.0)
-      faraday (>= 2.0)
+    slack-ruby-client (3.1.0)
+      faraday (>= 2.0.1)
       faraday-mashify
       faraday-multipart
       gli
@@ -582,7 +583,7 @@ GEM
     unicode-display_width (3.1.4)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
-    uri (1.0.3)
+    uri (1.1.1)
     useragent (0.16.11)
     vite_rails (3.0.19)
       railties (>= 5.1, < 9)
@@ -683,7 +684,7 @@ DEPENDENCIES
   saml2 (~> 3.2)
   sentry-rails (~> 5.22)
   sentry-ruby (~> 5.22)
-  slack-ruby-client (~> 2.6)
+  slack-ruby-client (~> 3.1)
   slocks (~> 0.1.0)
   superform (~> 0.5.1)
   thruster

@@ -119,7 +119,7 @@ gem "faraday", "~> 2.13"
 
 gem "ruby-vips", "~> 2.2"
 
-gem "slack-ruby-client", "~> 2.6"
+gem "slack-ruby-client", "~> 3.1"
 
 gem "redcarpet", "~> 3.6"
 gem "front_matter_parser", "~> 1.0"
