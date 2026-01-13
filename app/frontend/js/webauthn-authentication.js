@@ -54,7 +54,23 @@ export function webauthnAuth() {
                     throw new Error('Authentication failed - no credential returned');
                 }
 
-                const credentialJSON = credential.toJSON();
+                const response = credential.response;
+                const toBase64Url = (buffer) => {
+                    return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+                        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+                };
+                const credentialJSON = {
+                    id: credential.id,
+                    rawId: toBase64Url(credential.rawId),
+                    type: credential.type,
+                    response: {
+                        clientDataJSON: toBase64Url(response.clientDataJSON),
+                        authenticatorData: toBase64Url(response.authenticatorData),
+                        signature: toBase64Url(response.signature),
+                        userHandle: response.userHandle ? toBase64Url(response.userHandle) : null,
+                    },
+                    clientExtensionResults: credential.getClientExtensionResults(),
+                };
 
                 const credentialDataField = document.getElementById('credential-data');
                 const form = document.getElementById('webauthn-form');
