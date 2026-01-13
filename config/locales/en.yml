@@ -423,10 +423,10 @@ en:
   identity_totps:
     index:
       totp_title: Authenticator App (TOTP)
-      totp_description: You can use your authenticator app to sign in.
+      totp_description: You can use your authenticator app to sign in with an email code.
       remove: Remove
       require_2fa_title: Require 2FA on login
-      require_2fa_description: When enabled, you must use a second factor (authenticator app or backup code) to sign in.
+      require_2fa_description: When enabled, you must use a second factor (authenticator app or backup code) when signing in with an email code.
       disable_requirement: Disable Requirement
       enable_requirement: Enable Requirement
       setup_description: Add an extra layer of security to email sign-ins by requiring a code from an authenticator app.
