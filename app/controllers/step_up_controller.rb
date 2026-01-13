@@ -1,5 +1,9 @@
 class StepUpController < ApplicationController
+  include WebauthnAuthenticatable
+
   helper_method :step_up_cancel_path
+
+  WEBAUTHN_SESSION_KEY = :step_up_webauthn_challenge
 
   def new
     @action = params[:action_type] # e.g., "remove_totp", "disable_2fa", "oidc_reauth", "email_change"
@@ -7,6 +11,41 @@ class StepUpController < ApplicationController
     @available_methods = current_identity.available_step_up_methods
     @available_methods << :email unless @action == "email_change" # Email fallback not available for email change (already verifying old email)
     @code_sent = params[:code_sent].present?
+  end
+
+  def webauthn_options
+    options = generate_webauthn_authentication_options(
+      current_identity,
+      session_key: WEBAUTHN_SESSION_KEY,
+      user_verification: "required"
+    )
+    render json: options
+  end
+
+  def verify_webauthn
+    credential_data = JSON.parse(params[:credential_data])
+
+    credential = verify_webauthn_credential(
+      current_identity,
+      credential_data: credential_data,
+      session_key: WEBAUTHN_SESSION_KEY
+    )
+
+    unless credential
+      flash[:error] = "Passkey not found"
+      redirect_to new_step_up_path(action_type: params[:action_type], return_to: params[:return_to])
+      return
+    end
+
+    complete_step_up(params[:action_type], params[:return_to])
+  rescue WebAuthn::Error => e
+    Rails.logger.error "Step-up WebAuthn error: #{e.message}"
+    flash[:error] = "Passkey verification failed. Please try again."
+    redirect_to new_step_up_path(action_type: params[:action_type], method: :webauthn, return_to: params[:return_to])
+  rescue => e
+    Rails.logger.error "Unexpected step-up WebAuthn error: #{e.message}"
+    flash[:error] = "An unexpected error occurred. Please try again."
+    redirect_to new_step_up_path(action_type: params[:action_type], return_to: params[:return_to])
   end
 
   def send_email_code
@@ -43,7 +82,6 @@ class StepUpController < ApplicationController
       return
     end
 
-    # Verify based on the method they chose
     verified = case method
     when :totp
       totp = current_identity.totp
@@ -76,43 +114,7 @@ class StepUpController < ApplicationController
       return
     end
 
-    # Mark step-up as completed on the identity session, bound to the specific action
-    current_session.record_step_up!(action: action_type)
-
-    # Execute the verified action
-    case action_type
-    when "remove_totp"
-      totp = current_identity.totp
-      totp&.destroy
-      TwoFactorMailer.authentication_method_disabled(current_identity).deliver_later
-
-      if current_identity.two_factor_methods.empty?
-        current_identity.update!(use_two_factor_authentication: false)
-        current_identity.backup_codes.active.each(&:mark_discarded!)
-      end
-
-      consume_step_up!
-      redirect_to security_path, notice: "Two-factor authentication disabled"
-
-    when "disable_2fa"
-      current_identity.update!(use_two_factor_authentication: false)
-      TwoFactorMailer.required_authentication_disabled(current_identity).deliver_later
-      consume_step_up!
-      redirect_to security_path, notice: "2FA requirement disabled"
-
-    when "oidc_reauth"
-      # OIDC re-authentication completed, redirect back to OAuth flow
-      safe_path = safe_internal_redirect(params[:return_to])
-      redirect_to safe_path || root_path
-
-    when "email_change"
-      # Email change step-up completed, redirect to the email change form
-      safe_path = safe_internal_redirect(params[:return_to])
-      redirect_to safe_path || new_email_change_path
-
-    else
-      redirect_to security_path, alert: "Unknown action"
-    end
+    complete_step_up(action_type, params[:return_to])
   end
 
   def resend_email
@@ -134,6 +136,42 @@ class StepUpController < ApplicationController
 
   private
 
+  def complete_step_up(action_type, return_to)
+    current_session.record_step_up!(action: action_type)
+
+    case action_type
+    when "remove_totp"
+      totp = current_identity.totp
+      totp&.destroy
+      TwoFactorMailer.authentication_method_disabled(current_identity).deliver_later
+
+      if current_identity.two_factor_methods.empty?
+        current_identity.update!(use_two_factor_authentication: false)
+        current_identity.backup_codes.active.each(&:mark_discarded!)
+      end
+
+      consume_step_up!
+      redirect_to security_path, notice: "Two-factor authentication disabled"
+
+    when "disable_2fa"
+      current_identity.update!(use_two_factor_authentication: false)
+      TwoFactorMailer.required_authentication_disabled(current_identity).deliver_later
+      consume_step_up!
+      redirect_to security_path, notice: "2FA requirement disabled"
+
+    when "oidc_reauth"
+      safe_path = safe_internal_redirect(return_to)
+      redirect_to safe_path || root_path
+
+    when "email_change"
+      safe_path = safe_internal_redirect(return_to)
+      redirect_to safe_path || new_email_change_path
+
+    else
+      redirect_to security_path, alert: "Unknown action"
+    end
+  end
+
   def send_step_up_email_code
     login_code = current_identity.v2_login_codes.create!
     IdentityMailer.v2_login_code(login_code).deliver_later
@@ -148,20 +186,15 @@ class StepUpController < ApplicationController
     end
   end
 
-  # Prevent open redirect attacks - only allow internal paths
   def safe_internal_redirect(return_to)
     return nil if return_to.blank?
 
     uri = URI.parse(return_to) rescue nil
     return nil unless uri
 
-    # Reject if it has a scheme or host (absolute URL or protocol-relative like //evil.com)
     return nil if uri.scheme || uri.host
-
-    # Must be a path starting with /
     return nil unless uri.path&.start_with?("/")
 
-    # Return just the path + query string
     [ uri.path, uri.query ].compact.join("?")
   end
 end

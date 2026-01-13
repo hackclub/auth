@@ -428,7 +428,7 @@ en:
       require_2fa_description: When enabled, you must use a second factor (authenticator app or backup code) to sign in.
       disable_requirement: Disable Requirement
       enable_requirement: Enable Requirement
-      setup_description: Add an extra layer of security by requiring a second factor in addition to your email.
+      setup_description: Add an extra layer of security to email sign-ins by requiring a code from an authenticator app.
       setup_authenticator: Set up two-factor authentication
     show:
       heading: Set up two-factor authentication
@@ -466,7 +466,7 @@ en:
     terminate_confirmation: Log out this session?
   identity_webauthn_credentials:
     index:
-      setup_description: Sign in securely using a passkey stored on your device - like your phone, laptop, or hardware security key.
+      setup_description: Sign in securely using a passkey stored on your device. Passkeys don't require two-factor authentication.
       setup_webauthn: Set up passkey
     added: Added
     created_at: Created
@@ -486,13 +486,18 @@ en:
         backup_code:
           title: Backup Code
           description: Use one of your backup codes
+        webauthn:
+          title: Passkey
+          description: Use your passkey to verify
       cancel: Cancel
       enter_code_labels:
         totp: Enter authenticator code
         backup_code: Enter backup code
+        webauthn: Verify with passkey
       enter_code_descriptions:
         totp: Enter the 6-digit code from your authenticator app
         backup_code: Enter one of your backup codes
+        webauthn: Use your passkey to confirm your identity
       code_label: Enter code
       backup_placeholder: XXXXXXXXXX
       totp_placeholder: "000000"

@@ -345,6 +345,8 @@ Rails.application.routes.draw do
   post "/step_up/verify", to: "step_up#verify", as: :verify_step_up
   post "/step_up/send_email_code", to: "step_up#send_email_code", as: :send_step_up_email_code
   post "/step_up/resend_email", to: "step_up#resend_email", as: :resend_step_up_email
+  post "/step_up/webauthn/options", to: "step_up#webauthn_options", as: :step_up_webauthn_options
+  post "/step_up/webauthn/verify", to: "step_up#verify_webauthn", as: :verify_step_up_webauthn
 
   resources :identity_backup_codes, only: [ :index, :create ] do
     patch :confirm, on: :collection

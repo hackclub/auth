@@ -3,6 +3,9 @@ class LoginsController < ApplicationController
     include SAMLHelper
     include SafeUrlValidation
     include AhoyAnalytics
+    include WebauthnAuthenticatable
+
+    WEBAUTHN_SESSION_KEY = :webauthn_authentication_challenge
 
     skip_before_action :authenticate_identity!
     before_action :set_return_to, only: [ :new, :create ]
@@ -182,64 +185,44 @@ class LoginsController < ApplicationController
     end
 
     def webauthn_options
-        credentials = @identity.webauthn_credentials.pluck(:external_id).map { |id| Base64.urlsafe_decode64(id) }
-
-        options = WebAuthn::Credential.options_for_get(
-            allow: credentials,
+        options = generate_webauthn_authentication_options(
+            @identity,
+            session_key: WEBAUTHN_SESSION_KEY,
             user_verification: "preferred"
         )
-
-        session[:webauthn_authentication_challenge] = options.challenge
-
         render json: options
     end
 
     def verify_webauthn
         flash.clear
 
-        begin
-            credential_data = JSON.parse(params[:credential_data])
+        credential_data = JSON.parse(params[:credential_data])
 
-            webauthn_credential = WebAuthn::Credential.from_get(credential_data)
+        credential = verify_webauthn_credential(
+            @identity,
+            credential_data: credential_data,
+            session_key: WEBAUTHN_SESSION_KEY
+        )
 
-            Identity::WebauthnCredential.transaction do
-                credential = @identity.webauthn_credentials.lock.find_by(
-                    external_id: Base64.urlsafe_encode64(webauthn_credential.id, padding: false)
-                )
-
-                unless credential
-                    flash.now[:error] = "Passkey not found"
-                    render :webauthn, status: :unprocessable_entity
-                    return
-                end
-
-                webauthn_credential.verify(
-                    session[:webauthn_authentication_challenge],
-                    public_key: credential.webauthn_public_key,
-                    sign_count: credential.sign_count
-                )
-
-                credential.update!(sign_count: webauthn_credential.sign_count)
-                # "software" passkeys (like the ones from macOS) don't update the sign count,
-                # so we need to touch the record to update the updated_at timestamp
-                credential.touch unless credential.saved_change_to_sign_count?
-            end
-
-            session.delete(:webauthn_authentication_challenge)
-            factors = (@attempt.authentication_factors || {}).dup
-            factors[:webauthn] = true
-            @attempt.update!(authentication_factors: factors)
-
-            handle_post_verification_redirect
-        rescue WebAuthn::Error => e
-            Rails.logger.error "WebAuthn authentication error: #{e.message}"
-            flash.now[:error] = "Passkey verification failed. Please try again or use email code."
+        unless credential
+            flash.now[:error] = "Passkey not found"
             render :webauthn, status: :unprocessable_entity
-        rescue => e
-            Rails.logger.error "Unexpected WebAuthn error: #{e.message}"
-            flash.now[:error] = "An unexpected error occurred. Please try again."
-            render :webauthn, status: :unprocessable_entity
+            return
         end
+
+        factors = (@attempt.authentication_factors || {}).dup
+        factors[:webauthn] = true
+        @attempt.update!(authentication_factors: factors)
+
+        handle_post_verification_redirect
+    rescue WebAuthn::Error => e
+        Rails.logger.error "WebAuthn authentication error: #{e.message}"
+        flash.now[:error] = "Passkey verification failed. Please try again or use email code."
+        render :webauthn, status: :unprocessable_entity
+    rescue => e
+        Rails.logger.error "Unexpected WebAuthn error: #{e.message}"
+        flash.now[:error] = "An unexpected error occurred. Please try again."
+        render :webauthn, status: :unprocessable_entity
     end
 
     private
