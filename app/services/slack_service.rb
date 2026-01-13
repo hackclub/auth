@@ -29,6 +29,14 @@ module SlackService
       true
     rescue => e
       Rails.logger.error "Failed to assign user to workspace: #{e.message}"
+      Sentry.capture_exception(e, extra: {
+        slack_user_id: user_id,
+        team_id: team_id,
+        channel_ids: channel_ids,
+        user_type: user_type,
+        is_restricted: is_restricted,
+        is_ultra_restricted: is_ultra_restricted
+      })
       false
     end
 

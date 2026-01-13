@@ -291,10 +291,11 @@ class LoginsController < ApplicationController
             Rails.logger.info "Slack provisioning successful for #{@identity.id}: #{slack_result[:message]}"
 
             # Assign workspace/channels after SAML login completes (user is now activated)
-            if slack_result[:user_type] == :multi_channel_guest && scenario.slack_channels.any?
+            should_assign = slack_result[:created] || slack_result[:needs_workspace_assignment]
+            if should_assign && scenario.slack_user_type == :multi_channel_guest && scenario.slack_channels.any?
                 AssignSlackWorkspaceJob.perform_later(
                     slack_id: slack_result[:slack_id],
-                    user_type: slack_result[:user_type],
+                    user_type: scenario.slack_user_type,
                     channel_ids: scenario.slack_channels,
                     identity_id: @identity.id
                 )

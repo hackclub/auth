@@ -24,10 +24,37 @@ module SCIMService
 
       if existing_slack_id
         Rails.logger.info "Slack user already exists for #{email}: #{existing_slack_id}"
+
+        workspace_status = SlackService.user_workspace_status(user_id: existing_slack_id)
+        needs_workspace_assignment = workspace_status != :in_workspace && workspace_status != :deactivated
+
+        if workspace_status == :deactivated
+          Rails.logger.info "Existing Slack user #{existing_slack_id} is deactivated, skipping workspace assignment"
+        elsif needs_workspace_assignment
+          Rails.logger.info "Existing Slack user #{existing_slack_id} is not in workspace (status: #{workspace_status}), will need assignment"
+          Sentry.capture_message(
+            "Existing Slack user found but not in workspace",
+            level: :info,
+            extra: {
+              identity_id: identity.id,
+              identity_public_id: identity.public_id,
+              identity_email: email,
+              slack_id: existing_slack_id,
+              workspace_status: workspace_status,
+              scenario: scenario.class.name,
+              scenario_slug: scenario.class.slug,
+              slack_user_type: scenario.slack_user_type,
+              slack_channels: scenario.slack_channels,
+              onboarding_scenario: identity.onboarding_scenario
+            }
+          )
+        end
+
         return {
           success: true,
           slack_id: existing_slack_id,
           created: false,
+          needs_workspace_assignment: needs_workspace_assignment,
           message: "Linked existing Slack account"
         }
       end
@@ -139,7 +166,25 @@ module SCIMService
       if user_type == :multi_channel_guest
         channel_ids = scenario.slack_channels if scenario.slack_channels.any?
         sleep(2)
-        SlackService.assign_to_workspace(user_id: slack_id, user_type:, channel_ids:)
+        assigned = SlackService.assign_to_workspace(user_id: slack_id, user_type:, channel_ids:)
+        unless assigned
+          Sentry.capture_message(
+            "Slack workspace assignment failed after SCIM user creation",
+            level: :error,
+            extra: {
+              identity_id: identity.id,
+              identity_public_id: identity.public_id,
+              identity_email: identity.primary_email,
+              slack_id: slack_id,
+              user_type: user_type,
+              channel_ids: channel_ids,
+              scenario: scenario.class.name,
+              scenario_slug: scenario.class.slug,
+              onboarding_scenario: identity.onboarding_scenario,
+              team_id: SlackService.team_id
+            }
+          )
+        end
       end
 
       Rails.logger.info "Successfully created Slack user #{slack_id} for #{identity.primary_email}"
