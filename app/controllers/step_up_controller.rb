@@ -4,12 +4,13 @@ class StepUpController < ApplicationController
   helper_method :step_up_cancel_path
 
   WEBAUTHN_SESSION_KEY = :step_up_webauthn_challenge
+  ACTIONS_WITHOUT_EMAIL_FALLBACK = %w[email_change disable_2fa].freeze
 
   def new
     @action = params[:action_type] # e.g., "remove_totp", "disable_2fa", "oidc_reauth", "email_change"
     @return_to = params[:return_to]
     @available_methods = current_identity.available_step_up_methods
-    @available_methods << :email unless @action == "email_change" # Email fallback not available for email change (already verifying old email)
+    @available_methods << :email unless @action.in?(ACTIONS_WITHOUT_EMAIL_FALLBACK)
     @code_sent = params[:code_sent].present?
   end
 
@@ -49,7 +50,7 @@ class StepUpController < ApplicationController
   end
 
   def send_email_code
-    if params[:action_type] == "email_change"
+    if params[:action_type].in?(ACTIONS_WITHOUT_EMAIL_FALLBACK)
       flash[:error] = "Email verification is not available for this action"
       redirect_to new_step_up_path(action_type: params[:action_type], return_to: params[:return_to])
       return
@@ -76,7 +77,7 @@ class StepUpController < ApplicationController
       return
     end
 
-    if action_type == "email_change" && method == :email
+    if action_type.in?(ACTIONS_WITHOUT_EMAIL_FALLBACK) && method == :email
       flash[:error] = "Email verification is not available for this action"
       redirect_to new_step_up_path(action_type: action_type, return_to: params[:return_to])
       return
