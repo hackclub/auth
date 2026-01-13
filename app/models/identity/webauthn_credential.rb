@@ -6,6 +6,9 @@ class Identity::WebauthnCredential < ApplicationRecord
   include PublicActivity::Model
   tracked owner: proc { |controller, record| record.identity }, recipient: proc { |controller, record| record.identity }, only: [ :create, :destroy ]
 
+  scope :active, -> { where(compromised_at: nil) }
+  scope :compromised, -> { where.not(compromised_at: nil) }
+
   validates :external_id, presence: true, uniqueness: true
   validates :public_key, presence: true
   validates :sign_count, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
@@ -35,6 +38,20 @@ class Identity::WebauthnCredential < ApplicationRecord
   # This helps detect credential cloning attacks
   def increment_sign_count!
     increment!(:sign_count)
+  end
+
+  # Mark credential as potentially compromised (e.g., sign count anomaly)
+  def mark_as_compromised!
+    update!(compromised_at: Time.current)
+    Rails.logger.warn "WebAuthn credential marked as compromised: id=#{id}, identity_id=#{identity_id}"
+  end
+
+  def compromised?
+    compromised_at.present?
+  end
+
+  def active?
+    !compromised?
   end
 
   # Human-readable display for the credential

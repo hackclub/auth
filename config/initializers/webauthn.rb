@@ -2,7 +2,7 @@
 WebAuthn.configure do |config|
   # The allowed origins - where WebAuthn requests can come from
   config.allowed_origins = if Rails.env.production?
-    [ "https://account.hackclub.com" ]
+    [ "https://auth.hackclub.com" ]
   elsif Rails.env.development?
     [ "http://localhost:3000" ]
   else
@@ -11,7 +11,15 @@ WebAuthn.configure do |config|
   end
 
   # The Relying Party name - shown in authenticator UI
-  config.rp_name = "Hack Club Account"
+  config.rp_name = "Hack Club Auth"
+
+  # Explicitly set the Relying Party ID to prevent misconfiguration
+  # This must match the domain where WebAuthn is used
+  config.rp_id = if Rails.env.production?
+    "auth.hackclub.com"
+  else
+    "localhost"
+  end
 
   # Credential options (optional - these are the defaults)
   # Algorithms we support for credential public keys

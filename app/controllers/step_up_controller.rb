@@ -4,7 +4,7 @@ class StepUpController < ApplicationController
   helper_method :step_up_cancel_path
 
   WEBAUTHN_SESSION_KEY = :step_up_webauthn_challenge
-  ACTIONS_WITHOUT_EMAIL_FALLBACK = %w[email_change disable_2fa].freeze
+  ACTIONS_WITHOUT_EMAIL_FALLBACK = %w[email_change disable_2fa remove_passkey].freeze
 
   def new
     @action = params[:action_type] # e.g., "remove_totp", "disable_2fa", "oidc_reauth", "email_change"
@@ -39,12 +39,16 @@ class StepUpController < ApplicationController
     end
 
     complete_step_up(params[:action_type], params[:return_to])
+  rescue WebauthnCredentialCompromisedError => e
+    Rails.logger.warn "Step-up blocked: compromised credential detected for identity #{current_identity.id}"
+    flash[:error] = "Security issue detected with your passkey. It has been disabled for your protection. Please use another verification method or register a new passkey."
+    redirect_to new_step_up_path(action_type: params[:action_type], return_to: params[:return_to])
   rescue WebAuthn::Error => e
-    Rails.logger.error "Step-up WebAuthn error: #{e.message}"
+    Rails.logger.error "Step-up WebAuthn error: verification failed"
     flash[:error] = "Passkey verification failed. Please try again."
     redirect_to new_step_up_path(action_type: params[:action_type], method: :webauthn, return_to: params[:return_to])
   rescue => e
-    Rails.logger.error "Unexpected step-up WebAuthn error: #{e.message}"
+    Rails.logger.error "Unexpected step-up WebAuthn error: #{e.class.name}"
     flash[:error] = "An unexpected error occurred. Please try again."
     redirect_to new_step_up_path(action_type: params[:action_type], return_to: params[:return_to])
   end
@@ -167,6 +171,14 @@ class StepUpController < ApplicationController
     when "email_change"
       safe_path = safe_internal_redirect(return_to)
       redirect_to safe_path || new_email_change_path
+
+    when "remove_passkey"
+      credential_id = session.delete(:pending_destroy_credential_id)
+      if credential_id
+        redirect_to identity_webauthn_credential_path(credential_id), method: :delete
+      else
+        redirect_to security_path
+      end
 
     else
       redirect_to security_path, alert: "Unknown action"
