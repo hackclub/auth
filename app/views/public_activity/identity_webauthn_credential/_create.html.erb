@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity, owner: activity.trackable&.identity) do %>
+  added a passkey: <%= activity.trackable&.display_name %>.
+<% end %>

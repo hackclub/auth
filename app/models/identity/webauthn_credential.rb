@@ -1,6 +1,11 @@
 class Identity::WebauthnCredential < ApplicationRecord
   belongs_to :identity
 
+  has_paper_trail
+
+  include PublicActivity::Model
+  tracked owner: proc { |controller, record| record.identity }, recipient: proc { |controller, record| record.identity }, only: [ :create, :destroy ]
+
   validates :external_id, presence: true, uniqueness: true
   validates :public_key, presence: true
   validates :sign_count, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
