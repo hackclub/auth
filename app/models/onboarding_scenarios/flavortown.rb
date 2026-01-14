@@ -34,7 +34,7 @@ module OnboardingScenarios
 
     def slack_channels = chans(:flavortown_bulletin, :flavortown_esplanade, :flavortown_help, :identity_help)
 
-    def promotion_channels = chans(:flavortown_construction, :library, :lounge, :welcome, :happenings, :community, :neighbourhood)
+    def promotion_channels = chans(:flavortown_construction, :library, :lounge, :welcome, :happenings, :community, :neighbourhood, :pyramid_scheme)
 
     def use_dm_channel? = false # slackbot is our friend!
 
