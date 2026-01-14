@@ -47,8 +47,8 @@ gem "vite_rails"
 
 gem "pundit", "~> 2.5"
 
-gem "sentry-ruby", "~> 5.22"
-gem "sentry-rails", "~> 5.22"
+gem "sentry-ruby", "~> 6.2"
+gem "sentry-rails", "~> 6.2"
 
 gem "http", "~> 5.2"
 
