@@ -348,13 +348,14 @@ Rails.application.routes.draw do
   post "/step_up/webauthn/options", to: "step_up#webauthn_options", as: :step_up_webauthn_options
   post "/step_up/webauthn/verify", to: "step_up#verify_webauthn", as: :verify_step_up_webauthn
 
-  resources :identity_backup_codes, only: [ :index, :create ] do
-    patch :confirm, on: :collection
-  end
+resources :identity_backup_codes, only: [ :index, :create ] do
+  patch :confirm, on: :collection
+end
 
-  resources :authorized_applications, only: [ :index, :destroy ]
 
-  resources :developer_apps, path: "developer/apps"
+resources :authorized_applications, only: [ :index, :destroy ]
+
+resources :developer_apps, path: "developer/apps"
 
   namespace :api do
     namespace :v1 do
