@@ -64,7 +64,7 @@ gem "jb", "~> 0.8.2"
 
 gem "wicked", "~> 2.0"
 
-gem "countries", "~> 7.1"
+gem "countries", "~> 8.1"
 
 gem "awesome_print", "~> 1.9"
 
