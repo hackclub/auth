@@ -2,7 +2,8 @@
 <div class="auth-container<%= ' has-background' if @onboarding_scenario&.background_path || @onboarding_scenario&.dark_mode_background_path %>">
   <% if @onboarding_scenario&.logo_path %>
     <div class="auth-brand">
-      <%= vite_image_tag @onboarding_scenario.logo_path, alt: "Logo", class: "brand-logo brand-logo--custom" %>
+      <% card_attrs = @onboarding_scenario.card_attributes %>
+      <%= vite_image_tag @onboarding_scenario.logo_path, alt: "Logo", class: ["brand-logo", "brand-logo--custom", ("brand-logo--wide" if card_attrs[:wide_logo])].compact.join(" ") %>
     </div>
   <% end %>
   <div class="auth-card">

@@ -35,6 +35,14 @@
       border: 1px solid var(--surface-2-border);
       background: var(--surface-1);
     }
+
+    &--wide {
+      width: 160px;
+      height: auto;
+      border: none;
+      background: transparent;
+      border-radius: 0;
+    }
   }
   
   .brand-plus {

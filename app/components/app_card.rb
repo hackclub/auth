@@ -33,7 +33,7 @@ class Components::AppCard < Components::Base
 
   def render_card_content(launch_text:)
     div(class: "card-header") do
-      div(class: "app-icon") do
+      div(class: "app-icon", style: @app[:icon_background] ? "background: #{@app[:icon_background]}" : nil) do
         if @app[:icon].present?
           vite_image_tag("images/sso_apps/#{@app[:icon]}")
         else
