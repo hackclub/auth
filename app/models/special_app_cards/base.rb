@@ -37,7 +37,7 @@ module SpecialAppCards
 
     def icon = nil
 
-    def icon_class = nil
+    def icon_background = nil
 
     def url
       raise NotImplementedError, "Subclasses must implement #url"
@@ -50,7 +50,7 @@ module SpecialAppCards
         friendly_name: friendly_name,
         tagline: tagline,
         icon: icon,
-        icon_class: icon_class,
+        icon_background: icon_background,
         url: url,
         launch_text: launch_text,
         special: true

@@ -12,7 +12,7 @@ module SpecialAppCards
 
     def icon = "blueprint.png"
 
-    def icon_class = "blueprint-icon"
+    def icon_background = "#0E305B"
 
     def url = "https://blueprint.hackclub.com/?utm_source=HCA"
 
