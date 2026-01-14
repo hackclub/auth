@@ -334,7 +334,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :identity_webauthn_credentials, path: 'passkeys', only: [ :index, :new, :create, :destroy ] do
+  resources :identity_webauthn_credentials, path: "passkeys", only: [ :index, :new, :create, :destroy ] do
     collection do
       post :options
     end
