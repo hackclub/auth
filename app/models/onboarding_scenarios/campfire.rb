@@ -15,8 +15,9 @@ module OnboardingScenarios
     def next_action = :home
 
     def logo_path = "images/campfire/cf-logo.png"
-    def logo_class = "campfire-logo"
     def background_path = "images/campfire/campfire.png"
+
+    def card_attributes = { wide_logo: true }
     def dark_mode_background_path = "images/campfire/campfire.png"
   end
 end

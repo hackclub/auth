@@ -15,8 +15,9 @@ module OnboardingScenarios
     def next_action = :home
 
     def logo_path = "images/blueprint/blueprint.png"
-    def logo_class = "blueprint-logo"
     def background_path = "images/blueprint/bg-img.png"
+
+    def card_attributes = { wide_logo: true }
     def dark_mode_background_path = "images/blueprint/bg-img.png"
   end
 end

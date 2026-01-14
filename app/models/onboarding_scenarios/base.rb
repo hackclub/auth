@@ -98,8 +98,13 @@ module OnboardingScenarios
     # Branding - override to customize logo/background for welcome, OAuth, and portal pages
     # logo_path: vite asset path like "images/flavortown.png"
     def logo_path = nil
-    def logo_class = nil
     def background_path = nil
+
+    # Card attributes for auth/onboarding card styling
+    # Override per-scenario as needed
+    def card_attributes
+      { wide_logo: false }
+    end
     def dark_mode_background_path = background_path
 
     # Custom dialogue flow hooks - override in subclasses
