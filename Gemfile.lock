@@ -571,7 +571,7 @@ GEM
       concurrent-ruby (~> 1.0, >= 1.0.2)
     serve_byte_range (1.0.0)
       rack (>= 1.0)
-    slack-ruby-client (2.7.0)
+    slack-ruby-client (3.1.0)
       faraday (>= 2.0.1)
       faraday-mashify
       faraday-multipart
@@ -716,7 +716,7 @@ DEPENDENCIES
   saml2 (~> 3.2)
   sentry-rails (~> 5.22)
   sentry-ruby (~> 5.22)
-  slack-ruby-client (~> 2.6)
+  slack-ruby-client (~> 3.1)
   slocks (~> 0.1.0)
   superform (~> 0.5.1)
   thruster
