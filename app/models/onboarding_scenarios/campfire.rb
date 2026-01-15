@@ -12,6 +12,8 @@ module OnboardingScenarios
 
     def slack_user_type = :multi_channel_guest
 
+    def slack_channels = chans(:campfire_flagship, :campfire_flagship_bulletin, :campfire_flagship_help)
+
     def next_action = :home
 
     def logo_path = "images/campfire/cf-logo.png"
