@@ -40,6 +40,10 @@ scope "legal_name", identity: do
   ident[:legal_last_name] = identity.legal_last_name
 end
 
+scope "birthdate", identity: do
+  ident[:birthday] = identity.birthday
+end
+
 scope "address", identity: do
   ident[:addresses] = identity.addresses.map do |address|
     render address
