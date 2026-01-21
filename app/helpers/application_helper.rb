@@ -64,7 +64,7 @@ module ApplicationHelper
   end
 
   def google_places_api_script_tag
-    api_key = Rails.application.credentials.dig(:google, :places_api_key)
+    api_key = ENV["GOOGLE_PLACES_API_KEY"]
     return unless api_key.present?
 
     tag.script(src: "https://maps.googleapis.com/maps/api/js?key=#{api_key}&loading=async&libraries=places&callback=onGoogleMapsLoaded", async: true, defer: true)

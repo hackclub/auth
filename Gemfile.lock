@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/24c02/valid_email2.git
-  revision: e8fafd6edd52447416f8311af41936a0873eb34a
+  revision: 069186cbb59aa6d3faf6feedaec4e39565f9d09a
   specs:
     valid_email2 (7.0.13)
       activemodel (>= 6.0)
