@@ -92,6 +92,31 @@ development:
               friendly_name: Surname
               is_required: false
       allow_unsigned_requests: true
+    - slug: airtable
+      allow_idp_initiated: true
+      friendly_name: Airtable
+      tagline: spreadsheets, but make it a database
+      icon: airtable.png
+      entity_id: https://airtable.com/sso/metadata0418.xml
+      allowed_emails:
+        - nora@hackclub.com
+        - max@hackclub.com
+      assertion_consumer_services:
+        - location: https://airtable.com/auth/ssoCallback
+          binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+      attribute_consuming_services:
+        - name: Airtable User Profile
+          requested_attributes:
+            - name: email
+              friendly_name: Email Address
+              is_required: true
+            - name: firstName
+              friendly_name: First Name
+              is_required: false
+            - name: lastName
+              friendly_name: Last Name
+              is_required: false
+      allow_unsigned_requests: true
 
   idp_metadata:
     entity_id: https://identity.hackclub.dev
@@ -233,3 +258,28 @@ production:
         Nw==
         -----END CERTIFICATE-----
       attribute_format: slack
+    - slug: airtable
+      allow_idp_initiated: true
+      friendly_name: Airtable
+      tagline: spreadsheets, but make it a database
+      icon: airtable.png
+      entity_id: https://airtable.com/sso/metadata0418.xml
+      allowed_emails:
+        - nora@hackclub.com
+        - max@hackclub.com
+      assertion_consumer_services:
+        - location: https://airtable.com/auth/ssoCallback
+          binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+      attribute_consuming_services:
+        - name: Airtable User Profile
+          requested_attributes:
+            - name: email
+              friendly_name: Email Address
+              is_required: true
+            - name: firstName
+              friendly_name: First Name
+              is_required: false
+            - name: lastName
+              friendly_name: Last Name
+              is_required: false
+      allow_unsigned_requests: true

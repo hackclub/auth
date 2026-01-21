@@ -20,6 +20,7 @@ class SAMLController < ApplicationController
     end
 
     return unless ensure_sp_configured!(slug: params[:slug])
+    return unless check_allowed_emails!
 
     unless @sp_config[:allow_idp_initiated]
       @error = "This SP is not configured for IdP-initiated authentication"
@@ -56,6 +57,8 @@ class SAMLController < ApplicationController
     unless current_identity
       redirect_to saml_welcome_path(return_to: request.fullpath) and return
     end
+
+    return unless check_allowed_emails!
 
     set_honeybadger_context
 
@@ -276,6 +279,18 @@ class SAMLController < ApplicationController
     unless @sp_config.present?
       @error = "Service Provider not configured"
       render :error, status: :bad_request and return false
+    end
+
+    true
+  end
+
+  def check_allowed_emails!
+    return true unless @sp_config[:allowed_emails].present?
+    return true unless current_identity
+
+    unless @sp_config[:allowed_emails].include?(current_identity.primary_email)
+      @error = "You are not authorized to access this service"
+      render :error, status: :forbidden and return false
     end
 
     true
