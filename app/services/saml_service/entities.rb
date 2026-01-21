@@ -88,6 +88,7 @@ module SAMLService
                 allow_unsigned_requests: sp_config[:allow_unsigned_requests] || false,
                 attribute_format: sp_config[:attribute_format]&.to_sym || :default,
                 allowed_attributes: sp_config[:allowed_attributes],
+                allowed_emails: sp_config[:allowed_emails],
                 signing_certificate: load_sp_certificate(sp_config[:signing_certificate]),
                 slug: sp_config[:slug]
             }
