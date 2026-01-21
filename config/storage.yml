@@ -22,9 +22,9 @@ encrypted_local_disk:
 
 prod_id_documents:
   service: EncryptedS3
-  endpoint: <%= Rails.application.credentials.dig(:cloudflare, :endpoint) %>
-  access_key_id: <%= Rails.application.credentials.dig(:cloudflare, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:cloudflare, :secret_access_key) %>
+  endpoint: <%= ENV["CLOUDFLARE_R2_ENDPOINT"] %>
+  access_key_id: <%= ENV["CLOUDFLARE_R2_ACCESS_KEY_ID"] %>
+  secret_access_key: <%= ENV["CLOUDFLARE_R2_SECRET_ACCESS_KEY"] %>
   bucket: hackclub-identity-docs-prod
   region: auto
   private_url_policy: stream

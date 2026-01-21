@@ -29,7 +29,7 @@ class Slack::NotifyGuardiansJob < ApplicationJob
     verf = identity.latest_verification
 
     context_line = "*ref:* <#{backend_identity_url(identity)}|#{identity.public_id}> / <#{backend_verification_url(verf)}|#{verf.public_id}>"
-    HTTP.post(Rails.application.credentials.slack.adult_webhook, body: {
+    HTTP.post(ENV["SLACK_ADULT_WEBHOOK_URL"], body: {
       "blocks": [
         {
           "type": "section",
