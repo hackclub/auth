@@ -97,7 +97,7 @@ development:
       friendly_name: Airtable
       tagline: spreadsheets, but make it a database
       icon: airtable.png
-      entity_id: https://airtable.com/sso/metadata0418.xml
+      entity_id: https://airtable.com/sso/metadata.xml
       allowed_emails:
         - nora@hackclub.com
         - max@hackclub.com
@@ -263,7 +263,7 @@ production:
       friendly_name: Airtable
       tagline: spreadsheets, but make it a database
       icon: airtable.png
-      entity_id: https://airtable.com/sso/metadata0418.xml
+      entity_id: https://airtable.com/sso/metadata.xml
       allowed_emails:
         - nora@hackclub.com
         - max@hackclub.com
