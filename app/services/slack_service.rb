@@ -10,6 +10,9 @@ module SlackService
       client.users_lookupByEmail(email:).dig("user", "id")
     rescue => e
       Rails.logger.warn "Could not find Slack user by email #{email}: #{e.message}" unless e.message == "users_not_found"
+      unless e.message == "users_not_found"
+        Sentry.capture_exception(e, tags: { component: "slack" }, extra: { email: email })
+      end
       nil
     end
 
@@ -29,14 +32,18 @@ module SlackService
       true
     rescue => e
       Rails.logger.error "Failed to assign user to workspace: #{e.message}"
-      Sentry.capture_exception(e, extra: {
-        slack_user_id: user_id,
-        team_id: team_id,
-        channel_ids: channel_ids,
-        user_type: user_type,
-        is_restricted: is_restricted,
-        is_ultra_restricted: is_ultra_restricted
-      })
+      Sentry.capture_exception(e,
+        level: :error,
+        tags: { component: "slack", critical: true, operation: "assign_to_workspace" },
+        extra: {
+          slack_user_id: user_id,
+          team_id: team_id,
+          channel_ids: channel_ids,
+          user_type: user_type,
+          is_restricted: is_restricted,
+          is_ultra_restricted: is_ultra_restricted
+        }
+      )
       false
     end
 
@@ -46,6 +53,14 @@ module SlackService
       true
     rescue => e
       Rails.logger.error "Failed to promote user: #{e.message}"
+      Sentry.capture_exception(e,
+        level: :error,
+        tags: { component: "slack", critical: true, operation: "promote_user" },
+        extra: {
+          slack_user_id: user_id,
+          team_id: team_id
+        }
+      )
       false
     end
 
@@ -57,6 +72,14 @@ module SlackService
       true
     rescue => e
       Rails.logger.error "Failed to add user to channels: #{e.message}"
+      Sentry.capture_exception(e,
+        level: :error,
+        tags: { component: "slack", critical: true, operation: "add_to_channels" },
+        extra: {
+          slack_user_id: user_id,
+          channel_ids: channel_ids
+        }
+      )
       false
     end
 
@@ -71,6 +94,7 @@ module SlackService
       teams.include?(team_id) ? :in_workspace : :not_in_workspace
     rescue => e
       Rails.logger.warn "Could not check workspace status for user #{user_id}: #{e.message}"
+      Sentry.capture_exception(e, tags: { component: "slack" }, extra: { slack_user_id: user_id })
       :unknown
     end
   end

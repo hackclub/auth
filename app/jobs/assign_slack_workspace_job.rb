@@ -14,6 +14,7 @@ class AssignSlackWorkspaceJob < ApplicationJob
       Sentry.capture_message(
         "AssignSlackWorkspaceJob failed to assign user to workspace",
         level: :error,
+        tags: { component: "slack", critical: true, operation: "assign_workspace_job" },
         extra: {
           slack_id: slack_id,
           user_type: user_type,
