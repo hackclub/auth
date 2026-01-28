@@ -93,23 +93,12 @@
 
         <div x-show="error" x-cloak style="margin: 1rem 0;">
           <div class="alert alert-error" x-text="error"></div>
-          <button @click="authenticate()" class="btn" style="width: 100%; margin-top: 1rem;">
-            Try again
-          </button>
-        </div>
-
-        <div x-show="!browserSupported" x-cloak>
-          <div class="alert alert-error">
-            Your browser doesn't support passkeys. Please use a different verification method.
-          </div>
-        </div>
-
+          <button
         <%= form_with url: verify_step_up_webauthn_path, method: :post, local: true, id: "step-up-webauthn-form" do |f| %>
           <%= f.hidden_field :action_type, value: @action %>
           <%= f.hidden_field :return_to, value: @return_to %>
           <%= f.hidden_field :credential_data, id: "step-up-credential-data" %>
-        <% end %>
-      </div>
+        <% end %>>
 
       <footer>
         <p><%= link_to t(".use_different_method"), new_step_up_path(action_type: @action, return_to: @return_to) %></p>
