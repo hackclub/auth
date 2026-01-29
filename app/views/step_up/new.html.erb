@@ -99,9 +99,12 @@
         </div>
 
         <div x-show="!browserSupported" x-cloak>
-          <div class="alert alert-error">
+          <div class="alert alert-warning" style="margin-bottom: 1rem;">
             Your browser doesn't support passkeys. Please use a different verification method.
           </div>
+          <p style="text-align: center;">
+            <%= link_to "Choose a different method →", new_step_up_path(action_type: @action, return_to: @return_to), class: "btn" %>
+          </p>
         </div>
 
         <%= form_with url: verify_step_up_webauthn_path, method: :post, local: true, id: "step-up-webauthn-form" do |f| %>
