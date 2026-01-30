@@ -8,6 +8,10 @@ production:
   lounge: C0266FRGV
   pyramid-scheme: C07N1TCHY3T
   waiting_room: C0A24UHUMA7
+  #Below: new welcome channel added Jan 2026. This will 
+  #need to be replaced with a channel name once we implement 
+  #automatic retiring and renaming of the welcome channel //EPS
+  welcome_to_hack_club: C0A9PMV58R5
 shared:
   announcements: C09N763H20Z
   library: C09MMSJSUKV
