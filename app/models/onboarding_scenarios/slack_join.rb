@@ -10,7 +10,7 @@ module OnboardingScenarios
       [ :first_name, :last_name, :primary_email, :birthday, :country ]
     end
 
-    def slack_user_type = :single_channel_guest
+    def slack_user_type = :multi_channel_guest
 
     def next_action = :slack
 
