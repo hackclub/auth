@@ -1,6 +1,6 @@
 module RalseiEngine
   class << self
-    RALSEI_PFP = "https://hc-cdn.hel1.your-objectstorage.com/s/v3/6cc8caeeff906502bfe60ba2f3db34cdf79a237d_ralsei2.png"
+    RALSEI_PFP = "https://cdn.hackclub.com/019c2993-4a83-73d4-9e3a-96cf29881572/flaming_skull.jpg"
 
     def send_first_message(identity)
       scenario = identity.onboarding_scenario_instance
@@ -8,8 +8,6 @@ module RalseiEngine
       first_step = scenario&.first_step || :intro
       send_step(identity, first_step)
     end
-
-    def send_first_message_part2(identity) = send_step(identity, :hacker_values)
 
     def handle_tutorial_agree(identity)
       Rails.logger.info "RalseiEngine: #{identity.public_id} agreed to tutorial"
@@ -98,7 +96,7 @@ module RalseiEngine
 
       client.chat_postMessage(
         channel: channel_id,
-        username: scenario&.bot_name || "Ralsei",
+        username: scenario&.bot_name || "The Flaming Skull of Welcome",
         icon_url: scenario&.bot_icon_url || RALSEI_PFP,
         **JSON.parse(payload, symbolize_names: true),
         unfurl_links: false,
