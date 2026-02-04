@@ -17,6 +17,6 @@ module OnboardingScenarios
 
         def slack_channels = Rails.configuration.slack_channels.slice(:waiting_room).values
 
-        def promotion_channels = Rails.configuration.slack_channels.slice(:announcements, :welcome, :ship, :neighbourhood, :library, :lounge).values
+        def promotion_channels = Rails.configuration.slack_channels.slice(:announcements, :happenings, :community, :hardware, :code, :ship, :neighbourhood, :library, :lounge).values
     end
 end
