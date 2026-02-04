@@ -7,6 +7,8 @@ module RalseiEngine
       scenario&.before_first_message
       first_step = scenario&.first_step || :intro
       send_step(identity, first_step)
+
+      Tutorial::ScrollUpReminderJob.set(wait: 25.seconds).perform_later(identity)
     end
 
     def handle_tutorial_agree(identity)
