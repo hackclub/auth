@@ -63,8 +63,7 @@ module OnboardingScenarios
     # Each step maps to a template and optionally defines the next step
     def dialogue_flow
       {
-        intro: { template: "tutorial/01_intro", next: :hacker_values },
-        hacker_values: { template: "tutorial/02_hacker_values", next: :welcome },
+        intro: { template: "tutorial/intro", next: :welcome },
         welcome: { template: "tutorial/03_welcome", next: nil }
       }
     end

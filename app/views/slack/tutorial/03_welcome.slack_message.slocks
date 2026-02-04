@@ -1,32 +1,16 @@
-chan_announcements = Rails.configuration.slack_channels.announcements
-chan_library = Rails.configuration.slack_channels.library
-chan_ship = Rails.configuration.slack_channels.ship
-chan_welcome = Rails.configuration.slack_channels.welcome
+chan_welcome_to_hc = Rails.configuration.slack_channels.welcome_to_hack_club
 chan_hq_eng = Rails.configuration.slack_channels.hq_eng
-chan_neighbourhood = Rails.configuration.slack_channels.neighbourhood
 
 case @identity.promote_click_count
 when 0
   header "🎉 welcome in!"
 
   section <<~TEXT, markdown: true
-    And with that, you're now a full-fledged member of the Hack Club online community!
+    Great! The Code of Conduct is enforced by the Fire Department. DM <@U07K4TS9HQE> if you ever have a concern.
 
-    You feel a gentle warmth as countless friendly voices echo around you, and you notice a vast network of tunnels, channels, and rooms stretching peacefully into the distance. Your heart fills with quiet excitement. Ralsei adjusts his glasses and offers you a kind smile.
+    You now have access to all channels! Reload Slack to see them.
 
-    Oh! Um, if you'd like... I could show you some of my favorite places? I think you'll really like them!
-  TEXT
-
-  divider
-
-  section <<~TEXT, markdown: true
-    *<##{chan_announcements}>* is where you'll hear all the important news. It's very helpful!
-
-    *<##{chan_library}>* lets you explore all the wonderful channels and activity around Slack. There's so much to discover!
-
-    *<##{chan_ship}>* is where you can see amazing projects from people just like you! Everyone works so hard on them.
-
-    But most importantly... you simply _must_ introduce yourself in <##{chan_welcome}>*! There are so many kind and welcoming friends there who would love to meet you. You could tell them about yourself - who you are, what you enjoy doing, and anything else you'd like to share. Everyone's really nice, I promise! Don't be nervous - they'll be so happy you're here!
+    Visit <##{chan_welcome_to_hc}> for questions, advice, or just to introduce yourself!
   TEXT
 
 when 1
@@ -35,7 +19,7 @@ when 1
   section <<~TEXT, markdown: true
     Oh! Um, it looks like you're already a full member of Hack Club! That's wonderful!
 
-    Ralsei adjusts his glasses and smiles warmly at you.
+    The Skull's flames flicker warmly.
 
     I'm so glad you're here. How have you been enjoying the community? Have you made any new friends yet?
   TEXT
@@ -65,7 +49,7 @@ when 2
   section <<~TEXT, markdown: true
     Oh! You're back! That's okay, I don't mind at all.
 
-    Ralsei fidgets with his scarf a little nervously.
+    The Skull's flames flicker nervously.
 
     Is everything alright? Did you need help finding something specific?
   TEXT
@@ -74,7 +58,7 @@ when 3
   header "oh, hello!"
 
   section <<~TEXT, markdown: true
-    Ralsei looks up from his book and smiles gently.
+    The Skull's eye sockets glow gently.
 
     You keep coming back here! I hope that means you're enjoying Hack Club. Or... um, did you need something? I'm here if you want to talk!
 
@@ -85,7 +69,7 @@ when 4
   header "hi there..."
 
   section <<~TEXT, markdown: true
-    Ralsei blinks and tilts his head slightly.
+    The Skull tilts slightly, flames flickering.
 
     Oh! It's you again! Um... you know you're already a full member, right? The button doesn't do anything new after the first time...
 
@@ -96,7 +80,7 @@ when 5
   header "okay so..."
 
   section <<~TEXT, markdown: true
-    Ralsei sets down his tea with a gentle *clink*.
+    The Skull sets down its tea with a gentle *clink*.
 
     I really appreciate the visits, but... um... are you okay? Is the button stuck? Do you need me to get someone from <##{chan_hq_eng}> to help debug this?
 
@@ -107,7 +91,7 @@ when 6
   header "um."
 
   section <<~TEXT, markdown: true
-    Ralsei adjusts his glasses and tries to maintain his composure.
+    The Skull's flames dim slightly as it tries to maintain composure.
 
     Okay, I'm starting to think you're doing this on purpose now. Which is... fine! I'm not mad! I could never be mad at you!
 
@@ -118,11 +102,11 @@ when 7
   header "seriously?"
 
   section <<~TEXT, markdown: true
-    Ralsei sighs softly and gives you a look that's somehow both exasperated and fond.
+    The Skull sighs softly, flames flickering with exasperation and fondness.
 
     You're really committed to this bit, aren't you? I respect that, honestly.
 
-    *He takes a long sip of tea.*
+    *It takes a long sip of tea.*
 
     At this point I think we're friends. Hi, friend. Please go make something cool and share it in <##{chan_ship}>. For me? 🥺
   TEXT
@@ -131,11 +115,11 @@ when 8
   header "OKAY LISTEN—"
 
   section <<~TEXT, markdown: true
-    Ralsei takes a deep breath and tries to stay calm.
+    The Skull takes a deep breath and tries to stay calm.
 
     I'm a very patient person. I really am! But you've clicked this button NINE times now. NINE!
 
-    *He adjusts his hat nervously.*
+    *Its flames flicker nervously.*
 
     I'm not angry! I'm just... concerned! Are you trapped in some kind of loop? Do you need help? Blink twice if you're being held hostage by the button!
 
@@ -148,11 +132,11 @@ else
     header "here we go again..."
 
     section <<~TEXT, markdown: true
-      Ralsei looks up from his book with a knowing smile.
+      The Skull's eye sockets glow with a knowing warmth.
 
       Oh! You're back again! At this point I think we should just schedule regular tea times together.
 
-      *He pours you an imaginary cup of tea.*
+      *It pours you an imaginary cup of tea.*
 
       So... how's your day going? Made any cool projects lately? No? Just clicking buttons? That's okay too! 💚
     TEXT
@@ -161,7 +145,7 @@ else
     header "my old friend!"
 
     section <<~TEXT, markdown: true
-      Ralsei waves enthusiastically.
+      The Skull's flames wave enthusiastically.
 
       Welcome back to the button-clicking dimension! Population: you and me!
 
@@ -174,11 +158,11 @@ else
     header "ah, there you are!"
 
     section <<~TEXT, markdown: true
-      Ralsei doesn't even look surprised anymore.
+      The Skull doesn't even look surprised anymore.
 
       You know what? I've given up trying to redirect you. This is your journey now. You're the Button Clicker. It's your destiny.
 
-      *He adjusts his scarf dramatically.*
+      *Its flames flare dramatically.*
 
       I'm just here to provide moral support and the occasional reminder that you're already a full member. Which you are. Still. Forever. 💚
     TEXT
@@ -187,7 +171,7 @@ else
     header "the prophecy continues..."
 
     section <<~TEXT, markdown: true
-      Ralsei is now just casually reading a book.
+      The Skull is now just casually reading a book.
 
       Oh hey. Yeah. You're already a member. Channels are over there. *gestures vaguely*
 
@@ -200,7 +184,7 @@ else
     header "one more time!"
 
     section <<~TEXT, markdown: true
-      Ralsei sets down his book and smiles warmly.
+      The Skull sets down its book, flames glowing warmly.
 
       You know what? I actually appreciate your dedication. In a world where people give up so easily, you've clicked this button #{@identity.promote_click_count + 1} times.
 
