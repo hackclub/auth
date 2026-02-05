@@ -59,6 +59,13 @@ module OnboardingScenarios
     # Whether Ralsei should message users via DM instead of a channel
     def use_dm_channel? = false
 
+    # Whether to send an ephemeral copy of the first message in a channel
+    # Useful for scenarios where users might click away and lose access to the initial message
+    def send_ephemeral_in_channel? = false
+
+    # Channel ID to send ephemeral message in (if send_ephemeral_in_channel? is true)
+    def ephemeral_channel = nil
+
     # Define the dialogue flow as an ordered list of steps
     # Each step maps to a template and optionally defines the next step
     def dialogue_flow
