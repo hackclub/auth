@@ -105,7 +105,7 @@ gem "valid_email2", github: "24c02/valid_email2"
 
 gem "rails_semantic_logger", "~> 4.17"
 
-gem "acts_as_paranoid", "~> 0.10.3"
+gem "acts_as_paranoid", "~> 0.11.0"
 
 gem "console1984", "~> 0.2.2"
 
