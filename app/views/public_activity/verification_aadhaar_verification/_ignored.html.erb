@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  marked an <%= link_to "aadhaar verification", backend_verification_path(activity.trackable) %> as ignored because <%= activity.parameters[:reason] %>
+<% end %>
