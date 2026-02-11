@@ -65,22 +65,22 @@ module SlackService
     end
 
     def add_to_channels(user_id:, channel_ids:)
+      failed = []
       Array(channel_ids).each do |channel_id|
-        client.conversations_invite(channel: channel_id, users: user_id)
-        Rails.logger.info "Added user #{user_id} to channel #{channel_id}"
+        begin
+          client.conversations_invite(channel: channel_id, users: user_id)
+          Rails.logger.info "Added user #{user_id} to channel #{channel_id}"
+        rescue => e
+          Rails.logger.error "Failed to add user #{user_id} to channel #{channel_id}: #{e.message}"
+          Sentry.capture_exception(e,
+            level: :error,
+            tags: { component: "slack", operation: "add_to_channels" },
+            extra: { slack_user_id: user_id, channel_id: channel_id }
+          )
+          failed << channel_id
+        end
       end
-      true
-    rescue => e
-      Rails.logger.error "Failed to add user to channels: #{e.message}"
-      Sentry.capture_exception(e,
-        level: :error,
-        tags: { component: "slack", critical: true, operation: "add_to_channels" },
-        extra: {
-          slack_user_id: user_id,
-          channel_ids: channel_ids
-        }
-      )
-      false
+      failed.empty?
     end
 
     def user_workspace_status(user_id:)

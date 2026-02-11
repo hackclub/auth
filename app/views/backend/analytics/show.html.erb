@@ -256,6 +256,38 @@
 
     <hr>
 
+    <div class="section">
+      <div class="section-header"><h3>promotions by flow</h3></div>
+      <div class="section-content">
+        <% if @promotion_breakdown.any? %>
+          <table>
+            <thead>
+              <tr>
+                <th>flow</th>
+                <th>signups</th>
+                <th>promoted</th>
+                <th>rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @promotion_breakdown.each do |flow, stats| %>
+                <tr>
+                  <td><%= flow %></td>
+                  <td><b><%= stats[:total] %></b></td>
+                  <td><b><%= stats[:promoted] %></b></td>
+                  <td style="color: <%= stats[:rate] > 50 ? 'var(--color-green-50)' : stats[:rate] < 20 ? 'var(--color-red-50)' : 'inherit' %>;"><b><%= stats[:rate] %>%</b></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <div class="empty-state">no data</div>
+        <% end %>
+      </div>
+    </div>
+
+    <hr>
+
     <div class="two-col">
       <div class="section">
         <div class="section-header"><h3>login funnel</h3></div>

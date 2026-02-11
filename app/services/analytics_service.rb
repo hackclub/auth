@@ -123,6 +123,21 @@ class AnalyticsService
       .to_h
   end
 
+  # Promotion breakdown by onboarding flow (queries Identity directly)
+  def promotion_breakdown
+    scope = Identity.where(created_at: @start_date..@end_date)
+    scope = scope.where(onboarding_scenario: @scenario) if @scenario
+
+    totals = scope.group(:onboarding_scenario).count
+    promoted = scope.where("promote_click_count > 0").group(:onboarding_scenario).count
+
+    totals.map do |scenario, total|
+      prom = promoted[scenario] || 0
+      rate = total > 0 ? ((prom.to_f / total) * 100).round(1) : 0
+      [scenario || "default", { total: total, promoted: prom, rate: rate }]
+    end.sort_by { |_, v| -v[:total] }.to_h
+  end
+
   # Country breakdown
   def country_breakdown
     scope = events_in_range.by_name("signup.started")

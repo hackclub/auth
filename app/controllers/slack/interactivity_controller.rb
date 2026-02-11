@@ -24,7 +24,7 @@ class Slack::InteractivityController < ActionController::API
     action_id = action["action_id"]
 
     case action_id
-    when "tutorial_agree"
+    when "tutorial_agree", "coc_continue"
       Tutorial::AgreeJob.perform_later(current_identity)
     else
       Ralsei::HandleActionJob.perform_later(current_identity, action_id)
