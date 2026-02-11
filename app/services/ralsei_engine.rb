@@ -32,6 +32,7 @@ module RalseiEngine
         Rails.logger.info "RalseiEngine: #{identity.public_id} is already a full member"
       end
 
+      track_dialogue_event("dialogue.promoted", scenario: scenario&.class&.slug)
       scenario&.after_promotion
       send_step(identity, :welcome)
       identity.increment!(:promote_click_count, 1)
