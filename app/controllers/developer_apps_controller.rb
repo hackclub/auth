@@ -1,4 +1,5 @@
 Fetching https://github.com/24c02/valid_email2.git
+Fetching https://github.com/24c02/valid_email2.git
 class DeveloperAppsController < ApplicationController
   before_action :require_developer_mode
   before_action :set_app, only: [ :show, :edit, :update, :destroy, :rotate_credentials ]
@@ -44,12 +45,12 @@ class DeveloperAppsController < ApplicationController
     redirect_to developer_apps_path, notice: t(".success"), status: :see_other
   end
 
-  private
-
   def rotate_credentials
     @app.rotate_credentials!
     redirect_to developer_app_path(@app), notice: t(".success")
   end
+
+  private
 
   def require_developer_mode
     unless current_identity.developer_mode?

@@ -37,12 +37,13 @@
       <% end %>
       <small class="usn" style="display: block; margin-top: 0.25rem;"><%= t ".auth_link_hint" %></small>
     </div>
-  </div>
-  </div>
-    <%= button_to t(".rotate_credentials"), rotate_credentials_developer_app_path(@app), method: :post, class: "danger small-btn",
-        form: { "hx-confirm": t(".rotate_confirm") } %>
-  <small class="usn" style="display: block; margin-top: 0.5rem;"><%= t ".rotate_hint" %></small>
-</section>
+    <div>
+         <%= button_to t(".rotate_credentials"), rotate_credentials_developer_app_path(@app), method: :post, class: "danger small-btn",
+             form: { "hx-confirm": t(".rotate_confirm") } %>
+         <small class="usn" style="display: block; margin-top: 0.25rem;"><%= t ".rotate_hint" %></small>
+       </div>
+     </div>
+   </section>
 
 <section class="section-card" style="margin-bottom: 1.5rem;">
   <h3><%= t ".configuration" %></h3>

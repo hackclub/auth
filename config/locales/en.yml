@@ -186,6 +186,9 @@ en:
       edit_app: Edit App
       delete_app: Delete App
       delete_confirm: Are you sure you want to delete this app? This action cannot be undone and will revoke all existing tokens.
+      rotate_credentials: Rotate Secret & API Key
+      rotate_confirm: Are you sure? This will generate a new client secret and API key. The old ones will stop working immediately.
+      rotate_hint: If your credentials have been compromised, rotate them here.
     new:
       title: Create New OAuth App
       back_to_apps: ← Back to Apps
