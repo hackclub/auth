@@ -1,3 +1,4 @@
+Fetching https://github.com/24c02/valid_email2.git
 # == Schema Information
 #
 # Table name: oauth_applications
@@ -93,6 +94,12 @@ class Program < ApplicationRecord
 
   def onboarding_scenario_instance(identity = nil)
     onboarding_scenario_class&.new(identity)
+  end
+
+  def rotate_credentials!
+    self.secret = SecureRandom.hex(32)
+    self.program_key = "prgmk." + SecureRandom.hex(32)
+    save!
   end
 
   def self.find_by_redirect_uri_host(url)

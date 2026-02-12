@@ -1,3 +1,4 @@
+Fetching https://github.com/24c02/valid_email2.git
 class ProgramPolicy < ApplicationPolicy
   def index? = user_is_program_manager? || user_has_assigned_programs?
 
@@ -14,6 +15,8 @@ class ProgramPolicy < ApplicationPolicy
   def update_scopes? = user_is_program_manager?
 
   def update_onboarding_scenario? = user&.super_admin?
+
+  def rotate_credentials? = user_is_program_manager?
 
   class Scope < Scope
     def resolve

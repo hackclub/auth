@@ -1,6 +1,7 @@
+Fetching https://github.com/24c02/valid_email2.git
 class DeveloperAppsController < ApplicationController
   before_action :require_developer_mode
-  before_action :set_app, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_app, only: [ :show, :edit, :update, :destroy, :rotate_credentials ]
 
   def index
     @apps = current_identity.owned_developer_apps.order(created_at: :desc)
@@ -44,6 +45,11 @@ class DeveloperAppsController < ApplicationController
   end
 
   private
+
+  def rotate_credentials
+    @app.rotate_credentials!
+    redirect_to developer_app_path(@app), notice: t(".success")
+  end
 
   def require_developer_mode
     unless current_identity.developer_mode?
