@@ -147,7 +147,7 @@ GEM
     block_cipher_kit (0.0.4)
     bootsnap (1.21.0)
       msgpack (~> 1.2)
-    brakeman (8.0.1)
+    brakeman (8.0.2)
       racc
     browser (6.2.0)
     builder (3.3.0)
