@@ -1,7 +1,3 @@
-Fetching https://github.com/24c02/valid_email2.git
-Fetching https://github.com/24c02/valid_email2.git
-Fetching https://github.com/24c02/valid_email2.git
-Fetching https://github.com/24c02/valid_email2.git
 # == Route Map
 #
 #                                   Prefix Verb   URI Pattern                                                                                       Controller#Action
@@ -231,10 +227,11 @@ Rails.application.routes.draw do
     end
 
     resources :programs do
-    member do
-      post :rotate_credentials
+      member do
+        post :rotate_credentials
+      end
     end
-  end
+
 
     post "/break_glass", to: "break_glass#create"
 

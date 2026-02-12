@@ -1,5 +1,3 @@
-Fetching https://github.com/24c02/valid_email2.git
-Fetching https://github.com/24c02/valid_email2.git
 class DeveloperAppsController < ApplicationController
   before_action :require_developer_mode
   before_action :set_app, only: [ :show, :edit, :update, :destroy, :rotate_credentials ]

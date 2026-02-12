@@ -1,4 +1,3 @@
-Fetching https://github.com/24c02/valid_email2.git
 # == Schema Information
 #
 # Table name: oauth_applications

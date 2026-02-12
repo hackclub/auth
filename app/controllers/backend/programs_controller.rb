@@ -1,5 +1,3 @@
-Fetching https://github.com/24c02/valid_email2.git
-Fetching https://github.com/24c02/valid_email2.git
 class Backend::ProgramsController < Backend::ApplicationController
   before_action :set_program, only: [ :show, :edit, :update, :destroy, :rotate_credentials ]
 
@@ -67,7 +65,8 @@ class Backend::ProgramsController < Backend::ApplicationController
     authorize @program
     @program.rotate_credentials!
     redirect_to backend_program_path(@program), notice: "Credentials have been rotated. Make sure to update any integrations using the old secret/API key."
-      end
+  end
+
 
   private
 

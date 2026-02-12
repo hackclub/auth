@@ -1,4 +1,3 @@
-Fetching https://github.com/24c02/valid_email2.git
 class ProgramPolicy < ApplicationPolicy
   def index? = user_is_program_manager? || user_has_assigned_programs?
 
