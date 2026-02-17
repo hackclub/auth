@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  cancelled email change from <%= activity.parameters[:old_email] %> to <%= activity.parameters[:new_email] %>.
+<% end %>
