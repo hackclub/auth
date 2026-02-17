@@ -424,6 +424,8 @@ class Identity < ApplicationRecord
       return
     end
 
+    return unless Rails.env.production?
+
     if address.disposable?
       errors.add(:primary_email, I18n.t("errors.attributes.primary_email.temporary"))
       return
