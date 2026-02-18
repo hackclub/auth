@@ -85,7 +85,7 @@ class Identity < ApplicationRecord
 
   validates :first_name, :last_name, :country, :primary_email, :birthday, presence: true
   validates :primary_email, uniqueness: { conditions: -> { where(deleted_at: nil) } }
-  validate :validate_primary_email
+  validate :validate_primary_email, if: -> { new_record? || primary_email_changed? }
 
   validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, allow_blank: true
   validates :aadhaar_number, uniqueness: true, allow_blank: true
