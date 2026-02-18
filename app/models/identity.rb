@@ -11,6 +11,7 @@
 #  deleted_at                    :datetime
 #  first_name                    :string
 #  hq_override                   :boolean          default(FALSE)
+#  is_alum                       :boolean          default(FALSE)
 #  last_name                     :string
 #  legal_first_name              :string
 #  legal_last_name               :string
