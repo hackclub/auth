@@ -95,6 +95,12 @@ class Program < ApplicationRecord
     onboarding_scenario_class&.new(identity)
   end
 
+  def rotate_credentials!
+    self.secret = SecureRandom.hex(32)
+    self.program_key = "prgmk." + SecureRandom.hex(32)
+    save!
+  end
+
   def self.find_by_redirect_uri_host(url)
     return nil if url.blank?
     begin

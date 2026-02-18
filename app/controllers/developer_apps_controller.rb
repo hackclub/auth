@@ -1,6 +1,6 @@
 class DeveloperAppsController < ApplicationController
   before_action :require_developer_mode
-  before_action :set_app, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_app, only: [ :show, :edit, :update, :destroy, :rotate_credentials ]
 
   def index
     @apps = current_identity.owned_developer_apps.order(created_at: :desc)
@@ -41,6 +41,11 @@ class DeveloperAppsController < ApplicationController
     @app.create_activity :destroy, owner: current_identity, parameters: { name: app_name }
     @app.destroy
     redirect_to developer_apps_path, notice: t(".success"), status: :see_other
+  end
+
+  def rotate_credentials
+    @app.rotate_credentials!
+    redirect_to developer_app_path(@app), notice: t(".success")
   end
 
   private
