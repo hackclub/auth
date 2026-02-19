@@ -293,6 +293,7 @@ class Identity < ApplicationRecord
   end
 
   def under_13? = age <= 13
+  def eighteen_or_under? = age <= 18
 
   def locked? = locked_at.present?
 
