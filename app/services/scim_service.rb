@@ -286,6 +286,13 @@ module SCIMService
         }
       }
 
+      # Set timezone based on user's browser
+      tz = timezone_for_identity(identity)
+      if tz.present?
+        payload[:timezone] = tz
+        Rails.logger.info "Setting Slack timezone to #{tz} for #{identity.primary_email}"
+      end
+
       # Add guest extension for multi-channel guests
       if user_type == :multi_channel_guest
         payload[:schemas] << "urn:ietf:params:scim:schemas:extension:slack:guest:2.0:User"
@@ -293,6 +300,37 @@ module SCIMService
       end
 
       payload
+    end
+
+
+    def timezone_for_identity(identity)
+      # Prefer browser-detected timezone from the user's most recent session
+      session_tz = identity.sessions.order(created_at: :desc).pick(:timezone)
+      if session_tz.present?
+        begin
+          TZInfo::Timezone.get(session_tz)
+          return session_tz
+        rescue TZInfo::InvalidTimezoneIdentifier
+          Rails.logger.warn "Invalid session timezone '#{session_tz}' for identity #{identity.id}"
+        end
+      end
+
+      # Fall back to country-based timezone
+      country_code = identity.country
+      if country_code.present?
+        begin
+          country = TZInfo::Country.get(country_code)
+          zone_id = country.zone_identifiers.first
+          return zone_id if zone_id.present?
+        rescue TZInfo::InvalidCountryCode
+          Rails.logger.warn "Invalid country code '#{country_code}' for timezone lookup"
+        end
+      end
+
+      nil
+    rescue => e
+      Rails.logger.warn "Failed to determine timezone for identity #{identity.id}: #{e.message}"
+      nil
     end
   end
 end
