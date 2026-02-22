@@ -315,17 +315,17 @@ module SCIMService
         end
       end
 
-      # Fall back to country-based timezone
-      country_code = identity.country
-      if country_code.present?
-        begin
-          country = TZInfo::Country.get(country_code)
-          zone_id = country.zone_identifiers.first
-          return zone_id if zone_id.present?
-        rescue TZInfo::InvalidCountryCode
-          Rails.logger.warn "Invalid country code '#{country_code}' for timezone lookup"
-        end
-      end
+           # Fall back to country-based timezone
+           country_code = identity.country
+           if country_code.present?
+             begin
+               country = TZInfo::Country.get(country_code.to_s)
+               zone_id = country.zone_identifiers.first
+               return zone_id if zone_id.present?
+             rescue TZInfo::InvalidCountryCode
+               Rails.logger.warn "Invalid country code '#{country_code}' for timezone lookup"
+             end
+           end
 
       nil
     rescue => e
