@@ -12,7 +12,7 @@ class Components::PublicActivity::Snippet < Components::Base
         owner = @owner || @activity.owner
 
         if owner.nil?
-          i { "unknown" }
+          i { "System" }
         elsif owner.is_a?(::Backend::User)
           render Components::UserMention.new(owner)
         elsif owner.is_a?(::Identity)

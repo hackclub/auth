@@ -11,6 +11,7 @@
 #  deleted_at                    :datetime
 #  first_name                    :string
 #  hq_override                   :boolean          default(FALSE)
+#  is_alum                       :boolean          default(FALSE)
 #  last_name                     :string
 #  legal_first_name              :string
 #  legal_last_name               :string
@@ -84,7 +85,7 @@ class Identity < ApplicationRecord
 
   validates :first_name, :last_name, :country, :primary_email, :birthday, presence: true
   validates :primary_email, uniqueness: { conditions: -> { where(deleted_at: nil) } }
-  validate :validate_primary_email
+  validate :validate_primary_email, if: -> { new_record? || primary_email_changed? }
 
   validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, allow_blank: true
   validates :aadhaar_number, uniqueness: true, allow_blank: true
@@ -423,6 +424,8 @@ class Identity < ApplicationRecord
       errors.add(:primary_email, I18n.t("errors.attributes.primary_email.invalid_format"))
       return
     end
+
+    return unless Rails.env.production?
 
     if address.disposable?
       errors.add(:primary_email, I18n.t("errors.attributes.primary_email.temporary"))

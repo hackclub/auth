@@ -1,9 +1,10 @@
 @mixin banner-base {
+    display: flex;
+    align-items: center;
     border-radius: 10px;
     padding: .875rem 1.125rem;
     margin-bottom: 1rem;
     font-weight: 500;
-    vertical-align: center;
     box-shadow: 
         0 2px 6px rgba(0, 0, 0, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.3),

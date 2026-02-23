@@ -1,5 +1,10 @@
 chan_welcome_to_hc = Rails.configuration.slack_channels.welcome_to_hack_club
 chan_hq_eng = Rails.configuration.slack_channels.hq_eng
+chan_announcements = Rails.configuration.slack_channels.announcements
+chan_library = Rails.configuration.slack_channels.library
+chan_neighbourhood = Rails.configuration.slack_channels.neighbourhood
+chan_ship = Rails.configuration.slack_channels.ship
+chan_welcome = Rails.configuration.slack_channels.welcome_to_hack_club
 
 case @identity.promote_click_count
 when 0

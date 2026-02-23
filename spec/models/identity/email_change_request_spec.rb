@@ -35,6 +35,8 @@ RSpec.describe Identity::EmailChangeRequest do
     end
 
     it "rejects disposable email addresses" do
+      allow(Rails.env).to receive(:production?).and_return(true)
+
       request = build(:email_change_request, identity: identity, new_email: "test@mailinator.com")
       expect(request).not_to be_valid
       expect(request.errors[:new_email]).to include("cannot be a temporary email")
