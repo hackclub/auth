@@ -60,6 +60,11 @@
           <label>api key</label>
           <input type="text" value="<%= @program.program_key %>" readonly onclick="this.select()" data-click-to-copy autocomplete="off">
         </div>
+        <% if policy(@program).rotate_credentials? %>
+          <div class="form-row" style="margin-top: 0.5rem;">
+            <%= link_to "rotate secret & api key", rotate_credentials_backend_program_path(@program), method: :post, data: { confirm: "are you sure? this will invalidate the current secret and api key. any integrations using them will break." }, class: "btn btn-danger" %>
+          </div>
+          <% end %>
       </div>
     </div>
     <% if @program.redirect_uri.present? %>

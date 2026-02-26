@@ -226,7 +226,12 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :programs
+    resources :programs do
+      member do
+        post :rotate_credentials
+      end
+    end
+
 
     post "/break_glass", to: "break_glass#create"
 
@@ -356,7 +361,12 @@ Rails.application.routes.draw do
 
   resources :authorized_applications, only: [ :index, :destroy ]
 
-  resources :developer_apps, path: "developer/apps"
+  resources :developer_apps, path: "developer/apps" do
+    member do
+      post :rotate_credentials
+    end
+  end
+
 
   namespace :api do
     namespace :v1 do

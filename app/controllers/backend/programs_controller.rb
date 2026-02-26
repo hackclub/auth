@@ -1,5 +1,5 @@
 class Backend::ProgramsController < Backend::ApplicationController
-  before_action :set_program, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_program, only: [ :show, :edit, :update, :destroy, :rotate_credentials ]
 
   hint :list_navigation, on: :index
   hint :back_navigation, on: :index
@@ -60,6 +60,13 @@ class Backend::ProgramsController < Backend::ApplicationController
     @program.destroy
     redirect_to backend_programs_path, notice: "Program was successfully deleted."
   end
+
+  def rotate_credentials
+    authorize @program
+    @program.rotate_credentials!
+    redirect_to backend_program_path(@program), notice: "Credentials have been rotated. Make sure to update any integrations using the old secret/API key."
+  end
+
 
   private
 
