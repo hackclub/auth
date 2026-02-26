@@ -35,4 +35,6 @@ class StaticPagesController < ApplicationController
 
   def security
   end
+
+  def slack_id = render layout: "minimal"
 end
