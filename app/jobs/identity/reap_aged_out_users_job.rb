@@ -2,7 +2,7 @@ class Identity::ReapAgedOutUsersJob < ApplicationJob
   queue_as :default
 
   def perform
-    aged_out = Identity.where(ysws_eligible: true, hq_override: [false, nil])
+    aged_out = Identity.where(ysws_eligible: true, hq_override: [ false, nil ])
                        .where("birthday <= ?", 19.years.ago.to_date)
 
     reaped_count = 0
