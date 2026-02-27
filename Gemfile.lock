@@ -502,10 +502,10 @@ GEM
     rinku (2.0.6)
     rotp (6.3.0)
     rouge (4.7.0)
-    rqrcode (2.2.0)
+    rqrcode (3.2.0)
       chunky_png (~> 1.0)
-      rqrcode_core (~> 1.0)
-    rqrcode_core (1.2.0)
+      rqrcode_core (~> 2.0)
+    rqrcode_core (2.1.0)
     rspec-core (3.13.6)
       rspec-support (~> 3.13.0)
     rspec-expectations (3.13.5)
@@ -714,7 +714,7 @@ DEPENDENCIES
   redcarpet (~> 3.6)
   rexml
   rotp (~> 6.3)
-  rqrcode (~> 2.0)
+  rqrcode (~> 3.2)
   rspec-rails (~> 7.1)
   rubocop-rails-omakase
   ruby-vips (~> 2.2)
