@@ -43,6 +43,9 @@ class Program < ApplicationRecord
   has_many :organizer_positions, class_name: "Backend::OrganizerPosition", foreign_key: :program_id, dependent: :destroy
   has_many :organizers, through: :organizer_positions, source: :backend_user, class_name: "Backend::User"
 
+  has_many :program_collaborators, dependent: :destroy
+  has_many :collaborator_identities, through: :program_collaborators, source: :identity
+
   belongs_to :owner_identity, class_name: "Identity", optional: true
 
   validates :name, presence: true
@@ -93,6 +96,16 @@ class Program < ApplicationRecord
 
   def onboarding_scenario_instance(identity = nil)
     onboarding_scenario_class&.new(identity)
+  end
+
+  def collaborator?(identity)
+    return false unless identity
+    program_collaborators.exists?(identity: identity)
+  end
+
+  def accessible_by?(identity)
+    return false unless identity
+    owner_identity_id == identity.id || collaborator?(identity)
   end
 
   def rotate_credentials!

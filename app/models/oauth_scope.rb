@@ -126,6 +126,9 @@ class OAuthScope
   BY_NAME = ALL.index_by(&:name).freeze
 
   COMMUNITY_ALLOWED = %w[openid profile email name slack_id verification_status].freeze
+  HQ_OFFICIAL_SCOPES = (COMMUNITY_ALLOWED + %w[basic_info birthdate phone address]).freeze
+  SUPER_ADMIN_SCOPES = (HQ_OFFICIAL_SCOPES + %w[legal_name]).freeze
+  # set_slack_id intentionally omitted from all tiers — valid but not assignable via UI
 
   def self.find(name)
     BY_NAME[name.to_s]

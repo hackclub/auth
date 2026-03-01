@@ -50,8 +50,8 @@ class Components::Sidebar < Components::Base
     items << { label: t("sidebar.addresses"), path: addresses_path, icon: "email" }
     items << { label: t("sidebar.security"), path: security_path, icon: "private" }
 
-    # Add developer link if developer mode is enabled
-    if current_identity.present? && current_identity.developer_mode?
+    # Add developer link if developer mode is enabled or user is a program manager/super admin
+    if current_identity.present? && (current_identity.developer_mode? || current_identity.backend_user&.program_manager? || current_identity.backend_user&.super_admin?)
       items << { label: t("sidebar.developer"), path: developer_apps_path, icon: "code" }
     end
 

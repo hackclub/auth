@@ -60,7 +60,7 @@ module Backend
               id: app.id,
               label: app.name,
               sublabel: app.redirect_uri&.truncate(50),
-              path: "/backend/programs/#{app.id}"
+              path: "/developer/apps/#{app.id}"
             }
           end
         end

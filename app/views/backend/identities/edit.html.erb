@@ -70,6 +70,11 @@
               <%= f.check_box :permabanned %>
               <small>permanently ban (makes ineligible)</small>
             </div>
+            <div class="form-row">
+              <%= f.label :can_hq_officialize, "can officialize apps" %>
+              <%= f.check_box :can_hq_officialize %>
+              <small>allow this identity to promote apps to hq_official</small>
+            </div>
           <% end %>
         </div>
       </div>

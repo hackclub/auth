@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_18_200000) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_26_200001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -301,8 +301,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_18_200000) do
     t.boolean "saml_debug"
     t.boolean "is_in_workspace", default: false, null: false
     t.string "slack_dm_channel_id"
-    t.string "webauthn_id"
     t.boolean "is_alum", default: false
+    t.boolean "can_hq_officialize", default: false, null: false
     t.index "lower((primary_email)::text)", name: "idx_identities_unique_primary_email", unique: true, where: "(deleted_at IS NULL)"
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
@@ -446,6 +446,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_18_200000) do
     t.integer "sign_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "compromised_at"
     t.index ["external_id"], name: "index_identity_webauthn_credentials_on_external_id", unique: true
     t.index ["identity_id"], name: "index_identity_webauthn_credentials_on_identity_id"
   end
@@ -526,6 +527,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_18_200000) do
     t.index ["access_grant_id"], name: "index_oauth_openid_requests_on_access_grant_id"
   end
 
+  create_table "program_collaborators", force: :cascade do |t|
+    t.bigint "program_id", null: false
+    t.bigint "identity_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["identity_id"], name: "index_program_collaborators_on_identity_id"
+    t.index ["program_id", "identity_id"], name: "index_program_collaborators_on_program_id_and_identity_id", unique: true
+    t.index ["program_id"], name: "index_program_collaborators_on_program_id"
+  end
+
   create_table "settings", force: :cascade do |t|
     t.string "key", null: false
     t.text "value"
@@ -587,18 +598,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_18_200000) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
-  create_table "webauthn_credentials", force: :cascade do |t|
-    t.bigint "identity_id", null: false
-    t.string "external_id", null: false
-    t.string "public_key", null: false
-    t.string "nickname", null: false
-    t.integer "sign_count", default: 0, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["external_id"], name: "index_webauthn_credentials_on_external_id", unique: true
-    t.index ["identity_id"], name: "index_webauthn_credentials_on_identity_id"
-  end
-
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "addresses", "identities"
@@ -628,8 +627,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_18_200000) do
   add_foreign_key "oauth_access_tokens", "identities", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_openid_requests", "oauth_access_grants", column: "access_grant_id", on_delete: :cascade
+  add_foreign_key "program_collaborators", "identities"
+  add_foreign_key "program_collaborators", "oauth_applications", column: "program_id"
   add_foreign_key "verifications", "identities"
   add_foreign_key "verifications", "identity_aadhaar_records", column: "aadhaar_record_id"
   add_foreign_key "verifications", "identity_documents"
-  add_foreign_key "webauthn_credentials", "identities"
 end

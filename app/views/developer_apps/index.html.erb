@@ -1,46 +1,51 @@
 <div class="page-header">
-  <h1><%= t ".title" %></h1>
+  <h1><%= admin? ? t(".title_admin") : t(".title") %></h1>
   <i>How?..Just <%= link_to "Watch The Free Video", doc_path("tldr"), target: "_blank" %> > </i>
+  <div class="header-actions">
+    <%= link_to t(".create_new"), new_developer_app_path, role: "button" %>
+  </div>
+</div>
+
+<div class="page-sections">
+  <% if admin? %>
+    <div class="search-bar">
+      <%= form_with url: developer_apps_path, method: :get, local: true do %>
+        <%= text_field_tag :search, params[:search], placeholder: t(".search_placeholder"), type: "search" %>
+        <button type="submit"><%= t(".search_button") %></button>
+        <% if params[:search].present? || params[:owner_id].present? %>
+          <%= link_to "✕ #{t('.clear_filters')}", developer_apps_path, class: "button-secondary small-btn" %>
+        <% end %>
+      <% end %>
+      <span class="search-results-count"><%= t(".results_count", count: @apps.total_count) %></span>
+    </div>
+  <% end %>
+
   <% if @apps.any? %>
-    <div class="header-actions">
-      <%= link_to t(".create_new"), new_developer_app_path, role: "button" %>
+    <div class="app-list">
+      <% @apps.each do |app| %>
+        <section class="card app-list-item">
+          <div class="app-list-item-identity">
+            <div>
+              <h3><%= link_to app.name, developer_app_path(app) %></h3>
+              <small><%= app.scopes_array.join(", ").presence || t(".no_scopes") %></small>
+            </div>
+          </div>
+          <div class="app-list-item-meta">
+            <% if admin? && app.owner_identity %>
+              <small class="usn"><%= app.owner_identity.full_name %></small>
+            <% end %>
+            <code class="client-id"><%= app.uid %></code>
+          </div>
+        </section>
+      <% end %>
+    </div>
+    <%= paginate @apps %>
+  <% else %>
+    <div class="empty-state">
+      <div class="empty-icon"><%= inline_icon("code", size: 48) %></div>
+      <h3><%= t ".blank_slate.title" %></h3>
+      <p><%= t ".blank_slate.cta" %></p>
+      <%= link_to t(".blank_slate.create"), new_developer_app_path, role: "button" %>
     </div>
   <% end %>
 </div>
-
-<% if @apps.any? %>
-  <% @apps.each do |app| %>
-    <section class="section-card" style="margin-bottom: 1rem;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-          <h3 style="margin: 0 0 0.5rem 0;"><%= link_to app.name, developer_app_path(app) %></h3>
-          <div style="font-size: 0.9rem; color: var(--text-secondary);">
-            <%= app.scopes_array.join(", ").presence || t(".no_scopes") %> ·
-            <%= app.trust_level.to_s.titleize %>
-          </div>
-        </div>
-        <div style="display: flex; gap: 0.5rem;">
-          <%= link_to t(".edit"), edit_developer_app_path(app), class: "button-secondary", style: "font-size: 0.9rem; padding: 0.4rem 0.8rem;" %>
-          <%= button_to t(".delete"), developer_app_path(app), method: :delete, class: "danger small-btn",
-              form: { "hx-confirm": t(".delete_confirm") } %>
-        </div>
-      </div>
-
-      <div style="display: grid; gap: 0.75rem; margin-top: 1rem; font-size: 0.9rem;">
-        <div>
-          <strong><%= t ".client_id" %>:</strong>
-          <%= copy_to_clipboard app.uid, label: t(".click_to_copy_client_id") do %>
-            <code style="font-size: 0.85rem; margin-left: 0.5rem; cursor: pointer;"><%= app.uid %></code>
-          <% end %>
-        </div>
-      </div>
-    </section>
-  <% end %>
-<% else %>
-  <div class="empty-state">
-    <div class="empty-icon"><%= inline_icon("code", size: 48) %></div>
-    <h3><%= t ".blank_slate.title" %></h3>
-    <p><%= t ".blank_slate.cta" %></p>
-    <%= link_to t(".blank_slate.create"), new_developer_app_path, role: "button" %>
-  </div>
-<% end %>

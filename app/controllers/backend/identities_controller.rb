@@ -182,7 +182,9 @@ module Backend
     end
 
     def identity_params
-      params.require(:identity).permit(:first_name, :last_name, :legal_first_name, :legal_last_name, :primary_email, :phone_number, :birthday, :country, :hq_override, :ysws_eligible, :permabanned)
+      permitted = [ :first_name, :last_name, :legal_first_name, :legal_last_name, :primary_email, :phone_number, :birthday, :country, :hq_override, :ysws_eligible, :permabanned ]
+      permitted << :can_hq_officialize if current_user&.super_admin?
+      params.require(:identity).permit(permitted)
     end
 
     def vouch_params

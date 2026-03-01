@@ -31,9 +31,9 @@ module Shortcodes
       # Common
       shortcuts << Shortcode.new(code: "LOGS", label: "Audit logs", controller: "backend/audit_logs", action: "index", icon: "⭢", role: :general, path_override: nil)
 
-      # Program manager
+      # Program manager / developer
       if user&.program_manager? || user&.super_admin?
-        shortcuts << Shortcode.new(code: "APPS", label: "OAuth2 apps", controller: "backend/programs", action: "index", icon: "⭢", role: :program_manager, path_override: nil)
+        shortcuts << Shortcode.new(code: "APPS", label: "OAuth2 apps", controller: "developer_apps", action: "index", icon: "⭢", role: :program_manager, path_override: "/developer/apps")
       end
 
       # Super admin (less frequent)
