@@ -6,6 +6,6 @@ class CreateProgramCollaborators < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :program_collaborators, [:program_id, :identity_id], unique: true
+    add_index :program_collaborators, [ :program_id, :identity_id ], unique: true
   end
 end
