@@ -6,7 +6,11 @@ class DeveloperAppCollaboratorInvitationsController < ApplicationController
 
   # Invitee accepts
   def accept
-    invitation = current_identity.pending_collaboration_invitations.find(params[:id])
+    invitation = @app.program_collaborators.pending.where(
+      "(identity_id = ? OR (identity_id IS NULL AND invited_email = ?))",
+      current_identity.id,
+      current_identity.primary_email
+    ).find(params[:id])
     invitation.update!(identity: current_identity) if invitation.identity_id.nil?
     invitation.accept!
     @app.create_activity :collaborator_accepted, owner: current_identity
@@ -15,7 +19,11 @@ class DeveloperAppCollaboratorInvitationsController < ApplicationController
 
   # Invitee declines
   def decline
-    invitation = current_identity.pending_collaboration_invitations.find(params[:id])
+    invitation = @app.program_collaborators.pending.where(
+      "(identity_id = ? OR (identity_id IS NULL AND invited_email = ?))",
+      current_identity.id,
+      current_identity.primary_email
+    ).find(params[:id])
     invitation.decline!
     @app.create_activity :collaborator_declined, owner: current_identity
     redirect_to developer_apps_path, notice: t(".success")
