@@ -130,34 +130,44 @@
           <% if @collaborators.any? %>
             <% @collaborators.each do |collab| %>
               <div class="collaborator-row">
-                <div>
-                  <span class="collaborator-email"><%= collab.identity.primary_email %></span>
-                </div>
-                <%= button_to t(".remove_collaborator"), developer_app_collaborator_path(@app, collab), method: :delete, class: "danger small-btn",
+                <span class="collaborator-email"><%= collab.identity.primary_email %></span>
+                <%= button_to t(".remove_collaborator"),
+                    developer_app_collaborator_path(@app, collab),
+                    method: :delete, class: "danger small-btn",
                     form: { onsubmit: "return confirm('#{j t('.remove_collaborator_confirm')}')" } %>
               </div>
             <% end %>
           <% else %>
-            <p style="color: var(--pico-muted-color);"><%= t(".no_collaborators") %></p>
-          <% end %>
-
-          <% if @pending_invitations_for_app.any? %>
-            <% @pending_invitations_for_app.each do |inv| %>
-              <div class="collaborator-row">
-                <div>
-                  <span><%= inv.invited_email %></span>
-                  <span class="badge"><%= t(".pending_badge") %></span>
-                </div>
-                <%= button_to t(".cancel_invitation"), cancel_developer_app_collaborator_invite_path(@app, inv), method: :post, class: "danger small-btn" %>
-              </div>
+            <% unless @pending_invitations_for_app.any? %>
+              <p style="color: var(--pico-muted-color);"><%= t(".no_collaborators") %></p>
             <% end %>
           <% end %>
         </div>
+
+        <% if @pending_invitations_for_app.any? %>
+          <p class="label-upper" style="margin: <%= @collaborators.any? ? '1.25rem' : '0' %> 0 0.75rem;">
+            <%= t(".pending_invitations_heading") %>
+          </p>
+          <div class="collaborator-list">
+            <% @pending_invitations_for_app.each do |inv| %>
+              <div class="collaborator-row">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span class="collaborator-email"><%= inv.invited_email %></span>
+                  <span class="badge pending"><%= t(".pending_badge") %></span>
+                </div>
+                <%= button_to t(".cancel_invitation"),
+                    cancel_developer_app_collaborator_invite_path(@app, inv),
+                    method: :post, class: "secondary small-btn" %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
         <div class="add-collaborator">
-          <p class="add-collaborator-label"><%= t(".add_collaborator") %></p>
+          <p class="label-upper" style="margin: 0 0 0.75rem;"><%= t(".add_collaborator") %></p>
           <%= form_with url: developer_app_collaborators_path(@app), method: :post, local: true do |f| %>
             <%= email_field_tag :email, nil, placeholder: t(".collaborator_email_placeholder"), required: true %>
-            <button type="submit" class="button"><%= t(".add_button") %></button>
+            <button type="submit" class="approve small-btn"><%= t(".add_button") %></button>
           <% end %>
         </div>
       </section>

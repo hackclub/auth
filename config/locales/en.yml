@@ -211,6 +211,7 @@ en:
       remove_collaborator_confirm: Remove this collaborator?
       pending_badge: Pending
       cancel_invitation: Cancel Invitation
+      pending_invitations_heading: Pending Invitations
       edit_app: Edit App
       delete_app: Delete App
       delete_confirm: Are you sure you want to delete this app? This action cannot be undone and will revoke all existing tokens.

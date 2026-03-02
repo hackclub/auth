@@ -167,17 +167,15 @@ a.button-secondary,
 .add-collaborator {
   margin-top: $space-4;
   .add-collaborator-label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--pico-muted-color);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin: 0 0 $space-2;
+    @extend .label-upper;
+    margin-bottom: $space-2;
   }
   form {
     display: flex;
     gap: $space-2;
-    input[type="email"] { flex: 1; }
+    align-items: center;
+    input[type="email"] { flex: 1; margin: 0; }
+    button { padding-block: var(--pico-form-element-spacing-vertical); line-height: normal; margin: 0; }
   }
 }
 
@@ -193,7 +191,7 @@ a.button-secondary,
   padding: 0.5rem 0;
   border-bottom: 1px solid var(--pico-card-border-color);
   &:last-child { border-bottom: none; }
-  .meta-label { font-size: 0.8rem; font-weight: 600; color: var(--pico-muted-color); text-transform: uppercase; letter-spacing: 0.04em; }
+  .meta-label { @extend .label-upper; }
   .meta-value { font-size: 0.9375rem; }
 }
 
@@ -203,7 +201,7 @@ a.button-secondary,
   border-bottom: 1px solid var(--pico-card-border-color);
   &:first-of-type { margin-top: $space-3; }
   &:last-of-type { border-bottom: none; padding-bottom: 0; }
-  label { font-size: 0.75rem; font-weight: 600; color: var(--pico-muted-color); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.3rem; }
+  label { @extend .label-upper; display: block; margin-bottom: 0.3rem; }
   input[readonly] {
     font-family: $font-mono; font-size: 0.9rem;
     background: transparent; border: none; padding: 0;
@@ -259,11 +257,7 @@ a.button-secondary,
 }
 
 .locked-scopes-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--pico-muted-color);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  @extend .label-upper;
   margin: $space-3 0 $space-2;
 }
 

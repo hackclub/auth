@@ -209,6 +209,45 @@
   color: $fg;
 }
 
+// Generic uppercase muted label — section dividers, field labels, meta labels
+.label-upper {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.badge {
+  @include badge(var(--surface-2), var(--text-muted-strong));
+  border: 1px solid var(--surface-2-border);
+
+  &.success {
+    background: var(--success-bg);
+    color: var(--success-fg-strong);
+    border-color: var(--success-border);
+  }
+
+  &.warning, &.pending {
+    background: var(--warning-bg);
+    color: var(--warning-fg-strong);
+    border-color: var(--warning-border);
+  }
+
+  &.info {
+    background: var(--info-bg);
+    color: var(--info-fg-strong);
+    border-color: var(--info-border);
+  }
+
+  &.danger {
+    background: var(--error-bg);
+    color: var(--error-fg-strong);
+    border-color: var(--error-border);
+  }
+}
+
 @mixin page-title($size: 1.25rem, $mb: 1.25rem) {
   font-size: $size;
   font-weight: 600;
