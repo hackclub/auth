@@ -100,7 +100,7 @@ class DeveloperAppsController < ApplicationController
     authorize @app
     @app.rotate_credentials!
     @app.create_activity :rotate_credentials, owner: current_identity
-    redirect_to developer_app_path(@app), notice: t(".rotate_credentials.success")
+    redirect_to developer_app_path(@app), notice: t(".success")
   end
 
   def revoke_all_authorizations

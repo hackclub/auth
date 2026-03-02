@@ -273,7 +273,7 @@ en:
     destroy:
       success: OAuth app deleted successfully!
     rotate_credentials:
-      success: OAuth app credentials rotated successfully!
+      success: OAuth app credentials rotated successfully.
     revoke_all_authorizations:
       success:
         one: "Revoked 1 token."
