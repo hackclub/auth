@@ -80,7 +80,7 @@ class ProgramPolicy < ApplicationPolicy
   end
 
   def manage_collaborators?
-    owner?
+    owner? || admin?
   end
 
   class Scope < ApplicationPolicy::Scope
