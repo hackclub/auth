@@ -44,9 +44,6 @@ class DeveloperAppCollaboratorsController < ApplicationController
     @app.create_activity :collaborator_removed, owner: current_identity, parameters: { removed_email: email }
 
     redirect_to developer_app_path(@app), notice: t(".success")
-  rescue ActiveRecord::RecordNotFound
-    flash[:error] = t("developer_apps.collaborator.not_found")
-    redirect_to developer_app_path(@app)
   end
 
   private
