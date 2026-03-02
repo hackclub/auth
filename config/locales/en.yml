@@ -212,6 +212,8 @@ en:
       pending_badge: Pending
       cancel_invitation: Cancel Invitation
       pending_invitations_heading: Pending Invitations
+      activity_log: Activity Log
+      no_activity: No activity recorded yet.
       edit_app: Edit App
       delete_app: Delete App
       delete_confirm: Are you sure you want to delete this app? This action cannot be undone and will revoke all existing tokens.

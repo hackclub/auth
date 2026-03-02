@@ -9,6 +9,7 @@ class DeveloperAppCollaboratorInvitationsController < ApplicationController
     invitation = current_identity.pending_collaboration_invitations.find(params[:id])
     invitation.update!(identity: current_identity) if invitation.identity_id.nil?
     invitation.accept!
+    @app.create_activity :collaborator_accepted, owner: current_identity
     redirect_to developer_apps_path, notice: t(".success")
   end
 
@@ -16,6 +17,7 @@ class DeveloperAppCollaboratorInvitationsController < ApplicationController
   def decline
     invitation = current_identity.pending_collaboration_invitations.find(params[:id])
     invitation.decline!
+    @app.create_activity :collaborator_declined, owner: current_identity
     redirect_to developer_apps_path, notice: t(".success")
   end
 
@@ -23,7 +25,9 @@ class DeveloperAppCollaboratorInvitationsController < ApplicationController
   def cancel
     authorize @app, :manage_collaborators?
     invitation = @app.program_collaborators.pending.find(params[:id])
+    email = invitation.invited_email
     invitation.cancel!
+    @app.create_activity :collaborator_cancelled, owner: current_identity, parameters: { cancelled_email: email }
     redirect_to developer_app_path(@app), notice: t(".success")
   end
 

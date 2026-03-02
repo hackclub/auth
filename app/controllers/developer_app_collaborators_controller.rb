@@ -16,6 +16,7 @@ class DeveloperAppCollaboratorsController < ApplicationController
       @app.program_collaborators.find_or_create_by(invited_email: email) do |pc|
         pc.identity = identity
       end
+      @app.create_activity :collaborator_invited, owner: current_identity, parameters: { invited_email: email }
     end
 
     redirect_to developer_app_path(@app), notice: t(".generic_response")
@@ -25,7 +26,9 @@ class DeveloperAppCollaboratorsController < ApplicationController
     authorize @app, :manage_collaborators?
 
     collaborator = @app.program_collaborators.find(params[:id])
+    email = collaborator.invited_email
     collaborator.destroy
+    @app.create_activity :collaborator_removed, owner: current_identity, parameters: { removed_email: email }
 
     redirect_to developer_app_path(@app), notice: t(".success")
   rescue ActiveRecord::RecordNotFound

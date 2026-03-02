@@ -24,7 +24,24 @@ class Program < ApplicationRecord
   self.table_name = "oauth_applications"
 
   include PublicActivity::Model
-  tracked owner: ->(controller, model) { model.owner_identity }, recipient: ->(controller, model) { model.owner_identity }, only: [ :create, :update, :destroy ]
+  tracked owner: ->(controller, _model) { controller&.user_for_public_activity }, only: [ :create ]
+
+  include Auditable
+
+  audit_field :name, label: "app name"
+  audit_field :trust_level, transform: ->(v) { v.to_s.titleize }
+  audit_field :scopes_array, type: :array, label: "scopes"
+  audit_field :redirect_uris, type: :array, label: "redirect URIs"
+  audit_field :active, type: :boolean
+  audit_field :onboarding_scenario, transform: ->(v) { v&.titleize }
+
+  COLLABORATOR_ACTIVITY_KEYS = %w[
+    program.collaborator_invited
+    program.collaborator_removed
+    program.collaborator_accepted
+    program.collaborator_declined
+    program.collaborator_cancelled
+  ].freeze
 
   has_paper_trail
 
@@ -84,6 +101,10 @@ class Program < ApplicationRecord
 
   def scopes_array=(array)
     self.scopes = Doorkeeper::OAuth::Scopes.from_array(Array(array).reject(&:blank?)).to_s
+  end
+
+  def redirect_uris
+    redirect_uri.to_s.split
   end
 
   def has_scope?(scope_name) = scopes.include?(scope_name.to_s)

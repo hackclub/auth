@@ -283,6 +283,47 @@ a.button-secondary,
   button { margin-left: auto; flex-shrink: 0; }
 }
 
+// Activity log table (frontend equivalent of backend table styles)
+.dev-panel-main .table-container {
+  overflow-x: auto;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+
+    th {
+      text-align: left;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--pico-muted-color);
+      padding: $space-2 $space-3;
+      border-bottom: 2px solid var(--pico-muted-border-color);
+    }
+
+    td {
+      padding: $space-2 $space-3;
+      border-bottom: 1px solid var(--pico-muted-border-color);
+      vertical-align: top;
+    }
+
+    tr:hover td {
+      background: var(--pico-card-background-color);
+    }
+  }
+}
+
+// Identity mention — inline actor display for frontend
+.identity-mention {
+  font-weight: 600;
+  white-space: nowrap;
+  abbr {
+    text-decoration: none;
+    cursor: help;
+  }
+}
+
 // Compact app list for index
 .app-list {
   display: flex;

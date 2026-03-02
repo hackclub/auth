@@ -182,6 +182,14 @@
       </section>
     <% end %>
 
-    <%# Trust level is now managed through the edit form %>
+    <%# Activity Log %>
+    <section class="section-card">
+      <h3><%= t(".activity_log") %></h3>
+      <% if @activities.any? %>
+        <%= render Components::PublicActivity::Container.new(@activities) %>
+      <% else %>
+        <p style="color: var(--pico-muted-color);"><%= t(".no_activity") %></p>
+      <% end %>
+    </section>
   </div>
 </div>

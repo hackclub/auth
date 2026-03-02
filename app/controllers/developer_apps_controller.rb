@@ -27,6 +27,11 @@ class DeveloperAppsController < ApplicationController
       @collaborators = @app.program_collaborators.accepted.includes(:identity)
       @pending_invitations_for_app = @app.program_collaborators.pending
     end
+    @activities = PublicActivity::Activity
+      .where(trackable: @app)
+      .includes(:owner)
+      .order(created_at: :desc)
+      .limit(50)
   end
 
   def new
@@ -60,6 +65,7 @@ class DeveloperAppsController < ApplicationController
   def update
     authorize @app
 
+    snapshot = @app.audit_snapshot
     existing_scopes = @app.scopes_array.dup
     @app.assign_attributes(app_params_for_identity)
 
@@ -67,6 +73,10 @@ class DeveloperAppsController < ApplicationController
     enforce_allowed_scopes!(@app, existing_scopes: existing_scopes)
 
     if @app.save
+      changes = @app.audit_diff(snapshot)
+      if changes.any?
+        @app.create_activity :change, owner: current_identity, parameters: { changes: changes }
+      end
       redirect_to developer_app_path(@app), notice: t(".success")
     else
       render :edit, status: :unprocessable_entity
@@ -84,6 +94,7 @@ class DeveloperAppsController < ApplicationController
   def rotate_credentials
     authorize @app
     @app.rotate_credentials!
+    @app.create_activity :rotate_credentials, owner: current_identity
     redirect_to developer_app_path(@app), notice: t(".rotate_credentials.success")
   end
 
@@ -93,6 +104,7 @@ class DeveloperAppsController < ApplicationController
     PaperTrail.request.whodunnit = current_identity.id.to_s
     @app.paper_trail_event = "revoke_all_authorizations"
     @app.paper_trail.save_with_version
+    @app.create_activity :revoke_all_authorizations, owner: current_identity, parameters: { count: count }
     redirect_to developer_app_path(@app), notice: t(".revoke_all_authorizations.success", count: count)
   end
 
