@@ -18,7 +18,7 @@ class Components::IdentityMention < Components::Base
 
       if @identity.backend_user
         plain " "
-        abbr(title: "#{@identity.first_name} #{@identity.last_name} is an admin") { "⚡" }
+        abbr(title: "#{@identity.first_name} is an admin") { "⚡" }
       end
     end
   end
