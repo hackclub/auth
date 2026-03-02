@@ -79,6 +79,10 @@ class ProgramPolicy < ApplicationPolicy
     owner? || admin?
   end
 
+  def activity_log?
+    show?
+  end
+
   def manage_collaborators?
     owner? || admin?
   end

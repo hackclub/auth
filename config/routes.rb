@@ -361,6 +361,7 @@ Rails.application.routes.draw do
     member do
       post :rotate_credentials
       post :revoke_all_authorizations
+      get :activity_log
     end
     resources :collaborators, only: [ :create, :destroy ],
       controller: "developer_app_collaborators"

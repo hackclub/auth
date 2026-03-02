@@ -1,7 +1,7 @@
 class DeveloperAppsController < ApplicationController
   include IdentityAuthorizable
 
-  before_action :set_app, only: [ :show, :edit, :update, :destroy, :rotate_credentials, :revoke_all_authorizations ]
+  before_action :set_app, only: [ :show, :edit, :update, :destroy, :rotate_credentials, :revoke_all_authorizations, :activity_log ]
 
   def index
     authorize Program
@@ -27,11 +27,16 @@ class DeveloperAppsController < ApplicationController
       @collaborators = @app.program_collaborators.accepted.includes(:identity)
       @pending_invitations_for_app = @app.program_collaborators.pending
     end
+  end
+
+  def activity_log
+    authorize @app
     @activities = PublicActivity::Activity
       .where(trackable: @app)
       .includes(:owner)
       .order(created_at: :desc)
       .limit(50)
+    render layout: "htmx"
   end
 
   def new

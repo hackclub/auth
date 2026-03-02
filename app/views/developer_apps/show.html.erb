@@ -182,14 +182,14 @@
       </section>
     <% end %>
 
-    <%# Activity Log %>
+    <%# Activity Log (async) %>
     <section class="section-card">
       <h3><%= t(".activity_log") %></h3>
-      <% if @activities.any? %>
-        <%= render Components::PublicActivity::Container.new(@activities) %>
-      <% else %>
-        <p style="color: var(--pico-muted-color);"><%= t(".no_activity") %></p>
-      <% end %>
+      <%= render Components::BootlegTurboButton.new(
+            activity_log_developer_app_path(@app),
+            text: t(".show_activity"),
+            id: "activity-log-container"
+          ) %>
     </section>
   </div>
 </div>

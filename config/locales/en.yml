@@ -213,6 +213,7 @@ en:
       cancel_invitation: Cancel Invitation
       pending_invitations_heading: Pending Invitations
       activity_log: Activity Log
+      show_activity: Load Activity Log
       no_activity: No activity recorded yet.
       edit_app: Edit App
       delete_app: Delete App
