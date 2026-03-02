@@ -216,11 +216,7 @@ class Identity < ApplicationRecord
     return "verified" if verification_statuses.include?("approved")
     return "pending" if verification_statuses.include?("pending")
 
-    rejected_verifications = verfs.where(status: "rejected")
-
-    has_fatal_rejection = rejected_verifications.any?(&:fatal_rejection?)
-
-    has_fatal_rejection ? "ineligible" : "needs_submission"
+    verfs.fatal_rejections.any? ? "ineligible" : "needs_submission"
   end
 
   def verification_status_reason
@@ -383,6 +379,10 @@ class Identity < ApplicationRecord
     attrs << SAML2::Attribute.new("firstName", first_name, "User First Name", SAML2::Attribute::NameFormats::UNSPECIFIED)
     attrs << SAML2::Attribute.new("lastName", last_name, "User Last Name", SAML2::Attribute::NameFormats::UNSPECIFIED)
     attrs
+  end
+
+  def has_fatal_rejection?
+    verifications.not_ignored.fatal_rejections.exists?
   end
 
   alias_method :to_param, :public_id
