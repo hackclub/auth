@@ -381,9 +381,7 @@ class Identity < ApplicationRecord
     attrs
   end
 
-  def has_fatal_rejection?
-    verifications.not_ignored.fatal_rejections.exists?
-  end
+  def has_fatal_rejection? = verifications.not_ignored.fatal_rejections.exists?
 
   alias_method :to_param, :public_id
 
