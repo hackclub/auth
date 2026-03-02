@@ -64,7 +64,7 @@ class ProgramPolicy < ApplicationPolicy
   end
 
   def view_secret?
-    owner? || admin?
+    owner? || admin? || collaborator?
   end
 
   def view_api_key?
@@ -72,7 +72,7 @@ class ProgramPolicy < ApplicationPolicy
   end
 
   def rotate_credentials?
-    owner? || admin?
+    owner? || admin? || collaborator?
   end
 
   def revoke_all_authorizations?
