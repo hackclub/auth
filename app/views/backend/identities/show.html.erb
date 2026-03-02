@@ -144,7 +144,7 @@
               <tbody>
                 <% @all_programs.each do |program| %>
                   <tr>
-                    <td><%= link_to program.name, backend_program_path(program) %></td>
+                    <td><%= link_to program.name, developer_app_path(program) %></td>
                     <td><code><%= program.scopes.presence || "—" %></code></td>
                   </tr>
                 <% end %>
