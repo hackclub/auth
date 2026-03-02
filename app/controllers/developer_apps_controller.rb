@@ -110,7 +110,7 @@ class DeveloperAppsController < ApplicationController
     @app.paper_trail_event = "revoke_all_authorizations"
     @app.paper_trail.save_with_version
     @app.create_activity :revoke_all_authorizations, owner: current_identity, parameters: { count: count }
-    redirect_to developer_app_path(@app), notice: t(".revoke_all_authorizations.success", count: count)
+    redirect_to developer_app_path(@app), notice: t(".success", count: count)
   end
 
   private
