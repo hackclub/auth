@@ -32,9 +32,15 @@ export function scopeEditor({ trustLevel, selectedScopes, allowedScopes, communi
     },
 
     onTrustLevelChange() {
-      const valid = this.editableScopes.map(s => s.name);
-      this.removedScopes = this.selected.filter(s => !valid.includes(s));
-      this.selected = this.selected.filter(s => valid.includes(s));
+      // Determine which scopes are valid for the new trust level,
+      // scoped to what this user is allowed to touch.
+      const trustValid = this.trustLevel === 'hq_official' ? allowedScopes : communityScopes;
+      this.removedScopes = this.selected.filter(s =>
+        allowedScopes.includes(s) && !trustValid.includes(s)
+      );
+      this.selected = this.selected.filter(s =>
+        trustValid.includes(s) || !allowedScopes.includes(s)
+      );
     },
 
     dismissWarning() { this.removedScopes = []; },
