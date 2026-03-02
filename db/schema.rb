@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_26_200001) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_02_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -529,11 +529,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_26_200001) do
 
   create_table "program_collaborators", force: :cascade do |t|
     t.bigint "program_id", null: false
-    t.bigint "identity_id", null: false
+    t.bigint "identity_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "accepted_at"
+    t.string "invited_email"
     t.index ["identity_id"], name: "index_program_collaborators_on_identity_id"
     t.index ["program_id", "identity_id"], name: "index_program_collaborators_on_program_id_and_identity_id", unique: true
+    t.index ["program_id", "invited_email"], name: "idx_program_collabs_on_program_email_visible", unique: true, where: "((status)::text = ANY ((ARRAY['pending'::character varying, 'accepted'::character varying])::text[]))"
     t.index ["program_id"], name: "index_program_collaborators_on_program_id"
   end
 

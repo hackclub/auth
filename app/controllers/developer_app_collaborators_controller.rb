@@ -8,11 +8,14 @@ class DeveloperAppCollaboratorsController < ApplicationController
 
     email = params[:email].to_s.strip.downcase
 
-    # Anti-enumeration: always return the same generic message regardless of outcome
+    # Anti-enumeration: always create a pending record regardless of whether
+    # the identity exists. The owner sees the same "Pending" row either way.
     identity = Identity.find_by(primary_email: email)
 
-    if identity && identity != @app.owner_identity
-      @app.program_collaborators.find_or_create_by(identity: identity)
+    unless identity&.id == @app.owner_identity_id
+      @app.program_collaborators.find_or_create_by(invited_email: email) do |pc|
+        pc.identity = identity
+      end
     end
 
     redirect_to developer_app_path(@app), notice: t(".generic_response")

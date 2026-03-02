@@ -364,6 +364,13 @@ Rails.application.routes.draw do
     end
     resources :collaborators, only: [ :create, :destroy ],
       controller: "developer_app_collaborators"
+    resources :collaborator_invites, only: [], controller: "developer_app_collaborator_invitations" do
+      member do
+        post :accept
+        post :decline
+        post :cancel
+      end
+    end
   end
 
 

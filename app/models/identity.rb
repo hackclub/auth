@@ -84,7 +84,8 @@ class Identity < ApplicationRecord
   has_many :owned_developer_apps, class_name: "Program", foreign_key: :owner_identity_id, dependent: :nullify
 
   has_many :program_collaborators, dependent: :destroy
-  has_many :collaborated_programs, through: :program_collaborators, source: :program
+  has_many :collaborated_programs, -> { merge(ProgramCollaborator.accepted) },
+           through: :program_collaborators, source: :program
 
   validates :first_name, :last_name, :country, :primary_email, :birthday, presence: true
   validates :primary_email, uniqueness: { conditions: -> { where(deleted_at: nil) } }
@@ -173,6 +174,13 @@ class Identity < ApplicationRecord
     current_identity.update!(slack_id: slack_id)
 
     { success: true, slack_id: slack_id }
+  end
+
+  def pending_collaboration_invitations
+    ProgramCollaborator.pending
+      .where(identity_id: id)
+      .or(ProgramCollaborator.pending.where(identity_id: nil, invited_email: primary_email))
+      .includes(:program)
   end
 
   def accessible_developer_apps

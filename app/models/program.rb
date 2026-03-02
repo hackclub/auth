@@ -44,7 +44,8 @@ class Program < ApplicationRecord
   has_many :organizers, through: :organizer_positions, source: :backend_user, class_name: "Backend::User"
 
   has_many :program_collaborators, dependent: :destroy
-  has_many :collaborator_identities, through: :program_collaborators, source: :identity
+  has_many :collaborator_identities, -> { merge(ProgramCollaborator.accepted) },
+           through: :program_collaborators, source: :identity
 
   belongs_to :owner_identity, class_name: "Identity", optional: true
 
@@ -100,7 +101,7 @@ class Program < ApplicationRecord
 
   def collaborator?(identity)
     return false unless identity
-    program_collaborators.exists?(identity: identity)
+    program_collaborators.accepted.exists?(identity: identity)
   end
 
   def accessible_by?(identity)

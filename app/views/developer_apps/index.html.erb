@@ -6,6 +6,16 @@
   </div>
 </div>
 
+<% if @pending_invitations.any? %>
+  <% @pending_invitations.each do |invitation| %>
+    <%= render Components::Banner.new(kind: :info) do %>
+      <%= t(".invitation_banner", app_name: invitation.program.name) %>
+      <%= button_to t(".accept_invitation"), accept_developer_app_collaborator_invite_path(invitation.program, invitation), method: :post, class: "small-btn" %>
+      <%= button_to t(".decline_invitation"), decline_developer_app_collaborator_invite_path(invitation.program, invitation), method: :post, class: "small-btn danger" %>
+    <% end %>
+  <% end %>
+<% end %>
+
 <div class="page-sections">
   <% if admin? %>
     <div class="search-bar">

@@ -131,7 +131,6 @@
             <% @collaborators.each do |collab| %>
               <div class="collaborator-row">
                 <div>
-                  <strong><%= collab.identity.full_name %></strong>
                   <span class="collaborator-email"><%= collab.identity.primary_email %></span>
                 </div>
                 <%= button_to t(".remove_collaborator"), developer_app_collaborator_path(@app, collab), method: :delete, class: "danger small-btn",
@@ -140,6 +139,18 @@
             <% end %>
           <% else %>
             <p style="color: var(--pico-muted-color);"><%= t(".no_collaborators") %></p>
+          <% end %>
+
+          <% if @pending_invitations_for_app.any? %>
+            <% @pending_invitations_for_app.each do |inv| %>
+              <div class="collaborator-row">
+                <div>
+                  <span><%= inv.invited_email %></span>
+                  <span class="badge"><%= t(".pending_badge") %></span>
+                </div>
+                <%= button_to t(".cancel_invitation"), cancel_developer_app_collaborator_invite_path(@app, inv), method: :post, class: "danger small-btn" %>
+              </div>
+            <% end %>
           <% end %>
         </div>
         <div class="add-collaborator">

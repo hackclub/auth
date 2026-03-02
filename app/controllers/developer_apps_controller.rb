@@ -16,12 +16,17 @@ class DeveloperAppsController < ApplicationController
     end
 
     @apps = @apps.page(params[:page]).per(25)
+
+    @pending_invitations = current_identity.pending_collaboration_invitations
   end
 
   def show
     authorize @app
     @identities_count = @app.identities.distinct.count
-    @collaborators = @app.program_collaborators.includes(:identity) if policy(@app).manage_collaborators?
+    if policy(@app).manage_collaborators?
+      @collaborators = @app.program_collaborators.accepted.includes(:identity)
+      @pending_invitations_for_app = @app.program_collaborators.pending
+    end
   end
 
   def new
