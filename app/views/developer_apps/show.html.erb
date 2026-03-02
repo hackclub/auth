@@ -17,7 +17,7 @@
       <% if admin? && @app.owner_identity %>
         <div class="app-meta-row">
           <span class="meta-label"><%= t(".owner") %></span>
-          <span class="meta-value"><%= @app.owner_identity.full_name %></span>
+          <span class="meta-value"><%= link_to @app.owner_identity.full_name, backend_identity_path(@app.owner_identity) %></span>
         </div>
       <% end %>
       <div class="app-meta-row">
@@ -133,7 +133,13 @@
           <% if @collaborators.any? %>
             <% @collaborators.each do |collab| %>
               <div class="collaborator-row">
-                <span class="collaborator-email"><%= collab.identity.primary_email %></span>
+                <span class="collaborator-email">
+                  <% if admin? %>
+                    <%= link_to collab.identity.primary_email, backend_identity_path(collab.identity) %>
+                  <% else %>
+                    <%= collab.identity.primary_email %>
+                  <% end %>
+                </span>
                 <%= button_to t(".remove_collaborator"),
                     developer_app_collaborator_path(@app, collab),
                     method: :delete, class: "danger small-btn",

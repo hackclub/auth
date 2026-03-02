@@ -53,6 +53,9 @@ module Backend
 
       @all_programs = @identity.all_programs.distinct
 
+      @owned_apps = @identity.owned_developer_apps
+      @collaborated_apps = @identity.collaborated_programs
+
       verification_ids = @identity.verifications.pluck(:id)
       document_ids = @identity.documents.pluck(:id)
       break_glass_record_ids = BreakGlassRecord.where(break_glassable_type: "Identity::Document", break_glassable_id: document_ids).pluck(:id)
