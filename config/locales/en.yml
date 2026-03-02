@@ -282,7 +282,8 @@ en:
       not_found: OAuth app not found.
   developer_app_collaborators:
     create:
-      generic_response: "If an account with this email exists, they'll receive an invitation to collaborate."
+      invited: "Invitation sent!"
+      already_invited: "This person has already been invited."
       cannot_add_self: "That's you, you goof!"
     destroy:
       success: Collaborator removed.

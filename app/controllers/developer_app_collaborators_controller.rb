@@ -13,18 +13,26 @@ class DeveloperAppCollaboratorsController < ApplicationController
       return
     end
 
-    # Anti-enumeration: always create a pending record regardless of whether
-    # the identity exists. The owner sees the same "Pending" row either way.
     identity = Identity.find_by(primary_email: email)
 
     unless identity&.id == @app.owner_identity_id
-      @app.program_collaborators.find_or_create_by(invited_email: email) do |pc|
+      collaborator = @app.program_collaborators.find_or_create_by(invited_email: email) do |pc|
         pc.identity = identity
       end
-      @app.create_activity :collaborator_invited, owner: current_identity, parameters: { invited_email: email }
+
+      reinvited = collaborator.declined? || collaborator.cancelled?
+      collaborator.update!(status: :pending, identity: identity) if reinvited
+
+      if collaborator.previously_new_record? || reinvited
+        @app.create_activity :collaborator_invited, owner: current_identity, parameters: { invited_email: email }
+        redirect_to developer_app_path(@app), notice: t(".invited")
+      else
+        redirect_to developer_app_path(@app), alert: t(".already_invited")
+      end
+      return
     end
 
-    redirect_to developer_app_path(@app), notice: t(".generic_response")
+    redirect_to developer_app_path(@app), notice: t(".invited")
   end
 
   def destroy
