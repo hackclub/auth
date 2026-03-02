@@ -197,11 +197,11 @@ en:
       click_to_copy_client_secret: click to copy client secret
       reveal: Reveal
       hide: Hide
-      api_key: API Key
+      api_key: prgmK
       click_to_copy_api_key: click to copy API key
       redirect_uris: Redirect URIs
       test_auth: Test Auth
-      auth_link_hint: Right click auth links to copy URL
+      click_to_copy_redirect_uri: click to copy redirect URI
       collaborators: Collaborators
       no_collaborators: No collaborators yet.
       add_collaborator: Add a collaborator

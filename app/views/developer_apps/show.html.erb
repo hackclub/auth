@@ -78,28 +78,30 @@
       <div class="credential-block">
         <label><%= t ".client_id" %></label>
         <%= copy_to_clipboard @app.uid, label: t(".click_to_copy_client_id") do %>
-          <%= text_field_tag :client_id, @app.uid, readonly: true, autocomplete: "off" %>
+          <code class="credential-value"><%= @app.uid %></code>
         <% end %>
       </div>
       <% if policy(@app).view_secret? %>
-        <div class="credential-block" x-data="{ revealed: false, revealLabel: '<%= t('.reveal') %>', hideLabel: '<%= t('.hide') %>' }">
+        <div class="credential-block" x-data="{ revealed: false }">
           <label><%= t ".client_secret" %></label>
           <div class="cred-reveal-row">
             <%= copy_to_clipboard @app.secret, label: t(".click_to_copy_client_secret") do %>
-              <input :type="revealed ? 'text' : 'password'" value="<%= h @app.secret %>" readonly autocomplete="off" />
+              <code class="credential-value" x-show="revealed"><%= @app.secret %></code>
+              <span class="credential-value credential-masked" x-show="!revealed">[hidden]</span>
             <% end %>
-            <button type="button" class="button-secondary small-btn usn" @click="revealed = !revealed" x-text="revealed ? hideLabel : revealLabel"></button>
+            <button type="button" class="button-secondary small-btn usn" @click="revealed = !revealed" x-text="revealed ? '<%= t('.hide') %>' : '<%= t('.reveal') %>'"></button>
           </div>
         </div>
       <% end %>
       <% if policy(@app).view_api_key? %>
-        <div class="credential-block super-admin-tool" x-data="{ revealed: false, revealLabel: '<%= t('.reveal') %>', hideLabel: '<%= t('.hide') %>' }">
+        <div class="credential-block super-admin-tool" x-data="{ revealed: false }">
           <label><%= t ".api_key" %></label>
           <div class="cred-reveal-row">
             <%= copy_to_clipboard @app.program_key, label: t(".click_to_copy_api_key") do %>
-              <input :type="revealed ? 'text' : 'password'" value="<%= h @app.program_key %>" readonly autocomplete="off" />
+              <code class="credential-value" x-show="revealed"><%= @app.program_key %></code>
+              <span class="credential-value credential-masked" x-show="!revealed">[hidden]</span>
             <% end %>
-            <button type="button" class="button-secondary small-btn usn" @click="revealed = !revealed" x-text="revealed ? hideLabel : revealLabel"></button>
+            <button type="button" class="button-secondary small-btn usn" @click="revealed = !revealed" x-text="revealed ? '<%= t('.hide') %>' : '<%= t('.reveal') %>'"></button>
           </div>
         </div>
       <% end %>
@@ -111,14 +113,15 @@
       <div class="redirect-uri-list">
         <% @app.redirect_uri.split.each do |uri| %>
           <div class="redirect-uri-row">
-            <%= text_field_tag "redirect_uri_#{uri.hash}", uri, readonly: true, autocomplete: "off" %>
+            <%= copy_to_clipboard uri, label: t(".click_to_copy_redirect_uri") do %>
+              <code class="credential-value"><%= uri %></code>
+            <% end %>
             <%= link_to oauth_authorization_path(client_id: @app.uid, redirect_uri: uri, response_type: 'code', scope: @app.scopes),
                 class: "button-secondary small-btn", target: "_blank" do %>
               <%= t(".test_auth") %> <%= inline_icon("external", size: 14) %>
             <% end %>
           </div>
         <% end %>
-        <small class="usn" style="display: block; margin-top: 0.25rem;"><%= t ".auth_link_hint" %></small>
       </div>
     </section>
 

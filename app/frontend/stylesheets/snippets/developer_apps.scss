@@ -143,10 +143,7 @@ a.button-secondary,
   gap: $space-2;
   align-items: center;
   margin-bottom: $space-2;
-  input[readonly] {
-    font-family: $font-mono;
-    font-size: 0.9rem;
-  }
+  .button-secondary { margin: 0; }
 }
 
 // Collaborator list in show page
@@ -195,18 +192,24 @@ a.button-secondary,
   .meta-value { font-size: 0.9375rem; }
 }
 
-// Credential rows — divider-separated, no nested boxes
+// Credential rows — divider-separated
 .credential-block {
   padding: $space-3 0;
   border-bottom: 1px solid var(--pico-card-border-color);
   &:first-of-type { margin-top: $space-3; }
   &:last-of-type { border-bottom: none; padding-bottom: 0; }
   label { @extend .label-upper; display: block; margin-bottom: 0.3rem; }
-  input[readonly] {
-    font-family: $font-mono; font-size: 0.9rem;
-    background: transparent; border: none; padding: 0;
-    cursor: pointer; box-shadow: none; margin: 0; width: 100%;
-    color: var(--pico-color);
+}
+
+.credential-value {
+  font-family: $font-mono;
+  font-size: 0.875rem;
+  color: var(--pico-color);
+  word-break: break-all;
+  cursor: pointer;
+  &.credential-masked {
+    color: var(--pico-muted-color);
+    letter-spacing: 0.1em;
   }
 }
 
@@ -215,7 +218,6 @@ a.button-secondary,
   align-items: center;
   gap: $space-2;
   .pointer { flex: 1; min-width: 0; }
-  input[readonly] { width: 100%; }
   button { flex-shrink: 0; }
 }
 
