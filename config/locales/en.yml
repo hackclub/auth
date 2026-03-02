@@ -283,6 +283,7 @@ en:
   developer_app_collaborators:
     create:
       generic_response: "If an account with this email exists, they'll receive an invitation to collaborate."
+      cannot_add_self: "That's you, you goof!"
     destroy:
       success: Collaborator removed.
   developer_app_collaborator_invitations:

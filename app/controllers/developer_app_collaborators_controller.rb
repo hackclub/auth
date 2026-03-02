@@ -8,6 +8,11 @@ class DeveloperAppCollaboratorsController < ApplicationController
 
     email = params[:email].to_s.strip.downcase
 
+    if email == @app.owner_identity&.primary_email
+      redirect_to developer_app_path(@app), alert: t(".cannot_add_self")
+      return
+    end
+
     # Anti-enumeration: always create a pending record regardless of whether
     # the identity exists. The owner sees the same "Pending" row either way.
     identity = Identity.find_by(primary_email: email)
