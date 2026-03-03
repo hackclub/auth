@@ -20,6 +20,12 @@ class DeveloperAppCollaboratorsController < ApplicationController
         pc.identity = identity
       end
 
+      unless collaborator.persisted?
+        alert_message = collaborator.errors.full_messages.to_sentence.presence || t(".invalid_email")
+        redirect_to developer_app_path(@app), alert: alert_message
+        return
+      end
+
       reinvited = collaborator.declined? || collaborator.cancelled?
       collaborator.update!(status: :pending, identity: identity) if reinvited
 

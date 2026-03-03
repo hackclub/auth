@@ -285,6 +285,7 @@ en:
       invited: "Invitation sent!"
       already_invited: "This person has already been invited."
       cannot_add_self: "That's you, you goof!"
+      invalid_email: "Please enter a valid email address."
     destroy:
       success: Collaborator removed.
   developer_app_collaborator_invitations:
