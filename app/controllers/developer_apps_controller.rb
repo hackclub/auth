@@ -37,6 +37,12 @@ class DeveloperAppsController < ApplicationController
       .includes(:owner)
       .order(created_at: :desc)
       .limit(50)
+      .to_a
+
+    # Preload backend_user through the polymorphic owner to avoid N+1 in IdentityMention
+    identities = @activities.filter_map { |a| a.owner if a.owner_type == "Identity" }
+    ActiveRecord::Associations::Preloader.new(records: identities, associations: :backend_user).call if identities.any?
+
     render layout: "htmx"
   end
 
