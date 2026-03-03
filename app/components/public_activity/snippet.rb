@@ -17,12 +17,12 @@ class Components::PublicActivity::Snippet < Components::Base
 
           if owner.nil?
             i { "System" }
-          elsif owner.is_a?(::Backend::User)
+          elsif owner.is_a?(::Backend::User) || owner.is_a?(::Identity)
             render Components::UserMention.new(owner)
-          elsif owner.is_a?(::Identity)
-            render Components::UserMention.new(owner)
+          elsif owner.is_a?(::Program)
+            a(href: helpers.developer_app_path(owner)) { plain owner.name }
           else
-            render owner
+            plain "#{owner.class.name} #{owner.try(:public_id) || owner.id}"
           end
         end
       end
