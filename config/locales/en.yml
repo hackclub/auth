@@ -151,17 +151,26 @@ en:
     backend: Admin
   developer_apps:
     index:
-      title: Developers' corner
+      title: Your Apps
+      title_admin: All Apps
       create_new: app me up!
       no_scopes: No scopes
       edit: Edit
-      delete: Delete
-      delete_confirm: Are you sure you want to delete this app? This cannot be undone.
-      rotate_credentials: Rotate Secret & API Key
-      rotate_confirm: Are you sure? This will invalidate your current client secret and API key, breaking any existing integrations using those credentials.
-      rotate_hint: If your credentials have been compromised, you can rotate them to generate new ones. Just make sure to update your integration with the new credentials afterward!
       client_id: Client ID
       click_to_copy_client_id: click to copy client ID
+      collaborators_count:
+        one: "%{count} collaborator"
+        other: "%{count} collaborators"
+      search_label: Search
+      search_placeholder: Search by app name...
+      search_button: Search
+      clear_filters: Clear
+      invitation_banner: "You've been invited to collaborate on %{app_name}."
+      accept_invitation: Accept
+      decline_invitation: Decline
+      results_count:
+        one: "1 app"
+        other: "%{count} apps"
       blank_slate:
         title: No OAuth apps yet
         cta: Create an app to start authenticating with Hack Club!
@@ -169,6 +178,16 @@ en:
       not_found: "App not found (or you're unauthorized?)"
     show:
       back_to_apps: ← Back to Apps
+      details: Details
+      owner: Owner
+      status: Status
+      active: Active
+      inactive: Inactive
+      trust_level: Trust Level
+      scopes: Scopes
+      no_scopes: No scopes selected
+      user_count: Users
+      onboarding_scenario: Onboarding Scenario
       security_warning_title: Keep your credentials secure!
       security_warning_message: Never share your client secret publicly or commit it to version control.
       oauth_credentials: OAuth Credentials
@@ -176,32 +195,50 @@ en:
       click_to_copy_client_id: click to copy client ID
       client_secret: Client Secret
       click_to_copy_client_secret: click to copy client secret
+      reveal: Reveal
+      hide: Hide
+      api_key: prgmK
+      click_to_copy_api_key: click to copy API key
       redirect_uris: Redirect URIs
       test_auth: Test Auth
-      auth_link_hint: Right click auth links to copy URL
-      configuration: Configuration
-      scopes: Scopes
-      no_scopes: No scopes selected
-      trust_level: Trust Level
+      click_to_copy_redirect_uri: click to copy redirect URI
+      collaborators: Collaborators
+      no_collaborators: No collaborators yet.
+      add_collaborator: Add a collaborator
+      collaborator_email_placeholder: collaborator@example.com
+      add_button: Add
+      remove_collaborator: Remove
+      remove_collaborator_confirm: Remove this collaborator?
+      pending_badge: Pending
+      cancel_invitation: Cancel Invitation
+      pending_invitations_heading: Pending Invitations
+      activity_log: Activity Log
+      show_activity: Load Activity Log
+      no_activity: No activity recorded yet.
       edit_app: Edit App
       delete_app: Delete App
       delete_confirm: Are you sure you want to delete this app? This action cannot be undone and will revoke all existing tokens.
-      rotate_credentials: Rotate Secret & API Key
+      rotate_credentials: Rotate Credentials
       rotate_confirm: Are you sure? This will generate a new client secret and API key. The old ones will stop working immediately.
-      rotate_hint: If your credentials have been compromised, rotate them here.
+      danger_zone: Danger Zone
+      revoke_all_authorizations: Revoke All Tokens
+      revoke_all_authorizations_confirm: "Revoke all active tokens for this app? Users will be signed out and need to re-authorize."
     new:
       title: Create New OAuth App
       back_to_apps: ← Back to Apps
       errors_header:
         one: "%{count} issue prevented this from being saved:"
         other: "%{count} issues prevented this from being saved:"
+      app_details_heading: App Details
       app_name: Application Name
       app_name_placeholder: Northern California National Bank Online Banking
       redirect_uri: Redirect URI(s)
       redirect_uri_placeholder: http://localhost:3000/oauth/callback
       redirect_uri_hint: Enter one redirect URI per line for OAuth callbacks
-      scopes: Scopes
-      scopes_hint: "Community apps are limited to: %{scopes}"
+      trust_level_heading: Trust Level
+      trust_level: Trust Level
+      trust_level_hint: Controls which scopes the app may request and how the consent screen appears to users.
+      oauth_scopes_heading: OAuth Scopes
       trust_level_note_html: "<strong>Note:</strong> Your app will initially be created with <code>community_untrusted</code> trust level. <br/> This means users will see a scarier consent screen when authorizing your app. <br/> Once you've developed your integration, poke Nora to get it promoted."
       create: Create App
       cancel: Cancel
@@ -211,11 +248,22 @@ en:
       errors_header:
         one: "%{count} issue prevented this from being saved:"
         other: "%{count} issues prevented this from being saved:"
+      app_details_heading: App Details
       app_name: Application Name
       redirect_uri: Redirect URI
       redirect_uri_hint: Enter one redirect URI per line for OAuth callbacks
-      scopes: Scopes
-      scopes_hint: "Community apps are limited to: %{scopes}"
+      trust_level_heading: Trust Level
+      trust_level: Trust Level
+      trust_level_hint: Controls which scopes the app may request and how the consent screen appears to users.
+      oauth_scopes_heading: OAuth Scopes
+      scopes_removed: "Scopes removed:"
+      scopes_not_valid_for_trust_level: not valid for this trust level.
+      scopes_locked_by_higher_permission: "Managed by a higher-permission user:"
+      admin_settings_heading: Admin Settings
+      onboarding_scenario: Onboarding Scenario
+      onboarding_default: "(default)"
+      onboarding_scenario_hint: Users signing up through this OAuth app will use this onboarding flow
+      active: Active
       update: Update App
       cancel: Cancel
     create:
@@ -225,11 +273,28 @@ en:
     destroy:
       success: OAuth app deleted successfully!
     rotate_credentials:
-      success: OAuth app credentials rotated successfully!
-    require_developer_mode:
-      developer_mode_required: Developer mode is not enabled for your account.
+      success: OAuth app credentials rotated successfully.
+    revoke_all_authorizations:
+      success:
+        one: "Revoked 1 token."
+        other: "Revoked %{count} tokens."
     set_app:
       not_found: OAuth app not found.
+  developer_app_collaborators:
+    create:
+      invited: "Invitation sent!"
+      already_invited: "This person has already been invited."
+      cannot_add_self: "That's you, you goof!"
+      invalid_email: "Please enter a valid email address."
+    destroy:
+      success: Collaborator removed.
+  developer_app_collaborator_invitations:
+    accept:
+      success: "You are now a collaborator on this app."
+    decline:
+      success: "Invitation declined."
+    cancel:
+      success: "Invitation cancelled."
   addresses:
     first_name: First name
     last_name: Last name

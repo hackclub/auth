@@ -86,3 +86,23 @@
         @include banner-purple;
     }
 }
+
+.banner-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  margin-left: auto;
+  form { display: inline; }
+
+  @media (max-width: 768px) {
+    margin-left: 0;
+    margin-top: 0.75rem;
+  }
+}
+
+.banner:has(.banner-actions) > .grow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}

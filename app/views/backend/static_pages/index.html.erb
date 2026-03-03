@@ -32,7 +32,7 @@
       <% if current_user&.program_manager? || current_user&.super_admin? %>
         <b>Program manager:</b>
         <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: backend_programs_path) do %>
+          <%= render Components::Backend::Item.new(icon: "⭢", href: developer_apps_path) do %>
             <b>Manage OAuth2 apps</b>
             <p class="shortcode">&nbsp; [ APPS ]</p>
           <% end %>

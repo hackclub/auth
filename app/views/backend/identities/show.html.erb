@@ -144,7 +144,7 @@
               <tbody>
                 <% @all_programs.each do |program| %>
                   <tr>
-                    <td><%= link_to program.name, backend_program_path(program) %></td>
+                    <td><%= link_to program.name, developer_app_path(program) %></td>
                     <td><code><%= program.scopes.presence || "—" %></code></td>
                   </tr>
                 <% end %>
@@ -153,6 +153,39 @@
           </div>
         <% else %>
           <div class="empty-state">no programs accessed</div>
+        <% end %>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-header"><h3>developed apps</h3></div>
+      <div class="section-content">
+        <% if @owned_apps.any? || @collaborated_apps.any? %>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>app</th>
+                  <th>role</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @owned_apps.each do |app| %>
+                  <tr>
+                    <td><%= link_to app.name, developer_app_path(app) %> <span class="badge <%= app.hq_official? ? 'success' : '' %>"><%= app.trust_level.to_s.titleize %></span></td>
+                    <td>owner</td>
+                  </tr>
+                <% end %>
+                <% @collaborated_apps.each do |app| %>
+                  <tr>
+                    <td><%= link_to app.name, developer_app_path(app) %> <span class="badge <%= app.hq_official? ? 'success' : '' %>"><%= app.trust_level.to_s.titleize %></span></td>
+                    <td>collaborator</td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <div class="empty-state">no developer apps</div>
         <% end %>
       </div>
     </div>

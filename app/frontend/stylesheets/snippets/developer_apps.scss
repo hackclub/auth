@@ -1,0 +1,357 @@
+// Developer Apps UI — IdP management panel styles
+
+// Form field container
+.field-group {
+  margin-bottom: 1.25rem;
+  label:first-child {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+  }
+}
+
+// Checkbox + label + optional description row
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.375rem 0;
+  cursor: pointer;
+  input[type="checkbox"] { margin-top: 0.2rem; flex-shrink: 0; }
+  small { display: block; margin-top: 0.1rem; }
+}
+
+// Secondary button style for <a> tags — replicates Pico's .secondary for buttons
+a.button-secondary,
+.button-secondary {
+  background: #fff linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(0,0,0,0.04) 100%) !important;
+  background-color: #fff !important;
+  color: #555 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.04) !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: var(--pico-border-radius);
+  padding: var(--pico-form-element-spacing-vertical) var(--pico-form-element-spacing-horizontal);
+  font-size: 1rem;
+  font-weight: var(--pico-font-weight);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @include dark-mode {
+    background: #2c2c2c linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(0,0,0,0.1) 100%) !important;
+    color: #d0d0d0 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    background: #fcfcfc linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(0,0,0,0.02) 100%) !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.05) !important;
+
+    @include dark-mode {
+      background: #333 linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(0,0,0,0.15) 100%) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+      box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.3) !important;
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow:
+      inset 0 3px 6px rgba(0, 0, 0, 0.15),
+      inset 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+
+    @include dark-mode {
+      box-shadow:
+        inset 0 3px 6px rgba(0, 0, 0, 0.5),
+        inset 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    }
+  }
+}
+
+// Submit row
+.form-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap; }
+
+// Two-panel layout for show page
+.dev-panel {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: $space-6;
+  align-items: start;
+  margin-top: $space-5;
+  @include down($bp-md) { grid-template-columns: 1fr; }
+}
+.dev-panel-sidebar { display: flex; flex-direction: column; gap: $space-4; }
+.dev-panel-main { display: flex; flex-direction: column; gap: $space-4; }
+
+// Monogram icon for app identity
+.app-icon {
+  width: 48px; height: 48px;
+  border-radius: $radius-md;
+  background: linear-gradient(135deg, var(--pico-primary-background, var(--pico-primary)) 0%, var(--pico-primary) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; font-weight: 700; color: white;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  letter-spacing: -0.02em;
+  &.large { width: 72px; height: 72px; font-size: 1.875rem; border-radius: $radius-lg; margin: 0 auto $space-3; }
+}
+
+// Sidebar identity card internals
+.app-identity-name {
+  font-size: 1.25rem;
+  margin: 0 0 $space-2;
+}
+
+.app-badge-row {
+  display: flex;
+  gap: $space-2;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: $space-3;
+}
+
+.dev-panel-sidebar .button-secondary {
+  text-align: center;
+  display: block;
+}
+
+// Redirect URI rows in show page
+.redirect-uri-list { margin-top: $space-4; }
+
+.redirect-uri-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: $space-2;
+  align-items: center;
+  margin-bottom: $space-2;
+  .button-secondary { margin: 0; }
+}
+
+// Collaborator list in show page
+.collaborator-list { margin-top: $space-4; }
+
+.collaborator-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-2 0;
+  border-bottom: 1px solid var(--pico-card-border-color);
+  .collaborator-email {
+    color: var(--pico-muted-color);
+    font-size: 0.9rem;
+  }
+}
+
+.add-collaborator {
+  margin-top: $space-4;
+  .add-collaborator-label {
+    @extend .label-upper;
+    margin-bottom: $space-2;
+  }
+  form {
+    display: flex;
+    gap: $space-2;
+    align-items: center;
+    input[type="email"] { flex: 1; margin: 0; }
+    button { padding-block: var(--pico-form-element-spacing-vertical); line-height: normal; margin: 0; }
+  }
+}
+
+// Scope description text inside checkbox labels
+.checkbox-label small { color: var(--pico-muted-color); }
+
+// YSWS defaults quick-fill button spacing
+.ysws-defaults-btn { margin-bottom: $space-3; }
+
+// Label/value pair in show sidebar
+.app-meta-row {
+  display: flex; flex-direction: column; gap: 0.2rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--pico-card-border-color);
+  &:last-child { border-bottom: none; }
+  .meta-label { @extend .label-upper; }
+  .meta-value { font-size: 0.9375rem; }
+}
+
+// Credential rows — divider-separated
+.credential-block {
+  padding: $space-3 0;
+  border-bottom: 1px solid var(--pico-card-border-color);
+  &:first-of-type { margin-top: $space-3; }
+  &:last-of-type { border-bottom: none; padding-bottom: 0; }
+  label { @extend .label-upper; display: block; margin-bottom: 0.3rem; }
+}
+
+.credential-value {
+  font-family: $font-mono;
+  font-size: 0.875rem;
+  color: var(--pico-color);
+  word-break: break-all;
+  cursor: pointer;
+  &.credential-masked {
+    color: var(--pico-muted-color);
+    letter-spacing: 0.1em;
+  }
+}
+
+.cred-reveal-row {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  .pointer { flex: 1; min-width: 0; }
+  button { flex-shrink: 0; }
+}
+
+// Danger zone card variant
+.danger-card {
+  border-color: var(--error-border) !important;
+  h4 { color: var(--error-fg); font-size: 1rem; margin: 0 0 $space-3 0; }
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  form { display: contents; }
+}
+
+// Thin search strip (replaces heavy section-card for admin search)
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  flex-wrap: wrap;
+  padding: $space-3 $space-4;
+  background: var(--surface-2);
+  border: 1px solid var(--pico-card-border-color);
+  border-radius: $radius-lg;
+  margin-bottom: $space-4;
+  form {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    flex: 1;
+    min-width: 0;
+  }
+  input[type="search"], input[type="text"] {
+    flex: 1; min-width: 200px;
+    margin: 0; padding: 0.5rem 0.75rem 0.5rem 2.5rem; font-size: 0.9rem;
+  }
+  .search-results-count {
+    font-size: 0.875rem;
+    color: var(--pico-muted-color);
+    margin-left: auto;
+  }
+  button, button[type="submit"] { flex-shrink: 0; width: auto; margin: 0; padding: 0.5rem 1rem; white-space: nowrap; }
+}
+
+// Locked scope checkboxes (user can't touch these)
+.checkbox-label.locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  input[type="checkbox"] { cursor: not-allowed; }
+}
+
+.locked-scopes-label {
+  @extend .label-upper;
+  margin: $space-3 0 $space-2;
+}
+
+// Warning banner when trust level downgrade strips scopes
+.scope-strip-warning {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex-wrap: wrap;
+  padding: $space-2 $space-3;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  border-radius: $radius-md;
+  font-size: 0.9rem;
+  margin-bottom: $space-3;
+  color: var(--warning-fg-strong);
+  button { margin-left: auto; flex-shrink: 0; }
+}
+
+// Activity log table (frontend equivalent of backend table styles)
+.dev-panel-main .table-container {
+  overflow-x: auto;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+
+    th {
+      text-align: left;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--pico-muted-color);
+      padding: $space-2 $space-3;
+      border-bottom: 2px solid var(--pico-muted-border-color);
+    }
+
+    td {
+      padding: $space-2 $space-3;
+      border-bottom: 1px solid var(--pico-muted-border-color);
+      vertical-align: top;
+    }
+
+    tr:hover td {
+      background: var(--pico-card-background-color);
+    }
+  }
+}
+
+// Identity mention — inline actor display for frontend
+.identity-mention {
+  font-weight: 600;
+  white-space: nowrap;
+  abbr {
+    text-decoration: none;
+    cursor: help;
+  }
+}
+
+// Compact app list for index
+.app-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.app-list-item {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+  padding: $space-4;
+
+  .app-list-item-identity {
+    display: flex; align-items: center; gap: $space-3; flex: 1; min-width: 0;
+    h3 { margin: 0; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    small { color: var(--pico-muted-color); font-size: 0.8125rem; }
+  }
+
+  .app-list-item-meta {
+    display: flex; align-items: center; gap: $space-3; flex-shrink: 0;
+    .client-id { font-family: $font-mono; font-size: 0.8125rem; color: var(--pico-muted-color); }
+    @include down($bp-md) { .client-id { display: none; } }
+  }
+}

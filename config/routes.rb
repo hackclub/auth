@@ -226,11 +226,7 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :programs do
-      member do
-        post :rotate_credentials
-      end
-    end
+    # Programs management moved to DeveloperAppsController (unified UI)
 
 
     post "/break_glass", to: "break_glass#create"
@@ -364,6 +360,17 @@ Rails.application.routes.draw do
   resources :developer_apps, path: "developer/apps" do
     member do
       post :rotate_credentials
+      post :revoke_all_authorizations
+      get :activity_log
+    end
+    resources :collaborators, only: [ :create, :destroy ],
+      controller: "developer_app_collaborators"
+    resources :collaborator_invites, only: [], controller: "developer_app_collaborator_invitations" do
+      member do
+        post :accept
+        post :decline
+        post :cancel
+      end
     end
   end
 

@@ -1,0 +1,7 @@
+<%= render Components::PublicActivity::Snippet.new(activity, owner_component: Components::IdentityMention.new(activity.owner)) do %>
+  <% if policy(activity.trackable).manage_collaborators? %>
+    invited <strong><%= activity.parameters[:invited_email] || activity.parameters["invited_email"] %></strong> to collaborate.
+  <% else %>
+    invited a new collaborator.
+  <% end %>
+<% end %>
