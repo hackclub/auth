@@ -1,5 +1,5 @@
 <%= render Components::PublicActivity::Snippet.new(activity, owner_component: Components::IdentityMention.new(activity.owner)) do %>
-  <% if policy(activity.trackable).manage_collaborators? %>
+  <% if activity.trackable && policy(activity.trackable).manage_collaborators? rescue false %>
     removed <strong><%= activity.parameters[:removed_email] || activity.parameters["removed_email"] %></strong>.
   <% else %>
     removed a collaborator.
