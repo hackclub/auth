@@ -410,12 +410,14 @@
   display: flex;
   gap: $space-3;
   flex-wrap: wrap;
+  align-items: center;
   margin-bottom: $space-5;
 
   button,
   a {
     flex: 1;
     min-width: 140px;
+    margin: 0;
   }
 
   @media (max-width: 480px) {
