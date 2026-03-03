@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-# `user` here is always an Identity (via IdentityAuthorizable).
+# `user` is normally an Identity (via IdentityAuthorizable), but may be a
+# Backend::User when activity partials render in the backend context.
 class ProgramPolicy < ApplicationPolicy
   def index?
     user.developer_mode? || admin?
@@ -114,12 +115,16 @@ class ProgramPolicy < ApplicationPolicy
     record.is_a?(Class) ? false : record.collaborator?(user)
   end
 
+  def resolve_backend_user
+    user.is_a?(Backend::User) ? user : user.backend_user
+  end
+
   def admin?
-    backend_user = user.backend_user
-    backend_user&.program_manager? || backend_user&.super_admin?
+    bu = resolve_backend_user
+    bu&.program_manager? || bu&.super_admin?
   end
 
   def super_admin?
-    user.backend_user&.super_admin?
+    resolve_backend_user&.super_admin?
   end
 end
