@@ -13,6 +13,10 @@ class ProgramCollaboratorPolicy < ApplicationPolicy
     manage_collaborators?
   end
 
+  def remove?
+    manage_collaborators?
+  end
+
   private
 
   def belongs_to_user?

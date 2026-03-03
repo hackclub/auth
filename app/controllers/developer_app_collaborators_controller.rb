@@ -25,10 +25,13 @@ class DeveloperAppCollaboratorsController < ApplicationController
       return
     end
 
-    reinvited = collaborator.declined? || collaborator.cancelled?
-    collaborator.update!(status: :pending, identity: identity) if reinvited
+    reinvitable = collaborator.may_reinvite?
+    if reinvitable
+      collaborator.identity = identity
+      collaborator.reinvite!
+    end
 
-    if collaborator.previously_new_record? || reinvited
+    if collaborator.previously_new_record? || reinvitable
       @app.create_activity :collaborator_invited, owner: current_identity, parameters: { invited_email: email }
       redirect_to developer_app_path(@app), notice: t(".invited")
     else
@@ -37,9 +40,8 @@ class DeveloperAppCollaboratorsController < ApplicationController
   end
 
   def destroy
-    authorize @app, :manage_collaborators?
-
     collaborator = @app.program_collaborators.find(params[:id])
+    authorize collaborator, :remove?
     email = collaborator.invited_email
     collaborator.remove!
     @app.create_activity :collaborator_removed, owner: current_identity, parameters: { removed_email: email }

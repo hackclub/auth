@@ -34,5 +34,9 @@ class ProgramCollaborator < ApplicationRecord
     event :remove do
       transitions from: %i[pending accepted], to: :removed
     end
+
+    event :reinvite do
+      transitions from: %i[declined cancelled removed], to: :pending
+    end
   end
 end
