@@ -10,9 +10,6 @@ class DeveloperAppsController < ApplicationController
 
     if admin?
       @apps = @apps.where("oauth_applications.name ILIKE :q OR oauth_applications.uid ILIKE :q", q: "%#{params[:search]}%") if params[:search].present?
-      if params[:owner_id].present?
-        @apps = @apps.where(owner_identity_id: params[:owner_id])
-      end
     end
 
     @apps = @apps.page(params[:page]).per(25)

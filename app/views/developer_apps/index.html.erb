@@ -28,7 +28,7 @@
       <%= form_with url: developer_apps_path, method: :get, local: true do %>
         <%= text_field_tag :search, params[:search], placeholder: t(".search_placeholder"), type: "search" %>
         <button type="submit"><%= t(".search_button") %></button>
-        <% if params[:search].present? || params[:owner_id].present? %>
+        <% if params[:search].present? %>
           <%= link_to "✕ #{t('.clear_filters')}", developer_apps_path, class: "button-secondary small-btn" %>
         <% end %>
       <% end %>
