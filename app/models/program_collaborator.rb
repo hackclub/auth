@@ -17,6 +17,7 @@ class ProgramCollaborator < ApplicationRecord
     state :accepted
     state :declined
     state :cancelled
+    state :removed
 
     event :accept do
       transitions from: :pending, to: :accepted
@@ -28,6 +29,10 @@ class ProgramCollaborator < ApplicationRecord
 
     event :cancel do
       transitions from: :pending, to: :cancelled
+    end
+
+    event :remove do
+      transitions from: %i[pending accepted], to: :removed
     end
   end
 end

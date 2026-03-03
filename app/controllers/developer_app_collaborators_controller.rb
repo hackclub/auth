@@ -15,30 +15,25 @@ class DeveloperAppCollaboratorsController < ApplicationController
 
     identity = Identity.find_by(primary_email: email)
 
-    unless identity&.id == @app.owner_identity_id
-      collaborator = @app.program_collaborators.find_or_create_by(invited_email: email) do |pc|
-        pc.identity = identity
-      end
+    collaborator = @app.program_collaborators.find_or_create_by(invited_email: email) do |pc|
+      pc.identity = identity
+    end
 
-      unless collaborator.persisted?
-        alert_message = collaborator.errors.full_messages.to_sentence.presence || t(".invalid_email")
-        redirect_to developer_app_path(@app), alert: alert_message
-        return
-      end
-
-      reinvited = collaborator.declined? || collaborator.cancelled?
-      collaborator.update!(status: :pending, identity: identity) if reinvited
-
-      if collaborator.previously_new_record? || reinvited
-        @app.create_activity :collaborator_invited, owner: current_identity, parameters: { invited_email: email }
-        redirect_to developer_app_path(@app), notice: t(".invited")
-      else
-        redirect_to developer_app_path(@app), alert: t(".already_invited")
-      end
+    unless collaborator.persisted?
+      alert_message = collaborator.errors.full_messages.to_sentence.presence || t(".invalid_email")
+      redirect_to developer_app_path(@app), alert: alert_message
       return
     end
 
-    redirect_to developer_app_path(@app), notice: t(".invited")
+    reinvited = collaborator.declined? || collaborator.cancelled?
+    collaborator.update!(status: :pending, identity: identity) if reinvited
+
+    if collaborator.previously_new_record? || reinvited
+      @app.create_activity :collaborator_invited, owner: current_identity, parameters: { invited_email: email }
+      redirect_to developer_app_path(@app), notice: t(".invited")
+    else
+      redirect_to developer_app_path(@app), alert: t(".already_invited")
+    end
   end
 
   def destroy
@@ -46,7 +41,7 @@ class DeveloperAppCollaboratorsController < ApplicationController
 
     collaborator = @app.program_collaborators.find(params[:id])
     email = collaborator.invited_email
-    collaborator.destroy
+    collaborator.remove!
     @app.create_activity :collaborator_removed, owner: current_identity, parameters: { removed_email: email }
 
     redirect_to developer_app_path(@app), notice: t(".success")
