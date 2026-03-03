@@ -242,17 +242,23 @@ a.button-secondary,
   border: 1px solid var(--pico-card-border-color);
   border-radius: $radius-lg;
   margin-bottom: $space-4;
-  form { display: contents; }
+  form {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    flex: 1;
+    min-width: 0;
+  }
   input[type="search"], input[type="text"] {
     flex: 1; min-width: 200px;
-    margin: 0; padding: 0.5rem 0.75rem; font-size: 0.9rem;
+    margin: 0; padding: 0.5rem 0.75rem 0.5rem 2.5rem; font-size: 0.9rem;
   }
   .search-results-count {
     font-size: 0.875rem;
     color: var(--pico-muted-color);
     margin-left: auto;
   }
-  button, button[type="submit"] { flex-shrink: 0; width: auto; margin: 0; }
+  button, button[type="submit"] { flex-shrink: 0; width: auto; margin: 0; padding: 0.5rem 1rem; white-space: nowrap; }
 }
 
 // Locked scope checkboxes (user can't touch these)
