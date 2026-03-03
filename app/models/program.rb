@@ -72,7 +72,6 @@ class Program < ApplicationRecord
   validates :redirect_uri, presence: true
   validates :scopes, presence: true
   validate :validate_community_scopes
-  validate :validate_developer_owned_apps
 
   before_validation :generate_uid, on: :create
   before_validation :generate_secret, on: :create
@@ -174,10 +173,6 @@ class Program < ApplicationRecord
     if invalid_scopes.any?
       errors.add(:scopes, "Community apps can only use these scopes: #{COMMUNITY_ALLOWED_SCOPES.join(', ')}")
     end
-  end
-
-  def validate_developer_owned_apps
-    # No restrictions - admins can set developer apps to any trust level
   end
 
   def generate_uid

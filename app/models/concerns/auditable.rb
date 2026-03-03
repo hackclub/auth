@@ -48,8 +48,8 @@ module Auditable
         next if old_val == new_val
         transform = config[:transform]
         changes[name] = {
-          from: transform&.call(old_val) || old_val,
-          to: transform&.call(new_val) || new_val
+          from: transform ? transform.call(old_val) : old_val,
+          to: transform ? transform.call(new_val) : new_val
         }
       end
     end
