@@ -9,7 +9,11 @@ class DeveloperAppsController < ApplicationController
     @apps = policy_scope(Program).includes(:owner_identity).order(created_at: :desc)
 
     if admin?
-      @apps = @apps.where("oauth_applications.name ILIKE :q OR oauth_applications.uid ILIKE :q", q: "%#{params[:search]}%") if params[:search].present?
+      @apps = @apps.where(
+        "oauth_applications.name ILIKE :q OR oauth_applications.uid = :uid",
+        q: "%#{params[:search]}%",
+        uid: params[:search]
+      )
     end
 
     @apps = @apps.page(params[:page]).per(25)
