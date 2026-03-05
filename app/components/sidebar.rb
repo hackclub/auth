@@ -39,17 +39,15 @@ class Components::Sidebar < Components::Base
     if current_identity.present?
       status = current_identity.verification_status
 
-      # Show a small badge when the user needs to take a verification action.
-      # We use a numeric badge so the rendering helper can decide whether to display it.
-      badge_count = 0
-      badge_count = 1 if status == "needs_submission" || status == "pending"
 
-      items << {
-        label: t("sidebar.verification"),
-        path: new_verifications_path,
-        icon: status == "pending" ? "clock" : "card-id",
-        badge: badge_count
-      }
+      if status == "needs_submission" || status == "pending"
+        items << {
+          label: t("sidebar.verification"),
+          path: new_verifications_path,
+          icon: status == "pending" ? "clock" : "card-id",
+          badge: 1
+        }
+      end
     end
 
     items << { label: t("sidebar.addresses"), path: addresses_path, icon: "email" }
