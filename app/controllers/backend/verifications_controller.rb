@@ -84,6 +84,21 @@ module Backend
 
       @verification.create_activity(key: "verification.approve", owner: current_user, recipient: @verification.identity, parameters: { ysws_eligible: ysws_eligible })
 
+      # Auto-promote on verification approval for scenarios that opt in.
+      begin
+        ident = @verification.identity
+        if ident.present? && ident.slack_id.present? && ident.promote_click_count == 0
+          scenario = ident.onboarding_scenario_instance
+          if scenario&.promote_on_verification
+            Tutorial::AgreeJob.perform_later(ident)
+            Rails.logger.info "Enqueued auto-promotion for identity #{ident.id} (verification #{@verification.id})"
+          end
+        end
+      rescue => e
+        Rails.logger.error "Auto-promote on verification approval failed: #{e.message}"
+        Sentry.capture_exception(e) if defined?(Sentry)
+      end
+
       redirect_to pending_backend_verifications_path
     end
 
