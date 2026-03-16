@@ -1,4 +1,4 @@
-image "https://cdn.hackclub.com/019cf71c-0bb4-718b-85ad-ce1847cbc09f/welcome_to_fallout.gif", "Welcome to Hack Club!"
+image "https://cdn.hackclub.com/019cf72b-780f-75f6-bce2-cab2908116c2/welcome-to-fallout.gif", "Welcome to Hack Club Fallout!"
 
 section <<~EOFD, markdown: true
   Right now you can only see a few channels related to Fallout.
