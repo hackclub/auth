@@ -120,6 +120,9 @@ module OnboardingScenarios
     def before_first_message = nil
     def after_promotion = nil
 
+
+    def after_verification_promotion(identity) = nil
+
     # Handle custom actions - return step symbol, template string, or hash
     def handle_action(action_id) = nil
 

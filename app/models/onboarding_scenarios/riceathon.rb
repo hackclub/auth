@@ -23,5 +23,11 @@ module OnboardingScenarios
     def logo_path = "images/riceathon/RiceathonGlow.png"
 
     def card_attributes = { wide_logo: true }
+
+    # When user is promoted via verification approval, send them the welcome message
+    # ensures theysee the CoC
+    def after_verification_promotion(identity)
+      RalseiEngine.send_step(identity, :welcome)
+    end
   end
 end

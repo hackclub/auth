@@ -90,8 +90,8 @@ module Backend
         if ident.present? && ident.slack_id.present? && ident.promote_click_count == 0
           scenario = ident.onboarding_scenario_instance
           if scenario&.promote_on_verification
-            Tutorial::AgreeJob.perform_later(ident)
-            Rails.logger.info "Enqueued auto-promotion for identity #{ident.id} (verification #{@verification.id})"
+            RalseiEngine.promote_on_verification(ident)
+            Rails.logger.info "Auto-promoted identity #{ident.id} on verification #{@verification.id}"
           end
         end
       rescue => e
