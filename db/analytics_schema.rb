@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_02_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_21_045934) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -336,8 +336,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_02_000002) do
     t.boolean "is_in_workspace", default: false, null: false
     t.string "slack_dm_channel_id"
     t.string "webauthn_id"
-    t.boolean "is_alum", default: false
-    t.boolean "can_hq_officialize", default: false, null: false
     t.index "lower((primary_email)::text)", name: "idx_identities_unique_primary_email", unique: true, where: "(deleted_at IS NULL)"
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
@@ -564,20 +562,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_02_000002) do
     t.index ["access_grant_id"], name: "index_oauth_openid_requests_on_access_grant_id"
   end
 
-  create_table "program_collaborators", force: :cascade do |t|
-    t.bigint "program_id", null: false
-    t.bigint "identity_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "status", default: "pending", null: false
-    t.datetime "accepted_at"
-    t.string "invited_email"
-    t.index ["identity_id"], name: "index_program_collaborators_on_identity_id"
-    t.index ["program_id", "identity_id"], name: "index_program_collaborators_on_program_id_and_identity_id", unique: true
-    t.index ["program_id", "invited_email"], name: "idx_program_collabs_on_program_email_visible", unique: true, where: "((status)::text = ANY ((ARRAY['pending'::character varying, 'accepted'::character varying])::text[]))"
-    t.index ["program_id"], name: "index_program_collaborators_on_program_id"
-  end
-
   create_table "settings", force: :cascade do |t|
     t.string "key", null: false
     t.text "value"
@@ -681,8 +665,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_02_000002) do
   add_foreign_key "oauth_access_tokens", "identities", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_openid_requests", "oauth_access_grants", column: "access_grant_id", on_delete: :cascade
-  add_foreign_key "program_collaborators", "identities"
-  add_foreign_key "program_collaborators", "oauth_applications", column: "program_id"
   add_foreign_key "verifications", "identities"
   add_foreign_key "verifications", "identity_aadhaar_records", column: "aadhaar_record_id"
   add_foreign_key "verifications", "identity_documents"

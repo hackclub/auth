@@ -111,8 +111,7 @@
           <%= f.hidden_field :action_type, value: @action %>
           <%= f.hidden_field :return_to, value: @return_to %>
           <%= f.hidden_field :credential_data, id: "step-up-credential-data" %>
-        <% end %>
-      </div>
+        <% end %>>
 
       <footer>
         <p><%= link_to t(".use_different_method"), new_step_up_path(action_type: @action, return_to: @return_to) %></p>
