@@ -135,6 +135,22 @@
     font-size: 0.95rem;
     letter-spacing: -0.01em;
   }
+
+  .nav-badge {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--pico-primary) 70%, grey);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
 }
 
 .sidebar-user {

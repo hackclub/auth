@@ -1,0 +1,10 @@
+image "https://cdn.hackclub.com/019c297b-5d42-7256-a5e5-7d8f9f7adcd5/welcome.gif", "Welcome to Hack Club!"
+
+section <<~EOFD, markdown: true
+  Right now you can only see <#C0A9PMV58R5>.
+  To access other channels, you must read and agree to our <https://hackclub.com/conduct|Code of Conduct>.
+EOFD
+
+actions [
+          button("I'll follow the CoC!", "tutorial_agree", style: "primary")
+        ]

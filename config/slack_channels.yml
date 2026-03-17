@@ -1,5 +1,10 @@
 production:
   announcements: C0266FRGT
+  happenings: C05B6DBN802
+  community: C01D7AHKMPF
+  ysws: C0710J7F4U9
+  hardware: C6C026NHJ
+  code: C0EA9S0A0
   library: C078Q8PBD4G
   ship: C0M8PUPU6
   welcome: C75M7C0SY
@@ -8,11 +13,15 @@ production:
   lounge: C0266FRGV
   pyramid-scheme: C07N1TCHY3T
   waiting_room: C0A24UHUMA7
+  #Below: new welcome channel added Jan 2026. This will 
+  #need to be replaced with a channel name once we implement 
+  #automatic retiring and renaming of the welcome channel //EPS
+  welcome_to_hack_club: C0A9PMV58R5
 shared:
   announcements: C09N763H20Z
   library: C09MMSJSUKV
   ship: C09MS75D9NJ
-  welcome: C09MQR23085
+  welcome_to_hack_club: C0A9PMV58R5
   hq_eng: C09N76HCM9P
   neighbourhood: C09MU9EC9GA
   lounge: C09NNJRQGP2
@@ -27,6 +36,10 @@ shared:
   blueprint: C083S537USC
   blueprint_support: C09CMJV6V6K
   blueprint_announcements: C09D1C2BFKL
+  blueprint_drafts: C09SJ2R1002
   campfire_flagship: C0A1GH3FY4T
   campfire_flagship_bulletin: C0A6RKLB4UC
   campfire_flagship_help: C0A6KLGRZQE
+  campfire: C09PXLPEL2Y
+  campfire_bulletin: C0ACNAFBML4
+  campfire_help: C09QNE26P7A

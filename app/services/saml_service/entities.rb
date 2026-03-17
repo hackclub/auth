@@ -42,7 +42,7 @@ module SAMLService
           @metadata_xml ||= begin
                               xml = idp_entity.to_xml
                               xml.root.add_child Nokogiri::XML::Comment.new(xml, " haiii :3 ")
-                              xml.add_child Nokogiri::XML::Comment.new(xml, " curious thing, aren't you? – https://hack.af/gh/account , glory awaits")
+                              xml.add_child Nokogiri::XML::Comment.new(xml, " curious thing, aren't you? – https://hack.af/gh/auth , glory awaits")
                               xml.to_s
                             end
         end
@@ -88,6 +88,7 @@ module SAMLService
                 allow_unsigned_requests: sp_config[:allow_unsigned_requests] || false,
                 attribute_format: sp_config[:attribute_format]&.to_sym || :default,
                 allowed_attributes: sp_config[:allowed_attributes],
+                allowed_emails: sp_config[:allowed_emails],
                 signing_certificate: load_sp_certificate(sp_config[:signing_certificate]),
                 slug: sp_config[:slug]
             }

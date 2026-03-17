@@ -1,9 +1,0 @@
-<div class="grid">
-  <%= render Components::Backend::Card.new(title: "new program") do %>
-    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_programs_path) do %>
-      <b>cancel</b>
-    <% end %>
-    <hr>
-    <%= render Backend::Programs::Form.new @program %>
-  <% end %>
-</div>

@@ -17,5 +17,13 @@ FactoryBot.define do
         identity.update(primary_address: address)
       end
     end
+
+    trait :can_hq_officialize do
+      can_hq_officialize { true }
+    end
+
+    trait :developer do
+      developer_mode { true }
+    end
   end
 end

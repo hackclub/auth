@@ -1,0 +1,60 @@
+<%
+  changes = activity.parameters[:changes] || activity.parameters["changes"]
+  phrases = []
+
+  if changes.present?
+    changes.each do |field, diff|
+      field = field.to_s
+      diff = diff.symbolize_keys if diff.respond_to?(:symbolize_keys)
+
+      case field
+      when "trust_level"
+        if diff[:to].to_s.downcase.gsub(" ", "_") == "hq_official"
+          phrases << "marked this app as <strong>HQ Official</strong>"
+        else
+          phrases << "changed trust level to <strong>#{ERB::Util.html_escape(diff[:to])}</strong>"
+        end
+      when "name"
+        phrases << "renamed app from <strong>#{ERB::Util.html_escape(diff[:from])}</strong> to <strong>#{ERB::Util.html_escape(diff[:to])}</strong>"
+      when "active"
+        if diff[:to] == true || diff[:to] == "true"
+          phrases << "reactivated this app"
+        else
+          phrases << "deactivated this app"
+        end
+      when "scopes_array"
+        added = Array(diff[:added])
+        removed = Array(diff[:removed])
+        if added.any?
+          phrases << "added scopes: <code>#{added.map { |s| ERB::Util.html_escape(s) }.join(', ')}</code>"
+        end
+        if removed.any?
+          phrases << "removed scopes: <code>#{removed.map { |s| ERB::Util.html_escape(s) }.join(', ')}</code>"
+        end
+      when "redirect_uris"
+        added = Array(diff[:added])
+        removed = Array(diff[:removed])
+        if added.any?
+          tooltip = added.map { |u| ERB::Util.html_escape(u) }.join("\n")
+          phrases << "added <abbr title=\"#{tooltip}\">#{added.size} redirect #{added.size == 1 ? 'URI' : 'URIs'}</abbr>"
+        end
+        if removed.any?
+          tooltip = removed.map { |u| ERB::Util.html_escape(u) }.join("\n")
+          phrases << "removed <abbr title=\"#{tooltip}\">#{removed.size} redirect #{removed.size == 1 ? 'URI' : 'URIs'}</abbr>"
+        end
+      when "onboarding_scenario"
+        if diff[:to].present?
+          phrases << "changed onboarding scenario to <strong>#{ERB::Util.html_escape(diff[:to])}</strong>"
+        else
+          phrases << "removed onboarding scenario"
+        end
+      end
+    end
+  end
+
+  phrases << "updated app settings" if phrases.empty?
+%>
+
+<%= render Components::PublicActivity::Snippet.new(activity, owner_component: Components::IdentityMention.new(activity.owner)) do %>
+  <%= safe_join(phrases.map(&:html_safe), "; ") %>.
+<% end %>

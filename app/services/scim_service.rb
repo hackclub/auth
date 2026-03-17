@@ -199,10 +199,14 @@ module SCIMService
       }
     rescue => e
       Rails.logger.error "Error creating Slack user: #{e.message}"
-      Sentry.capture_exception(e, extra: {
-        identity_public_id: identity.public_id,
-        identity_email: identity.primary_email
-      })
+      Sentry.capture_exception(e,
+        level: :error,
+        tags: { component: "slack", critical: true, operation: "scim_create_user" },
+        extra: {
+          identity_public_id: identity.public_id,
+          identity_email: identity.primary_email
+        }
+      )
 
       {
         success: false,
@@ -221,6 +225,7 @@ module SCIMService
       response.body.dig("Resources", 0, "id")
     rescue => e
       Rails.logger.warn "Error finding existing user by email via SCIM: #{e.message}"
+      Sentry.capture_exception(e, tags: { component: "slack", operation: "scim_find_user" }, extra: { email: email })
       nil
     end
 
@@ -243,6 +248,7 @@ module SCIMService
       response.body["Resources"]&.any? || false
     rescue => e
       Rails.logger.warn "Error checking username existence: #{e.message}"
+      Sentry.capture_exception(e, tags: { component: "slack", operation: "scim_check_username" }, extra: { username: username })
       false
     end
 

@@ -3,6 +3,19 @@
   <%= link_to t(".back_to_apps"), developer_apps_path %>
 </div>
 
+<%# Compute once for Alpine init.
+    @app.trust_level is community_untrusted from the controller (both the new
+    action default and the create action's server-side enforcement). On
+    validation-error re-render it preserves whatever the user submitted. %>
+<% editor_data = {
+     trustLevel: @app.trust_level,
+     selectedScopes: @app.scopes_array,
+     allowedScopes: policy(@app).allowed_scopes,
+     communityScopes: Program::COMMUNITY_ALLOWED_SCOPES,
+     allScopes: Program::AVAILABLE_SCOPES,
+     yswsDefaults: policy(@app).update_trust_level?
+   } %>
+
 <%= form_with model: @app, url: developer_apps_path, method: :post, local: true do |f| %>
   <% if @app.errors.any? %>
     <%= render Components::Banner.new(kind: :danger) do %>
@@ -15,38 +28,84 @@
     <% end %>
   <% end %>
 
-  <div class="field-group">
-    <%= f.label :name, t(".app_name") %>
-    <%= f.text_field :name, placeholder: t(".app_name_placeholder"), required: true %>
+  <div class="page-sections">
+    <%# === Card 1: App Details === %>
+    <section class="section-card">
+      <h3><%= t(".app_details_heading", default: "App Details") %></h3>
+      <div class="field-group">
+        <%= f.label :name, t(".app_name") %>
+        <%= f.text_field :name, placeholder: t(".app_name_placeholder"), required: true %>
+      </div>
+      <div class="field-group">
+        <%= f.label :redirect_uri, t(".redirect_uri") %>
+        <%= f.text_area :redirect_uri, placeholder: t(".redirect_uri_placeholder"), rows: 3, required: true %>
+        <small class="usn"><%= t ".redirect_uri_hint" %></small>
+      </div>
+    </section>
+
+    <%# === Cards 2+3 wrapped in Alpine === %>
+    <div x-data="scopeEditor(<%= editor_data.to_json %>)">
+
+      <%# === Card 2: Trust Level (if user can set it) === %>
+      <% if policy(@app).update_trust_level? %>
+        <section class="section-card">
+          <h3><%= t(".trust_level_heading", default: "Trust Level") %></h3>
+          <div class="field-group">
+            <%= f.label :trust_level, t(".trust_level") %>
+            <%= f.select :trust_level,
+                Program.trust_levels.keys.map { |k| [k.titleize, k] },
+                {},
+                { "x-model": "trustLevel", "@change": "onTrustLevelChange()" } %>
+            <small class="usn"><%= t(".trust_level_hint", default: "Controls which scopes the app may request and how the consent screen appears to users.") %></small>
+          </div>
+        </section>
+      <% end %>
+
+      <%# === Card 3: OAuth Scopes === %>
+      <section class="section-card">
+        <h3><%= t(".oauth_scopes_heading", default: "OAuth Scopes") %></h3>
+
+        <%# Warning when trust level downgrade stripped scopes %>
+        <div x-show="removedScopes.length > 0" x-cloak class="scope-strip-warning">
+          <strong><%= t("developer_apps.edit.scopes_removed", default: "Scopes removed:") %></strong>
+          <span x-text="removedScopes.join(', ')"></span>
+          — <%= t("developer_apps.edit.scopes_not_valid_for_trust_level", default: "not valid for this trust level.") %>
+          <button type="button" @click="dismissWarning()">&#x2715;</button>
+        </div>
+
+        <%# Quick-fill for YSWS programs (HQ officializers only) %>
+        <template x-if="showYswsDefaults">
+          <button type="button" class="button-secondary small-btn ysws-defaults-btn" @click="applyYswsDefaults()"><%= t(".ysws_defaults", default: "Default YSWS scopes") %></button>
+        </template>
+
+        <%# Blank input ensures empty array when nothing checked %>
+        <input type="hidden" name="program[scopes_array][]" value="">
+
+        <%# Editable scope checkboxes (Alpine-rendered) %>
+        <template x-for="scope in editableScopes" :key="scope.name">
+          <label class="checkbox-label">
+            <input type="checkbox" name="program[scopes_array][]"
+                   :value="scope.name"
+                   :checked="isChecked(scope.name)"
+                   @change="toggle(scope.name)">
+            <div>
+              <span x-text="scope.name"></span>
+              <small x-text="scope.description"></small>
+            </div>
+          </label>
+        </template>
+
+        <%# Community-only note for users who can't change trust level %>
+        <% unless policy(@app).update_trust_level? %>
+          <%= render Components::Banner.new(kind: :info) do %>
+            <%= t(".trust_level_note_html").html_safe %>
+          <% end %>
+        <% end %>
+      </section>
+    </div>
   </div>
 
-  <div class="field-group">
-    <%= f.label :redirect_uri, t(".redirect_uri") %>
-    <%= f.text_area :redirect_uri, placeholder: t(".redirect_uri_placeholder"), rows: 3, required: true %>
-    <small class="usn"><%= t ".redirect_uri_hint" %></small>
-  </div>
-
-  <div class="field-group">
-    <%= f.label :scopes_array, t(".scopes") %>
-    <input type="hidden" name="program[scopes_array][]" value="">
-    <% Program::COMMUNITY_ALLOWED_SCOPES.each do |scope| %>
-      <label class="checkbox-label">
-        <%= check_box_tag "program[scopes_array][]", scope, false, id: "program_scopes_#{scope}" %>
-        <span><%= scope %></span>
-        <small style="color: var(--text-secondary);">
-          <%= Program::AVAILABLE_SCOPES.find { |s| s[:name] == scope }&.dig(:description) %>
-        </small>
-      </label>
-    <% end %>
-    <small class="usn"><%= t ".scopes_hint", scopes: Program::COMMUNITY_ALLOWED_SCOPES.join(", ") %></small>
-  </div>
-  <br>
-  <br>
-  <%= render Components::Banner.new(kind: :info) do %>
-    <%= t(".trust_level_note_html").html_safe %>
-  <% end %>
-
-  <div style="display: flex; gap: 0.75rem;">
+  <div class="form-actions">
     <%= f.submit t(".create"), class: "button" %>
     <%= link_to t(".cancel"), developer_apps_path, class: "button-secondary" %>
   </div>

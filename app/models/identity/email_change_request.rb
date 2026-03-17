@@ -204,6 +204,8 @@ class Identity::EmailChangeRequest < ApplicationRecord
       return
     end
 
+    return unless Rails.env.production?
+
     if address.disposable?
       errors.add(:new_email, I18n.t("errors.attributes.new_email.temporary", default: "cannot be a temporary email"))
       return

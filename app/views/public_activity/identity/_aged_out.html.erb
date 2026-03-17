@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  marked <%= render Components::UserMention.new(activity.trackable) %> as aged out.
+<% end %>

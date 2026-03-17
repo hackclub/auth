@@ -11,7 +11,7 @@ class IdentityPolicy < ApplicationPolicy
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      if user.super_admin? || user.manual_document_verifier?
+      if user.super_admin? || user.manual_document_verifier? || user.all_fields_access?
         scope.all
       elsif user.organized_programs.any?
         program_ids = user.organized_programs.pluck(:id)

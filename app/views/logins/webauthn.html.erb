@@ -38,9 +38,21 @@
   </div>
 
   <div x-show="!browserSupported" x-cloak class="auth-card">
-    <div class="alert alert-warning">
-      <strong>Browser Not Supported</strong>
-      <p><%= t(".browser_not_supported") %></p>
+    <header>
+      <h1><%= t(".title") %></h1>
+      <small><%= t(".browser_not_supported") %></small>
+    </header>
+
+    <div class="alert alert-warning" style="margin-bottom: 1.5rem;">
+      <strong>Passkeys Not Supported</strong>
+      <p>Your browser doesn't support passkeys, but you can still sign in with an email code.</p>
     </div>
+
+    <p style="text-align: center;">
+      <%= button_to t(".use_email_code"),
+          skip_webauthn_login_attempt_path(@attempt),
+          method: :post,
+          class: "btn" %>
+    </p>
   </div>
 </div>

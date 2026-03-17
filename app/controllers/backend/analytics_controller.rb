@@ -25,6 +25,7 @@ module Backend
       @dialogue_funnel = @analytics.dialogue_funnel
       @scenario_comparison = @analytics.scenario_comparison unless @scenario
       @country_breakdown = @analytics.country_breakdown.first(10).to_h
+      @promotion_breakdown = @analytics.promotion_breakdown
 
       # Daily trends for charts - show oauth.authorized when filtering by scenario
       if @scenario

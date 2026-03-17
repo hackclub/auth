@@ -226,7 +226,8 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :programs
+    # Programs management moved to DeveloperAppsController (unified UI)
+
 
     post "/break_glass", to: "break_glass#create"
 
@@ -239,6 +240,7 @@ Rails.application.routes.draw do
   root "static_pages#home"
 
   get "/welcome", to: "static_pages#welcome", as: :welcome
+  get "/slack-id", to: "static_pages#slack_id", as: :slack_id
   get "/oauth/welcome", to: "static_pages#oauth_welcome", as: :oauth_welcome
   get "/security", to: "static_pages#security", as: :security
   get "/activity", to: "audit_logs#index", as: :audit_logs
@@ -355,7 +357,23 @@ Rails.application.routes.draw do
 
   resources :authorized_applications, only: [ :index, :destroy ]
 
-  resources :developer_apps, path: "developer/apps"
+  resources :developer_apps, path: "developer/apps" do
+    member do
+      post :rotate_credentials
+      post :revoke_all_authorizations
+      get :activity_log
+    end
+    resources :collaborators, only: [ :create, :destroy ],
+      controller: "developer_app_collaborators"
+    resources :collaborator_invites, only: [], controller: "developer_app_collaborator_invitations" do
+      member do
+        post :accept
+        post :decline
+        post :cancel
+      end
+    end
+  end
+
 
   namespace :api do
     namespace :v1 do

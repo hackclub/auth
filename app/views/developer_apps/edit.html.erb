@@ -3,6 +3,15 @@
   <%= link_to t(".back_to_app"), developer_app_path(@app) %>
 </div>
 
+<%# Compute once for Alpine init and server-side locked-scope rendering %>
+<% editor_data = {
+     trustLevel: @app.trust_level,
+     selectedScopes: @app.scopes_array,
+     allowedScopes: policy(@app).allowed_scopes,
+     communityScopes: Program::COMMUNITY_ALLOWED_SCOPES,
+     allScopes: Program::AVAILABLE_SCOPES
+   } %>
+
 <%= form_with model: @app, url: developer_app_path(@app), method: :patch, local: true do |f| %>
   <% if @app.errors.any? %>
     <%= render Components::Banner.new(kind: :danger) do %>
@@ -15,33 +24,119 @@
     <% end %>
   <% end %>
 
-  <div class="field-group">
-    <%= f.label :name, t(".app_name") %>
-    <%= f.text_field :name, required: true %>
-  </div>
+  <div class="page-sections">
+    <%# === Card 1: App Details === %>
+    <section class="section-card">
+      <h3><%= t(".app_details_heading", default: "App Details") %></h3>
+      <div class="field-group">
+        <%= f.label :name, t(".app_name") %>
+        <%= f.text_field :name, required: true %>
+      </div>
+      <div class="field-group">
+        <%= f.label :redirect_uri, t(".redirect_uri") %>
+        <%= f.text_area :redirect_uri, rows: 3, required: true %>
+        <small class="usn"><%= t ".redirect_uri_hint" %></small>
+      </div>
+    </section>
 
-  <div class="field-group">
-    <%= f.label :redirect_uri, t(".redirect_uri") %>
-    <%= f.text_area :redirect_uri, rows: 3, required: true %>
-    <small class="usn"><%= t ".redirect_uri_hint" %></small>
-  </div>
+    <%# === Cards 2+3 wrapped in Alpine === %>
+    <div x-data="scopeEditor(<%= editor_data.to_json %>)">
 
-  <div class="field-group">
-    <%= f.label :scopes_array, t(".scopes") %>
-    <input type="hidden" name="program[scopes_array][]" value="">
-    <% Program::COMMUNITY_ALLOWED_SCOPES.each do |scope| %>
-      <label class="checkbox-label">
-        <%= check_box_tag "program[scopes_array][]", scope, @app.has_scope?(scope), id: "program_scopes_#{scope}" %>
-        <span><%= scope %></span>
-        <small style="color: var(--text-secondary);">
-          <%= Program::AVAILABLE_SCOPES.find { |s| s[:name] == scope }&.dig(:description) %>
-        </small>
-      </label>
+      <%# === Card 2: Trust Level (if user can edit it) === %>
+      <% if policy(@app).update_trust_level? %>
+        <section class="section-card">
+          <h3><%= t(".trust_level_heading", default: "Trust Level") %></h3>
+          <div class="field-group">
+            <%= f.label :trust_level, t(".trust_level") %>
+            <%= f.select :trust_level,
+                Program.trust_levels.keys.map { |k| [k.titleize, k] },
+                {}, { "x-model": "trustLevel", "@change": "onTrustLevelChange()" } %>
+            <small class="usn"><%= t(".trust_level_hint", default: "Controls which scopes the app may request and how the consent screen appears to users.") %></small>
+          </div>
+        </section>
+      <% end %>
+
+      <%# === Card 3: OAuth Scopes === %>
+      <section class="section-card">
+        <h3><%= t(".oauth_scopes_heading", default: "OAuth Scopes") %></h3>
+
+        <%# Warning when trust level downgrade stripped scopes %>
+        <div x-show="removedScopes.length > 0" x-cloak class="scope-strip-warning">
+          <strong><%= t(".scopes_removed", default: "Scopes removed:") %></strong>
+          <span x-text="removedScopes.join(', ')"></span>
+          — <%= t(".scopes_not_valid_for_trust_level", default: "not valid for this trust level.") %>
+          <button type="button" @click="dismissWarning()">&#x2715;</button>
+        </div>
+
+        <%# Blank input ensures empty array when nothing checked %>
+        <input type="hidden" name="program[scopes_array][]" value="">
+
+        <%# Editable scope checkboxes (Alpine-rendered) %>
+        <template x-for="scope in editableScopes" :key="scope.name">
+          <label class="checkbox-label">
+            <input type="checkbox" name="program[scopes_array][]"
+                   :value="scope.name"
+                   :checked="isChecked(scope.name)"
+                   @change="toggle(scope.name)">
+            <div>
+              <span x-text="scope.name"></span>
+              <small x-text="scope.description"></small>
+            </div>
+          </label>
+        </template>
+
+        <%# Locked scopes — hidden inputs to preserve, shown as disabled rows %>
+        <template x-if="lockedScopes.length > 0">
+          <div>
+            <p class="locked-scopes-label"><%= t(".scopes_locked_by_higher_permission", default: "Managed by a higher-permission user:") %></p>
+            <template x-for="scope in lockedScopes" :key="scope.name">
+              <div>
+                <input type="hidden" name="program[scopes_array][]" :value="scope.name">
+                <label class="checkbox-label locked">
+                  <input type="checkbox" disabled checked>
+                  <div>
+                    <span x-text="scope.name"></span>
+                    <small x-text="scope.description"></small>
+                  </div>
+                </label>
+              </div>
+            </template>
+          </div>
+        </template>
+
+        <%# Community-only note for users who can't change trust level %>
+        <% unless policy(@app).update_trust_level? %>
+          <%= render Components::Banner.new(kind: :info) do %>
+            <%= t("developer_apps.new.trust_level_note_html").html_safe %>
+          <% end %>
+        <% end %>
+      </section>
+    </div>
+
+    <%# === Card 4: Admin Settings (if applicable) === %>
+    <% if policy(@app).update_onboarding_scenario? || policy(@app).update_active? %>
+      <section class="section-card">
+        <h3><%= t(".admin_settings_heading", default: "Admin Settings") %></h3>
+        <% if policy(@app).update_onboarding_scenario? %>
+          <div class="field-group">
+            <%= f.label :onboarding_scenario, t(".onboarding_scenario") %>
+            <%= f.select :onboarding_scenario, OnboardingScenarios::Base.available_slugs.map { |s| [s.titleize, s] }, { include_blank: t(".onboarding_default") }, class: "input-field" %>
+            <small class="usn"><%= t ".onboarding_scenario_hint" %></small>
+          </div>
+        <% end %>
+        <% if policy(@app).update_active? %>
+          <div class="field-group">
+            <label class="checkbox-label">
+              <%= f.check_box :active %>
+              <span><%= t(".active") %></span>
+            </label>
+          </div>
+        <% end %>
+      </section>
     <% end %>
-    <small class="usn"><%= t ".scopes_hint", scopes: Program::COMMUNITY_ALLOWED_SCOPES.join(", ") %></small>
   </div>
 
-  <div style="display: flex; gap: 0.75rem;">
+  <div class="form-actions">
     <%= f.submit t(".update"), class: "button" %>
     <%= link_to t(".cancel"), developer_app_path(@app), class: "button-secondary" %>
   </div>

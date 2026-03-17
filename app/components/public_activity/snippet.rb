@@ -1,24 +1,29 @@
 # frozen_string_literal: true
 
 class Components::PublicActivity::Snippet < Components::Base
-  def initialize(activity, owner: nil)
+  def initialize(activity, owner: nil, owner_component: nil)
     @activity = activity
     @owner = owner
+    @owner_component = owner_component
   end
 
   def view_template
     tr do
       td do
-        owner = @owner || @activity.owner
-
-        if owner.nil?
-          i { "unknown" }
-        elsif owner.is_a?(::Backend::User)
-          render Components::UserMention.new(owner)
-        elsif owner.is_a?(::Identity)
-          render Components::UserMention.new(owner)
+        if @owner_component
+          render @owner_component
         else
-          render owner
+          owner = @owner || @activity.owner
+
+          if owner.nil?
+            i { "System" }
+          elsif owner.is_a?(::Backend::User) || owner.is_a?(::Identity)
+            render Components::UserMention.new(owner)
+          elsif owner.is_a?(::Program)
+            a(href: helpers.developer_app_path(owner)) { plain owner.name }
+          else
+            plain "#{owner.class.name} #{owner.try(:public_id) || owner.id}"
+          end
         end
       end
       td { yield }

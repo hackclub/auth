@@ -5,6 +5,7 @@ ident = {
 scope "verification_status", identity: do
   ident[:ysws_eligible] = identity.ysws_eligible
   ident[:verification_status] = identity.verification_status
+  ident[:fatal_rejection] = true if identity.verification_status == "ineligible" && identity.has_fatal_rejection?
 end
 
 scope "basic_info", identity: do
@@ -20,6 +21,7 @@ scope "basic_info", identity: do
   ident[:rejection_reason] = identity.verification_status_reason
   ident[:rejection_reason_details] = identity.verification_status_reason_details
   ident[:birthday] = identity.birthday
+  ident[:fatal_rejection] = true if identity.verification_status == "ineligible" && identity.has_fatal_rejection?
 end
 
 scope "email", identity: do

@@ -24,7 +24,24 @@ class Program < ApplicationRecord
   self.table_name = "oauth_applications"
 
   include PublicActivity::Model
-  tracked owner: ->(controller, model) { model.owner_identity }, recipient: ->(controller, model) { model.owner_identity }, only: [ :create, :update, :destroy ]
+  tracked owner: ->(controller, _model) { controller&.user_for_public_activity }, only: [ :create ]
+
+  include Auditable
+
+  audit_field :name, label: "app name"
+  audit_field :trust_level, transform: ->(v) { v.to_s.titleize }
+  audit_field :scopes_array, type: :array, label: "scopes"
+  audit_field :redirect_uris, type: :array, label: "redirect URIs"
+  audit_field :active, type: :boolean
+  audit_field :onboarding_scenario, transform: ->(v) { v&.titleize }
+
+  COLLABORATOR_ACTIVITY_KEYS = %w[
+    program.collaborator_invited
+    program.collaborator_removed
+    program.collaborator_accepted
+    program.collaborator_declined
+    program.collaborator_cancelled
+  ].freeze
 
   has_paper_trail
 
@@ -43,6 +60,10 @@ class Program < ApplicationRecord
   has_many :organizer_positions, class_name: "Backend::OrganizerPosition", foreign_key: :program_id, dependent: :destroy
   has_many :organizers, through: :organizer_positions, source: :backend_user, class_name: "Backend::User"
 
+  has_many :program_collaborators, dependent: :destroy
+  has_many :collaborator_identities, -> { merge(ProgramCollaborator.accepted) },
+           through: :program_collaborators, source: :identity
+
   belongs_to :owner_identity, class_name: "Identity", optional: true
 
   validates :name, presence: true
@@ -51,7 +72,6 @@ class Program < ApplicationRecord
   validates :redirect_uri, presence: true
   validates :scopes, presence: true
   validate :validate_community_scopes
-  validate :validate_developer_owned_apps
 
   before_validation :generate_uid, on: :create
   before_validation :generate_secret, on: :create
@@ -82,6 +102,10 @@ class Program < ApplicationRecord
     self.scopes = Doorkeeper::OAuth::Scopes.from_array(Array(array).reject(&:blank?)).to_s
   end
 
+  def redirect_uris
+    redirect_uri.to_s.split
+  end
+
   def has_scope?(scope_name) = scopes.include?(scope_name.to_s)
 
   def authorized_for_identity?(identity) = authorized_tokens.exists?(resource_owner: identity)
@@ -93,6 +117,22 @@ class Program < ApplicationRecord
 
   def onboarding_scenario_instance(identity = nil)
     onboarding_scenario_class&.new(identity)
+  end
+
+  def collaborator?(identity)
+    return false unless identity
+    program_collaborators.accepted.exists?(identity: identity)
+  end
+
+  def accessible_by?(identity)
+    return false unless identity
+    owner_identity_id == identity.id || collaborator?(identity)
+  end
+
+  def rotate_credentials!
+    self.secret = SecureRandom.hex(32)
+    self.program_key = "prgmk." + SecureRandom.hex(32)
+    save!
   end
 
   def self.find_by_redirect_uri_host(url)
@@ -133,10 +173,6 @@ class Program < ApplicationRecord
     if invalid_scopes.any?
       errors.add(:scopes, "Community apps can only use these scopes: #{COMMUNITY_ALLOWED_SCOPES.join(', ')}")
     end
-  end
-
-  def validate_developer_owned_apps
-    # No restrictions - admins can set developer apps to any trust level
   end
 
   def generate_uid

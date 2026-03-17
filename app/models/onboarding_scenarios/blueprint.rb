@@ -10,7 +10,7 @@ module OnboardingScenarios
 
     def slack_user_type = :multi_channel_guest
 
-    def slack_channels = chans(:blueprint, :blueprint_support, :blueprint_announcements, :identity_help)
+    def slack_channels = chans(:blueprint, :blueprint_support, :blueprint_announcements, :blueprint_drafts, :identity_help)
 
     def next_action = :home
 

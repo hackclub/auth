@@ -53,6 +53,9 @@ module Backend
 
       @all_programs = @identity.all_programs.distinct
 
+      @owned_apps = @identity.owned_developer_apps
+      @collaborated_apps = @identity.collaborated_programs
+
       verification_ids = @identity.verifications.pluck(:id)
       document_ids = @identity.documents.pluck(:id)
       break_glass_record_ids = BreakGlassRecord.where(break_glassable_type: "Identity::Document", break_glassable_id: document_ids).pluck(:id)
@@ -182,7 +185,9 @@ module Backend
     end
 
     def identity_params
-      params.require(:identity).permit(:first_name, :last_name, :legal_first_name, :legal_last_name, :primary_email, :phone_number, :birthday, :country, :hq_override, :ysws_eligible, :permabanned)
+      permitted = [ :first_name, :last_name, :legal_first_name, :legal_last_name, :primary_email, :phone_number, :birthday, :country, :hq_override, :ysws_eligible, :permabanned ]
+      permitted << :can_hq_officialize if current_user&.super_admin?
+      params.require(:identity).permit(permitted)
     end
 
     def vouch_params
