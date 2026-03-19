@@ -172,7 +172,9 @@ end
 Rails.application.routes.draw do
   use_doorkeeper_openid_connect
   use_doorkeeper
-  mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
+  if Rails.env.development?
+    mount LetterOpenerWeb::Engine, at: "/letter_opener"
+  end
   mount ActiveStorageEncryption::Engine, at: "/encrypted_blobs"
 
   # Image conversion routes
