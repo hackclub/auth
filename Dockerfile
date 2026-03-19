@@ -32,7 +32,8 @@ RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz
 ENV BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
     BUNDLE_WITHOUT="development" \
-    LD_LIBRARY_PATH="/usr/local/lib"
+    LD_LIBRARY_PATH="/usr/local/lib" \
+    RAILS_ENV="production"
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
