@@ -56,6 +56,10 @@ class ProgramPolicy < ApplicationPolicy
     end
   end
 
+  def update_byline?
+    user.can_hq_officialize? || admin?
+  end
+
   def update_onboarding_scenario?
     super_admin?
   end
