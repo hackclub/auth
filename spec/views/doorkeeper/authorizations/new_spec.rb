@@ -116,7 +116,7 @@ RSpec.describe "doorkeeper/authorizations/new", type: :view do
       allow(program).to receive(:byline).and_return(nil)
       render
       expect(rendered).to include("<details")
-      expect(rendered).to include("What data will be shared?")
+      expect(rendered).to include("What account info will be shared?")
     end
 
     it "shows permissions directly for non-official apps" do

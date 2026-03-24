@@ -334,7 +334,7 @@ en:
         able_to: "This application will be able to:"
         official_byline: "This is an official Hack Club program run by %{byline}."
         official_byline_default: Hack Club HQ
-        permissions_details: What data will be shared?
+        permissions_details: What account info will be shared?
         deny: Deny
         authorize: Authorize →
         authorize_official: Okay! →
