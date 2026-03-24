@@ -20,13 +20,12 @@
       <small>
         <%= raw t('.prompt', client_name: content_tag(:strong) { @pre_auth.client.name }) %>
       </small>
+      <% if application&.hq_official? %>
+        <p class="oauth-official-byline">
+          <%= t('.official_byline', byline: application.byline.presence || t('.official_byline_default')) %>
+        </p>
+      <% end %>
     </header>
-
-    <% if application&.hq_official? %>
-      <div class="oauth-official-byline">
-        <%= t('.official_byline', byline: application.byline.presence || t('.official_byline_default')) %>
-      </div>
-    <% end %>
 
     <% if @pre_auth.scopes.count > 0 %>
       <%
