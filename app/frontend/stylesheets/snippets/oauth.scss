@@ -3,12 +3,18 @@
 .oauth-consent {
   max-width: 580px;
   
+  .oauth-official-byline {
+    font-size: 0.875rem;
+    color: var(--text-muted-strong);
+    text-align: center;
+  }
+
   .oauth-permissions {
     margin: $space-6 0;
-    
+
     fieldset {
       margin: 0;
-      
+
       legend {
         font-size: 0.875rem;
         font-weight: 600;
@@ -17,6 +23,43 @@
         letter-spacing: 0.05em;
         margin-bottom: 1rem;
       }
+    }
+
+    // collapsed variant for hq official apps
+    &[open] summary {
+      margin-bottom: 1rem;
+    }
+
+    > summary {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-muted-strong);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      list-style-type: none;
+
+      &::-webkit-details-marker,
+      &::marker {
+        display: none;
+        content: none;
+      }
+
+      &::after {
+        display: none !important;
+      }
+
+      &::before {
+        content: "›";
+        font-size: 1rem;
+        line-height: 1;
+        transition: transform 0.15s ease;
+      }
+    }
+
+    &[open] summary::before {
+      transform: rotate(90deg);
     }
   }
   
