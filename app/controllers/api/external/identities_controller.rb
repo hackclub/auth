@@ -19,7 +19,7 @@ module API
         "Your road to glory will be rocky, but fulfilling.",
         "Patience is a virtue, and you have it in abundance.",
         "Your lucky number is #{8.times.map { rand 37 }.join ", "}",
-        "A dubious friend may be an enemy in camouflage.",
+        "A dubious friend may be an enemy in camouflage."
       ].freeze
 
       before_action :set_cors_headers, only: %i[check options]
