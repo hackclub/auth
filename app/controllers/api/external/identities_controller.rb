@@ -29,7 +29,9 @@ module API
                    "not_found"
         end
         render json: {
-          result:
+          result:,
+          note: "This is a publicly accessible endpoint provided intentionally for integration purposes. " \
+                "Accessing it does not constitute a security vulnerability and is not eligible for a bounty."
         }
       end
 
