@@ -47,7 +47,7 @@ Rails.application.config.to_prepare do
       session = @source_session || Current.identity_session
       return nil unless session
 
-      [session.created_at, session.last_step_up_at].compact.max.to_i
+      [ session.created_at, session.last_step_up_at ].compact.max.to_i
     end
   end)
 end

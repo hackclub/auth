@@ -23,7 +23,7 @@ RSpec.describe "OIDC auth_time", type: :request do
   after { Current.reset_all }
 
   def expected_auth_time(s)
-    [s.created_at, s.last_step_up_at].compact.max.to_i
+    [ s.created_at, s.last_step_up_at ].compact.max.to_i
   end
 
   def decode_id_token(jwt)
@@ -45,7 +45,7 @@ RSpec.describe "OIDC auth_time", type: :request do
     code = CGI.parse(URI.parse(location).query)["code"].first
     grant = Doorkeeper::AccessGrant.order(:created_at).last
 
-    [grant, code]
+    [ grant, code ]
   end
 
   def exchange_code!(code)
@@ -136,7 +136,7 @@ RSpec.describe "OIDC auth_time", type: :request do
         controller = Object.new
         result = controller.instance_exec(identity, &config_block)
 
-        expect(result).to eq([session.created_at, session.last_step_up_at].compact.max)
+        expect(result).to eq([ session.created_at, session.last_step_up_at ].compact.max)
       end
 
       it "returns nil when Current.identity_session is not set" do
