@@ -1,11 +1,12 @@
 @mixin banner-base {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     border-radius: 10px;
-    padding: .875rem 1.125rem;
+    padding: 0.875rem 1.125rem;
     margin-bottom: 1rem;
     font-weight: 500;
-    box-shadow: 
+    box-shadow:
         0 2px 6px rgba(0, 0, 0, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.3),
         inset 0 -1px 1px rgba(0, 0, 0, 0.08);
@@ -13,18 +14,21 @@
     & > svg {
         height: 1.25rem;
         width: 1.25rem;
-        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
     }
 }
 
 @mixin banner-theme($bg-color, $border-color, $fg-color, $list-fg-color) {
-    background: linear-gradient(145deg, 
-        color-mix(in srgb, $bg-color 100%, white 5%), 
-        $bg-color);
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, $bg-color 100%, white 5%),
+        $bg-color
+    );
     border: 1px solid $border-color;
     color: $fg-color;
 
-    & > ul, p {
+    & > ul,
+    p {
         color: $list-fg-color;
         & > li {
             color: $list-fg-color;
@@ -33,23 +37,48 @@
 }
 
 @mixin banner-warning {
-    @include banner-theme(var(--warning-bg), var(--warning-border), var(--warning-fg-strong), var(--warning-fg));
+    @include banner-theme(
+        var(--warning-bg),
+        var(--warning-border),
+        var(--warning-fg-strong),
+        var(--warning-fg)
+    );
 }
 
 @mixin banner-danger {
-    @include banner-theme(var(--error-bg), var(--error-border), var(--error-fg-strong), var(--error-fg));
+    @include banner-theme(
+        var(--error-bg),
+        var(--error-border),
+        var(--error-fg-strong),
+        var(--error-fg)
+    );
 }
 
 @mixin banner-info {
-    @include banner-theme(var(--info-bg), var(--info-border), var(--info-fg-strong), var(--info-fg));
+    @include banner-theme(
+        var(--info-bg),
+        var(--info-border),
+        var(--info-fg-strong),
+        var(--info-fg)
+    );
 }
 
 @mixin banner-success {
-    @include banner-theme(var(--success-bg), var(--success-border), var(--success-fg-strong), var(--success-fg));
+    @include banner-theme(
+        var(--success-bg),
+        var(--success-border),
+        var(--success-fg-strong),
+        var(--success-fg)
+    );
 }
 
 @mixin banner-purple {
-    @include banner-theme(var(--purple-bg), var(--purple-border), var(--purple-fg-strong), var(--purple-fg));
+    @include banner-theme(
+        var(--purple-bg),
+        var(--purple-border),
+        var(--purple-fg-strong),
+        var(--purple-fg)
+    );
 }
 
 @mixin alert-box($bg, $border, $fg-strong) {
@@ -58,8 +87,17 @@
     border-radius: $radius-md;
     padding: $space-3 $space-4;
     margin-bottom: $space-5;
-    h3, h4 { margin: 0 0 $space-2; font-weight: 500; font-size: 1rem; color: $fg-strong; }
-    ul { margin: 0; padding-left: $space-4; }
+    h3,
+    h4 {
+        margin: 0 0 $space-2;
+        font-weight: 500;
+        font-size: 1rem;
+        color: $fg-strong;
+    }
+    ul {
+        margin: 0;
+        padding-left: $space-4;
+    }
 }
 
 .banner {
@@ -88,21 +126,23 @@
 }
 
 .banner-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-shrink: 0;
-  margin-left: auto;
-  form { display: inline; }
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+    margin-left: auto;
+    form {
+        display: inline;
+    }
 
-  @media (max-width: 768px) {
-    margin-left: 0;
-    margin-top: 0.75rem;
-  }
+    @media (max-width: 768px) {
+        margin-left: 0;
+        margin-top: 0.75rem;
+    }
 }
 
 .banner:has(.banner-actions) > .grow {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
