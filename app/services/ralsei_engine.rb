@@ -94,6 +94,31 @@ module RalseiEngine
       Rails.logger.info "RalseiEngine: promoted #{identity.public_id}"
     end
 
+    # Promote user when verification is approved
+    def promote_on_verification(identity)
+      return if identity.promote_click_count > 0
+
+      Rails.logger.info "RalseiEngine: promoting #{identity.public_id} on verification approval"
+      scenario = identity.onboarding_scenario_instance
+
+      SlackService.promote_user(identity.slack_id)
+
+      promotion_channels = scenario&.promotion_channels
+      if promotion_channels.present?
+        SlackService.add_to_channels(user_id: identity.slack_id, channel_ids: promotion_channels)
+      end
+
+      track_dialogue_event("dialogue.promoted", scenario: scenario&.class&.slug, trigger: "verification_approved")
+
+      scenario&.after_promotion
+
+      identity.increment!(:promote_click_count, 1)
+
+      scenario&.after_verification_promotion(identity)
+
+      Rails.logger.info "RalseiEngine: promoted #{identity.public_id} on verification"
+    end
+
     def send_message(identity, template_name)
       return unless identity.slack_id.present?
 
