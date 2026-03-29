@@ -43,23 +43,23 @@ Doorkeeper::OpenidConnect.configure do
 
   claims do
     # standard scopes:
-    normal_claim(:email, scope: :email) { |ident| ident.primary_email }
-    normal_claim(:email_verified, scope: :email) { |_ident| true }
+    normal_claim(:email, scope: :email, response: [:id_token, :user_info]) { |ident| ident.primary_email }
+    normal_claim(:email_verified, scope: :email, response: [:id_token, :user_info]) { |_ident| true }
 
-    normal_claim(:phone_number, scope: :phone) { |ident| ident.phone_number }
-    normal_claim(:phone_number_verified, scope: :phone) { |_ident| false } # TODO: eventually we'll have phone number verification
+    normal_claim(:phone_number, scope: :phone, response: [:id_token, :user_info]) { |ident| ident.phone_number }
+    normal_claim(:phone_number_verified, scope: :phone, response: [:id_token, :user_info]) { |_ident| false } # TODO: eventually we'll have phone number verification
 
-    normal_claim(:name, scope: :profile) { |ident| "#{ident.first_name} #{ident.last_name}" }
-    normal_claim(:given_name, scope: :profile) { |ident| ident.first_name }
-    normal_claim(:family_name, scope: :profile) { |ident| ident.last_name }
-    normal_claim(:nickname, scope: :profile) { |ident| ident.first_name } # TODO: display names...
-    normal_claim(:updated_at, scope: :profile) { |ident| ident.updated_at.to_i }
+    normal_claim(:name, scope: :profile, response: [:id_token, :user_info]) { |ident| "#{ident.first_name} #{ident.last_name}" }
+    normal_claim(:given_name, scope: :profile, response: [:id_token, :user_info]) { |ident| ident.first_name }
+    normal_claim(:family_name, scope: :profile, response: [:id_token, :user_info]) { |ident| ident.last_name }
+    normal_claim(:nickname, scope: :profile, response: [:id_token, :user_info]) { |ident| ident.first_name } # TODO: display names...
+    normal_claim(:updated_at, scope: :profile, response: [:id_token, :user_info]) { |ident| ident.updated_at.to_i }
 
     # birthdate scope (separate from profile for privacy)
-    normal_claim(:birthdate, scope: :birthdate) { |ident| ident.birthday&.to_s }
+    normal_claim(:birthdate, scope: :birthdate, response: [:id_token, :user_info]) { |ident| ident.birthday&.to_s }
 
     # addresses.... it's always addresses
-    normal_claim :address, scope: :address do |resource_owner|
+    normal_claim :address, scope: :address, response: [:id_token, :user_info] do |resource_owner|
       addr = resource_owner.primary_address
       next nil unless addr
 
@@ -73,8 +73,8 @@ Doorkeeper::OpenidConnect.configure do
     end
 
     # HCA-custom claims:
-    normal_claim(:slack_id, scope: :slack_id) { |ident| ident.slack_id }
-    normal_claim(:verification_status, scope: :verification_status) { |ident| ident.verification_status }
-    normal_claim(:ysws_eligible, scope: :verification_status) { |ident| ident.ysws_eligible }
+    normal_claim(:slack_id, scope: :slack_id, response: [:id_token, :user_info]) { |ident| ident.slack_id }
+    normal_claim(:verification_status, scope: :verification_status, response: [:id_token, :user_info]) { |ident| ident.verification_status }
+    normal_claim(:ysws_eligible, scope: :verification_status, response: [:id_token, :user_info]) { |ident| ident.ysws_eligible }
   end
 end
