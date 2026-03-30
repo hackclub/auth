@@ -1,0 +1,9 @@
+chan = Rails.configuration.slack_channels.horizons_sol
+
+header "☀️ welcome to sol!"
+
+section <<~TEXT, markdown: true
+  You've just been added to <##{chan}>, the channel for Horizons Sol in South America! For more info, check out [horizons.hackclub.com/sol](https://horizons.hackclub.com/sol).
+
+  Head over and introduce yourself!
+TEXT
