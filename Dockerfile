@@ -9,7 +9,7 @@
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=3.4.4
-FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
+FROM docker.io/library/ruby:3.4.4-slim@sha256:4020c2d289c1266fe4a2ea1d0018c22c17435905c514c66f8437555da57723ad AS base
 
 # Rails app lives here
 WORKDIR /rails
@@ -24,10 +24,15 @@ RUN apt-get update -qq && \
 ARG NODE_VERSION=23.6.0
 ARG YARN_VERSION=1.22.22
 ENV PATH=/usr/local/node/bin:$PATH
-RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
-    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
-    npm install -g yarn@$YARN_VERSION && \
-    rm -rf /tmp/node-build-master
+ARG NODE_BUILD_VERSION=v5.4.3
+RUN curl -sL "https://github.com/nodenv/node-build/archive/refs/tags/${NODE_BUILD_VERSION}.tar.gz" \
+      -o /tmp/node-build.tar.gz && \
+    echo "1ff1a2c1fb51b5456d4d9edfd6a6fa9cc83dbdf473e0a61d7816a0ed935af165  /tmp/node-build.tar.gz" | sha256sum -c - && \
+    tar xz -C /tmp/ -f /tmp/node-build.tar.gz && \
+    /tmp/node-build-*/bin/node-build "${NODE_VERSION}" /usr/local/node && \
+    rm -rf /tmp/node-build* && \
+    corepack enable && corepack prepare yarn@1.22.22+sha256.c17d3797fb9a9115bf375e31bfd30058cac6bc9c3b8807a3d8cb2094794b51ca
+
 
 ENV BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
@@ -38,20 +43,22 @@ ENV BUNDLE_DEPLOYMENT="1" \
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
+ARG LIBHEIF_VERSION=1.21.2
+ARG LIBHEIF_SHA256=79996de959d28ca82ef070c382304683f5cdaf04cbe2953a74587160a3710a36
 # Install packages needed to build gems
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y curl libjemalloc2 libvips imagemagick postgresql-client libffi-dev build-essential git libpq-dev libyaml-dev pkg-config \
     cmake libjpeg-dev libpng-dev libaom-dev libx265-dev libde265-dev libxmlsec1-dev libxmlsec1 libxmlsec1-openssl && \
-    # Build libheif from latest source with examples
     cd /tmp && \
-    git clone --depth 1 https://github.com/strukturag/libheif.git && \
-    cd libheif && \
+     curl -sL "https://github.com/strukturag/libheif/archive/refs/tags/v${LIBHEIF_VERSION}.tar.gz" -o /tmp/libheif.tar.gz && \
+     echo "${LIBHEIF_SHA256} /tmp/libheif.tar.gz" | sha256sum -c - && \
+    tar xz -C /tmp/ -f /tmp/libheif.tar.gz && \
+    cd /tmp/libheif-${LIBHEIF_VERSION} && \
     mkdir build && cd build && \
     cmake --preset=release -DWITH_EXAMPLES=ON -DENABLE_PLUGIN_LOADING=NO .. && \
     make -j$(nproc) && \
     make install && \
     ldconfig && \
-    # Clean up
     cd / && rm -rf /tmp/libheif && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
