@@ -47,6 +47,9 @@ module API
             render json: { error: "invalid_auth" }, status: :unauthorized
           end
         else
+          unless @current_token.hq_official?
+            return render json: { error: "not_authorized" }, status: :forbidden
+          end
           @acting_as_program = true
           @current_program = @current_token
           @current_scopes = @current_program.scopes
