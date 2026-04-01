@@ -22,7 +22,7 @@
     "@picocss/pico": "^2.1.1",
     "@rails/activestorage": "^8.0.200",
     "alpinejs": "^3.14.9",
-    "axios": "^1.9.0",
+    "axios": "^1.13.5",
     "dreamland": "^0.1.2",
     "htmx.org": "^1.9.12",
     "jquery": "^3.7.1"
