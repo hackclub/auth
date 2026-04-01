@@ -53,12 +53,12 @@
         <b>edit user</b>
       <% end %>
       <% if @user.active? %>
-        <%= button_to backend_user_path(@user, action: :deactivate), method: :patch, class: "item" do %>
+        <%= button_to deactivate_backend_user_path(@user), method: :post, class: "item" do %>
           <figure class="icon">✕</figure>
           <span class="text"><b>deactivate</b> <i>(stops login)</i></span>
         <% end %>
       <% else %>
-        <%= button_to backend_user_path(@user, action: :activate), method: :patch, class: "item" do %>
+        <%= button_to activate_backend_user_path(@user), method: :post, class: "item" do %>
           <figure class="icon">✓</figure>
           <span class="text"><b>activate</b> <i>(allows login)</i></span>
         <% end %>
