@@ -50,6 +50,9 @@ module OnboardingScenarios
     # Returns array of channel names/IDs to add when promoting guest to full member
     def promotion_channels = []
 
+    # Whether to auto-promote when identity verification in HCA is approved
+    def promote_on_verification = false
+
     # Returns :internal_tutorial or :external_program
     def slack_onboarding_flow = :external_program
 
@@ -116,6 +119,9 @@ module OnboardingScenarios
     # Custom dialogue flow hooks - override in subclasses
     def before_first_message = nil
     def after_promotion = nil
+
+
+    def after_verification_promotion(identity) = nil
 
     # Handle custom actions - return step symbol, template string, or hash
     def handle_action(action_id) = nil
