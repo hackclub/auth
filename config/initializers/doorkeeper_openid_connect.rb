@@ -26,15 +26,15 @@ Doorkeeper::OpenidConnect.configure do
   end
 
   auth_time_from_resource_owner do |resource_owner|
-    session = resource_owner.sessions.not_expired.order(created_at: :desc).first
-    return nil unless session
+    session = Current.identity_session
+    next nil unless session
 
     [ session.created_at, session.last_step_up_at ].compact.max
   end
 
   reauthenticate_resource_owner do |resource_owner, return_to|
-    session = resource_owner.sessions.not_expired.order(created_at: :desc).first
-    return if session&.last_step_up_at&.after?(60.seconds.ago)
+    session = Current.identity_session
+    next if session&.last_step_up_at&.after?(60.seconds.ago)
 
     redirect_to new_step_up_path(action_type: "oidc_reauth", return_to: return_to)
   end

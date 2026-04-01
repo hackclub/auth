@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_24_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_28_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -477,6 +477,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_24_000001) do
     t.datetime "created_at", null: false
     t.datetime "revoked_at"
     t.string "resource_owner_type", null: false
+    t.bigint "source_session_id"
     t.index ["application_id"], name: "index_oauth_access_grants_on_application_id"
     t.index ["resource_owner_id", "resource_owner_type"], name: "polymorphic_owner_oauth_access_grants"
     t.index ["resource_owner_id"], name: "index_oauth_access_grants_on_resource_owner_id"
@@ -629,6 +630,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_24_000001) do
   add_foreign_key "login_attempts", "identities"
   add_foreign_key "login_attempts", "identity_sessions", column: "session_id"
   add_foreign_key "oauth_access_grants", "identities", column: "resource_owner_id"
+  add_foreign_key "oauth_access_grants", "identity_sessions", column: "source_session_id", on_delete: :nullify
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "identities", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
