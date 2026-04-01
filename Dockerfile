@@ -44,7 +44,7 @@ ENV BUNDLE_DEPLOYMENT="1" \
 FROM base AS build
 
 ARG LIBHEIF_VERSION=1.21.2
-ARG LIBHEIF_SHA256=75f530b7154bc93e7ecf846edfc0416bf5f490612de8c45983c36385aa742b42
+ARG LIBHEIF_SHA256=79996de959d28ca82ef070c382304683f5cdaf04cbe2953a74587160a3710a36
 # Install packages needed to build gems
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y curl libjemalloc2 libvips imagemagick postgresql-client libffi-dev build-essential git libpq-dev libyaml-dev pkg-config \
@@ -59,7 +59,6 @@ RUN apt-get update -qq && \
     make -j$(nproc) && \
     make install && \
     ldconfig && \
-    # Clean up
     cd / && rm -rf /tmp/libheif && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
