@@ -1,0 +1,10 @@
+image "https://user-cdn.hackclub-assets.com/019d53df-f364-7164-84f4-005bb966c2dd/image.png", "Welcome to Hack Club!"
+
+section <<~EOFD, markdown: true
+  Right now you can only see a few channels related to Horizons. 
+  To access other channels, you must read and agree to our <https://hackclub.com/conduct|Code of Conduct>.
+EOFD
+
+actions [
+          button("I'll follow the CoC!", "tutorial_agree", style: "primary")
+        ]

@@ -1,0 +1,9 @@
+chan = Rails.configuration.slack_channels.horizons_crux
+
+header "🌌 welcome to crux!"
+
+section <<~TEXT, markdown: true
+  You've just been added to <##{chan}>, the channel for Horizons Crux in Australia! For more info, check out [horizons.hackclub.com/crux](https://horizons.hackclub.com/crux).
+
+  Head over and introduce yourself!
+TEXT
