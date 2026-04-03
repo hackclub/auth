@@ -30,7 +30,7 @@ module OnboardingScenarios
         horizons_equinox: { template: "tutorial/horizons/04c_equinox", next: nil },
         horizons_crux: { template: "tutorial/horizons/04d_crux", next: nil },
         horizons_polaris: { template: "tutorial/horizons/04e_polaris", next: nil },
-        horizons_europa: { template: "tutorial/horizons/04f_europa", next: nil },
+        horizons_europa: { template: "tutorial/horizons/04f_europa", next: nil }
       }
     end
 
