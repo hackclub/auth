@@ -1,10 +1,8 @@
 class AddressesController < ApplicationController
-  include IsSneaky
   include AddressManagement
   include AhoyAnalytics
 
   before_action :set_address, only: [ :show, :edit, :update, :destroy, :make_primary ]
-  before_action :hide_some_data_away, only: %i[program_create_address]
 
   def index
     @addresses = current_identity.addresses
@@ -85,8 +83,6 @@ class AddressesController < ApplicationController
   def respond_to_create_success
     if htmx_request?
       render_address_list
-    elsif params[:address][:from_program] == "true"
-      redirect_to safe_redirect_url("address_return_to") || addresses_path, notice: "address created successfully!", allow_other_host: true
     else
       redirect_to addresses_path, notice: "address created successfully!"
     end

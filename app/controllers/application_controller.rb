@@ -1,6 +1,5 @@
 class ApplicationController < ActionController::Base
   include PublicActivity::StoreController
-  include IsSneaky
   include SessionsHelper
   include StepUpAuthenticatable
 
@@ -35,10 +34,6 @@ class ApplicationController < ActionController::Base
 
   def authenticate_identity!
     unless identity_signed_in?
-      # JANK ALERT
-      hide_some_data_away
-
-      # EW
       return if controller_name == "onboardings"
 
       if request.xhr?

@@ -13,7 +13,6 @@ Rails.application.config.to_prepare do
     include AhoyAnalytics
 
     layout "logged_out"
-    before_action :hide_some_data_away, only: :new
     after_action :track_oauth_denied, only: :destroy
 
     private

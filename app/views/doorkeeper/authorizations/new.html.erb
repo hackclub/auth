@@ -16,7 +16,7 @@
   </div>
   <div class="auth-card oauth-consent">
     <header>
-      <h1><%= session.dig(:stashed_data, "splash_message") || "Continue to #{@pre_auth.client.name}?" %></h1>
+      <h1>Continue to <%= @pre_auth.client.name %>?</h1>
       <small>
         <%= raw t('.prompt', client_name: content_tag(:strong) { @pre_auth.client.name }) %>
       </small>
