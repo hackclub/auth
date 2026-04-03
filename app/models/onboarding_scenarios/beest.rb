@@ -1,5 +1,5 @@
 module OnboardingScenarios
-  class Game < Base
+  class Beest < Base
     def self.slug = "beest"
 
     def title = "Welcome to Hack Club Beest"
