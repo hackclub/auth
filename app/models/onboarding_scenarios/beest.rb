@@ -19,4 +19,3 @@ module OnboardingScenarios
     def background_path = "images/beest/background.png"
   end
 end
-      
