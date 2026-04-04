@@ -1,8 +1,10 @@
 <% flash.each do |type, message| %>
   <% next if type == "sentry_event_id" %>
   <% if message.present? %>
-    <div class="banner <%= type %>">
-      [<%= { "success" => "+", "error" => "!", "alert" => "!", "danger" => "!", "warning" => "!", "notice" => "i", "info" => "i" }[type] || "i" %>] <%= message %>
+    <div class="tui-page">
+      <div box-="square" class="tui-banner tui-banner-<%= type %>">
+        [<%= { "success" => "+", "error" => "!", "alert" => "!", "danger" => "!", "warning" => "!", "notice" => "i", "info" => "i" }[type] || "i" %>] <%= message %>
+      </div>
     </div>
   <% end %>
 <% end %>

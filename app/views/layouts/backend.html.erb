@@ -1,25 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html data-webtui-theme="catppuccin-mocha">
   <head>
-    <title><%= content_for(:title) || "Hack Club Auth" %></title>
+    <title><%= content_for(:title) || "HCA" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= yield :head %>
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= vite_client_tag %>
-    <%= vite_stylesheet_tag "backend.css" %>
+    <%= vite_stylesheet_tag "backend-next.css" %>
     <%= vite_javascript_tag 'backend' %>
   </head>
   <body>
-    <%= render "backend/shared/action_bar" do %><%= yield :toolbar %><% end %>
+    <div class="tui-actionbar">
+      <div class="tui-actionbar-left">
+        <a href="<%= backend_root_path %>" style="text-decoration:none;color:var(--text)"><b>HCA</b></a>
+        <% sc = Shortcodes.find_by_route(controller_path, action_name, current_user) %>
+        <% if sc %>
+          <span is-="badge" variant-="lavender"><%= sc.code %></span>
+        <% end %>
+        <%= yield :toolbar %>
+      </div>
+      <div class="tui-actionbar-right">
+        <span id="theme-toggle-slot"></span>
+        <button type="button" onclick="window.openHints && window.openHints()"><kbd>?</kbd> KBD</button>
+        <button type="button" onclick="window.openKbar && window.openKbar()"><kbd>⌘K</kbd> GO</button>
+      </div>
+    </div>
     <!-- erblint:disable ScriptType -->
     <script type="application/json" id="kbar-data">
       <%= raw Shortcodes.kbar_data_for(current_user) %>
@@ -33,15 +44,17 @@
     <!-- erblint:enable ScriptType -->
     <%= render "backend/shared/flash" %>
     <% if has_unseen_hints? %>
-  <div class="grid">
-      <div class="banner info hints-banner" onclick="window.openHints()">
-        <b>press <kbd>?</kbd> to see keyboard shortcuts for this page</b>
+      <div class="tui-page">
+        <div box-="square" class="tui-banner tui-banner-info hints-banner" onclick="window.openHints()" style="cursor:pointer">
+          [i] press <kbd>?</kbd> to see keyboard shortcuts for this page
+        </div>
       </div>
-  </div>
     <% end %>
     <%= yield %>
     <% unless Rails.env.production? %>
-      <div class="environment <%= Rails.env %>">
-      <% end %>
-    </body>
-  </html>
+      <div style="position:fixed;bottom:0;right:0;padding:0.25lh 1ch;font-size:0.75em;color:var(--overlay0);background:var(--mantle);">
+        <%= Rails.env %>
+      </div>
+    <% end %>
+  </body>
+</html>

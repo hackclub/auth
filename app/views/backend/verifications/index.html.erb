@@ -1,58 +1,58 @@
-<div class="grid">
-  <%= render "backend/shared/card", title: "all verifications" do %>
-    <%= render "backend/shared/item", icon: "⭢", href: pending_backend_verifications_path do %>
-      <b>pending verifications</b>
-      <p class="shortcode">&nbsp; [ PEND ]</p>
-    <% end %>
-    <hr>
+<div class="tui-page">
+  <article box-="round">
+    <h2>all verifications</h2>
+    <div is-="separator"></div>
+    <a href="<%= pending_backend_verifications_path %>" class="tui-item">
+      <span class="tui-item-icon">&#x2b62;</span>
+      <span class="tui-item-text"><b>pending verifications</b> [ PEND ]</span>
+    </a>
+    <div is-="separator"></div>
     <% if @recent_verifications.any? %>
-      <div class="table-container">
-        <table>
-          <thead>
+      <table>
+        <thead>
+          <tr>
+            <th>identity</th>
+            <th>type</th>
+            <th>status</th>
+            <th>date</th>
+            <th>reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @recent_verifications.each do |verification| %>
             <tr>
-              <th>identity</th>
-              <th>type</th>
-              <th>status</th>
-              <th>date</th>
-              <th>reason</th>
+              <td>
+                <%= link_to backend_verification_path(verification) do %>
+                  <%= verification.identity.first_name %> <%= verification.identity.last_name %>
+                <% end %>
+                <br><small><%= verification.identity.primary_email %></small>
+              </td>
+              <td>
+                <%= verification.document_type %>
+                <% if verification.ignored_at.present? %>
+                  <span is-="badge" variant-="yellow">ignored</span>
+                <% end %>
+              </td>
+              <td>
+                <span is-="badge" variant-="<%= verification.approved? ? 'green' : 'red' %>">
+                  <%= verification.status %>
+                </span>
+              </td>
+              <td><%= verification.updated_at.strftime("%m/%d/%Y") %></td>
+              <td>
+                <% if verification.ignored_at.present? %>
+                  <%= verification.ignored_reason %>
+                <% else %>
+                  <%= verification.rejection_reason_name %>
+                <% end %>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            <% @recent_verifications.each do |verification| %>
-              <tr>
-                <td>
-                  <%= link_to backend_verification_path(verification) do %>
-                    <%= verification.identity.first_name %> <%= verification.identity.last_name %>
-                  <% end %>
-                  <br><small><%= verification.identity.primary_email %></small>
-                </td>
-                <td>
-                  <%= verification.document_type %>
-                  <% if verification.ignored_at.present? %>
-                    <span class="badge warning">ignored</span>
-                  <% end %>
-                </td>
-                <td>
-                  <span class="badge <%= verification.approved? ? 'success' : 'danger' %>">
-                    <%= verification.status %>
-                  </span>
-                </td>
-                <td><%= verification.updated_at.strftime("%m/%d/%Y") %></td>
-                <td>
-                  <% if verification.ignored_at.present? %>
-                    <%= verification.ignored_reason %>
-                  <% else %>
-                    <%= verification.rejection_reason_name %>
-                  <% end %>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
+          <% end %>
+        </tbody>
+      </table>
       <%= paginate @recent_verifications %>
     <% else %>
-      <div class="empty-state">no verifications found</div>
+      <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no verifications found</p>
     <% end %>
-  <% end %>
+  </article>
 </div>

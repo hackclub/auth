@@ -1,20 +1,18 @@
-<div class="grid">
-  <%= render "backend/shared/card", title: "audit logs" do %>
-    <div class="button_group full">
+<div class="tui-page">
+  <article box-="round">
+    <h2>audit logs</h2>
+    <div is-="separator"></div>
+    <div style="display:flex;gap:1ch;">
       <% if params[:admin_actions_only] %>
-        <%= link_to backend_audit_logs_path do %>
-          <%= render("backend/shared/action_button") { "ALL" } %>
-        <% end %>
-        <%= render("backend/shared/action_button", selected: true) { "ADMIN" } %>
+        <a href="<%= backend_audit_logs_path %>"><button type="button">ALL</button></a>
+        <button type="button" disabled>ADMIN</button>
       <% else %>
-        <%= render("backend/shared/action_button", selected: true) { "ALL" } %>
-        <%= link_to backend_audit_logs_path(admin_actions_only: true) do %>
-          <%= render("backend/shared/action_button") { "ADMIN" } %>
-        <% end %>
+        <button type="button" disabled>ALL</button>
+        <a href="<%= backend_audit_logs_path(admin_actions_only: true) %>"><button type="button">ADMIN</button></a>
       <% end %>
     </div>
-    <hr>
+    <div is-="separator"></div>
     <%= render "backend/shared/activity_log", activities: @activities %>
     <%= paginate @activities %>
-  <% end %>
+  </article>
 </div>

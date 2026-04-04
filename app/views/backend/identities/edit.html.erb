@@ -1,112 +1,110 @@
-<div class="grid">
-  <%= render "backend/shared/card", title: "edit: #{@identity.first_name} #{@identity.last_name}" do %>
-    <%= render "backend/shared/item", icon: "⭠", href: backend_identity_path(@identity) do %>
-      <b>cancel</b>
-    <% end %>
-    <hr>
+<div class="tui-page">
+  <article box-="round">
+    <h2>edit: <%= @identity.first_name %> <%= @identity.last_name %></h2>
+    <div is-="separator"></div>
+    <a href="<%= backend_identity_path(@identity) %>" class="tui-item">
+      <span class="tui-item-icon">&#x2b60;</span>
+      <span class="tui-item-text"><b>cancel</b></span>
+    </a>
+    <div is-="separator"></div>
     <% if @identity.errors.any? %>
-      <div class="banner danger">
-        <h3><%= pluralize(@identity.errors.count, "error") %></h3>
-        <ul>
-          <% @identity.errors.full_messages.each do |message| %>
-            <li><%= message %></li>
-          <% end %>
-        </ul>
+      <div box-="square" class="tui-banner tui-banner-warning">
+        [!] <%= pluralize(@identity.errors.count, "error") %>:
+        <% @identity.errors.full_messages.each do |message| %>
+          <%= message %>.
+        <% end %>
       </div>
+      <div is-="separator"></div>
     <% end %>
     <%= form_with model: [@identity], url: backend_identity_path(@identity), method: :patch, local: true do |f| %>
-      <div class="section">
-        <div class="section-header"><h3>identity</h3></div>
-        <div class="section-content">
-          <div class="form-row">
-            <%= f.label :first_name %>
-            <%= f.text_field :first_name %>
-          </div>
-          <div class="form-row">
-            <%= f.label :last_name %>
-            <%= f.text_field :last_name %>
-          </div>
-          <div class="form-row">
-            <%= f.label :legal_first_name, "legal first" %>
-            <%= f.text_field :legal_first_name %>
-          </div>
-          <div class="form-row">
-            <%= f.label :legal_last_name, "legal last" %>
-            <%= f.text_field :legal_last_name %>
-          </div>
-          <div class="form-row">
-            <%= f.label :primary_email, "email" %>
-            <%= f.email_field :primary_email %>
-          </div>
-          <div class="form-row">
-            <%= f.label :phone_number, "phone" %>
-            <%= f.telephone_field :phone_number %>
-          </div>
-          <div class="form-row">
-            <%= f.label :birthday, "dob" %>
-            <%= f.date_field :birthday %>
-          </div>
-          <div class="form-row">
-            <%= f.label :country %>
-            <%= f.select :country, options_for_select(Identity.countries_for_select.map {|code, name| [name, code]}, @identity.country), { prompt: "select..." } %>
-          </div>
-        </div>
+      <h3>identity</h3>
+      <div class="form-row">
+        <%= f.label :first_name %>
+        <%= f.text_field :first_name %>
       </div>
-      <div class="section">
-        <div class="section-header"><h3>overrides</h3></div>
-        <div class="section-content">
-          <div class="form-row">
-            <%= f.label :hq_override, "hq override" %>
-            <%= f.check_box :hq_override %>
-            <small>bypass normal eligibility rules</small>
-          </div>
-          <div class="form-row">
-            <%= f.label :ysws_eligible, "ysws eligible" %>
-            <%= f.check_box :ysws_eligible %>
-          </div>
-          <% super_admin_tool do %>
-            <div class="form-row">
-              <%= f.label :permabanned %>
-              <%= f.check_box :permabanned %>
-              <small>permanently ban (makes ineligible)</small>
-            </div>
-            <div class="form-row">
-              <%= f.label :can_hq_officialize, "can officialize apps" %>
-              <%= f.check_box :can_hq_officialize %>
-              <small>allow this identity to promote apps to hq_official</small>
-            </div>
-          <% end %>
-        </div>
+      <div class="form-row">
+        <%= f.label :last_name %>
+        <%= f.text_field :last_name %>
       </div>
-      <div class="section">
-        <div class="section-header"><h3>reason for change</h3></div>
-        <div class="section-content">
-          <%= text_area_tag :reason, params[:reason], placeholder: "required - will be logged in audit trail", rows: 3 %>
-        </div>
+      <div class="form-row">
+        <%= f.label :legal_first_name, "legal first" %>
+        <%= f.text_field :legal_first_name %>
       </div>
-      <div class="form-actions">
-        <%= link_to backend_identity_path(@identity), class: "action_button" do %>
-          <span class="content">CANCEL</span>
-        <% end %>
-        <%= f.submit "save", class: "action_button" %>
+      <div class="form-row">
+        <%= f.label :legal_last_name, "legal last" %>
+        <%= f.text_field :legal_last_name %>
+      </div>
+      <div class="form-row">
+        <%= f.label :primary_email, "email" %>
+        <%= f.email_field :primary_email %>
+      </div>
+      <div class="form-row">
+        <%= f.label :phone_number, "phone" %>
+        <%= f.telephone_field :phone_number %>
+      </div>
+      <div class="form-row">
+        <%= f.label :birthday, "dob" %>
+        <%= f.date_field :birthday %>
+      </div>
+      <div class="form-row">
+        <%= f.label :country %>
+        <%= f.select :country, options_for_select(Identity.countries_for_select.map {|code, name| [name, code]}, @identity.country), { prompt: "select..." } %>
+      </div>
+
+      <div is-="separator"></div>
+
+      <h3>overrides</h3>
+      <div class="form-row">
+        <%= f.label :hq_override, "hq override" %>
+        <%= f.check_box :hq_override %>
+        <small>bypass normal eligibility rules</small>
+      </div>
+      <div class="form-row">
+        <%= f.label :ysws_eligible, "ysws eligible" %>
+        <%= f.check_box :ysws_eligible %>
+      </div>
+      <% super_admin_tool do %>
+        <div class="form-row">
+          <%= f.label :permabanned %>
+          <%= f.check_box :permabanned %>
+          <small>permanently ban (makes ineligible)</small>
+        </div>
+        <div class="form-row">
+          <%= f.label :can_hq_officialize, "can officialize apps" %>
+          <%= f.check_box :can_hq_officialize %>
+          <small>allow this identity to promote apps to hq_official</small>
+        </div>
+      <% end %>
+
+      <div is-="separator"></div>
+
+      <h3>reason for change</h3>
+      <%= text_area_tag :reason, params[:reason], placeholder: "required - will be logged in audit trail", rows: 3 %>
+
+      <div is-="separator"></div>
+
+      <div style="display:flex;gap:1ch;">
+        <a href="<%= backend_identity_path(@identity) %>"><button type="button">CANCEL</button></a>
+        <%= f.submit "save" %>
       </div>
     <% end %>
-    <hr>
-    <div class="lowered">
-      <p><b>⚠ break glass access required</b></p>
-      <p>all changes are permanently logged with your user info.</p>
-    </div>
-    <hr>
+
+    <div is-="separator"></div>
+
+    <div box-="square" class="tui-banner tui-banner-warning">[!] break glass access required. all changes are permanently logged.</div>
+
+    <div is-="separator"></div>
+
     <% if @identity.slack_id.present? %>
-      <%= button_to clear_slack_id_backend_identity_path(@identity), class: "item" do %>
-        <figure class="icon">✕</figure>
-        <span class="text"><b>clear slack id</b></span>
+      <%= button_to clear_slack_id_backend_identity_path(@identity), class: "tui-item" do %>
+        <span class="tui-item-icon">&#x2715;</span>
+        <span class="tui-item-text"><b>clear slack id</b></span>
       <% end %>
     <% else %>
-      <%= button_to reprovision_slack_backend_identity_path(@identity), class: "item" do %>
-        <figure class="icon">+</figure>
-        <span class="text"><b>provision slack account</b></span>
+      <%= button_to reprovision_slack_backend_identity_path(@identity), class: "tui-item" do %>
+        <span class="tui-item-icon">+</span>
+        <span class="tui-item-text"><b>provision slack account</b></span>
       <% end %>
     <% end %>
-  <% end %>
+  </article>
 </div>

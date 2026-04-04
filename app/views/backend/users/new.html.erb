@@ -1,80 +1,72 @@
-<div class="grid">
-  <%= render "backend/shared/card", title: "grant backend access" do %>
-    <%= render "backend/shared/item", icon: "⭠", href: backend_users_path do %>
-      <b>cancel</b>
-    <% end %>
-    <hr>
-    <div class="section">
-      <div class="section-header"><h3>find identity</h3></div>
-      <div class="section-content">
-        <%= form_with url: new_backend_user_path, method: :get, local: true do |f| %>
-          <div class="form-row">
-            <%= f.text_field :query, placeholder: "search by email, name, or slack id...", value: params[:query], autofocus: true %>
-            <%= render("backend/shared/action_button", hotkey: "↵") { "search" } %>
-          </div>
-        <% end %>
-      </div>
+<div class="tui-page">
+  <article box-="round">
+    <h2>grant backend access</h2>
+    <div is-="separator"></div>
+    <a href="<%= backend_users_path %>" class="tui-item">
+      <span class="tui-item-icon">&#x2b60;</span>
+      <span class="tui-item-text"><b>cancel</b></span>
+    </a>
+    <div is-="separator"></div>
+    <h3>find identity</h3>
+    <div class="tui-search">
+      <%= form_with url: new_backend_user_path, method: :get, local: true do |f| %>
+        <span>&gt; search:</span>
+        <%= f.text_field :query, placeholder: "email, name, or slack id...", value: params[:query], autofocus: true %>
+        <button type="submit"><kbd>&#x23ce;</kbd></button>
+      <% end %>
     </div>
     <% if params[:query].present? %>
       <% if @identities.any? %>
-        <div class="table-container">
-          <table>
-            <thead>
+        <table>
+          <thead>
+            <tr>
+              <th>name</th>
+              <th>email</th>
+              <th>slack</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @identities.each do |identity| %>
               <tr>
-                <th>name</th>
-                <th>email</th>
-                <th>slack</th>
-                <th></th>
+                <td><%= identity.first_name %> <%= identity.last_name %></td>
+                <td><%= identity.primary_email %></td>
+                <td><%= identity.slack_id || "—" %></td>
+                <td><%= link_to "select &#x2192;".html_safe, new_backend_user_path(identity_id: identity.id) %></td>
               </tr>
-            </thead>
-            <tbody>
-              <% @identities.each do |identity| %>
-                <tr>
-                  <td><%= identity.first_name %> <%= identity.last_name %></td>
-                  <td><%= identity.primary_email %></td>
-                  <td><%= identity.slack_id || "—" %></td>
-                  <td><%= link_to "select →", new_backend_user_path(identity_id: identity.id) %></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
+            <% end %>
+          </tbody>
+        </table>
       <% else %>
-        <div class="empty-state">no identities found matching "<%= params[:query] %>"</div>
+        <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no identities found matching "<%= params[:query] %>"</p>
       <% end %>
     <% end %>
     <% if params[:identity_id].present? %>
       <% identity = Identity.find(params[:identity_id]) %>
-      <hr>
-      <div class="section">
-        <div class="section-header"><h3>granting access to</h3></div>
-        <div class="section-content">
-          <div class="detail-row">
-            <span class="detail-label">name</span>
-            <span class="detail-value"><%= identity.first_name %> <%= identity.last_name %></span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">email</span>
-            <span class="detail-value"><%= identity.primary_email %></span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">slack</span>
-            <span class="detail-value"><%= identity.slack_id || "not linked" %></span>
-          </div>
-        </div>
+      <div is-="separator"></div>
+      <h3>granting access to</h3>
+      <div class="tui-detail">
+        <span class="tui-detail-label">name</span>
+        <span class="tui-detail-value"><%= identity.first_name %> <%= identity.last_name %></span>
+      </div>
+      <div class="tui-detail">
+        <span class="tui-detail-label">email</span>
+        <span class="tui-detail-value"><%= identity.primary_email %></span>
+      </div>
+      <div class="tui-detail">
+        <span class="tui-detail-label">slack</span>
+        <span class="tui-detail-value"><%= identity.slack_id || "not linked" %></span>
       </div>
       <%= form_with url: backend_users_path, method: :post, local: true do |f| %>
         <%= hidden_field_tag :identity_id, identity.id %>
-        <div class="section">
-          <div class="section-header"><h3>permissions</h3></div>
-          <div class="section-content">
-            <%= render Backend::Users::PermissionsForm.new(Backend::User.new) %>
-          </div>
-        </div>
-        <div class="form-actions">
-          <%= f.submit "grant access", class: "action_button" %>
+        <div is-="separator"></div>
+        <h3>permissions</h3>
+        <%= render Backend::Users::PermissionsForm.new(Backend::User.new) %>
+        <div is-="separator"></div>
+        <div style="display:flex;gap:1ch;">
+          <%= f.submit "grant access", class: "button" %>
         </div>
       <% end %>
     <% end %>
-  <% end %>
+  </article>
 </div>

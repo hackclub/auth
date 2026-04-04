@@ -1,21 +1,22 @@
-<div class="grid">
-  <%= render "backend/shared/card", title: "identities" do %>
-    <%= form_with url: backend_identities_path, method: :get, local: true do |f| %>
-      <div class="form-row">
-        <%= f.search_field :search, value: params[:search], placeholder: "search by name, email, slack id..." %>
-        <%= render "backend/shared/action_button", hotkey: "↵" do %>search<% end %>
+<div class="tui-page">
+  <article box-="round">
+    <h2>identities</h2>
+    <div is-="separator"></div>
+    <div class="tui-search">
+      <%= form_with url: backend_identities_path, method: :get, local: true do |f| %>
+        <span>&gt; search:</span>
+        <%= f.search_field :search, value: params[:search], placeholder: "name, email, slack id..." %>
+        <button type="submit"><kbd>&#x23ce;</kbd></button>
         <% if params[:search].present? %>
-          <%= link_to backend_identities_path do %>
-            <%= render "backend/shared/action_button" do %>CLR<% end %>
-          <% end %>
+          <a href="<%= backend_identities_path %>"><button type="button">CLR</button></a>
         <% end %>
-      </div>
-    <% end %>
+      <% end %>
+    </div>
     <% if params[:search].present? %>
-      <p>found <%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</p>
+      <p style="color:var(--overlay1);padding:0.5lh 0;">found <%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</p>
     <% end %>
-    <hr>
-    <div class="table-container" data-navigable-list>
+    <div is-="separator"></div>
+    <div data-navigable-list>
       <table>
         <thead>
           <tr>
@@ -30,7 +31,9 @@
             <tr data-navigable-item>
               <td><%= link_to backend_identity_path(identity) do %><%= render identity %><% end %></td>
               <td><%= identity.primary_email %></td>
-              <td><span class="badge <%= identity.verification_status == 'verified' ? 'success' : 'pending' %>"><%= identity.verification_status %></span></td>
+              <td>
+                <span is-="badge" variant-="<%= identity.verification_status == 'verified' ? 'green' : 'peach' %>"><%= identity.verification_status %></span>
+              </td>
               <td><%= identity.ysws_eligible.nil? ? "?" : render_checkbox(identity.ysws_eligible) %></td>
             </tr>
           <% end %>
@@ -38,5 +41,9 @@
       </table>
     </div>
     <%= paginate @identities, params: { search: params[:search] } %>
-  <% end %>
+  </article>
+  <div class="tui-keyhints">
+    <span><kbd>j</kbd>/<kbd>k</kbd> navigate</span>
+    <span><kbd>enter</kbd> open</span>
+  </div>
 </div>

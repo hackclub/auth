@@ -1,9 +1,12 @@
-<div class="grid">
-  <%= render "backend/shared/card", title: "edit: #{@user.display_name}" do %>
-    <%= render "backend/shared/item", icon: "⭠", href: backend_user_path(@user) do %>
-      <b>cancel</b>
-    <% end %>
-    <hr>
+<div class="tui-page">
+  <article box-="round">
+    <h2>edit: <%= @user.display_name %></h2>
+    <div is-="separator"></div>
+    <a href="<%= backend_user_path(@user) %>" class="tui-item">
+      <span class="tui-item-icon">&#x2b60;</span>
+      <span class="tui-item-text"><b>cancel</b></span>
+    </a>
+    <div is-="separator"></div>
     <%= render Backend::Users::Form.new @user %>
-  <% end %>
+  </article>
 </div>

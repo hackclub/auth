@@ -1,3 +1,12 @@
-<%= render "backend/shared/window", window_title: "Session dump", close_url: backend_root_path do %>
-  <%== ap session %>
-<% end %>
+<div class="tui-page">
+  <article box-="round">
+    <h2>session dump</h2>
+    <div is-="separator"></div>
+    <a href="<%= backend_root_path %>" class="tui-item">
+      <span class="tui-item-icon">&#x2b60;</span>
+      <span class="tui-item-text"><b>back</b></span>
+    </a>
+    <div is-="separator"></div>
+    <pre><%== ap session %></pre>
+  </article>
+</div>

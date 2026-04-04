@@ -1,34 +1,46 @@
-<div class="grid">
-  <%= render "backend/shared/card", title: "pending verifications (#{@pending_verifications.total_count})" do %>
-    <%= render "backend/shared/item", icon: "⭠", href: backend_verifications_path do %>
-      <b>all verifications</b>
-    <% end %>
-    <hr>
+<div class="tui-page">
+  <article box-="round">
+    <h2>pending verifications (<%= @pending_verifications.total_count %>)</h2>
+    <div is-="separator"></div>
+    <a href="<%= backend_verifications_path %>" class="tui-item">
+      <span class="tui-item-icon">&#x2b60;</span>
+      <span class="tui-item-text"><b>all verifications</b></span>
+    </a>
+    <div is-="separator"></div>
     <% if @average_hangtime.present? %>
-      <div class="detail-row">
-        <span class="detail-label">avg hangtime</span>
-        <span class="detail-value"><%= distance_of_time_in_words(0, @average_hangtime) %></span>
+      <div class="tui-detail">
+        <span class="tui-detail-label">avg hangtime</span>
+        <span class="tui-detail-value"><%= distance_of_time_in_words(0, @average_hangtime) %></span>
       </div>
+      <div is-="separator"></div>
     <% end %>
     <% if @pending_verifications.any? %>
       <div data-navigable-list>
         <% @pending_verifications.each do |verification| %>
           <div data-navigable-item>
-            <%= render "backend/shared/item", icon: "⭢", href: backend_verification_path(verification) do %>
-              <b><%= verification.document_type %></b>
-              &nbsp;·&nbsp;
-              <%= verification.identity.first_name %> <%= verification.identity.last_name %>
-              &nbsp;·&nbsp;
-              <small><%= time_ago_in_words(verification.pending_at || verification.created_at) %> ago</small>
-            <% end %>
+            <a href="<%= backend_verification_path(verification) %>" class="tui-item">
+              <span class="tui-item-icon">&#x2b62;</span>
+              <span class="tui-item-text">
+                <b><%= verification.document_type %></b>
+                &middot;
+                <%= verification.identity.first_name %> <%= verification.identity.last_name %>
+                <% if verification.identity.country.present? %>
+                  [<%= verification.identity.country %>]
+                <% end %>
+                &middot;
+                <small><%= time_ago_in_words(verification.pending_at || verification.created_at) %> ago</small>
+              </span>
+            </a>
           </div>
         <% end %>
       </div>
       <%= paginate @pending_verifications %>
     <% else %>
-      <div class="empty-state">
-        no documents pending verification 🎉
-      </div>
+      <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no documents pending verification</p>
     <% end %>
-  <% end %>
+  </article>
+  <div class="tui-keyhints">
+    <span><kbd>j</kbd>/<kbd>k</kbd> navigate</span>
+    <span><kbd>enter</kbd> open</span>
+  </div>
 </div>

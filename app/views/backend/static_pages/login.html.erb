@@ -1,21 +1,24 @@
-<div class="grid">
-  <%= render "backend/shared/card", title: "identity vault [#{Rails.env.upcase[0..3]}]" do %>
+<div class="tui-page" style="display:flex;align-items:center;justify-content:center;min-height:80vh;">
+  <article box-="round" style="max-width:48ch;">
+    <h2>identity vault [<%= Rails.env.upcase[0..3] %>]</h2>
+    <div is-="separator"></div>
     <p>abandon hope, all ye who enter here...</p>
-    <hr>
-    <%= render "backend/shared/item", icon: "⭢", href: backend_slack_auth_path do %>
-      <b>sign in with slack</b>
-    <% end %>
+    <div is-="separator"></div>
+    <a href="<%= backend_slack_auth_path %>" class="tui-item">
+      <span class="tui-item-icon">&#x2b62;</span>
+      <span class="tui-item-text"><b>sign in with slack</b></span>
+    </a>
     <% dev_tool do %>
-      <hr>
+      <div is-="separator"></div>
       <%= form_with url: backend_fake_slack_callback_for_dev_path, method: :post, local: true do |f| %>
-        <div class="form-row">
-          <%= f.label :slack_id, "fake slack id" %>
+        <div class="tui-search">
+          <span>&gt; fake slack id:</span>
           <%= f.text_field :slack_id, placeholder: "U12345678" %>
-          <%= f.submit "fake it", class: "action_button" %>
+          <button type="submit">fake it</button>
         </div>
       <% end %>
     <% end %>
-    <hr>
-    <small>running commit <%= ENV["SOURCE_COMMIT"]&.[](0..7) || "...dunno?" %></small>
-  <% end %>
+    <div is-="separator"></div>
+    <small style="color:var(--overlay1);">running commit <%= ENV["SOURCE_COMMIT"]&.[](0..7) || "...dunno?" %></small>
+  </article>
 </div>

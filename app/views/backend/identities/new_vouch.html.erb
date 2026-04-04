@@ -1,22 +1,22 @@
-<div class="grid">
-  <%= render "backend/shared/card", title: "vouch for #{@identity.first_name} #{@identity.last_name}" do %>
-    <%= render "backend/shared/item", icon: "⭠", href: backend_identity_path(@identity) do %>
-      <b>cancel</b>
-    <% end %>
-    <hr>
+<div class="tui-page">
+  <article box-="round">
+    <h2>vouch for <%= @identity.first_name %> <%= @identity.last_name %></h2>
+    <div is-="separator"></div>
+    <a href="<%= backend_identity_path(@identity) %>" class="tui-item">
+      <span class="tui-item-icon">&#x2b60;</span>
+      <span class="tui-item-text"><b>cancel</b></span>
+    </a>
+    <div is-="separator"></div>
     <%= form_with model: [@identity, @vouch], url: create_vouch_backend_identity_path(@identity), method: :post, local: true do |f| %>
-      <div class="section">
-        <div class="section-header"><h3>evidence</h3></div>
-        <div class="section-content">
-          <div class="form-row">
-            <%= f.label :evidence, "upload picture" %>
-            <%= f.file_field :evidence, required: true %>
-          </div>
-        </div>
+      <h3>evidence</h3>
+      <div class="form-row">
+        <%= f.label :evidence, "upload picture" %>
+        <%= f.file_field :evidence, required: true %>
       </div>
-      <div class="form-actions">
-        <%= f.submit "create vouch", class: "action_button" %>
+      <div is-="separator"></div>
+      <div style="display:flex;gap:1ch;">
+        <%= f.submit "create vouch" %>
       </div>
     <% end %>
-  <% end %>
+  </article>
 </div>

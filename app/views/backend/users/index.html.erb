@@ -1,44 +1,46 @@
-<div class="grid">
-  <%= render "backend/shared/card", title: "backend users" do %>
-    <%= form_with url: backend_users_path, method: :get, local: true do |f| %>
-      <div class="form-row">
-        <%= f.search_field :search, value: params[:search], placeholder: "search by email or name..." %>
-        <%= render("backend/shared/action_button", hotkey: "↵") { "search" } %>
-      </div>
-    <% end %>
-    <hr>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>user</th>
-            <th>email</th>
-            <th>roles</th>
-            <th>active</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @users.each do |user| %>
-            <tr>
-              <td>
-                <%= link_to backend_user_path(user) do %>
-                  <%= user.display_name %>
-                <% end %>
-                <% if user.orphaned? %>
-                  <span class="badge warning">⚠ orphaned</span>
-                <% end %>
-              </td>
-              <td><%= user.email || "—" %></td>
-              <td><%= user.pretty_roles %></td>
-              <td><%= render_checkbox(user.active?) %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+<div class="tui-page">
+  <article box-="round">
+    <h2>backend users</h2>
+    <div is-="separator"></div>
+    <div class="tui-search">
+      <%= form_with url: backend_users_path, method: :get, local: true do |f| %>
+        <span>&gt; search:</span>
+        <%= f.search_field :search, value: params[:search], placeholder: "email or name..." %>
+        <button type="submit"><kbd>&#x23ce;</kbd></button>
+      <% end %>
     </div>
-    <hr>
-    <%= render "backend/shared/item", icon: "+", href: new_backend_user_path do %>
-      <b>grant backend access</b>
-    <% end %>
-  <% end %>
+    <div is-="separator"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>user</th>
+          <th>email</th>
+          <th>roles</th>
+          <th>active</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @users.each do |user| %>
+          <tr>
+            <td>
+              <%= link_to backend_user_path(user) do %>
+                <%= user.display_name %>
+              <% end %>
+              <% if user.orphaned? %>
+                <span is-="badge" variant-="yellow">orphaned</span>
+              <% end %>
+            </td>
+            <td><%= user.email || "—" %></td>
+            <td><%= user.pretty_roles %></td>
+            <td><%= render_checkbox(user.active?) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <div is-="separator"></div>
+    <a href="<%= new_backend_user_path %>" class="tui-item">
+      <span class="tui-item-icon">+</span>
+      <span class="tui-item-text"><b>grant backend access</b></span>
+    </a>
+  </article>
 </div>

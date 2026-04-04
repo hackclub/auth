@@ -1,80 +1,106 @@
-<div class="grid">
-  <%= render "backend/shared/card", title: "welcome to the cool zone" do %>
+<div class="tui-page" style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 4lh);">
+  <article box-="round" style="min-width:60ch;max-width:80ch;">
+    <h2>HCA // BACKEND</h2>
+    <div is-="separator"></div>
+    <div style="color:var(--overlay1);padding:0.5lh 0;">
+      <%= current_user.display_name %> · <%= current_user.pretty_roles %>
+    </div>
+    <div is-="separator"></div>
     <div data-navigable-list>
       <% if current_user.super_admin? %>
-        <b>Super admin:</b>
+        <div style="color:var(--overlay0);padding:0.5lh 0 0;">Super admin</div>
         <div data-navigable-item>
-          <%= render "backend/shared/item", icon: "⭢", href: backend_flipper_path do %>
-            <b>Flipper?</b>&nbsp;<i>(i hardly know 'er!)</i>
-            <p class="shortcode">&nbsp; [ FLIP ]</p>
-          <% end %>
+          <a href="<%= backend_flipper_path %>" class="tui-item">
+            <span class="tui-item-icon">⭢</span>
+            <span class="tui-item-text"><b>Flipper</b> <i style="color:var(--overlay0)">(i hardly know 'er!)</i></span>
+            <span class="tui-item-badge"><span is-="badge">FLIP</span></span>
+          </a>
         </div>
         <div data-navigable-item>
-          <%= render "backend/shared/item", icon: "⭢", href: backend_audits1984_path do %>
-            <b>Audits1984</b>
-            <p class="shortcode">&nbsp; [ ORWL ]</p>
-          <% end %>
+          <a href="<%= backend_audits1984_path %>" class="tui-item">
+            <span class="tui-item-icon">⭢</span>
+            <span class="tui-item-text"><b>Audits1984</b></span>
+            <span class="tui-item-badge"><span is-="badge">ORWL</span></span>
+          </a>
         </div>
         <div data-navigable-item>
-          <%= render "backend/shared/item", icon: "⭢", href: backend_good_job_path do %>
-            <b>Job queue</b>
-            <p class="shortcode">&nbsp; [ JOBS ]</p>
-          <% end %>
+          <a href="<%= backend_good_job_path %>" class="tui-item">
+            <span class="tui-item-icon">⭢</span>
+            <span class="tui-item-text"><b>Job queue</b></span>
+            <span class="tui-item-badge"><span is-="badge">JOBS</span></span>
+          </a>
         </div>
         <div data-navigable-item>
-          <%= render "backend/shared/item", icon: "⭢", href: backend_users_path do %>
-            <b>Manage users</b>
-            <p class="shortcode">&nbsp; [ USRS ]</p>
-          <% end %>
+          <a href="<%= backend_users_path %>" class="tui-item">
+            <span class="tui-item-icon">⭢</span>
+            <span class="tui-item-text"><b>Manage users</b></span>
+            <span class="tui-item-badge"><span is-="badge">USRS</span></span>
+          </a>
         </div>
       <% end %>
 
       <% if current_user&.program_manager? || current_user&.super_admin? %>
-        <b>Program manager:</b>
+        <div is-="separator"></div>
+        <div style="color:var(--overlay0);padding:0.5lh 0 0;">Program manager</div>
         <div data-navigable-item>
-          <%= render "backend/shared/item", icon: "⭢", href: developer_apps_path do %>
-            <b>Manage OAuth2 apps</b>
-            <p class="shortcode">&nbsp; [ APPS ]</p>
-          <% end %>
+          <a href="<%= developer_apps_path %>" class="tui-item">
+            <span class="tui-item-icon">⭢</span>
+            <span class="tui-item-text"><b>Manage OAuth2 apps</b></span>
+            <span class="tui-item-badge"><span is-="badge">APPS</span></span>
+          </a>
         </div>
       <% end %>
 
       <% if current_user&.manual_document_verifier? || current_user&.super_admin? %>
-        <b>Manual document verifier:</b>
+        <div is-="separator"></div>
+        <div style="color:var(--overlay0);padding:0.5lh 0 0;">Document verifier</div>
         <div data-navigable-item>
-          <%= render "backend/shared/item", icon: "⭢", href: pending_backend_verifications_path do %>
-            <b>Review pending verifications</b>
-            <p class="shortcode">&nbsp; [ PEND ]</p>
-          <% end %>
+          <a href="<%= pending_backend_verifications_path %>" class="tui-item">
+            <span class="tui-item-icon">⭢</span>
+            <span class="tui-item-text"><b>Review pending verifications</b></span>
+            <span class="tui-item-badge"><span is-="badge" variant-="peach">PEND</span></span>
+          </a>
         </div>
       <% end %>
-      <hr>
+
+      <div is-="separator"></div>
       <div data-navigable-item>
-        <%= render "backend/shared/item", icon: "⭢", href: backend_identities_path do %>
-          <b>Manage identities</b>
-          <p class="shortcode">&nbsp; [ IDNT ]</p>
-        <% end %>
+        <a href="<%= backend_identities_path %>" class="tui-item">
+          <span class="tui-item-icon">⭢</span>
+          <span class="tui-item-text"><b>Identities</b></span>
+          <span class="tui-item-badge"><span is-="badge">IDNT</span></span>
+        </a>
       </div>
       <div data-navigable-item>
-        <%= render "backend/shared/item", icon: "⭢", href: backend_audit_logs_path do %>
-          <b>Audit logs</b>
-          <p class="shortcode">&nbsp; [ LOGS ]</p>
-        <% end %>
+        <a href="<%= backend_audit_logs_path %>" class="tui-item">
+          <span class="tui-item-icon">⭢</span>
+          <span class="tui-item-text"><b>Audit logs</b></span>
+          <span class="tui-item-badge"><span is-="badge">LOGS</span></span>
+        </a>
       </div>
-      <hr>
+
+      <div is-="separator"></div>
       <div data-navigable-item>
-        <%= render "backend/shared/item", icon: "⊹", href: "#", onclick: "window.openKbar && window.openKbar(); return false;" do %>
-          <b>Go anywhere</b>
-          <p class="shortcode">&nbsp; <&nbsp;⌘-K&nbsp;&nbsp;></p>
-        <% end %>
+        <a href="#" onclick="window.openKbar && window.openKbar(); return false;" class="tui-item">
+          <span class="tui-item-icon">⊹</span>
+          <span class="tui-item-text"><b>Go anywhere</b></span>
+          <span class="tui-item-badge"><kbd>⌘K</kbd></span>
+        </a>
       </div>
-      <hr>
+      <div is-="separator"></div>
       <div data-navigable-item>
-        <%= render "backend/shared/item", icon: "⭠", href: root_path do %>
-          <b>Escape hatch</b>
-          <p class="shortcode">&nbsp; [ EXIT ]</p>
-        <% end %>
+        <a href="<%= root_path %>" class="tui-item">
+          <span class="tui-item-icon">⭠</span>
+          <span class="tui-item-text"><b>Escape hatch</b></span>
+          <span class="tui-item-badge"><span is-="badge">EXIT</span></span>
+        </a>
       </div>
     </div>
-  <% end %>
+    <div is-="separator"></div>
+    <div class="tui-keyhints">
+      <span><kbd>j</kbd>/<kbd>k</kbd> navigate</span>
+      <span><kbd>↵</kbd> open</span>
+      <span><kbd>⌘K</kbd> search</span>
+    </div>
+  </article>
 </div>
