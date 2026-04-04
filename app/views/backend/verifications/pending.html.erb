@@ -1,9 +1,8 @@
-<column self-="grow" pad-="2 1" style="max-width: 100ch; margin: 0 auto;">
-  <article box-="round" style="--box-border-color: var(--foreground2);">
-    <row align-="center between">
-      <h2>pending (<%= @pending_verifications.total_count %>)</h2>
-      <a href="<%= backend_verifications_path %>" style="color: var(--foreground2); text-decoration: none;">all verifications →</a>
-    </row>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>pending (<%= @pending_verifications.total_count %>)</h2>
+    <a href="<%= backend_verifications_path %>" style="color: var(--foreground2); text-decoration: none;">all verifications →</a>
+  </row>
 
     <% if @average_hangtime.present? %>
       <span style="color: var(--foreground2);">avg wait: <%= distance_of_time_in_words(0, @average_hangtime) %></span>
@@ -71,5 +70,4 @@
         back
       </row>
     </row>
-  </article>
 </column>
