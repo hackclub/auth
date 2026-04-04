@@ -28,8 +28,12 @@
 /* Layout primitives (from webtui site) */
 @import "../stylesheets/backend-layout.css";
 
-/* Theme — must come after all @webtui/css imports */
+/* Themes — must come after all @webtui/css imports */
 @import "@webtui/theme-catppuccin";
+@import "@webtui/theme-gruvbox";
+@import "@webtui/theme-vitesse";
+@import "@webtui/theme-everforest";
+@import "@webtui/theme-nord";
 
 /* Backend overrides */
 @import "../stylesheets/backend-overrides.css";
