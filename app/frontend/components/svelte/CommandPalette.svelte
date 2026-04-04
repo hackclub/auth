@@ -398,7 +398,7 @@
     inset: 0;
     display: flex;
     flex-direction: column;
-    --box-border-color: var(--overlay0);
+    --box-border-color: var(--foreground2);
   }
 
   #palette-search-row {

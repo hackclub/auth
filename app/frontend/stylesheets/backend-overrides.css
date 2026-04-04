@@ -1,11 +1,13 @@
 /*
  * Backend overrides for WebTUI.
- * Keep this minimal — prefer webtui attributes in markup.
+ * Use generic webtui vars (--background0, --foreground0, etc.)
+ * NOT catppuccin-specific vars (--base, --surface0, etc.)
+ * so both mocha and latte themes work correctly.
  */
 
 @layer base {
   :root {
-    --box-border-color: var(--surface1);
+    --box-border-color: var(--background2);
   }
 
   body, html {
@@ -31,8 +33,8 @@
     justify-content: space-between;
     padding: 0 2ch;
     height: 2lh;
-    background: var(--base);
-    border-bottom: 2px solid var(--surface1);
+    background: var(--background0);
+    border-bottom: 2px solid var(--background2);
   }
 
   /* Page body offset for fixed actionbar */
@@ -66,7 +68,7 @@
   ul > a[data-navigable-item]::before {
     content: '├ ';
     white-space: pre;
-    color: var(--overlay0);
+    color: var(--foreground2);
     flex-shrink: 0;
   }
 
@@ -102,7 +104,7 @@
     right: 0;
     padding: 0.25lh 1ch;
     font-size: 0.75em;
-    color: var(--overlay0);
-    background: var(--mantle);
+    color: var(--foreground2);
+    background: var(--background1);
   }
 }

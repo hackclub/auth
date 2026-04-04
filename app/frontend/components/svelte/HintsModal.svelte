@@ -138,7 +138,7 @@
   }
 
   #hints-content {
-    --box-border-color: var(--overlay0);
+    --box-border-color: var(--foreground2);
     min-width: 44ch;
     max-width: 64ch;
   }
