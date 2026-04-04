@@ -86,7 +86,7 @@
 
     <div is-="separator"></div>
 
-    <column style="gap: 0.5lh;">
+    <column style="gap: 0.5lh;" align-="start">
       <span style="color: var(--foreground2);">Global</span>
       {#each [{ keys: ['⌘K'], action: 'command bar' }, { keys: ['?'], action: 'this dialog' }, { keys: ['/'], action: 'focus search' }] as shortcut}
         <row gap-="1" align-="center">
@@ -100,7 +100,7 @@
 
     {#if hints.length > 0}
       <div is-="separator"></div>
-      <column style="gap: 0.5lh;">
+      <column style="gap: 0.5lh;" align-="start">
         <span style="color: var(--foreground2);">This page</span>
         {#each hints as hint}
           {#each hint.shortcuts as shortcut}
