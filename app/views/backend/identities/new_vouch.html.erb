@@ -9,7 +9,7 @@
     <div is-="separator"></div>
     <%= form_with model: [@identity, @vouch], url: create_vouch_backend_identity_path(@identity), method: :post, local: true do |f| %>
       <h3>evidence</h3>
-      <div class="form-row">
+      <div>
         <%= f.label :evidence, "upload picture" %>
         <%= f.file_field :evidence, required: true %>
       </div>

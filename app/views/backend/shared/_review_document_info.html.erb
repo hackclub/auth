@@ -1,28 +1,28 @@
-<div class="lowered">
-  <div class="detail-row">
-    <span class="detail-label">type</span>
-    <span class="detail-value"><%= verification.document_type %></span>
+<div style="background:var(--surface0);padding:0.5lh 2ch;">
+  <div class="tui-detail">
+    <span class="tui-detail-label">type</span>
+    <span class="tui-detail-value"><%= verification.document_type %></span>
   </div>
-  <div class="detail-row">
-    <span class="detail-label">uploaded</span>
-    <span class="detail-value"><%= verification.identity_document.created_at.strftime("%B %d, %Y at %I:%M %p") %></span>
+  <div class="tui-detail">
+    <span class="tui-detail-label">uploaded</span>
+    <span class="tui-detail-value"><%= verification.identity_document.created_at.strftime("%B %d, %Y at %I:%M %p") %></span>
   </div>
   <% if verification.identity.country == "IN" %>
-    <div class="detail-row">
-      <span class="detail-label">aadhaar password</span>
-      <span class="detail-value"><%= copy_to_clipboard(verification.identity.suggested_aadhaar_password, tooltip_direction: "e") %></span>
+    <div class="tui-detail">
+      <span class="tui-detail-label">aadhaar password</span>
+      <span class="tui-detail-value"><%= copy_to_clipboard(verification.identity.suggested_aadhaar_password, tooltip_direction: "e") %></span>
     </div>
   <% end %>
-  <div class="detail-row">
-    <span class="detail-label">status</span>
-    <span class="detail-value">
-      <span class="badge <%= verification.pending? ? 'pending' : verification.approved? ? 'success' : 'danger' %>">
+  <div class="tui-detail">
+    <span class="tui-detail-label">status</span>
+    <span class="tui-detail-value">
+      <span <%= verification.pending? ? 'is-="badge" variant-="peach"' : verification.approved? ? 'is-="badge" variant-="green"' : 'is-="badge" variant-="red"' %>>
         <%= verification.status.humanize %>
       </span>
     </span>
   </div>
-  <div class="detail-row">
-    <span class="detail-label">files</span>
-    <span class="detail-value"><%= verification.identity_document.files.count %></span>
+  <div class="tui-detail">
+    <span class="tui-detail-label">files</span>
+    <span class="tui-detail-value"><%= verification.identity_document.files.count %></span>
   </div>
 </div>

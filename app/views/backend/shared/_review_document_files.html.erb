@@ -4,7 +4,7 @@
       <div class="document-file">
         <div class="file-header">
           <span class="file-name"><%= index + 1 %>. <%= file.filename %></span>
-          <%= link_to "open \u2197", url_for(file), target: "_blank", class: "file-action" %>
+          <%= link_to "open ↗", url_for(file), target: "_blank", class: "file-action" %>
         </div>
         <% if file.content_type.start_with?("image/") %>
           <%
@@ -28,7 +28,7 @@
                 data: { rotation: 0 },
                 onload: "document.getElementById('loader-#{index}').style.display='none'; document.getElementById('image-container-#{index}').classList.remove('hidden');",
                 onerror: "document.getElementById('loader-#{index}').innerHTML='error loading image';" %>
-              <button type="button" class="action_button rotate-button" onclick="rotateImage(<%= index %>)">&#8635; rotate</button>
+              <button type="button" class="rotate-button" onclick="rotateImage(<%= index %>)">&#8635; rotate</button>
             </div>
           </div>
         <% elsif file.content_type == "application/pdf" %>
@@ -41,14 +41,14 @@
             </iframe>
           </div>
         <% else %>
-          <div class="file-preview lowered">
-            <div class="detail-row">
-              <span class="detail-label">type</span>
-              <span class="detail-value"><%= file.content_type %></span>
+          <div class="file-preview" style="background:var(--surface0);padding:0.5lh 2ch;">
+            <div class="tui-detail">
+              <span class="tui-detail-label">type</span>
+              <span class="tui-detail-value"><%= file.content_type %></span>
             </div>
-            <div class="detail-row">
-              <span class="detail-label">download</span>
-              <span class="detail-value"><%= link_to "download file", url_for(file), target: "_blank" %></span>
+            <div class="tui-detail">
+              <span class="tui-detail-label">download</span>
+              <span class="tui-detail-value"><%= link_to "download file", url_for(file), target: "_blank" %></span>
             </div>
           </div>
         <% end %>
@@ -65,5 +65,5 @@
     }
   </script>
 <% else %>
-  <div class="empty-state">no files attached</div>
+  <div style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no files attached</div>
 <% end %>

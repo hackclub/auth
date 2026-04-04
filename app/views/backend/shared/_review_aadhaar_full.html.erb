@@ -3,9 +3,9 @@
 %>
 <div class="aadhaar-data">
   <% if data[:photo].present? %>
-    <div class="detail-row">
-      <span class="detail-label">photo</span>
-      <span class="detail-value">
+    <div class="tui-detail">
+      <span class="tui-detail-label">photo</span>
+      <span class="tui-detail-value">
         <%= image_tag "data:image/jpeg;base64,#{data[:photo]}", class: "aadhaar-photo" %>
       </span>
     </div>
@@ -13,15 +13,15 @@
   <% { name: "full name", "Father Name": "father's name", dob: "date of birth", aadhar_number: "aadhaar number", gender: "assigned gender", co: "c/o" }.each do |key, label| %>
     <% value = data.dig(key) %>
     <% next if value.blank? %>
-    <div class="detail-row">
-      <span class="detail-label"><%= label %></span>
-      <span class="detail-value"><%= value %></span>
+    <div class="tui-detail">
+      <span class="tui-detail-label"><%= label %></span>
+      <span class="tui-detail-value"><%= value %></span>
     </div>
   <% end %>
   <% if data[:address].present? %>
-    <div class="detail-row">
-      <span class="detail-label">address</span>
-      <span class="detail-value">
+    <div class="tui-detail">
+      <span class="tui-detail-label">address</span>
+      <span class="tui-detail-value">
         <div class="address-fields">
           <% data[:address].each do |key, value| %>
             <% next if value.blank? %>

@@ -1,44 +1,44 @@
 <%
   show_legal_name = local_assigns.fetch(:show_legal_name, false)
 %>
-<div class="identity-details">
+<div style="font-family:monospace;">
   <%= render identity %>
 
   <% if identity.legal_first_name.present? && show_legal_name %>
-    <div class="detail-row">
-      <span class="detail-label">legal name</span>
-      <span class="detail-value"><%= identity.legal_first_name %> <%= identity.legal_last_name %></span>
+    <div class="tui-detail">
+      <span class="tui-detail-label">legal name</span>
+      <span class="tui-detail-value"><%= identity.legal_first_name %> <%= identity.legal_last_name %></span>
     </div>
   <% end %>
-  <div class="detail-row">
-    <span class="detail-label">country</span>
-    <span class="detail-value"><%= identity.country %></span>
+  <div class="tui-detail">
+    <span class="tui-detail-label">country</span>
+    <span class="tui-detail-value"><%= identity.country %></span>
   </div>
-  <div class="detail-row">
-    <span class="detail-label">email</span>
-    <span class="detail-value"><%= identity.primary_email %></span>
+  <div class="tui-detail">
+    <span class="tui-detail-label">email</span>
+    <span class="tui-detail-value"><%= identity.primary_email %></span>
   </div>
-  <div class="detail-row">
-    <span class="detail-label">birthday</span>
-    <span class="detail-value"><%= identity.birthday %></span>
+  <div class="tui-detail">
+    <span class="tui-detail-label">birthday</span>
+    <span class="tui-detail-value"><%= identity.birthday %></span>
   </div>
-  <div class="detail-row">
-    <span class="detail-label">phone</span>
-    <span class="detail-value"><%= identity.phone_number %></span>
+  <div class="tui-detail">
+    <span class="tui-detail-label">phone</span>
+    <span class="tui-detail-value"><%= identity.phone_number %></span>
   </div>
-  <div class="detail-row">
-    <span class="detail-label">status</span>
-    <span class="detail-value"><%= identity.verification_status.humanize %></span>
+  <div class="tui-detail">
+    <span class="tui-detail-label">status</span>
+    <span class="tui-detail-value"><%= identity.verification_status.humanize %></span>
   </div>
   <% if defined?(identity.ysws_eligible) && !identity.ysws_eligible.nil? %>
-    <div class="detail-row">
-      <span class="detail-label">ysws</span>
-      <span class="detail-value"><%= identity.ysws_eligible ? "eligible" : "ineligible" %></span>
+    <div class="tui-detail">
+      <span class="tui-detail-label">ysws</span>
+      <span class="tui-detail-value"><%= identity.ysws_eligible ? "eligible" : "ineligible" %></span>
     </div>
   <% end %>
-  <div class="detail-row">
-    <span class="detail-label">slack</span>
-    <span class="detail-value">
+  <div class="tui-detail">
+    <span class="tui-detail-label">slack</span>
+    <span class="tui-detail-value">
       <% if identity.slack_id.present? %>
         <%= link_to identity.slack_id, "https://hackclub.slack.com/team/#{identity.slack_id}" %>
       <% else %>

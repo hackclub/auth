@@ -18,35 +18,35 @@
     <% end %>
     <%= form_with model: [@identity], url: backend_identity_path(@identity), method: :patch, local: true do |f| %>
       <h3>identity</h3>
-      <div class="form-row">
+      <div>
         <%= f.label :first_name %>
         <%= f.text_field :first_name %>
       </div>
-      <div class="form-row">
+      <div>
         <%= f.label :last_name %>
         <%= f.text_field :last_name %>
       </div>
-      <div class="form-row">
+      <div>
         <%= f.label :legal_first_name, "legal first" %>
         <%= f.text_field :legal_first_name %>
       </div>
-      <div class="form-row">
+      <div>
         <%= f.label :legal_last_name, "legal last" %>
         <%= f.text_field :legal_last_name %>
       </div>
-      <div class="form-row">
+      <div>
         <%= f.label :primary_email, "email" %>
         <%= f.email_field :primary_email %>
       </div>
-      <div class="form-row">
+      <div>
         <%= f.label :phone_number, "phone" %>
         <%= f.telephone_field :phone_number %>
       </div>
-      <div class="form-row">
+      <div>
         <%= f.label :birthday, "dob" %>
         <%= f.date_field :birthday %>
       </div>
-      <div class="form-row">
+      <div>
         <%= f.label :country %>
         <%= f.select :country, options_for_select(Identity.countries_for_select.map {|code, name| [name, code]}, @identity.country), { prompt: "select..." } %>
       </div>
@@ -54,22 +54,22 @@
       <div is-="separator"></div>
 
       <h3>overrides</h3>
-      <div class="form-row">
+      <div>
         <%= f.label :hq_override, "hq override" %>
         <%= f.check_box :hq_override %>
         <small>bypass normal eligibility rules</small>
       </div>
-      <div class="form-row">
+      <div>
         <%= f.label :ysws_eligible, "ysws eligible" %>
         <%= f.check_box :ysws_eligible %>
       </div>
       <% super_admin_tool do %>
-        <div class="form-row">
+        <div>
           <%= f.label :permabanned %>
           <%= f.check_box :permabanned %>
           <small>permanently ban (makes ineligible)</small>
         </div>
-        <div class="form-row">
+        <div>
           <%= f.label :can_hq_officialize, "can officialize apps" %>
           <%= f.check_box :can_hq_officialize %>
           <small>allow this identity to promote apps to hq_official</small>
