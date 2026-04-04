@@ -12,8 +12,8 @@
   <div is-="separator"></div>
 
   <% if @pending_verifications.any? %>
-    <column data-navigable-list box-="square" shear-="both" style="--box-border-color: var(--background2);">
-      <% @pending_verifications.each_with_index do |verification, i| %>
+    <column data-navigable-list>
+      <% @pending_verifications.each do |verification| %>
         <%
           wait_seconds = (Time.current - (verification.pending_at || verification.created_at)).to_i
           urgency = if wait_seconds > 86400 then "red"
@@ -21,8 +21,7 @@
                     else nil end
           has_dupes = verification.identity.resemblances.any?
         %>
-        <% if i > 0 %><div is-="separator"></div><% end %>
-        <a href="<%= backend_verification_path(verification) %>" data-navigable-item style="padding: 0.5lh 1ch;">
+        <a href="<%= backend_verification_path(verification) %>" data-navigable-item>
           <span style="flex: 1;">
             <b><%= verification.document_type %></b>
             · <%= verification.identity.first_name %> <%= verification.identity.last_name %>
@@ -41,6 +40,7 @@
         </a>
       <% end %>
     </column>
+
 
     <div is-="separator"></div>
     <%= paginate @pending_verifications %>
