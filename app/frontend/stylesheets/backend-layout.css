@@ -12,8 +12,11 @@
   [is-~='column'] {
     display: flex;
 
-    column-gap: attr(gap- ch);
-    row-gap: attr(gap- lh);
+    /* attr() with types is experimental — explicit fallbacks */
+    &[gap-="0"] { column-gap: 0; row-gap: 0; }
+    &[gap-="1"] { column-gap: 1ch; row-gap: 1lh; }
+    &[gap-="2"] { column-gap: 2ch; row-gap: 2lh; }
+    &[gap-="3"] { column-gap: 3ch; row-gap: 3lh; }
 
     &[self-~='grow'] { flex-grow: 1; }
     &[self-~='!grow'] { flex-grow: 0; }
