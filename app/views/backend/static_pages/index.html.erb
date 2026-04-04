@@ -1,16 +1,5 @@
 <column self-="grow" align-="center center">
   <column box-="round" style="width: 64ch; --box-border-color: var(--foreground2);">
-    <span style="color: var(--foreground1);">
-      <% if current_user.identity %>
-        <a href="<%= backend_identity_path(current_user.identity) %>"><%= current_user.display_name %></a>
-      <% else %>
-        <%= current_user.display_name %>
-      <% end %>
-      · <%= current_user.pretty_roles %>
-    </span>
-
-    <div is-="separator"></div>
-
     <column data-navigable-list>
       <% if current_user.super_admin? %>
         <span style="color: var(--subtext0); padding: 0 1ch;">Super admin</span>
