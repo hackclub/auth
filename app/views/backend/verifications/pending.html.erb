@@ -1,46 +1,75 @@
-<div class="tui-page">
-  <article box-="round">
-    <h2>pending verifications (<%= @pending_verifications.total_count %>)</h2>
-    <div is-="separator"></div>
-    <a href="<%= backend_verifications_path %>" class="tui-item">
-      <span class="tui-item-icon">&#x2b60;</span>
-      <span class="tui-item-text"><b>all verifications</b></span>
-    </a>
-    <div is-="separator"></div>
+<column self-="grow" pad-="2 1" style="max-width: 100ch; margin: 0 auto;">
+  <article box-="round" style="--box-border-color: var(--foreground2);">
+    <row align-="center between">
+      <h2>pending (<%= @pending_verifications.total_count %>)</h2>
+      <a href="<%= backend_verifications_path %>" style="color: var(--foreground2); text-decoration: none;">all verifications →</a>
+    </row>
+
     <% if @average_hangtime.present? %>
-      <div class="tui-detail">
-        <span class="tui-detail-label">avg hangtime</span>
-        <span class="tui-detail-value"><%= distance_of_time_in_words(0, @average_hangtime) %></span>
-      </div>
-      <div is-="separator"></div>
+      <span style="color: var(--foreground2);">avg wait: <%= distance_of_time_in_words(0, @average_hangtime) %></span>
     <% end %>
+
+    <div is-="separator"></div>
+
     <% if @pending_verifications.any? %>
-      <div data-navigable-list>
+      <column data-navigable-list>
         <% @pending_verifications.each do |verification| %>
-          <div data-navigable-item>
-            <a href="<%= backend_verification_path(verification) %>" class="tui-item">
-              <span class="tui-item-icon">&#x2b62;</span>
-              <span class="tui-item-text">
-                <b><%= verification.document_type %></b>
-                &middot;
-                <%= verification.identity.first_name %> <%= verification.identity.last_name %>
-                <% if verification.identity.country.present? %>
-                  [<%= verification.identity.country %>]
-                <% end %>
-                &middot;
-                <small><%= time_ago_in_words(verification.pending_at || verification.created_at) %> ago</small>
+          <%
+            wait_seconds = (Time.current - (verification.pending_at || verification.created_at)).to_i
+            urgency = if wait_seconds > 86400 then "red"
+                      elsif wait_seconds > 21600 then "yellow"
+                      else nil end
+            has_dupes = verification.identity.resemblances.any?
+          %>
+          <a href="<%= backend_verification_path(verification) %>" data-navigable-item>
+            <span style="flex: 1;">
+              <b><%= verification.document_type %></b>
+              · <%= verification.identity.first_name %> <%= verification.identity.last_name %>
+              <% if has_dupes %>
+                <span style="color: var(--yellow);">⚠</span>
+              <% end %>
+            </span>
+            <row gap-="1" align-="center">
+              <span style="<%= urgency ? "color: var(--#{urgency});" : "color: var(--foreground2);" %>">
+                <%= time_ago_in_words(verification.pending_at || verification.created_at) %>
               </span>
-            </a>
-          </div>
+              <% if verification.identity.country.present? %>
+                <span is-="badge" variant-="background2"><%= verification.identity.country %></span>
+              <% end %>
+            </row>
+          </a>
         <% end %>
-      </div>
+      </column>
+
+      <div is-="separator"></div>
       <%= paginate @pending_verifications %>
     <% else %>
-      <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no documents pending verification</p>
+      <column align-="center center" pad-="2 2" style="color: var(--foreground2);">
+        no documents pending verification
+      </column>
     <% end %>
+
+    <div is-="separator"></div>
+
+    <row gap-="2" align-="center center" style="color: var(--foreground2);">
+      <row gap-="1" align-="center">
+        <span is-="badge" variant-="background2">↑</span>
+        <span is-="badge" variant-="background2">↓</span>
+        navigate
+      </row>
+      <row gap-="1" align-="center">
+        <span is-="badge" variant-="background2">↵</span>
+        review
+      </row>
+      <row gap-="1" align-="center">
+        <span is-="badge" variant-="background2">n</span>
+        <span is-="badge" variant-="background2">p</span>
+        page
+      </row>
+      <row gap-="1" align-="center">
+        <span is-="badge" variant-="background2">Bksp</span>
+        back
+      </row>
+    </row>
   </article>
-  <div class="tui-keyhints">
-    <span><kbd>j</kbd>/<kbd>k</kbd> navigate</span>
-    <span><kbd>enter</kbd> open</span>
-  </div>
-</div>
+</column>
