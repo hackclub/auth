@@ -25,6 +25,9 @@
 @import "@webtui/css/components/popover.css";
 @import "@webtui/css/components/spinner.css";
 
+/* Layout primitives (from webtui site) */
+@import "../stylesheets/backend-layout.css";
+
 /* Theme — must come after all @webtui/css imports */
 @import "@webtui/theme-catppuccin";
 

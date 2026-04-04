@@ -1,106 +1,99 @@
-<div class="tui-page" style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 4lh);">
-  <article box-="round" style="min-width:60ch;max-width:80ch;">
-    <h2>HCA // BACKEND</h2>
+<column self-="grow" align-="center center" style="min-height: calc(100vh - 3lh);">
+  <column box-="round" style="min-width: 56ch; max-width: 72ch;">
+    <row align-="center between">
+      <span is-="badge" variant-="lavender" cap-="round">HCA</span>
+      <span style="color: var(--overlay1);"><%= current_user.display_name %> · <%= current_user.pretty_roles %></span>
+    </row>
+
     <div is-="separator"></div>
-    <div style="color:var(--overlay1);padding:0.5lh 0;">
-      <%= current_user.display_name %> · <%= current_user.pretty_roles %>
-    </div>
-    <div is-="separator"></div>
-    <div data-navigable-list>
+
+    <column data-navigable-list>
       <% if current_user.super_admin? %>
-        <div style="color:var(--overlay0);padding:0.5lh 0 0;">Super admin</div>
-        <div data-navigable-item>
-          <a href="<%= backend_flipper_path %>" class="tui-item">
-            <span class="tui-item-icon">⭢</span>
-            <span class="tui-item-text"><b>Flipper</b> <i style="color:var(--overlay0)">(i hardly know 'er!)</i></span>
-            <span class="tui-item-badge"><span is-="badge">FLIP</span></span>
-          </a>
-        </div>
-        <div data-navigable-item>
-          <a href="<%= backend_audits1984_path %>" class="tui-item">
-            <span class="tui-item-icon">⭢</span>
-            <span class="tui-item-text"><b>Audits1984</b></span>
-            <span class="tui-item-badge"><span is-="badge">ORWL</span></span>
-          </a>
-        </div>
-        <div data-navigable-item>
-          <a href="<%= backend_good_job_path %>" class="tui-item">
-            <span class="tui-item-icon">⭢</span>
-            <span class="tui-item-text"><b>Job queue</b></span>
-            <span class="tui-item-badge"><span is-="badge">JOBS</span></span>
-          </a>
-        </div>
-        <div data-navigable-item>
-          <a href="<%= backend_users_path %>" class="tui-item">
-            <span class="tui-item-icon">⭢</span>
-            <span class="tui-item-text"><b>Manage users</b></span>
-            <span class="tui-item-badge"><span is-="badge">USRS</span></span>
-          </a>
-        </div>
+        <details open>
+          <summary>Super admin</summary>
+          <ul>
+            <a href="<%= backend_flipper_path %>" data-navigable-item>
+              Flipper <i style="color: var(--overlay0);">(i hardly know 'er!)</i>
+              <span is-="badge" variant-="background2" cap-="round" style="float: right;">FLIP</span>
+            </a>
+            <a href="<%= backend_audits1984_path %>" data-navigable-item>
+              Audits1984
+              <span is-="badge" variant-="background2" cap-="round" style="float: right;">ORWL</span>
+            </a>
+            <a href="<%= backend_good_job_path %>" data-navigable-item>
+              Job queue
+              <span is-="badge" variant-="background2" cap-="round" style="float: right;">JOBS</span>
+            </a>
+            <a href="<%= backend_users_path %>" data-navigable-item>
+              Manage users
+              <span is-="badge" variant-="background2" cap-="round" style="float: right;">USRS</span>
+            </a>
+          </ul>
+        </details>
       <% end %>
 
       <% if current_user&.program_manager? || current_user&.super_admin? %>
-        <div is-="separator"></div>
-        <div style="color:var(--overlay0);padding:0.5lh 0 0;">Program manager</div>
-        <div data-navigable-item>
-          <a href="<%= developer_apps_path %>" class="tui-item">
-            <span class="tui-item-icon">⭢</span>
-            <span class="tui-item-text"><b>Manage OAuth2 apps</b></span>
-            <span class="tui-item-badge"><span is-="badge">APPS</span></span>
-          </a>
-        </div>
+        <details open>
+          <summary>Program manager</summary>
+          <ul>
+            <a href="<%= developer_apps_path %>" data-navigable-item>
+              Manage OAuth2 apps
+              <span is-="badge" variant-="background2" cap-="round" style="float: right;">APPS</span>
+            </a>
+          </ul>
+        </details>
       <% end %>
 
       <% if current_user&.manual_document_verifier? || current_user&.super_admin? %>
-        <div is-="separator"></div>
-        <div style="color:var(--overlay0);padding:0.5lh 0 0;">Document verifier</div>
-        <div data-navigable-item>
-          <a href="<%= pending_backend_verifications_path %>" class="tui-item">
-            <span class="tui-item-icon">⭢</span>
-            <span class="tui-item-text"><b>Review pending verifications</b></span>
-            <span class="tui-item-badge"><span is-="badge" variant-="peach">PEND</span></span>
-          </a>
-        </div>
+        <details open>
+          <summary>Document verifier</summary>
+          <ul>
+            <a href="<%= pending_backend_verifications_path %>" data-navigable-item>
+              Review pending verifications
+              <span is-="badge" variant-="peach" cap-="round" style="float: right;">PEND</span>
+            </a>
+          </ul>
+        </details>
       <% end %>
 
       <div is-="separator"></div>
-      <div data-navigable-item>
-        <a href="<%= backend_identities_path %>" class="tui-item">
-          <span class="tui-item-icon">⭢</span>
-          <span class="tui-item-text"><b>Identities</b></span>
-          <span class="tui-item-badge"><span is-="badge">IDNT</span></span>
+
+      <ul>
+        <a href="<%= backend_identities_path %>" data-navigable-item>
+          Identities
+          <span is-="badge" variant-="background2" cap-="round" style="float: right;">IDNT</span>
         </a>
-      </div>
-      <div data-navigable-item>
-        <a href="<%= backend_audit_logs_path %>" class="tui-item">
-          <span class="tui-item-icon">⭢</span>
-          <span class="tui-item-text"><b>Audit logs</b></span>
-          <span class="tui-item-badge"><span is-="badge">LOGS</span></span>
+        <a href="<%= backend_audit_logs_path %>" data-navigable-item>
+          Audit logs
+          <span is-="badge" variant-="background2" cap-="round" style="float: right;">LOGS</span>
         </a>
-      </div>
+      </ul>
 
       <div is-="separator"></div>
-      <div data-navigable-item>
-        <a href="#" onclick="window.openKbar && window.openKbar(); return false;" class="tui-item">
-          <span class="tui-item-icon">⊹</span>
-          <span class="tui-item-text"><b>Go anywhere</b></span>
-          <span class="tui-item-badge"><kbd>⌘K</kbd></span>
+
+      <ul>
+        <a href="#" onclick="window.openKbar && window.openKbar(); return false;" data-navigable-item>
+          Go anywhere
+          <span style="float: right; color: var(--overlay0);"><kbd>⌘K</kbd></span>
         </a>
-      </div>
+      </ul>
+
       <div is-="separator"></div>
-      <div data-navigable-item>
-        <a href="<%= root_path %>" class="tui-item">
-          <span class="tui-item-icon">⭠</span>
-          <span class="tui-item-text"><b>Escape hatch</b></span>
-          <span class="tui-item-badge"><span is-="badge">EXIT</span></span>
+
+      <ul>
+        <a href="<%= root_path %>" data-navigable-item>
+          Escape hatch
+          <span is-="badge" variant-="background2" cap-="round" style="float: right;">EXIT</span>
         </a>
-      </div>
-    </div>
+      </ul>
+    </column>
+
     <div is-="separator"></div>
-    <div class="tui-keyhints">
-      <span><kbd>j</kbd>/<kbd>k</kbd> navigate</span>
+
+    <row gap-="2" align-="center" pad-="1 0" style="color: var(--overlay0);">
+      <span><kbd>j</kbd> <kbd>k</kbd> navigate</span>
       <span><kbd>↵</kbd> open</span>
       <span><kbd>⌘K</kbd> search</span>
-    </div>
-  </article>
-</div>
+    </row>
+  </column>
+</column>

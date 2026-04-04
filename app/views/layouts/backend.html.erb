@@ -16,45 +16,41 @@
     <%= vite_javascript_tag 'backend' %>
   </head>
   <body>
-    <div class="tui-actionbar">
-      <div class="tui-actionbar-left">
-        <a href="<%= backend_root_path %>" style="text-decoration:none;color:var(--text)"><b>HCA</b></a>
+    <row id="hca-actionbar" align-="center between">
+      <row gap-="1" align-="center">
+        <a href="<%= backend_root_path %>" style="text-decoration: none;">
+          <span is-="badge" variant-="lavender" cap-="round">HCA</span>
+        </a>
         <% sc = Shortcodes.find_by_route(controller_path, action_name, current_user) %>
         <% if sc %>
-          <span is-="badge" variant-="lavender"><%= sc.code %></span>
+          <span is-="badge" variant-="background2" cap-="round"><%= sc.code %></span>
         <% end %>
         <%= yield :toolbar %>
-      </div>
-      <div class="tui-actionbar-right">
+      </row>
+      <row gap-="1" align-="center">
         <span id="theme-toggle-slot"></span>
-        <button type="button" onclick="window.openHints && window.openHints()"><kbd>?</kbd> KBD</button>
-        <button type="button" onclick="window.openKbar && window.openKbar()"><kbd>⌘K</kbd> GO</button>
-      </div>
-    </div>
+        <button size-="small" onclick="window.openHints && window.openHints()"><kbd>?</kbd> KBD</button>
+        <button size-="small" onclick="window.openKbar && window.openKbar()"><kbd>⌘K</kbd> GO</button>
+      </row>
+    </row>
     <!-- erblint:disable ScriptType -->
-    <script type="application/json" id="kbar-data">
-      <%= raw Shortcodes.kbar_data_for(current_user) %>
-    </script>
-    <script type="application/json" id="hints-data">
-      <%= raw({ hints: current_hints.map { |h| { slug: h.slug, content: h.content } }, slugs: current_hints.map { |h| h.slug.to_s } }.to_json) %>
-    </script>
-    <script type="application/json" id="keyboard-shortcuts-data">
-      <%= raw(keyboard_shortcuts.to_json) %>
-    </script>
+    <script type="application/json" id="kbar-data"><%= raw Shortcodes.kbar_data_for(current_user) %></script>
+    <script type="application/json" id="hints-data"><%= raw({ hints: current_hints.map { |h| { slug: h.slug, content: h.content } }, slugs: current_hints.map { |h| h.slug.to_s } }.to_json) %></script>
+    <script type="application/json" id="keyboard-shortcuts-data"><%= raw(keyboard_shortcuts.to_json) %></script>
     <!-- erblint:enable ScriptType -->
-    <%= render "backend/shared/flash" %>
-    <% if has_unseen_hints? %>
-      <div class="tui-page">
-        <div box-="square" class="tui-banner tui-banner-info hints-banner" onclick="window.openHints()" style="cursor:pointer">
-          [i] press <kbd>?</kbd> to see keyboard shortcuts for this page
+    <column id="hca-body" self-="grow">
+      <%= render "backend/shared/flash" %>
+      <% if has_unseen_hints? %>
+        <div pad-="2 0">
+          <div box-="square" class="tui-banner tui-banner-info hints-banner" onclick="window.openHints()" style="cursor: pointer;">
+            [i] press <kbd>?</kbd> to see keyboard shortcuts for this page
+          </div>
         </div>
-      </div>
-    <% end %>
-    <%= yield %>
+      <% end %>
+      <%= yield %>
+    </column>
     <% unless Rails.env.production? %>
-      <div style="position:fixed;bottom:0;right:0;padding:0.25lh 1ch;font-size:0.75em;color:var(--overlay0);background:var(--mantle);">
-        <%= Rails.env %>
-      </div>
+      <div id="hca-env"><%= Rails.env %></div>
     <% end %>
   </body>
 </html>
