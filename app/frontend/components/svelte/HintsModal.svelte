@@ -86,8 +86,8 @@
 
     <div is-="separator"></div>
 
-    <column style="gap: 0.5lh;" align-="start">
-      <span style="color: var(--foreground2);">Global</span>
+    <span style="color: var(--foreground2);">Global</span>
+    <div class="hints-grid">
       {#each [{ keys: ['⌘K'], action: 'command bar' }, { keys: ['?'], action: 'this dialog' }, { keys: ['/'], action: 'focus search' }] as shortcut}
         <row gap-="1" align-="center">
           {#each shortcut.keys as key}
@@ -96,12 +96,12 @@
           {shortcut.action}
         </row>
       {/each}
-    </column>
+    </div>
 
     {#if hints.length > 0}
       <div is-="separator"></div>
-      <column style="gap: 0.5lh;" align-="start">
-        <span style="color: var(--foreground2);">This page</span>
+      <span style="color: var(--foreground2);">This page</span>
+      <div class="hints-grid">
         {#each hints as hint}
           {#each hint.shortcuts as shortcut}
             <row gap-="1" align-="center">
@@ -112,7 +112,7 @@
             </row>
           {/each}
         {/each}
-      </column>
+      </div>
     {/if}
 
     <div is-="separator"></div>
@@ -138,5 +138,12 @@
     --box-border-color: var(--foreground2);
     min-width: 44ch;
     max-width: 64ch;
+  }
+
+  .hints-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5lh 2ch;
+    padding: 0.25lh 0;
   }
 </style>
