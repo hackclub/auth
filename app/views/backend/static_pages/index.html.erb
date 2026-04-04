@@ -1,5 +1,5 @@
 <column self-="grow" align-="center center">
-  <column box-="round" style="width: 64ch; --box-border-color: var(--foreground2);">
+  <column box-="round" style="width: min(64ch, 100vw - 2ch); --box-border-color: var(--foreground2);">
     <column data-navigable-list>
       <% if current_user.super_admin? %>
         <span style="color: var(--subtext0); padding: 0 1ch;">Super admin</span>

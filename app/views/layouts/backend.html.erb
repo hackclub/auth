@@ -22,7 +22,7 @@
         <%= yield :toolbar %>
       </row>
       <row gap-="2" align-="center">
-        <span style="color: var(--foreground2);">
+        <span class="hca-user-context" style="color: var(--foreground2);">
           <% if current_user.identity %>
             <a href="<%= backend_identity_path(current_user.identity) %>" style="color: var(--foreground2);"><%= current_user.display_name %></a>
           <% else %>

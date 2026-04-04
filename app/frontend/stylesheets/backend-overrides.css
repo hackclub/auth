@@ -98,6 +98,11 @@
   .tui-banner-info,
   .tui-banner-notice { color: var(--blue); --box-border-color: var(--blue); }
 
+  /* Responsive */
+  @media (max-width: 64ch) {
+    #hca-actionbar .hca-user-context { display: none; }
+  }
+
   /* Environment indicator */
   #hca-env {
     position: fixed;
