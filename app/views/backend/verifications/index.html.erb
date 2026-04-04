@@ -1,6 +1,6 @@
 <div class="grid">
-  <%= render Components::Backend::Card.new(title: "all verifications") do %>
-    <%= render Components::Backend::Item.new(icon: "⭢", href: pending_backend_verifications_path) do %>
+  <%= render "backend/shared/card", title: "all verifications" do %>
+    <%= render "backend/shared/item", icon: "⭢", href: pending_backend_verifications_path do %>
       <b>pending verifications</b>
       <p class="shortcode">&nbsp; [ PEND ]</p>
     <% end %>

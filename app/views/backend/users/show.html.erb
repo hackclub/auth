@@ -1,6 +1,6 @@
 <div class="grid">
-  <%= render Components::Backend::Card.new(title: "user: #{@user.display_name}") do %>
-    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_users_path) do %>
+  <%= render "backend/shared/card", title: "user: #{@user.display_name}" do %>
+    <%= render "backend/shared/item", icon: "⭠", href: backend_users_path do %>
       <b>back to users</b>
     <% end %>
     <hr>
@@ -49,7 +49,7 @@
     </div>
     <% super_admin_tool do %>
       <hr>
-      <%= render Components::Backend::Item.new(icon: "✎", href: edit_backend_user_path(@user)) do %>
+      <%= render "backend/shared/item", icon: "✎", href: edit_backend_user_path(@user) do %>
         <b>edit user</b>
       <% end %>
       <% if @user.active? %>

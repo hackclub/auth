@@ -1,8 +1,8 @@
 <div class="grid">
-  <%= render Components::Backend::Card.new(title: "identity vault [#{Rails.env.upcase[0..3]}]") do %>
+  <%= render "backend/shared/card", title: "identity vault [#{Rails.env.upcase[0..3]}]" do %>
     <p>abandon hope, all ye who enter here...</p>
     <hr>
-    <%= render Components::Backend::Item.new(icon: "⭢", href: backend_slack_auth_path) do %>
+    <%= render "backend/shared/item", icon: "⭢", href: backend_slack_auth_path do %>
       <b>sign in with slack</b>
     <% end %>
     <% dev_tool do %>

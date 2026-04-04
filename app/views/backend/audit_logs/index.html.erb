@@ -1,20 +1,20 @@
 <div class="grid">
-  <%= render Components::Backend::Card.new(title: "audit logs") do %>
+  <%= render "backend/shared/card", title: "audit logs" do %>
     <div class="button_group full">
       <% if params[:admin_actions_only] %>
         <%= link_to backend_audit_logs_path do %>
-          <%= render Components::Backend::ActionButton.new { "ALL" } %>
+          <%= render("backend/shared/action_button") { "ALL" } %>
         <% end %>
-        <%= render Components::Backend::ActionButton.new(selected: true) { "ADMIN" } %>
+        <%= render("backend/shared/action_button", selected: true) { "ADMIN" } %>
       <% else %>
-        <%= render Components::Backend::ActionButton.new(selected: true) { "ALL" } %>
+        <%= render("backend/shared/action_button", selected: true) { "ALL" } %>
         <%= link_to backend_audit_logs_path(admin_actions_only: true) do %>
-          <%= render Components::Backend::ActionButton.new { "ADMIN" } %>
+          <%= render("backend/shared/action_button") { "ADMIN" } %>
         <% end %>
       <% end %>
     </div>
     <hr>
-    <%= render Components::PublicActivity::Container.new(@activities) %>
+    <%= render "backend/shared/activity_log", activities: @activities %>
     <%= paginate @activities %>
   <% end %>
 </div>

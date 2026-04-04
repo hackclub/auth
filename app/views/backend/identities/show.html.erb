@@ -1,11 +1,11 @@
 <div class="grid">
-  <%= render Components::Backend::Card.new(title: "#{@identity.first_name} #{@identity.last_name}") do %>
-    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_identities_path) do %>
+  <%= render "backend/shared/card", title: "#{@identity.first_name} #{@identity.last_name}" do %>
+    <%= render "backend/shared/item", icon: "⭠", href: backend_identities_path do %>
       <b>back to identities</b>
     <% end %>
     <% break_glass_tool do %>
       <hr>
-      <%= render Components::Backend::Item.new(icon: "✎", href: edit_backend_identity_path(@identity)) do %>
+      <%= render "backend/shared/item", icon: "✎", href: edit_backend_identity_path(@identity) do %>
         <b>edit identity</b>
       <% end %>
       <% if @identity.slack_id.present? %>
@@ -25,7 +25,7 @@
     <div class="section">
       <div class="section-header"><h3>identity</h3></div>
       <div class="section-content">
-        <%= render Components::Identity.new(@identity, show_legal_name: @available_scopes.include?("legal_name")) %>
+        <%= render "backend/shared/identity_details", identity: @identity, show_legal_name: @available_scopes.include?("legal_name") %>
       </div>
     </div>
     <% if @available_scopes.include?("address") && @addresses.any? %>
@@ -64,7 +64,7 @@
         <h3>verifications</h3>
         <% super_admin_tool do %>
           <%= link_to new_vouch_backend_identity_path(@identity) do %>
-            <%= render Components::Backend::ActionButton.new { "+ VOUCH" } %>
+            <%= render "backend/shared/action_button" do %>+ VOUCH<% end %>
           <% end %>
         <% end %>
       </div>
@@ -193,12 +193,12 @@
       <div class="section-header"><h3>audit log</h3></div>
       <div class="section-content">
         <% if @activities.any? %>
-          <%= render Components::PublicActivity::Container.new(@activities) %>
+          <%= render "backend/shared/activity_log", activities: @activities %>
         <% else %>
           <div class="empty-state">no audit entries</div>
         <% end %>
       </div>
     </div>
   <% end %>
-  <%= render Components::Inspector.new(@identity) %>
+  <%= render "backend/shared/inspector", record: @identity %>
 </div>

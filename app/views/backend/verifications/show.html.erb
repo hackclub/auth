@@ -1,6 +1,6 @@
 <div class="grid">
-  <%= render Components::Backend::Card.new(title: "document review") do %>
-    <%= render Components::Backend::Item.new(icon: "⭠", href: pending_backend_verifications_path) do %>
+  <%= render "backend/shared/card", title: "document review" do %>
+    <%= render "backend/shared/item", icon: "⭠", href: pending_backend_verifications_path do %>
       <b>back to pending</b>
     <% end %>
     <hr>
@@ -8,7 +8,7 @@
       <div class="section">
         <div class="section-header"><h3>identity</h3></div>
         <div class="section-content">
-          <%= render Components::IdentityReview::BasicDetails.new(@verification.identity) %>
+          <%= render "backend/shared/review_basic_details", identity: @verification.identity %>
         </div>
       </div>
       <div class="section">
@@ -16,9 +16,9 @@
         <div class="section-content">
           <% case @verification %>
           <% when Verification::DocumentVerification %>
-            <%= render Components::IdentityReview::DocumentInfo.new(@verification) %>
+            <%= render "backend/shared/review_document_info", verification: @verification %>
           <% when Verification::AadhaarVerification %>
-            <%= render Components::IdentityReview::AadhaarInfo.new(@verification) %>
+            <%= render "backend/shared/review_aadhaar_info", verification: @verification %>
           <% end %>
         </div>
       </div>
@@ -28,7 +28,7 @@
         <h3>⚠ possible duplicate</h3>
         <p>this identity may be a duplicate of another identity.</p>
         <% @verification.identity.resemblances.each do |resemblance| %>
-          <%= render Components::Resemblance.new(resemblance) %>
+          <%= render "backend/shared/resemblance", resemblance: resemblance %>
         <% end %>
       </div>
     <% end %>
@@ -53,12 +53,12 @@
             <div class="empty-state">no evidence attached</div>
           <% end %>
         <% else %>
-          <%= render Components::BreakTheGlass.new(@relevant_object, auto_break_glass: @verification.pending? ? "to review validity" : nil) do %>
+          <%= render "backend/shared/break_the_glass", break_glassable: @relevant_object, auto_break_glass: (@verification.pending? ? "to review validity" : nil) do %>
             <% case @relevant_object %>
             <% when Identity::Document %>
-              <%= render Components::IdentityReview::DocumentFiles.new(@relevant_object) %>
+              <%= render "backend/shared/review_document_files", document: @relevant_object %>
             <% when Identity::AadhaarRecord %>
-              <%= render Components::IdentityReview::AadhaarFull.new(@relevant_object) %>
+              <%= render "backend/shared/review_aadhaar_full", aadhaar_record: @relevant_object %>
             <% end %>
           <% end %>
         <% end %>
@@ -223,10 +223,10 @@
     <div class="section">
       <div class="section-header"><h3>audit log</h3></div>
       <div class="section-content">
-        <%= render Components::PublicActivity::Container.new(@activities) %>
+        <%= render "backend/shared/activity_log", activities: @activities %>
       </div>
     </div>
   <% end %>
-  <%= render Components::Inspector.new(@verification) %>
-  <%= render Components::Inspector.new(@relevant_object) %>
+  <%= render "backend/shared/inspector", record: @verification %>
+  <%= render "backend/shared/inspector", record: @relevant_object %>
 </div>

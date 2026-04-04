@@ -1,6 +1,6 @@
 <div class="grid">
-  <%= render Components::Backend::Card.new(title: "pending verifications (#{@pending_verifications.total_count})") do %>
-    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_verifications_path) do %>
+  <%= render "backend/shared/card", title: "pending verifications (#{@pending_verifications.total_count})" do %>
+    <%= render "backend/shared/item", icon: "⭠", href: backend_verifications_path do %>
       <b>all verifications</b>
     <% end %>
     <hr>
@@ -14,7 +14,7 @@
       <div data-navigable-list>
         <% @pending_verifications.each do |verification| %>
           <div data-navigable-item>
-            <%= render Components::Backend::Item.new(icon: "⭢", href: backend_verification_path(verification)) do %>
+            <%= render "backend/shared/item", icon: "⭢", href: backend_verification_path(verification) do %>
               <b><%= verification.document_type %></b>
               &nbsp;·&nbsp;
               <%= verification.identity.first_name %> <%= verification.identity.last_name %>

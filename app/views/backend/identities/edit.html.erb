@@ -1,6 +1,6 @@
 <div class="grid">
-  <%= render Components::Backend::Card.new(title: "edit: #{@identity.first_name} #{@identity.last_name}") do %>
-    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_identity_path(@identity)) do %>
+  <%= render "backend/shared/card", title: "edit: #{@identity.first_name} #{@identity.last_name}" do %>
+    <%= render "backend/shared/item", icon: "⭠", href: backend_identity_path(@identity) do %>
       <b>cancel</b>
     <% end %>
     <hr>

@@ -1,12 +1,12 @@
 <div class="grid">
-  <%= render Components::Backend::Card.new(title: "identities") do %>
+  <%= render "backend/shared/card", title: "identities" do %>
     <%= form_with url: backend_identities_path, method: :get, local: true do |f| %>
       <div class="form-row">
         <%= f.search_field :search, value: params[:search], placeholder: "search by name, email, slack id..." %>
-        <%= render Components::Backend::ActionButton.new(hotkey: "↵") { "search" } %>
+        <%= render "backend/shared/action_button", hotkey: "↵" do %>search<% end %>
         <% if params[:search].present? %>
           <%= link_to backend_identities_path do %>
-            <%= render Components::Backend::ActionButton.new { "CLR" } %>
+            <%= render "backend/shared/action_button" do %>CLR<% end %>
           <% end %>
         <% end %>
       </div>

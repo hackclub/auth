@@ -1,28 +1,28 @@
 <div class="grid">
-  <%= render Components::Backend::Card.new(title: "welcome to the cool zone") do %>
+  <%= render "backend/shared/card", title: "welcome to the cool zone" do %>
     <div data-navigable-list>
       <% if current_user.super_admin? %>
         <b>Super admin:</b>
         <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: backend_flipper_path) do %>
+          <%= render "backend/shared/item", icon: "⭢", href: backend_flipper_path do %>
             <b>Flipper?</b>&nbsp;<i>(i hardly know 'er!)</i>
             <p class="shortcode">&nbsp; [ FLIP ]</p>
           <% end %>
         </div>
         <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: backend_audits1984_path) do %>
+          <%= render "backend/shared/item", icon: "⭢", href: backend_audits1984_path do %>
             <b>Audits1984</b>
             <p class="shortcode">&nbsp; [ ORWL ]</p>
           <% end %>
         </div>
         <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: backend_good_job_path) do %>
+          <%= render "backend/shared/item", icon: "⭢", href: backend_good_job_path do %>
             <b>Job queue</b>
             <p class="shortcode">&nbsp; [ JOBS ]</p>
           <% end %>
         </div>
         <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: backend_users_path) do %>
+          <%= render "backend/shared/item", icon: "⭢", href: backend_users_path do %>
             <b>Manage users</b>
             <p class="shortcode">&nbsp; [ USRS ]</p>
           <% end %>
@@ -32,7 +32,7 @@
       <% if current_user&.program_manager? || current_user&.super_admin? %>
         <b>Program manager:</b>
         <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: developer_apps_path) do %>
+          <%= render "backend/shared/item", icon: "⭢", href: developer_apps_path do %>
             <b>Manage OAuth2 apps</b>
             <p class="shortcode">&nbsp; [ APPS ]</p>
           <% end %>
@@ -42,7 +42,7 @@
       <% if current_user&.manual_document_verifier? || current_user&.super_admin? %>
         <b>Manual document verifier:</b>
         <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: pending_backend_verifications_path) do %>
+          <%= render "backend/shared/item", icon: "⭢", href: pending_backend_verifications_path do %>
             <b>Review pending verifications</b>
             <p class="shortcode">&nbsp; [ PEND ]</p>
           <% end %>
@@ -50,27 +50,27 @@
       <% end %>
       <hr>
       <div data-navigable-item>
-        <%= render Components::Backend::Item.new(icon: "⭢", href: backend_identities_path) do %>
+        <%= render "backend/shared/item", icon: "⭢", href: backend_identities_path do %>
           <b>Manage identities</b>
           <p class="shortcode">&nbsp; [ IDNT ]</p>
         <% end %>
       </div>
       <div data-navigable-item>
-        <%= render Components::Backend::Item.new(icon: "⭢", href: backend_audit_logs_path) do %>
+        <%= render "backend/shared/item", icon: "⭢", href: backend_audit_logs_path do %>
           <b>Audit logs</b>
           <p class="shortcode">&nbsp; [ LOGS ]</p>
         <% end %>
       </div>
       <hr>
       <div data-navigable-item>
-        <%= render Components::Backend::Item.new(icon: "⊹", href: "#", onclick: "window.openKbar && window.openKbar(); return false;") do %>
+        <%= render "backend/shared/item", icon: "⊹", href: "#", onclick: "window.openKbar && window.openKbar(); return false;" do %>
           <b>Go anywhere</b>
           <p class="shortcode">&nbsp; <&nbsp;⌘-K&nbsp;&nbsp;></p>
         <% end %>
       </div>
       <hr>
       <div data-navigable-item>
-        <%= render Components::Backend::Item.new(icon: "⭠", href: root_path) do %>
+        <%= render "backend/shared/item", icon: "⭠", href: root_path do %>
           <b>Escape hatch</b>
           <p class="shortcode">&nbsp; [ EXIT ]</p>
         <% end %>
