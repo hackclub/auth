@@ -362,8 +362,10 @@
       </column>
     </div>
 
-    <row align-="center center" pad-="1 0" style="color: var(--overlay0); font-size: 0.85em;">
-      <kbd>↑</kbd> <kbd>↓</kbd> navigate · <kbd>↵</kbd> select · <kbd>esc</kbd> close
+    <row gap-="2" align-="center center" pad-="1 0" style="color: var(--overlay0);">
+      <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> select</span>
+      <span><kbd>esc</kbd> close</span>
     </row>
   </column>
 </dialog>
