@@ -74,10 +74,11 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <dialog
   bind:this={dialogEl}
+  id="hints-dialog"
   onclick={(e) => { if (e.target === dialogEl) close(); }}
   onkeydown={() => {}}
 >
-  <column box-="round" style="--box-border-color: var(--overlay0); min-width: 40ch;">
+  <column box-="round" id="hints-content">
     <row align-="center between">
       <span is-="badge" variant-="background0">? Keyboard shortcuts</span>
       <button size-="small" variant-="foreground0" onclick={close}>×</button>
@@ -85,36 +86,60 @@
 
     <div is-="separator"></div>
 
-    <column gap-="0">
+    <column>
       <span style="color: var(--subtext0);">Global</span>
-      <row gap-="1" align-="center" pad-="1 0">
-        <span is-="badge" variant-="background2">⌘K</span>
-        <span>Open command bar</span>
-      </row>
-      <row gap-="1" align-="center" pad-="1 0">
-        <span is-="badge" variant-="background2">?</span>
-        <span>Show keyboard shortcuts</span>
-      </row>
-      <row gap-="1" align-="center" pad-="1 0">
-        <span is-="badge" variant-="background2">/</span>
-        <span>Focus search input</span>
-      </row>
+      <column pad-="1 0" style="gap: 0.25lh;">
+        <row gap-="1" align-="center">
+          <span is-="badge" variant-="background2" style="min-width: 4ch; text-align: center;">⌘K</span>
+          Open command bar
+        </row>
+        <row gap-="1" align-="center">
+          <span is-="badge" variant-="background2" style="min-width: 4ch; text-align: center;">?</span>
+          Show keyboard shortcuts
+        </row>
+        <row gap-="1" align-="center">
+          <span is-="badge" variant-="background2" style="min-width: 4ch; text-align: center;">/</span>
+          Focus search input
+        </row>
+      </column>
     </column>
 
     {#if hints.length > 0}
       <div is-="separator"></div>
-      <column gap-="0">
+      <column>
         <span style="color: var(--subtext0);">This page</span>
-        {#each hints as hint}
-          <div pad-="1 0">{@html hint.content}</div>
-        {/each}
+        <column pad-="1 0" style="gap: 0.25lh;">
+          {#each hints as hint}
+            <div>{@html hint.content}</div>
+          {/each}
+        </column>
       </column>
     {/if}
 
     <div is-="separator"></div>
-    <row gap-="1" align-="center" style="color: var(--overlay1);">
-      <span is-="badge" variant-="background2">esc</span>
-      <span>close</span>
+    <row gap-="2" align-="center" style="color: var(--overlay1);">
+      <row gap-="1" align-="center">
+        <span is-="badge" variant-="background2">esc</span>
+        close
+      </row>
     </row>
   </column>
 </dialog>
+
+<style>
+  #hints-dialog {
+    position: fixed;
+    z-index: 1000;
+
+    &::backdrop {
+      backdrop-filter: grayscale(100%);
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  #hints-content {
+    --box-border-color: var(--overlay0);
+    min-width: 44ch;
+    max-width: 64ch;
+  }
+</style>

@@ -51,16 +51,20 @@
 
     <div is-="separator"></div>
 
-    <row gap-="1" align-="center center" pad-="1 0" style="color: var(--overlay1);">
-      <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowUp', bubbles: true}))">↑</button>
-      <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true}))">↓</button>
-      <span>navigate</span>
-      <span style="color: var(--surface2);">·</span>
-      <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}))">↵</button>
-      <span>open</span>
-      <span style="color: var(--surface2);">·</span>
-      <button size-="small" variant-="background2" onclick="window.openKbar && window.openKbar()">⌘K</button>
-      <span>search</span>
+    <row gap-="2" align-="center center" pad-="1 0" style="color: var(--overlay1);">
+      <row gap-="1" align-="center">
+        <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowUp', bubbles: true}))">↑</button>
+        <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true}))">↓</button>
+        navigate
+      </row>
+      <row gap-="1" align-="center">
+        <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}))">↵</button>
+        open
+      </row>
+      <row gap-="1" align-="center">
+        <button size-="small" variant-="background2" onclick="window.openKbar && window.openKbar()">⌘K</button>
+        search
+      </row>
     </row>
   </column>
 </column>
