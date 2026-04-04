@@ -50,6 +50,18 @@ module Backend::ApplicationHelper
     false
   end
 
+  def render_nav_item(path, label, code, variant: "background2", sub: nil)
+    content_tag(:a, href: path, "data-navigable-item": true,
+      style: "display: flex; justify-content: space-between; align-items: center; padding: 0 1ch; text-decoration: none; color: var(--text);") do
+      left = content_tag(:span) do
+        concat label
+        concat " ".html_safe + content_tag(:i, sub, style: "color: var(--overlay0);") if sub
+      end
+      right = content_tag(:span, code, "is-": "badge", "variant-": variant, )
+      left + right
+    end
+  end
+
   def break_glass_document_type(break_glassable)
     case break_glassable.class.name
     when "Identity::Document" then "identity document"
