@@ -117,7 +117,7 @@
 
     <div is-="separator"></div>
     <row gap-="1" align-="center" style="color: var(--foreground2);">
-      <span is-="badge" variant-="background2">esc</span>
+      <button size-="small" variant-="background2" onclick={close}>esc</button>
       close
     </row>
   </column>
