@@ -18,9 +18,7 @@
   <body>
     <row id="hca-actionbar" align-="center between">
       <row gap-="1" align-="center">
-        <a href="<%= backend_root_path %>" style="text-decoration: none;">
-          <span is-="badge" variant-="blue" >HCA</span>
-        </a>
+        <a href="<%= backend_root_path %>" style="text-decoration: none; color: var(--foreground0);"><b>HCA</b></a>
         <% sc = Shortcodes.find_by_route(controller_path, action_name, current_user) %>
         <% if sc %>
           <span is-="badge" variant-="background2" ><%= sc.code %></span>
