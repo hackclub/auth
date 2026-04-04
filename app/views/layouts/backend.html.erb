@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-webtui-theme="catppuccin-mocha">
+<html data-webtui-theme="gruvbox-dark-hard">
   <head>
     <title><%= content_for(:title) || "HCA" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -19,7 +19,7 @@
     <row id="hca-actionbar" align-="center between">
       <row gap-="1" align-="center">
         <a href="<%= backend_root_path %>" style="text-decoration: none;">
-          <span is-="badge" variant-="lavender" >HCA</span>
+          <span is-="badge" variant-="blue" >HCA</span>
         </a>
         <% sc = Shortcodes.find_by_route(controller_path, action_name, current_user) %>
         <% if sc %>

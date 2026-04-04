@@ -16,7 +16,7 @@
   <div class="tui-detail">
     <span class="tui-detail-label">status</span>
     <span class="tui-detail-value">
-      <span <%= verification.pending? ? 'is-="badge" variant-="peach"' : verification.approved? ? 'is-="badge" variant-="green"' : 'is-="badge" variant-="red"' %>>
+      <span <%= verification.pending? ? 'is-="badge" variant-="yellow"' : verification.approved? ? 'is-="badge" variant-="green"' : 'is-="badge" variant-="red"' %>>
         <%= verification.status.humanize %>
       </span>
     </span>

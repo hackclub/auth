@@ -8,6 +8,7 @@
 @layer base {
   :root {
     --box-border-color: var(--background2);
+
   }
 
   body, html {

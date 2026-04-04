@@ -1,7 +1,7 @@
 <column self-="grow" align-="center center" style="min-height: calc(100vh - 3lh);">
   <column box-="round" style="min-width: 56ch; max-width: 72ch; --box-border-color: var(--foreground2);">
     <row align-="center between">
-      <span is-="badge" variant-="lavender">HCA</span>
+      <span is-="badge" variant-="blue">HCA</span>
       <span style="color: var(--subtext0);"><%= current_user.display_name %> · <%= current_user.pretty_roles %></span>
     </row>
 
@@ -28,7 +28,7 @@
       <% if current_user&.manual_document_verifier? || current_user&.super_admin? %>
         <span style="color: var(--subtext0); padding: 0 1ch;">Document verifier</span>
         <ul>
-          <%= render_nav_item pending_backend_verifications_path, "Review pending", "PEND", variant: "peach" %>
+          <%= render_nav_item pending_backend_verifications_path, "Review pending", "PEND", variant: "yellow" %>
         </ul>
       <% end %>
 

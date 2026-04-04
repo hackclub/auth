@@ -311,7 +311,7 @@
       <span is-="badge" variant-="background0">⌘K Go anywhere</span>
       {#if activeScope}
         <row gap-="1" align-="center">
-          <span is-="badge" variant-="lavender">{activeScope.label}</span>
+          <span is-="badge" variant-="blue">{activeScope.label}</span>
           <button size-="small" variant-="foreground0" onclick={() => { activeScope = null; query = ''; scopedResults = []; }}>×</button>
         </row>
       {:else}

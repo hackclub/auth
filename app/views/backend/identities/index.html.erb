@@ -32,7 +32,7 @@
               <td><%= link_to backend_identity_path(identity) do %><%= render identity %><% end %></td>
               <td><%= identity.primary_email %></td>
               <td>
-                <span is-="badge" variant-="<%= identity.verification_status == 'verified' ? 'green' : 'peach' %>"><%= identity.verification_status %></span>
+                <span is-="badge" variant-="<%= identity.verification_status == 'verified' ? 'green' : 'yellow' %>"><%= identity.verification_status %></span>
               </td>
               <td><%= identity.ysws_eligible.nil? ? "?" : render_checkbox(identity.ysws_eligible) %></td>
             </tr>

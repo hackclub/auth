@@ -608,25 +608,10 @@
   resolved "https://registry.yarnpkg.com/@webtui/css/-/css-0.1.7.tgz#9fe53161f387e3b50e6012dbacec17a2da2910b7"
   integrity sha512-iPK/gRM0EPBSa1tyJINm2pRPuKoT1GryN0Qljar+gDaKHJPNExKvOmnVKk91JpsTUb8qXZd+ggSJJjns1fXLNg==
 
-"@webtui/theme-catppuccin@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@webtui/theme-catppuccin/-/theme-catppuccin-0.0.4.tgz#8fd705e460fdfedecbd81a789df79129a740b205"
-  integrity sha512-w+JjSpoNAn3Jn71mRej4egxamWRhLSKFEf3S2XWpkMlBayTYucjhWqdEb5WyKQdypg9Vz+6Ls33ZsOXloiPFFA==
-
-"@webtui/theme-everforest@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@webtui/theme-everforest/-/theme-everforest-0.0.4.tgz#2699f2f68ccf61a8c4535ac5bd02cb723312f54e"
-  integrity sha512-CW+Ps6kN30YE2EQNq+r8Ywi6aalovxlkr37fNaLHlb4nx4LZ4m0Ja2lqhjpITA3f1uLazSZd5lVgFhvtz1EPoA==
-
 "@webtui/theme-gruvbox@^0.0.2":
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/@webtui/theme-gruvbox/-/theme-gruvbox-0.0.2.tgz#a8058e64b66ba579db74498e8e7e07b2d7178d10"
   integrity sha512-7BZ3+FQEswA8AiZR8WhmFUOGZT+HTL4BR/QgusMa26Cyv6zEz3w+T4aME8RTB7m5lWCUWq88X16XDe4xmoTLng==
-
-"@webtui/theme-nord@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@webtui/theme-nord/-/theme-nord-0.0.3.tgz#d361babb7ba84509d9487107235909ee56bd1773"
-  integrity sha512-9Mk4nO3gnIb8KWCbvteMqV3uiULwTBd4zfoXH5cKRrrfdsaZyPame2oxICDYf+kFp/bCWB9x61J4po9wgl/+XQ==
 
 "@webtui/theme-vitesse@^0.0.2":
   version "0.0.2"

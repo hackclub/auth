@@ -6,7 +6,7 @@
         <h2><%= @identity.first_name %> <%= @identity.last_name %></h2>
         <div style="color:var(--overlay1);">
           <%= @identity.primary_email %> · <%= @identity.country %>
-          · <span is-="badge" variant-="<%= @identity.verification_status == 'verified' ? 'green' : 'peach' %>"><%= @identity.verification_status %></span>
+          · <span is-="badge" variant-="<%= @identity.verification_status == 'verified' ? 'green' : 'yellow' %>"><%= @identity.verification_status %></span>
           <% unless @identity.ysws_eligible.nil? %>
             · ysws: <span is-="badge" variant-="<%= @identity.ysws_eligible ? 'green' : 'red' %>"><%= @identity.ysws_eligible ? 'eligible' : 'ineligible' %></span>
           <% end %>
@@ -106,7 +106,7 @@
                   <% end %>
                 </td>
                 <td>
-                  <span is-="badge" variant-="<%= verification.pending? ? 'peach' : verification.approved? ? 'green' : 'red' %>">
+                  <span is-="badge" variant-="<%= verification.pending? ? 'yellow' : verification.approved? ? 'green' : 'red' %>">
                     <%= verification.status %>
                   </span>
                 </td>
