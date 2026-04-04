@@ -34,25 +34,19 @@
 
       <div is-="separator"></div>
 
-      <ul>
-        <%= render_nav_item backend_identities_path, "Identities", "IDNT" %>
-        <%= render_nav_item backend_audit_logs_path, "Audit logs", "LOGS" %>
-      </ul>
+      <%= render_nav_item backend_identities_path, "Identities", "IDNT" %>
+      <%= render_nav_item backend_audit_logs_path, "Audit logs", "LOGS" %>
 
       <div is-="separator"></div>
 
-      <ul>
-        <a href="#" onclick="window.openKbar && window.openKbar(); return false;" data-navigable-item style="display: flex; justify-content: space-between; align-items: center; padding: 0 1ch; text-decoration: none; color: var(--text);">
-          <span>Go anywhere</span>
-          <span style="color: var(--subtext0);"><kbd>⌘K</kbd></span>
-        </a>
-      </ul>
+      <a href="#" onclick="window.openKbar && window.openKbar(); return false;" data-navigable-item>
+        <span style="flex: 1;">Go anywhere</span>
+        <span style="color: var(--subtext0);"><kbd>⌘K</kbd></span>
+      </a>
 
       <div is-="separator"></div>
 
-      <ul>
-        <%= render_nav_item root_path, "Escape hatch", "EXIT" %>
-      </ul>
+      <%= render_nav_item root_path, "Escape hatch", "EXIT" %>
     </column>
 
     <div is-="separator"></div>

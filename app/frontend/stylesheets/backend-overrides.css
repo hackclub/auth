@@ -41,20 +41,37 @@
   }
 
   /* Sidebar-style nav links (tree markers) */
-  ul > a[href] {
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* All navigable links */
+  a[data-navigable-item] {
     color: var(--foreground2);
     text-decoration: none;
     outline: none;
-    display: list-item;
+    display: flex;
+    align-items: center;
     padding: 0 1ch;
-
-    &::before { content: '├ '; }
-    &:last-of-type::before { content: '└ '; }
 
     &:hover, &:focus, &.selected {
       background-color: var(--background1);
       color: var(--foreground0);
     }
+  }
+
+  /* Tree markers only for links inside <ul> */
+  ul > a[data-navigable-item]::before {
+    content: '├ ';
+    white-space: pre;
+    color: var(--overlay0);
+    flex-shrink: 0;
+  }
+
+  ul > a[data-navigable-item]:last-of-type::before {
+    content: '└ ';
   }
 
   details > summary {
