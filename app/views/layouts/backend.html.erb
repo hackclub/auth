@@ -16,7 +16,7 @@
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= vite_client_tag %>
     <%= vite_stylesheet_tag "backend.css" %>
-    <%= vite_javascript_tag 'backend.jsx' %>
+    <%= vite_javascript_tag 'backend' %>
   </head>
   <body>
     <%= render "backend/shared/action_bar" do %><%= yield :toolbar %><% end %>
