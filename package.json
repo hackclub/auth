@@ -26,9 +26,7 @@
     "@webtui/theme-catppuccin": "^0.0.4",
     "alpinejs": "^3.14.9",
     "axios": "^1.9.0",
-    "dreamland": "^0.1.2",
     "htmx.org": "^1.9.12",
-    "jquery": "^3.7.1",
     "ninja-keys": "^1.2.2",
     "svelte": "^5.55.1"
   }

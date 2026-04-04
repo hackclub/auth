@@ -56,6 +56,17 @@
           if (s.code === 'EXIT') {
             return handleExit(s.path);
           }
+          if (s.code === 'SRCH') {
+            ninjaEl?.close();
+            const searchInput = document.querySelector('input[type="search"]');
+            if (searchInput) searchInput.focus();
+            return;
+          }
+          if (s.code === 'HELP') {
+            ninjaEl?.close();
+            window.openHints?.();
+            return;
+          }
           navigate(s.path);
         }
       });
