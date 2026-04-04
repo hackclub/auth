@@ -51,8 +51,6 @@
       <% end %>
       <%= yield %>
     </column>
-    <% unless Rails.env.production? %>
-      <div id="hca-env"><%= Rails.env %></div>
-    <% end %>
+    <div id="hca-env"><%= Rails.env %> / <% if Rails.application.config.commit_link %><a href="<%= Rails.application.config.commit_link %>" target="_blank" style="color: inherit;"><%= Rails.application.config.git_version %></a><% else %><%= Rails.application.config.git_version %><% end %></div>
   </body>
 </html>
