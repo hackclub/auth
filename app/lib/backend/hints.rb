@@ -1,33 +1,35 @@
 module Backend
   module Hints
-    Hint = Data.define(:slug, :content)
+    Hint = Data.define(:slug, :shortcuts)
 
     ALL = [
-      Hint[:list_navigation, <<~EOH
-        <kbd>j</kbd> / <kbd>↓</kbd> next · <kbd>k</kbd> / <kbd>↑</kbd> prev · <kbd>Enter</kbd> open · <kbd>g</kbd> first · <kbd>G</kbd> last
-      EOH
-      ],
-      Hint[:search_focus, <<~EOH
-        <kbd>/</kbd> focus search
-      EOH
-      ],
-      Hint[:verification_review, <<~EOH
-        <kbd>a</kbd> approve (YSWS) · <kbd>A</kbd> approve (not YSWS) · <kbd>r</kbd> focus reject form<br>
-        <kbd>Backspace</kbd> back to pending
-      EOH
-      ],
-      Hint[:identity_actions, <<~EOH
-        <kbd>e</kbd> edit identity · <kbd>Backspace</kbd> back to list
-      EOH
-      ],
-      Hint[:back_navigation, <<~EOH
-        <kbd>Backspace</kbd> go back
-      EOH
-      ],
-      Hint[:pagination, <<~EOH
-        <kbd>n</kbd> next page · <kbd>p</kbd> prev page
-      EOH
-      ]
+      Hint[:list_navigation, [
+        { keys: ["j", "↓"], action: "next" },
+        { keys: ["k", "↑"], action: "prev" },
+        { keys: ["↵"], action: "open" },
+        { keys: ["g"], action: "first" },
+        { keys: ["G"], action: "last" },
+      ]],
+      Hint[:search_focus, [
+        { keys: ["/"], action: "focus search" },
+      ]],
+      Hint[:verification_review, [
+        { keys: ["a"], action: "approve (YSWS)" },
+        { keys: ["A"], action: "approve (not YSWS)" },
+        { keys: ["r"], action: "focus reject" },
+        { keys: ["Bksp"], action: "back to pending" },
+      ]],
+      Hint[:identity_actions, [
+        { keys: ["e"], action: "edit" },
+        { keys: ["Bksp"], action: "back" },
+      ]],
+      Hint[:back_navigation, [
+        { keys: ["Bksp"], action: "go back" },
+      ]],
+      Hint[:pagination, [
+        { keys: ["n"], action: "next page" },
+        { keys: ["p"], action: "prev page" },
+      ]],
     ].freeze.index_by(&:slug)
 
     def self.find(slug) = ALL[slug]

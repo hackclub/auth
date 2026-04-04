@@ -80,48 +80,45 @@
 >
   <column box-="round" id="hints-content">
     <row align-="center between">
-      <span is-="badge" variant-="background0">? Keyboard shortcuts</span>
+      <b>Keyboard shortcuts</b>
       <button size-="small" variant-="foreground0" onclick={close}>×</button>
     </row>
 
     <div is-="separator"></div>
 
-    <column>
-      <span style="color: var(--subtext0);">Global</span>
-      <column pad-="1 0" style="gap: 0.25lh;">
+    <column style="gap: 0.5lh;">
+      <span style="color: var(--foreground2);">Global</span>
+      {#each [{ keys: ['⌘K'], action: 'command bar' }, { keys: ['?'], action: 'this dialog' }, { keys: ['/'], action: 'focus search' }] as shortcut}
         <row gap-="1" align-="center">
-          <span is-="badge" variant-="background2" style="min-width: 4ch; text-align: center;">⌘K</span>
-          Open command bar
+          {#each shortcut.keys as key}
+            <span is-="badge" variant-="background2">{key}</span>
+          {/each}
+          {shortcut.action}
         </row>
-        <row gap-="1" align-="center">
-          <span is-="badge" variant-="background2" style="min-width: 4ch; text-align: center;">?</span>
-          Show keyboard shortcuts
-        </row>
-        <row gap-="1" align-="center">
-          <span is-="badge" variant-="background2" style="min-width: 4ch; text-align: center;">/</span>
-          Focus search input
-        </row>
-      </column>
+      {/each}
     </column>
 
     {#if hints.length > 0}
       <div is-="separator"></div>
-      <column>
-        <span style="color: var(--subtext0);">This page</span>
-        <column pad-="1 0" style="gap: 0.25lh;">
-          {#each hints as hint}
-            <div>{@html hint.content}</div>
+      <column style="gap: 0.5lh;">
+        <span style="color: var(--foreground2);">This page</span>
+        {#each hints as hint}
+          {#each hint.shortcuts as shortcut}
+            <row gap-="1" align-="center">
+              {#each shortcut.keys as key}
+                <span is-="badge" variant-="background2">{key}</span>
+              {/each}
+              {shortcut.action}
+            </row>
           {/each}
-        </column>
+        {/each}
       </column>
     {/if}
 
     <div is-="separator"></div>
-    <row gap-="2" align-="center" style="color: var(--overlay1);">
-      <row gap-="1" align-="center">
-        <span is-="badge" variant-="background2">esc</span>
-        close
-      </row>
+    <row gap-="1" align-="center" style="color: var(--foreground2);">
+      <span is-="badge" variant-="background2">esc</span>
+      close
     </row>
   </column>
 </dialog>

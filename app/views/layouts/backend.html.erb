@@ -37,7 +37,7 @@
     </row>
     <!-- erblint:disable ScriptType -->
     <script type="application/json" id="kbar-data"><%= raw Shortcodes.kbar_data_for(current_user) %></script>
-    <script type="application/json" id="hints-data"><%= raw({ hints: current_hints.map { |h| { slug: h.slug, content: h.content } }, slugs: current_hints.map { |h| h.slug.to_s } }.to_json) %></script>
+    <script type="application/json" id="hints-data"><%= raw({ hints: current_hints.map { |h| { slug: h.slug, shortcuts: h.shortcuts } }, slugs: current_hints.map { |h| h.slug.to_s } }.to_json) %></script>
     <script type="application/json" id="keyboard-shortcuts-data"><%= raw(keyboard_shortcuts.to_json) %></script>
     <!-- erblint:enable ScriptType -->
     <column id="hca-body" self-="grow">
