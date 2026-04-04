@@ -17,11 +17,8 @@
   </head>
   <body>
     <row id="hca-actionbar" align-="center between">
-      <row gap-="1" align-="center">
-        <a href="<%= backend_root_path %>" style="text-decoration: none; color: var(--foreground0);"><b>HCA</b></a>
-        <%= yield :toolbar %>
-      </row>
       <row gap-="2" align-="center">
+        <a href="<%= backend_root_path %>" style="text-decoration: none; color: var(--foreground0);"><b>HCA</b></a>
         <span class="hca-user-context" style="color: var(--foreground2);">
           <% if current_user.identity %>
             <a href="<%= backend_identity_path(current_user.identity) %>" style="color: var(--foreground2);"><%= current_user.display_name %></a>
@@ -30,9 +27,12 @@
           <% end %>
           · <%= current_user.pretty_roles %>
         </span>
+        <%= yield :toolbar %>
+      </row>
+      <row gap-="1" align-="center">
         <span id="theme-toggle-slot"></span>
-        <button size-="small" onclick="window.openHints && window.openHints()"><kbd>?</kbd> KBD</button>
-        <button size-="small" onclick="window.openKbar && window.openKbar()"><kbd>⌘K</kbd> GO</button>
+        <button size-="small" onclick="window.openHints && window.openHints()">?</button>
+        <button size-="small" onclick="window.openKbar && window.openKbar()">⌘K</button>
       </row>
     </row>
     <!-- erblint:disable ScriptType -->

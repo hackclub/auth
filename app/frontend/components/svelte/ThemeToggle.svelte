@@ -31,6 +31,6 @@
   });
 </script>
 
-<button size-="small" onclick={toggle}>
-  {isDark() ? '☀ Light' : '☾ Dark'}
+<button size-="small" onclick={toggle} title={isDark() ? 'Switch to light' : 'Switch to dark'}>
+  {isDark() ? '☀' : '☾'}
 </button>
