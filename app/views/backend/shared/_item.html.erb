@@ -1,0 +1,17 @@
+<%
+  icon ||= "·"
+  href ||= nil
+  onclick ||= nil
+  target ||= nil
+  tag = href ? "a" : "button"
+%>
+<%= content_tag(tag,
+      class: "item",
+      href: href,
+      target: target,
+      type: (href ? nil : "button"),
+      onclick: onclick
+    ) do %>
+  <figure class="icon"><%= icon %></figure>
+  <span class="text"><%= yield %></span>
+<% end %>

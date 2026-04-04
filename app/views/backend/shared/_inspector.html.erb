@@ -1,0 +1,8 @@
+<% if Rails.env.development? %>
+  <details class="inspector">
+    <summary>
+      <%= local_assigns[:small] ? "#{record.class.name} #{record&.try(:public_id) || record&.id}" : "inspect #{record.class.name} #{record&.try(:public_id) || record&.id}" %>
+    </summary>
+    <pre class="inspector-content"><%= record.nil? ? "nil" : ap(record) %></pre>
+  </details>
+<% end %>

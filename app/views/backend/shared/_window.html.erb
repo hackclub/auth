@@ -1,0 +1,23 @@
+<%
+  close_url = local_assigns.fetch(:close_url, nil)
+  maximize_url = local_assigns.fetch(:maximize_url, nil)
+  max_width = local_assigns.fetch(:max_width, 400)
+%>
+<div class="window active" style="max-width: <%= max_width %>px">
+  <div class="title-bar">
+    <div class="title-bar-text"><%= window_title %></div>
+    <% if close_url || maximize_url %>
+      <div class="title-bar-buttons">
+        <% if maximize_url %>
+          <button data-maximize onclick="window.location.href='<%= maximize_url %>'"></button>
+        <% end %>
+        <% if close_url %>
+          <button data-close onclick="window.location.href='<%= close_url %>'"></button>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+  <div class="window-body">
+    <%= yield %>
+  </div>
+</div>

@@ -1,0 +1,10 @@
+<div class="lowered">
+  <div class="detail-row">
+    <span class="detail-label">aadhaar number</span>
+    <span class="detail-value"><%= verification.identity.aadhaar_number %></span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-label">uploaded</span>
+    <span class="detail-value"><%= verification.pending_at&.strftime("%B %d, %Y at %I:%M %p") || "N/A" %></span>
+  </div>
+</div>

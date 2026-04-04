@@ -1,0 +1,35 @@
+<div class="lowered resemblance">
+  <div class="section">
+    <div class="section-header"><h3><%= resemblance.title %></h3></div>
+    <div class="section-content">
+      <div class="detail-row">
+        <span class="detail-label">this identity</span>
+        <span class="detail-value"><%= resemblance.current_label %></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">matches</span>
+        <span class="detail-value">
+          <% if resemblance.past_identity %>
+            <%= link_to resemblance.matched_label, backend_identity_path(resemblance.past_identity), target: "_blank" %>
+          <% else %>
+            <span class="text-muted">[deleted identity]</span>
+          <% end %>
+          <% if resemblance.matched_verification %>
+            (<%= link_to "verification", backend_verification_path(resemblance.matched_verification), target: "_blank" %>)
+          <% end %>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-header"><h3>matched identity</h3></div>
+    <div class="section-content">
+      <% if resemblance.past_identity %>
+        <%= render "backend/shared/identity_details", identity: resemblance.past_identity %>
+      <% else %>
+        [deleted identity]
+      <% end %>
+    </div>
+  </div>
+  <%= render "backend/shared/inspector", record: resemblance %>
+</div>

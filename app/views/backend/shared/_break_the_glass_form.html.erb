@@ -1,0 +1,22 @@
+<% doc_type = break_glass_document_type(break_glassable) %>
+<div class="break-glass-form" style="padding: 2rem;">
+  <div style="margin-bottom: 1rem;">
+    <%= vite_image_tag "images/icons/break-the-glass.png", style: "width: 64px; image-rendering: pixelated;" %>
+    <div style="display: inline-block; vertical-align: top; margin-left: 0.5em;">
+      <h1 style="margin: 0; display: inline-block; vertical-align: top;">Break the Glass</h1>
+      <br>
+      This <%= doc_type %> has already been reviewed.
+      <br>
+      Please affirm that you have a legitimate need to view this <%= doc_type %>.
+    </div>
+  </div>
+  <%= form_with url: "/backend/break_glass", method: :post, local: true, style: "max-width: 400px; margin: 0 auto;" do |form| %>
+    <%= form.hidden_field :break_glassable_id, value: break_glassable.id %>
+    <%= form.hidden_field :break_glassable_type, value: break_glassable.class.name %>
+    <div style="display: flex; align-items: center; gap: 0.5em;">
+      <p>I'm accessing this <%= doc_type %> </p>
+      <%= form.text_field :reason, placeholder: "because i'm investigating a fraud claim", style: "width: 30%;" %>
+      <%= form.submit "i promise.", class: "button button-primary" %>
+    </div>
+  <% end %>
+</div>

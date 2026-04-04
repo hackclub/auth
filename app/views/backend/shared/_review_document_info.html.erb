@@ -1,0 +1,28 @@
+<div class="lowered">
+  <div class="detail-row">
+    <span class="detail-label">type</span>
+    <span class="detail-value"><%= verification.document_type %></span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-label">uploaded</span>
+    <span class="detail-value"><%= verification.identity_document.created_at.strftime("%B %d, %Y at %I:%M %p") %></span>
+  </div>
+  <% if verification.identity.country == "IN" %>
+    <div class="detail-row">
+      <span class="detail-label">aadhaar password</span>
+      <span class="detail-value"><%= copy_to_clipboard(verification.identity.suggested_aadhaar_password, tooltip_direction: "e") %></span>
+    </div>
+  <% end %>
+  <div class="detail-row">
+    <span class="detail-label">status</span>
+    <span class="detail-value">
+      <span class="badge <%= verification.pending? ? 'pending' : verification.approved? ? 'success' : 'danger' %>">
+        <%= verification.status.humanize %>
+      </span>
+    </span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-label">files</span>
+    <span class="detail-value"><%= verification.identity_document.files.count %></span>
+  </div>
+</div>

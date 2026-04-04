@@ -1,0 +1,213 @@
+/*
+ * Backend overrides for WebTUI
+ * This is the ONLY custom CSS for the backend. Keep it minimal.
+ */
+
+@layer components {
+  /* Action bar — fixed top nav */
+  .tui-actionbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2ch;
+    height: 2lh;
+    background: var(--base);
+    border-bottom: 1px solid var(--surface0);
+    font-family: monospace;
+  }
+
+  .tui-actionbar-left,
+  .tui-actionbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1ch;
+  }
+
+  /* Page wrapper — accounts for fixed action bar */
+  .tui-page {
+    max-width: 120ch;
+    margin: 0 auto;
+    padding: calc(2lh + 1lh) 2ch 2lh;
+    font-family: monospace;
+  }
+
+  .tui-page-wide {
+    max-width: 160ch;
+    margin: 0 auto;
+    padding: calc(2lh + 1lh) 2ch 2lh;
+    font-family: monospace;
+  }
+
+  /* Navigable item — icon + text row */
+  .tui-item {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text);
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    font: inherit;
+    padding: 0;
+    text-align: left;
+  }
+
+  .tui-item:hover,
+  .tui-item.selected {
+    background: var(--surface0);
+  }
+
+  .tui-item-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3ch;
+    flex-shrink: 0;
+    color: var(--overlay1);
+  }
+
+  .tui-item-text {
+    flex: 1;
+    padding: 0 1ch;
+  }
+
+  .tui-item-badge {
+    flex-shrink: 0;
+    color: var(--overlay0);
+    font-size: 0.85em;
+  }
+
+  /* Detail rows — label: value pairs */
+  .tui-detail {
+    display: flex;
+    gap: 2ch;
+    padding: 0.25lh 0;
+    border-bottom: 1px dotted var(--surface0);
+  }
+
+  .tui-detail:last-child {
+    border-bottom: none;
+  }
+
+  .tui-detail-label {
+    flex-shrink: 0;
+    width: 16ch;
+    color: var(--overlay1);
+  }
+
+  .tui-detail-value {
+    flex: 1;
+    color: var(--text);
+  }
+
+  /* TUI banners — colored boxes with [!]/[+]/[i] prefix */
+  .tui-banner {
+    padding: 0.5lh 2ch;
+    margin: 0.5lh 0;
+    font-family: monospace;
+  }
+
+  .tui-banner-success { color: var(--green); border-color: var(--green); }
+  .tui-banner-error,
+  .tui-banner-danger,
+  .tui-banner-alert { color: var(--red); border-color: var(--red); }
+  .tui-banner-warning { color: var(--yellow); border-color: var(--yellow); }
+  .tui-banner-info,
+  .tui-banner-notice { color: var(--blue); border-color: var(--blue); }
+
+  /* Keyboard hint footer */
+  .tui-keyhints {
+    display: flex;
+    gap: 2ch;
+    padding: 0.5lh 0 0;
+    color: var(--overlay0);
+    font-size: 0.85em;
+  }
+
+  .tui-keyhints kbd {
+    color: var(--text);
+  }
+
+  /* Two-panel layout (verification review) */
+  .tui-two-panel {
+    display: grid;
+    grid-template-columns: 30ch 1fr;
+    gap: 2ch;
+    min-height: 60vh;
+  }
+
+  .tui-panel-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1lh;
+  }
+
+  .tui-panel-right {
+    overflow-y: auto;
+  }
+
+  /* Sticky decision bar */
+  .tui-decision-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--base);
+    border-top: 1px solid var(--surface0);
+    padding: 0.5lh 2ch;
+    z-index: 50;
+  }
+
+  .tui-decision-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 2ch;
+  }
+
+  /* Stats row */
+  .tui-stats {
+    display: flex;
+    gap: 3ch;
+    padding: 0.5lh 0;
+  }
+
+  .tui-stat-value {
+    font-weight: bold;
+  }
+
+  /* Verification urgency colors */
+  .tui-urgency-fresh { color: var(--green); }
+  .tui-urgency-stale { color: var(--yellow); }
+  .tui-urgency-old { color: var(--red); }
+
+  /* Search prompt styling */
+  .tui-search {
+    display: flex;
+    align-items: center;
+    gap: 1ch;
+  }
+
+  .tui-search::before {
+    content: ">";
+    color: var(--overlay1);
+  }
+
+  /* Section with collapsible details */
+  .tui-section > summary {
+    cursor: pointer;
+    color: var(--overlay1);
+    list-style: none;
+  }
+
+  .tui-section > summary::before {
+    content: "▸ ";
+  }
+
+  .tui-section[open] > summary::before {
+    content: "▾ ";
+  }
+}

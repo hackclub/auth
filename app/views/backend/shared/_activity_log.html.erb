@@ -1,0 +1,15 @@
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>user</th>
+        <th>action</th>
+        <th>time</th>
+        <% if Rails.env.development? %><th>inspect</th><% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render_activities(activities) %>
+    </tbody>
+  </table>
+</div>

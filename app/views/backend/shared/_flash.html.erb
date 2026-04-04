@@ -1,0 +1,8 @@
+<% flash.each do |type, message| %>
+  <% next if type == "sentry_event_id" %>
+  <% if message.present? %>
+    <div class="banner <%= type %>">
+      [<%= { "success" => "+", "error" => "!", "alert" => "!", "danger" => "!", "warning" => "!", "notice" => "i", "info" => "i" }[type] || "i" %>] <%= message %>
+    </div>
+  <% end %>
+<% end %>

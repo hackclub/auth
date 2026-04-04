@@ -1,0 +1,28 @@
+<div class="lowered">
+  <div class="detail-row">
+    <span class="detail-label">name</span>
+    <span class="detail-value"><%= render identity %></span>
+  </div>
+  <% if identity.legal_first_name.present? %>
+    <div class="detail-row">
+      <span class="detail-label">legal name</span>
+      <span class="detail-value"><%= identity.legal_first_name %> <%= identity.legal_last_name %></span>
+    </div>
+  <% end %>
+  <div class="detail-row">
+    <span class="detail-label">email</span>
+    <span class="detail-value"><%= identity.primary_email %></span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-label">birthday</span>
+    <span class="detail-value"><%= identity.birthday.strftime("%B %d, %Y") %></span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-label">age</span>
+    <span class="detail-value"><%= identity.age.round(2) %></span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-label">country</span>
+    <span class="detail-value"><%= identity.country %></span>
+  </div>
+</div>

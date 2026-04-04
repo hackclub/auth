@@ -29,4 +29,32 @@ module Backend::ApplicationHelper
     return unless Rails.env.development?
     concat content_tag(element, class: "dev-tool #{class_name}", **options, &block)
   end
+
+  def glass_broken?(break_glassable, auto_break_glass: nil)
+    return false unless current_user
+
+    existing = BreakGlassRecord.for_user_and_document(current_user, break_glassable).recent.exists?
+    return true if existing
+
+    if auto_break_glass
+      BreakGlassRecord.create!(
+        backend_user: current_user,
+        break_glassable: break_glassable,
+        reason: auto_break_glass,
+        accessed_at: Time.current,
+        automatic: true,
+      )
+      return true
+    end
+
+    false
+  end
+
+  def break_glass_document_type(break_glassable)
+    case break_glassable.class.name
+    when "Identity::Document" then "identity document"
+    when "Identity::AadhaarRecord" then "aadhaar record"
+    else "document"
+    end
+  end
 end
