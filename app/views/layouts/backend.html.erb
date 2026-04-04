@@ -21,13 +21,14 @@
         <a href="<%= backend_root_path %>" style="text-decoration: none; color: var(--foreground0);"><b>HCA</b></a>
         <%= yield :toolbar %>
       </row>
-      <row gap-="1" align-="center">
+      <row gap-="2" align-="center">
         <span style="color: var(--foreground2);">
           <% if current_user.identity %>
             <a href="<%= backend_identity_path(current_user.identity) %>" style="color: var(--foreground2);"><%= current_user.display_name %></a>
           <% else %>
             <%= current_user.display_name %>
           <% end %>
+          · <%= current_user.pretty_roles %>
         </span>
         <span id="theme-toggle-slot"></span>
         <button size-="small" onclick="window.openHints && window.openHints()"><kbd>?</kbd> KBD</button>
