@@ -319,7 +319,7 @@
       {/if}
     </row>
 
-    <row box-="round" align-="center" gap-="1">
+    <row align-="center" gap-="1" id="palette-search-row">
       <span style="color: var(--overlay0);">⌕</span>
       <input
         bind:this={inputEl}
@@ -331,6 +331,7 @@
         onkeydown={handleKeyDown}
       />
     </row>
+    <div is-="separator"></div>
 
     <div id="palette-results">
       <column id="palette-results-container" bind:this={resultsContainerEl}>
@@ -363,16 +364,20 @@
       </column>
     </div>
 
-    <row gap-="1" align-="center center" pad-="1 0" style="color: var(--overlay1);">
-      <span is-="badge" variant-="background2">↑</span>
-      <span is-="badge" variant-="background2">↓</span>
-      <span>navigate</span>
-      <span style="color: var(--surface2);">·</span>
-      <span is-="badge" variant-="background2">↵</span>
-      <span>select</span>
-      <span style="color: var(--surface2);">·</span>
-      <span is-="badge" variant-="background2">esc</span>
-      <span>close</span>
+    <row gap-="2" align-="center center" pad-="1 0" style="color: var(--overlay1);">
+      <row gap-="1" align-="center">
+        <span is-="badge" variant-="background2">↑</span>
+        <span is-="badge" variant-="background2">↓</span>
+        <span>navigate</span>
+      </row>
+      <row gap-="1" align-="center">
+        <span is-="badge" variant-="background2">↵</span>
+        <span>select</span>
+      </row>
+      <row gap-="1" align-="center">
+        <span is-="badge" variant-="background2">esc</span>
+        <span>close</span>
+      </row>
     </row>
   </column>
 </dialog>
@@ -396,8 +401,15 @@
     --box-border-color: var(--overlay0);
   }
 
+  #palette-search-row {
+    padding: 0 1ch;
+  }
+
   #palette-input {
     background-color: var(--background0);
+    border: none;
+    flex: 1;
+    outline: none;
   }
 
   #palette-results {
