@@ -319,7 +319,8 @@
       {/if}
     </row>
 
-    <column box-="round">
+    <row box-="round" align-="center" gap-="1">
+      <span style="color: var(--overlay0);">⌕</span>
       <input
         bind:this={inputEl}
         id="palette-input"
@@ -329,7 +330,7 @@
         oninput={handleInput}
         onkeydown={handleKeyDown}
       />
-    </column>
+    </row>
 
     <div id="palette-results">
       <column id="palette-results-container" bind:this={resultsContainerEl}>
@@ -362,10 +363,16 @@
       </column>
     </div>
 
-    <row gap-="2" align-="center center" pad-="1 0" style="color: var(--overlay0);">
-      <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
-      <span><kbd>↵</kbd> select</span>
-      <span><kbd>esc</kbd> close</span>
+    <row gap-="1" align-="center center" pad-="1 0" style="color: var(--overlay1);">
+      <span is-="badge" variant-="background2">↑</span>
+      <span is-="badge" variant-="background2">↓</span>
+      <span>navigate</span>
+      <span style="color: var(--surface2);">·</span>
+      <span is-="badge" variant-="background2">↵</span>
+      <span>select</span>
+      <span style="color: var(--surface2);">·</span>
+      <span is-="badge" variant-="background2">esc</span>
+      <span>close</span>
     </row>
   </column>
 </dialog>

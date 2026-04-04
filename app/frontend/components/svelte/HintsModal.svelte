@@ -77,28 +77,44 @@
   onclick={(e) => { if (e.target === dialogEl) close(); }}
   onkeydown={() => {}}
 >
-  <article box-="round">
-    <h3>Keyboard shortcuts</h3>
+  <column box-="round" style="--box-border-color: var(--overlay0); min-width: 40ch;">
+    <row align-="center between">
+      <span is-="badge" variant-="background0">? Keyboard shortcuts</span>
+      <button size-="small" variant-="foreground0" onclick={close}>×</button>
+    </row>
+
     <div is-="separator"></div>
 
-    <section>
-      <h4>Global</h4>
-      <div><kbd>⌘</kbd><kbd>K</kbd> Open command bar</div>
-      <div><kbd>?</kbd> Show keyboard shortcuts</div>
-      <div><kbd>/</kbd> Focus search input</div>
-    </section>
+    <column gap-="0">
+      <span style="color: var(--subtext0);">Global</span>
+      <row gap-="1" align-="center" pad-="1 0">
+        <span is-="badge" variant-="background2">⌘K</span>
+        <span>Open command bar</span>
+      </row>
+      <row gap-="1" align-="center" pad-="1 0">
+        <span is-="badge" variant-="background2">?</span>
+        <span>Show keyboard shortcuts</span>
+      </row>
+      <row gap-="1" align-="center" pad-="1 0">
+        <span is-="badge" variant-="background2">/</span>
+        <span>Focus search input</span>
+      </row>
+    </column>
 
     {#if hints.length > 0}
       <div is-="separator"></div>
-      <section>
-        <h4>This page</h4>
+      <column gap-="0">
+        <span style="color: var(--subtext0);">This page</span>
         {#each hints as hint}
-          <div>{@html hint.content}</div>
+          <div pad-="1 0">{@html hint.content}</div>
         {/each}
-      </section>
+      </column>
     {/if}
 
     <div is-="separator"></div>
-    <div style="color: var(--overlay0);"><kbd>Esc</kbd> close</div>
-  </article>
+    <row gap-="1" align-="center" style="color: var(--overlay1);">
+      <span is-="badge" variant-="background2">esc</span>
+      <span>close</span>
+    </row>
+  </column>
 </dialog>
