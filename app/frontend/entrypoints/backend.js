@@ -49,10 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.querySelectorAll('[data-navigable-list]').forEach((el) => {
-    const wrapper = document.createElement('div');
-    el.parentNode.insertBefore(wrapper, el);
-    wrapper.appendChild(el);
-    mount(NavigableList, { target: wrapper, props: { listEl: el } });
+    // Mount headless — NavigableList renders nothing, just binds keyboard nav
+    const anchor = document.createElement('span');
+    anchor.style.display = 'none';
+    el.appendChild(anchor);
+    mount(NavigableList, { target: anchor, props: { listEl: el } });
   });
 
   // Global / key → focus search
