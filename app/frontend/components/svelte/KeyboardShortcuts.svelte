@@ -11,6 +11,10 @@
 
     function handleKeyDown(e) {
       if (e.metaKey || e.ctrlKey) return;
+      // Don't capture keys when ninja-keys or a dialog is open
+      const ninja = document.querySelector('ninja-keys');
+      if (ninja?.opened) return;
+      if (document.querySelector('dialog[open]')) return;
 
       const dataEl = document.getElementById('keyboard-shortcuts-data');
       if (!dataEl) return;

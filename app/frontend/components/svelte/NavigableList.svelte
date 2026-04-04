@@ -25,6 +25,10 @@
     function handleKeyDown(e) {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
       if (e.metaKey || e.ctrlKey) return;
+      // Don't capture keys when ninja-keys or a dialog is open
+      const ninja = document.querySelector('ninja-keys');
+      if (ninja?.opened) return;
+      if (document.querySelector('dialog[open]')) return;
 
       const items = getItems();
       if (items.length === 0) return;

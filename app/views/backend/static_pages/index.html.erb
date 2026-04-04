@@ -1,54 +1,58 @@
 <column self-="grow" align-="center center" style="min-height: calc(100vh - 3lh);">
   <column box-="round" style="min-width: 56ch; max-width: 72ch; --box-border-color: var(--overlay0);">
     <row align-="center between">
-      <span is-="badge" variant-="lavender" >HCA</span>
+      <span is-="badge" variant-="lavender">HCA</span>
       <span style="color: var(--subtext0);"><%= current_user.display_name %> · <%= current_user.pretty_roles %></span>
     </row>
 
     <div is-="separator"></div>
 
-    <column data-navigable-list gap-="1">
+    <column data-navigable-list>
       <% if current_user.super_admin? %>
-        <column>
-          <span style="color: var(--subtext0); padding: 0 1ch;">Super admin</span>
+        <span style="color: var(--subtext0); padding: 0 1ch;">Super admin</span>
+        <ul>
           <%= render_nav_item backend_flipper_path, "Flipper", "FLIP", sub: "(i hardly know 'er!)" %>
           <%= render_nav_item backend_audits1984_path, "Audits1984", "ORWL" %>
           <%= render_nav_item backend_good_job_path, "Job queue", "JOBS" %>
           <%= render_nav_item backend_users_path, "Manage users", "USRS" %>
-        </column>
+        </ul>
       <% end %>
 
       <% if current_user&.program_manager? || current_user&.super_admin? %>
-        <column>
-          <span style="color: var(--subtext0); padding: 0 1ch;">Program manager</span>
+        <span style="color: var(--subtext0); padding: 0 1ch;">Program manager</span>
+        <ul>
           <%= render_nav_item developer_apps_path, "Manage OAuth2 apps", "APPS" %>
-        </column>
+        </ul>
       <% end %>
 
       <% if current_user&.manual_document_verifier? || current_user&.super_admin? %>
-        <column>
-          <span style="color: var(--subtext0); padding: 0 1ch;">Document verifier</span>
+        <span style="color: var(--subtext0); padding: 0 1ch;">Document verifier</span>
+        <ul>
           <%= render_nav_item pending_backend_verifications_path, "Review pending", "PEND", variant: "peach" %>
-        </column>
+        </ul>
       <% end %>
 
       <div is-="separator"></div>
 
-      <%= render_nav_item backend_identities_path, "Identities", "IDNT" %>
-      <%= render_nav_item backend_audit_logs_path, "Audit logs", "LOGS" %>
+      <ul>
+        <%= render_nav_item backend_identities_path, "Identities", "IDNT" %>
+        <%= render_nav_item backend_audit_logs_path, "Audit logs", "LOGS" %>
+      </ul>
 
       <div is-="separator"></div>
 
-      <a href="#" onclick="window.openKbar && window.openKbar(); return false;" data-navigable-item style="display: flex; justify-content: space-between; align-items: center; padding: 0 1ch; text-decoration: none; color: var(--text);">
-        <span>Go anywhere</span>
-        <row gap-="1" align-="center" style="color: var(--subtext0);">
-          <kbd>⌘K</kbd>
-        </row>
-      </a>
+      <ul>
+        <a href="#" onclick="window.openKbar && window.openKbar(); return false;" data-navigable-item style="display: flex; justify-content: space-between; align-items: center; padding: 0 1ch; text-decoration: none; color: var(--text);">
+          <span>Go anywhere</span>
+          <span style="color: var(--subtext0);"><kbd>⌘K</kbd></span>
+        </a>
+      </ul>
 
       <div is-="separator"></div>
 
-      <%= render_nav_item root_path, "Escape hatch", "EXIT" %>
+      <ul>
+        <%= render_nav_item root_path, "Escape hatch", "EXIT" %>
+      </ul>
     </column>
 
     <div is-="separator"></div>
