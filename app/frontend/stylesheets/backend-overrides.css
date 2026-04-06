@@ -113,9 +113,12 @@
     #hca-actionbar .hca-user-context { display: none; }
   }
 
-  /* Quieter table borders + row hover */
+  /* Quieter table borders + row hover + fix offset */
   table {
     --table-border-color: var(--background3);
+    width: 100%;
+    margin-left: -0.5ch;
+    margin-right: -0.5ch;
   }
 
   tbody tr:hover {
