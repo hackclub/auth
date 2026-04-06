@@ -148,16 +148,17 @@
       border-left: 1px solid var(--background1);
     }
 
-    /* header row — muted italic */
+    /* header row — muted italic, faint underline */
     thead tr th {
       color: var(--foreground2);
       font-weight: normal;
       font-style: italic;
-      padding-bottom: 0.5lh;
+      padding-bottom: 0.25lh;
+      border-bottom: 1px solid var(--background1);
     }
 
     thead + tbody > tr:first-child > td {
-      padding-top: 0.5lh;
+      padding-top: 0.25lh;
     }
 
     tbody tr:hover td {
