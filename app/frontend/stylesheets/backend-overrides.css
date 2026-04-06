@@ -103,6 +103,11 @@
     #hca-actionbar .hca-user-context { display: none; }
   }
 
+  /* Quieter table borders */
+  table {
+    --table-border-color: var(--background3);
+  }
+
   /* Environment indicator */
   #hca-env {
     position: fixed;
