@@ -1,29 +1,25 @@
-<div style="background:var(--surface0);padding:0.5lh 2ch;" class="resemblance">
-  <h3><%= resemblance.title %></h3>
-  <div is-="separator"></div>
-  <div class="tui-detail">
-    <span class="tui-detail-label">this identity</span>
-    <span class="tui-detail-value"><%= resemblance.current_label %></span>
-  </div>
-  <div class="tui-detail">
-    <span class="tui-detail-label">matches</span>
-    <span class="tui-detail-value">
-      <% if resemblance.past_identity %>
-        <%= link_to resemblance.matched_label, backend_identity_path(resemblance.past_identity), target: "_blank" %>
-      <% else %>
-        <span style="color:var(--overlay0);">[deleted identity]</span>
-      <% end %>
-      <% if resemblance.matched_verification %>
-        (<%= link_to "verification", backend_verification_path(resemblance.matched_verification), target: "_blank" %>)
-      <% end %>
-    </span>
-  </div>
-  <h3>matched identity</h3>
-  <div is-="separator"></div>
+<column box-="square" style="--box-border-color: var(--yellow);">
+  <b><%= resemblance.title %></b>
+  <column>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">this identity</span> <%= resemblance.current_label %></row>
+    <row>
+      <span style="min-width: 12ch; color: var(--foreground2);">matches</span>
+      <span>
+        <% if resemblance.past_identity %>
+          <%= link_to resemblance.matched_label, backend_identity_path(resemblance.past_identity), target: "_blank" %>
+        <% else %>
+          <span style="color: var(--foreground2);">[deleted identity]</span>
+        <% end %>
+        <% if resemblance.matched_verification %>
+          (<%= link_to "verification", backend_verification_path(resemblance.matched_verification), target: "_blank" %>)
+        <% end %>
+      </span>
+    </row>
+  </column>
   <% if resemblance.past_identity %>
+    <div is-="separator"></div>
+    <span style="color: var(--foreground2);">matched identity</span>
     <%= render "backend/shared/identity_details", identity: resemblance.past_identity %>
-  <% else %>
-    [deleted identity]
   <% end %>
   <%= render "backend/shared/inspector", record: resemblance %>
-</div>
+</column>

@@ -1,49 +1,34 @@
 <%
   show_legal_name = local_assigns.fetch(:show_legal_name, false)
 %>
-<div style="font-family:monospace;">
+<column>
   <%= render identity %>
-
   <% if identity.legal_first_name.present? && show_legal_name %>
-    <div class="tui-detail">
-      <span class="tui-detail-label">legal name</span>
-      <span class="tui-detail-value"><%= identity.legal_first_name %> <%= identity.legal_last_name %></span>
-    </div>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">legal name</span> <%= identity.legal_first_name %> <%= identity.legal_last_name %></row>
   <% end %>
-  <div class="tui-detail">
-    <span class="tui-detail-label">country</span>
-    <span class="tui-detail-value"><%= identity.country %></span>
-  </div>
-  <div class="tui-detail">
-    <span class="tui-detail-label">email</span>
-    <span class="tui-detail-value"><%= identity.primary_email %></span>
-  </div>
-  <div class="tui-detail">
-    <span class="tui-detail-label">birthday</span>
-    <span class="tui-detail-value"><%= identity.birthday %></span>
-  </div>
-  <div class="tui-detail">
-    <span class="tui-detail-label">phone</span>
-    <span class="tui-detail-value"><%= identity.phone_number %></span>
-  </div>
-  <div class="tui-detail">
-    <span class="tui-detail-label">status</span>
-    <span class="tui-detail-value"><%= identity.verification_status.humanize %></span>
-  </div>
-  <% if defined?(identity.ysws_eligible) && !identity.ysws_eligible.nil? %>
-    <div class="tui-detail">
-      <span class="tui-detail-label">ysws</span>
-      <span class="tui-detail-value"><%= identity.ysws_eligible ? "eligible" : "ineligible" %></span>
-    </div>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">country</span> <%= identity.country %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">email</span> <%= identity.primary_email %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">birthday</span> <%= identity.birthday %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">phone</span> <%= identity.phone_number %></row>
+  <row>
+    <span style="min-width: 12ch; color: var(--foreground2);">status</span>
+    <% if identity.verification_status == 'verified' %>
+      <span is-="badge" variant-="green">verified</span>
+    <% else %>
+      <%= identity.verification_status.humanize %>
+    <% end %>
+  </row>
+  <% if identity.ysws_eligible == true %>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">ysws</span> <span is-="badge" variant-="green">eligible</span></row>
+  <% elsif identity.ysws_eligible == false %>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">ysws</span> <span is-="badge" variant-="red">ineligible</span></row>
   <% end %>
-  <div class="tui-detail">
-    <span class="tui-detail-label">slack</span>
-    <span class="tui-detail-value">
-      <% if identity.slack_id.present? %>
-        <%= link_to identity.slack_id, "https://hackclub.slack.com/team/#{identity.slack_id}" %>
-      <% else %>
-        <i>not set</i>
-      <% end %>
-    </span>
-  </div>
-</div>
+  <row>
+    <span style="min-width: 12ch; color: var(--foreground2);">slack</span>
+    <% if identity.slack_id.present? %>
+      <%= link_to identity.slack_id, "https://hackclub.slack.com/team/#{identity.slack_id}" %>
+    <% else %>
+      <i style="color: var(--foreground2);">not set</i>
+    <% end %>
+  </row>
+</column>

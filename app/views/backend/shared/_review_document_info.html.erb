@@ -1,28 +1,18 @@
-<div style="background:var(--surface0);padding:0.5lh 2ch;">
-  <div class="tui-detail">
-    <span class="tui-detail-label">type</span>
-    <span class="tui-detail-value"><%= verification.document_type %></span>
-  </div>
-  <div class="tui-detail">
-    <span class="tui-detail-label">uploaded</span>
-    <span class="tui-detail-value"><%= verification.identity_document.created_at.strftime("%B %d, %Y at %I:%M %p") %></span>
-  </div>
+<column>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">type</span> <%= verification.document_type %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">uploaded</span> <%= verification.identity_document.created_at.strftime("%B %d, %Y at %I:%M %p") %></row>
   <% if verification.identity.country == "IN" %>
-    <div class="tui-detail">
-      <span class="tui-detail-label">aadhaar password</span>
-      <span class="tui-detail-value"><%= copy_to_clipboard(verification.identity.suggested_aadhaar_password, tooltip_direction: "e") %></span>
-    </div>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">aadhaar pw</span> <%= copy_to_clipboard(verification.identity.suggested_aadhaar_password, tooltip_direction: "e") %></row>
   <% end %>
-  <div class="tui-detail">
-    <span class="tui-detail-label">status</span>
-    <span class="tui-detail-value">
-      <span <%= verification.pending? ? 'is-="badge" variant-="yellow"' : verification.approved? ? 'is-="badge" variant-="green"' : 'is-="badge" variant-="red"' %>>
-        <%= verification.status.humanize %>
-      </span>
-    </span>
-  </div>
-  <div class="tui-detail">
-    <span class="tui-detail-label">files</span>
-    <span class="tui-detail-value"><%= verification.identity_document.files.count %></span>
-  </div>
-</div>
+  <row>
+    <span style="min-width: 12ch; color: var(--foreground2);">status</span>
+    <% if verification.pending? %>
+      <span is-="badge" variant-="yellow">pending</span>
+    <% elsif verification.approved? %>
+      <span is-="badge" variant-="green">approved</span>
+    <% else %>
+      <span is-="badge" variant-="red">rejected</span>
+    <% end %>
+  </row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">files</span> <%= verification.identity_document.files.count %></row>
+</column>

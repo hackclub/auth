@@ -1,10 +1,4 @@
-<div style="background:var(--surface0);padding:0.5lh 2ch;">
-  <div class="tui-detail">
-    <span class="tui-detail-label">aadhaar number</span>
-    <span class="tui-detail-value"><%= verification.identity.aadhaar_number %></span>
-  </div>
-  <div class="tui-detail">
-    <span class="tui-detail-label">uploaded</span>
-    <span class="tui-detail-value"><%= verification.pending_at&.strftime("%B %d, %Y at %I:%M %p") || "N/A" %></span>
-  </div>
-</div>
+<column>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">aadhaar #</span> <%= verification.identity.aadhaar_number %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">uploaded</span> <%= verification.pending_at&.strftime("%B %d, %Y at %I:%M %p") || "N/A" %></row>
+</column>

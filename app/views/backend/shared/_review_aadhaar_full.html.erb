@@ -1,34 +1,24 @@
 <%
   data = aadhaar_record.doc_json[:data]
 %>
-<div class="aadhaar-data">
+<column>
   <% if data[:photo].present? %>
-    <div class="tui-detail">
-      <span class="tui-detail-label">photo</span>
-      <span class="tui-detail-value">
-        <%= image_tag "data:image/jpeg;base64,#{data[:photo]}", class: "aadhaar-photo" %>
-      </span>
-    </div>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">photo</span> <%= image_tag "data:image/jpeg;base64,#{data[:photo]}", style: "max-width: 10ch;" %></row>
   <% end %>
   <% { name: "full name", "Father Name": "father's name", dob: "date of birth", aadhar_number: "aadhaar number", gender: "assigned gender", co: "c/o" }.each do |key, label| %>
     <% value = data.dig(key) %>
     <% next if value.blank? %>
-    <div class="tui-detail">
-      <span class="tui-detail-label"><%= label %></span>
-      <span class="tui-detail-value"><%= value %></span>
-    </div>
+    <row><span style="min-width: 12ch; color: var(--foreground2);"><%= label %></span> <%= value %></row>
   <% end %>
   <% if data[:address].present? %>
-    <div class="tui-detail">
-      <span class="tui-detail-label">address</span>
-      <span class="tui-detail-value">
-        <div class="address-fields">
-          <% data[:address].each do |key, value| %>
-            <% next if value.blank? %>
-            <div class="address-line"><b><%= key %>:</b> <%= value %></div>
-          <% end %>
-        </div>
-      </span>
-    </div>
+    <row>
+      <span style="min-width: 12ch; color: var(--foreground2);">address</span>
+      <column>
+        <% data[:address].each do |key, value| %>
+          <% next if value.blank? %>
+          <span><b><%= key %>:</b> <%= value %></span>
+        <% end %>
+      </column>
+    </row>
   <% end %>
-</div>
+</column>

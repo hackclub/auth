@@ -1,11 +1,8 @@
-<div class="tui-page">
-  <article box-="round">
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
     <h2>signup analytics</h2>
-    <div is-="separator"></div>
-
-    <div style="display:flex;align-items:center;gap:1ch;">
-      <h3>overview</h3>
-      <%= form_tag backend_analytics_path, method: :get, style: "display:flex;gap:1ch;margin-left:auto;" do %>
+    <%= form_tag backend_analytics_path, method: :get do %>
+      <row gap-="1" align-="center">
         <%= select_tag :time_period,
             options_for_select([
               ["today", "today"],
@@ -21,312 +18,200 @@
               @scenario
             ),
             onchange: "this.form.submit()" %>
-      <% end %>
-    </div>
-
-    <% if @scenario %>
-      <table>
-        <thead>
-          <tr>
-            <th>visitors</th>
-            <th>new signups</th>
-            <th>returning</th>
-            <th>authorized</th>
-            <th>denied</th>
-            <th>conversion</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><b><%= @overview[:visitors] %></b></td>
-            <td><b><%= @overview[:new_signups] %></b></td>
-            <td><b><%= @overview[:returning_logins] %></b></td>
-            <td style="color:var(--green);"><b><%= @overview[:authorized] %></b></td>
-            <td style="color:var(--red);"><b><%= @overview[:denied] %></b></td>
-            <td style="color:var(--peach);"><b><%= @overview[:conversion_rate] %>%</b></td>
-          </tr>
-        </tbody>
-      </table>
-    <% else %>
-      <table>
-        <thead>
-          <tr>
-            <th>started</th>
-            <th>completed</th>
-            <th>conversion</th>
-            <th>logins</th>
-            <th>oauth</th>
-            <th>slack</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><b><%= @overview[:total_signups_started] %></b></td>
-            <td style="color:var(--green);"><b><%= @overview[:total_signups_completed] %></b></td>
-            <td style="color:var(--peach);"><b><%= @overview[:conversion_rate] %>%</b></td>
-            <td><b><%= @overview[:total_logins_completed] %></b></td>
-            <td><b><%= @overview[:total_oauth_authorized] %></b></td>
-            <td><b><%= @overview[:slack_provisioned] %></b></td>
-          </tr>
-        </tbody>
-      </table>
+      </row>
     <% end %>
+  </row>
 
+  <div is-="separator"></div>
+
+  <% if @scenario %>
+    <table>
+      <thead>
+        <tr><th>visitors</th><th>new signups</th><th>returning</th><th>authorized</th><th>denied</th><th>conversion</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b><%= @overview[:visitors] %></b></td>
+          <td><b><%= @overview[:new_signups] %></b></td>
+          <td><b><%= @overview[:returning_logins] %></b></td>
+          <td style="color: var(--green);"><b><%= @overview[:authorized] %></b></td>
+          <td style="color: var(--red);"><b><%= @overview[:denied] %></b></td>
+          <td><b><%= @overview[:conversion_rate] %>%</b></td>
+        </tr>
+      </tbody>
+    </table>
+  <% else %>
+    <table>
+      <thead>
+        <tr><th>started</th><th>completed</th><th>conversion</th><th>logins</th><th>oauth</th><th>slack</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b><%= @overview[:total_signups_started] %></b></td>
+          <td style="color: var(--green);"><b><%= @overview[:total_signups_completed] %></b></td>
+          <td><b><%= @overview[:conversion_rate] %>%</b></td>
+          <td><b><%= @overview[:total_logins_completed] %></b></td>
+          <td><b><%= @overview[:total_oauth_authorized] %></b></td>
+          <td><b><%= @overview[:slack_provisioned] %></b></td>
+        </tr>
+      </tbody>
+    </table>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <span style="color: var(--foreground2); font-style: italic;"><%= @primary_trends_label %> trends</span>
+  <% if @primary_trends.any? %>
+    <%= line_chart @primary_trends, height: "200px", colors: ["var(--green)"] %>
+  <% else %>
+    <span style="color: var(--foreground2);">no data yet</span>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <% if @scenario && @program_funnel %>
+    <span style="color: var(--foreground2); font-style: italic;">user journey</span>
+    <table>
+      <thead><tr><th>step</th><th>count</th><th>conversion</th></tr></thead>
+      <tbody>
+        <% started = @program_funnel[:started].to_f %>
+        <tr><td>started (signup + login)</td><td><b><%= @program_funnel[:started] %></b></td><td>100%</td></tr>
+        <tr><td>authenticated</td><td><b><%= @program_funnel[:authenticated] %></b></td><td><%= started > 0 ? "#{(@program_funnel[:authenticated] / started * 100).round(1)}%" : "-" %></td></tr>
+        <tr><td style="color: var(--green);">authorized</td><td><b><%= @program_funnel[:authorized] %></b></td><td><%= started > 0 ? "#{(@program_funnel[:authorized] / started * 100).round(1)}%" : "-" %></td></tr>
+        <tr><td style="color: var(--red);">denied</td><td><b><%= @program_funnel[:denied] %></b></td><td><%= started > 0 ? "#{(@program_funnel[:denied] / started * 100).round(1)}%" : "-" %></td></tr>
+      </tbody>
+    </table>
     <div is-="separator"></div>
+  <% end %>
 
-    <h3><%= @primary_trends_label %> trends</h3>
-    <% if @primary_trends.any? %>
-      <%= line_chart @primary_trends, height: "200px", colors: ["#33d6a6"] %>
-    <% else %>
-      <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no data yet</p>
-    <% end %>
-
-    <div is-="separator"></div>
-
-    <% if @scenario && @program_funnel %>
-      <h3>user journey</h3>
+  <row gap-="3" align-="start">
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">signup funnel</span>
       <table>
-        <thead>
-          <tr>
-            <th>step</th>
-            <th>count</th>
-            <th>conversion</th>
-          </tr>
-        </thead>
+        <thead><tr><th>step</th><th>count</th><th>%</th></tr></thead>
         <tbody>
-          <% started = @program_funnel[:started].to_f %>
-          <tr>
-            <td>started (signup + login)</td>
-            <td><b><%= @program_funnel[:started] %></b></td>
-            <td>100%</td>
-          </tr>
-          <tr>
-            <td>authenticated</td>
-            <td><b><%= @program_funnel[:authenticated] %></b></td>
-            <td><%= started > 0 ? "#{(@program_funnel[:authenticated] / started * 100).round(1)}%" : "-" %></td>
-          </tr>
-          <tr>
-            <td style="color:var(--green);">authorized (completed)</td>
-            <td><b><%= @program_funnel[:authorized] %></b></td>
-            <td><%= started > 0 ? "#{(@program_funnel[:authorized] / started * 100).round(1)}%" : "-" %></td>
-          </tr>
-          <tr>
-            <td style="color:var(--red);">denied</td>
-            <td><b><%= @program_funnel[:denied] %></b></td>
-            <td><%= started > 0 ? "#{(@program_funnel[:denied] / started * 100).round(1)}%" : "-" %></td>
-          </tr>
-        </tbody>
-      </table>
-      <div is-="separator"></div>
-    <% end %>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2ch;">
-      <div>
-        <h3>signup funnel</h3>
-        <table>
-          <thead>
+          <% started = @signup_funnel["signup.started"].to_f %>
+          <% @signup_funnel.each do |event, count| %>
             <tr>
-              <th>step</th>
-              <th>count</th>
-              <th>%</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% started = @signup_funnel["signup.started"].to_f %>
-            <% @signup_funnel.each do |event, count| %>
-              <tr>
-                <td><%= link_to event.split(".").last, "https://github.com/hackclub/auth/search?q=%22#{event}%22", target: "_blank" %></td>
-                <td><b><%= count %></b></td>
-                <td><%= started > 0 ? "#{(count / started * 100).round(1)}%" : "-" %></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-      <div>
-        <h3>rejection breakdown</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>type</th>
-              <th>count</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="color:var(--red);">age: too old (19+)</td>
-              <td><b><%= @rejection_breakdown[:age_rejections][:too_old] %></b></td>
-            </tr>
-            <tr>
-              <td style="color:var(--red);">age: under 13</td>
-              <td><b><%= @rejection_breakdown[:age_rejections][:under_13] %></b></td>
-            </tr>
-            <tr>
-              <td>validation errors</td>
-              <td><b><%= @rejection_breakdown[:validation_errors] %></b></td>
-            </tr>
-            <tr>
-              <td>existing accounts</td>
-              <td><b><%= @rejection_breakdown[:existing_accounts] %></b></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div is-="separator"></div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2ch;">
-      <div>
-        <h3>by scenario</h3>
-        <% if @scenario_comparison&.any? %>
-          <table>
-            <thead>
-              <tr>
-                <th>scenario</th>
-                <th>signups</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @scenario_comparison.each do |scenario, count| %>
-                <tr>
-                  <td><%= scenario || "default" %></td>
-                  <td><b><%= count %></b></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        <% else %>
-          <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no data</p>
-        <% end %>
-      </div>
-      <div>
-        <h3>top countries</h3>
-        <% if @country_breakdown.any? %>
-          <table>
-            <thead>
-              <tr>
-                <th>country</th>
-                <th>signups</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @country_breakdown.each do |country, count| %>
-                <tr>
-                  <td><%= country.present? ? ISO3166::Country[country]&.common_name || country : "unknown" %></td>
-                  <td><b><%= count %></b></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        <% else %>
-          <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no data</p>
-        <% end %>
-      </div>
-    </div>
-
-    <div is-="separator"></div>
-
-    <h3>promotions by flow</h3>
-    <% if @promotion_breakdown.any? %>
-      <table>
-        <thead>
-          <tr>
-            <th>flow</th>
-            <th>signups</th>
-            <th>promoted</th>
-            <th>rate</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @promotion_breakdown.each do |flow, stats| %>
-            <tr>
-              <td><%= flow %></td>
-              <td><b><%= stats[:total] %></b></td>
-              <td><b><%= stats[:promoted] %></b></td>
-              <td style="color:<%= stats[:rate] > 50 ? 'var(--green)' : stats[:rate] < 20 ? 'var(--red)' : 'inherit' %>;"><b><%= stats[:rate] %>%</b></td>
+              <td><%= link_to event.split(".").last, "https://github.com/hackclub/auth/search?q=%22#{event}%22", target: "_blank" %></td>
+              <td><b><%= count %></b></td>
+              <td><%= started > 0 ? "#{(count / started * 100).round(1)}%" : "-" %></td>
             </tr>
           <% end %>
         </tbody>
       </table>
-    <% else %>
-      <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no data</p>
-    <% end %>
+    </column>
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">rejection breakdown</span>
+      <table>
+        <thead><tr><th>type</th><th>count</th></tr></thead>
+        <tbody>
+          <tr><td style="color: var(--red);">age: too old (19+)</td><td><b><%= @rejection_breakdown[:age_rejections][:too_old] %></b></td></tr>
+          <tr><td style="color: var(--red);">age: under 13</td><td><b><%= @rejection_breakdown[:age_rejections][:under_13] %></b></td></tr>
+          <tr><td>validation errors</td><td><b><%= @rejection_breakdown[:validation_errors] %></b></td></tr>
+          <tr><td>existing accounts</td><td><b><%= @rejection_breakdown[:existing_accounts] %></b></td></tr>
+        </tbody>
+      </table>
+    </column>
+  </row>
 
-    <div is-="separator"></div>
+  <div is-="separator"></div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2ch;">
-      <div>
-        <h3>login funnel</h3>
+  <row gap-="3" align-="start">
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">by scenario</span>
+      <% if @scenario_comparison&.any? %>
         <table>
-          <thead>
-            <tr>
-              <th>step</th>
-              <th>count</th>
-            </tr>
-          </thead>
+          <thead><tr><th>scenario</th><th>signups</th></tr></thead>
           <tbody>
-            <% @login_funnel.each do |event, count| %>
-              <tr>
-                <td><%= link_to event.split(".").last.gsub("_", " "), "https://github.com/hackclub/auth/search?q=%22#{event}%22", target: "_blank" %></td>
-                <td><b><%= count %></b></td>
-              </tr>
+            <% @scenario_comparison.each do |scenario, count| %>
+              <tr><td><%= scenario || "default" %></td><td><b><%= count %></b></td></tr>
             <% end %>
           </tbody>
         </table>
-      </div>
-      <div>
-        <h3>oauth</h3>
+      <% else %>
+        <span style="color: var(--foreground2);">no data</span>
+      <% end %>
+    </column>
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">top countries</span>
+      <% if @country_breakdown.any? %>
         <table>
-          <thead>
-            <tr>
-              <th>event</th>
-              <th>count</th>
-            </tr>
-          </thead>
+          <thead><tr><th>country</th><th>signups</th></tr></thead>
           <tbody>
-            <tr>
-              <td style="color:var(--green);">authorized</td>
-              <td><b><%= @oauth_funnel[:authorized] %></b></td>
-            </tr>
-            <tr>
-              <td style="color:var(--red);">denied</td>
-              <td><b><%= @oauth_funnel[:denied] %></b></td>
-            </tr>
-            <tr>
-              <td>revoked</td>
-              <td><b><%= @oauth_funnel[:revoked] %></b></td>
-            </tr>
+            <% @country_breakdown.each do |country, count| %>
+              <tr><td><%= country.present? ? ISO3166::Country[country]&.common_name || country : "unknown" %></td><td><b><%= count %></b></td></tr>
+            <% end %>
           </tbody>
         </table>
-      </div>
-    </div>
+      <% else %>
+        <span style="color: var(--foreground2);">no data</span>
+      <% end %>
+    </column>
+  </row>
 
-    <div is-="separator"></div>
+  <div is-="separator"></div>
 
-    <h3>dialogue funnel</h3>
+  <span style="color: var(--foreground2); font-style: italic;">promotions by flow</span>
+  <% if @promotion_breakdown.any? %>
     <table>
-      <thead>
-        <tr>
-          <th>step</th>
-          <th>count</th>
-        </tr>
-      </thead>
+      <thead><tr><th>flow</th><th>signups</th><th>promoted</th><th>rate</th></tr></thead>
       <tbody>
-        <tr>
-          <td>first interaction</td>
-          <td><b><%= @dialogue_funnel[:first_interaction] %></b></td>
-        </tr>
-        <tr>
-          <td style="color:var(--green);">promoted</td>
-          <td><b><%= @dialogue_funnel[:promoted] %></b></td>
-        </tr>
+        <% @promotion_breakdown.each do |flow, stats| %>
+          <tr>
+            <td><%= flow %></td>
+            <td><b><%= stats[:total] %></b></td>
+            <td><b><%= stats[:promoted] %></b></td>
+            <td style="color: <%= stats[:rate] > 50 ? 'var(--green)' : stats[:rate] < 20 ? 'var(--red)' : 'inherit' %>;"><b><%= stats[:rate] %>%</b></td>
+          </tr>
+        <% end %>
       </tbody>
     </table>
-    <% if @dialogue_funnel[:first_interaction] > 0 %>
-      <p style="color:var(--overlay1);padding:0.5lh 0;">
-        <%= ((@dialogue_funnel[:promoted].to_f / @dialogue_funnel[:first_interaction]) * 100).round(1) %>% completion rate
-      </p>
-    <% end %>
-  </article>
-</div>
+  <% else %>
+    <span style="color: var(--foreground2);">no data</span>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <row gap-="3" align-="start">
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">login funnel</span>
+      <table>
+        <thead><tr><th>step</th><th>count</th></tr></thead>
+        <tbody>
+          <% @login_funnel.each do |event, count| %>
+            <tr>
+              <td><%= link_to event.split(".").last.gsub("_", " "), "https://github.com/hackclub/auth/search?q=%22#{event}%22", target: "_blank" %></td>
+              <td><b><%= count %></b></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </column>
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">oauth</span>
+      <table>
+        <thead><tr><th>event</th><th>count</th></tr></thead>
+        <tbody>
+          <tr><td style="color: var(--green);">authorized</td><td><b><%= @oauth_funnel[:authorized] %></b></td></tr>
+          <tr><td style="color: var(--red);">denied</td><td><b><%= @oauth_funnel[:denied] %></b></td></tr>
+          <tr><td>revoked</td><td><b><%= @oauth_funnel[:revoked] %></b></td></tr>
+        </tbody>
+      </table>
+    </column>
+  </row>
+
+  <div is-="separator"></div>
+
+  <span style="color: var(--foreground2); font-style: italic;">dialogue funnel</span>
+  <table>
+    <thead><tr><th>step</th><th>count</th></tr></thead>
+    <tbody>
+      <tr><td>first interaction</td><td><b><%= @dialogue_funnel[:first_interaction] %></b></td></tr>
+      <tr><td style="color: var(--green);">promoted</td><td><b><%= @dialogue_funnel[:promoted] %></b></td></tr>
+    </tbody>
+  </table>
+  <% if @dialogue_funnel[:first_interaction] > 0 %>
+    <span style="color: var(--foreground2);"><%= ((@dialogue_funnel[:promoted].to_f / @dialogue_funnel[:first_interaction]) * 100).round(1) %>% completion rate</span>
+  <% end %>
+</column>

@@ -1,28 +1,10 @@
-<div style="background:var(--surface0);padding:0.5lh 2ch;">
-  <div class="tui-detail">
-    <span class="tui-detail-label">name</span>
-    <span class="tui-detail-value"><%= render identity %></span>
-  </div>
+<column>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">name</span> <%= render identity %></row>
   <% if identity.legal_first_name.present? %>
-    <div class="tui-detail">
-      <span class="tui-detail-label">legal name</span>
-      <span class="tui-detail-value"><%= identity.legal_first_name %> <%= identity.legal_last_name %></span>
-    </div>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">legal name</span> <%= identity.legal_first_name %> <%= identity.legal_last_name %></row>
   <% end %>
-  <div class="tui-detail">
-    <span class="tui-detail-label">email</span>
-    <span class="tui-detail-value"><%= identity.primary_email %></span>
-  </div>
-  <div class="tui-detail">
-    <span class="tui-detail-label">birthday</span>
-    <span class="tui-detail-value"><%= identity.birthday.strftime("%B %d, %Y") %></span>
-  </div>
-  <div class="tui-detail">
-    <span class="tui-detail-label">age</span>
-    <span class="tui-detail-value"><%= identity.age.round(2) %></span>
-  </div>
-  <div class="tui-detail">
-    <span class="tui-detail-label">country</span>
-    <span class="tui-detail-value"><%= identity.country %></span>
-  </div>
-</div>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">email</span> <%= identity.primary_email %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">birthday</span> <%= identity.birthday.strftime("%B %d, %Y") %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">age</span> <%= identity.age.round(2) %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">country</span> <%= identity.country %></row>
+</column>

@@ -1,145 +1,138 @@
-<div class="tui-page">
-  <article box-="round">
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
     <h2>dashboard</h2>
-    <div is-="separator"></div>
-
-    <div style="display:flex;align-items:center;gap:1ch;">
-      <h3>verification stats</h3>
-      <%= form_tag backend_dashboard_path, method: :get, style: "margin-left:auto;" do %>
-        <%= select_tag :time_period,
-            options_for_select([
-              ["today", "today"],
-              ["this month", "this_month"],
-              ["all time", "all_time"]
-            ], @time_period),
-            onchange: "this.form.submit()" %>
-      <% end %>
-    </div>
-
-    <div style="text-align:center;padding:1lh 0;">
-      <div style="font-size:2em;font-weight:bold;color:var(--peach);"><%= @stats[:pending] %></div>
-      <div style="color:var(--overlay1);">pending</div>
-    </div>
-    <p style="text-align:center;color:var(--overlay1);">
-      <b><%= @stats[:total] %></b> total
-      &middot;
-      <b style="color:var(--green);"><%= @stats[:approved] %></b> approved
-      &middot;
-      <b style="color:var(--red);"><%= @stats[:rejected] %></b> rejected
-      &middot;
-      avg wait: <b><%= distance_of_time_in_words 0, (@stats[:average_hangtime] || 0) %></b>
-    </p>
-
-    <div is-="separator"></div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2ch;">
-      <div>
-        <h3>leaderboard</h3>
-        <% if @leaderboard.any? %>
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>user</th>
-                <th>processed</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @leaderboard.each_with_index do |entry, index| %>
-                <tr>
-                  <td><%= index + 1 %></td>
-                  <td><%= render entry[:user] %></td>
-                  <td><b><%= entry[:processed_count] %></b></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        <% else %>
-          <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no activity yet</p>
-        <% end %>
-      </div>
-      <div>
-        <h3>rejection reasons</h3>
-        <% if @rejection_breakdown.any? %>
-          <table>
-            <thead>
-              <tr>
-                <th>reason</th>
-                <th>count</th>
-                <th>%</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% total_rejected = @stats[:rejected] %>
-              <% @rejection_breakdown.each do |reason, data| %>
-                <tr>
-                  <td>
-                    <%= reason %>
-                    <% if data[:fatal] %>
-                      <span is-="badge" variant-="red">fatal</span>
-                    <% end %>
-                  </td>
-                  <td><b><%= data[:count] %></b></td>
-                  <td><%= total_rejected > 0 ? "#{(data[:count].to_f / total_rejected * 100).round(1)}%" : "0%" %></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        <% else %>
-          <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no rejections</p>
-        <% end %>
-      </div>
-    </div>
-
-    <div is-="separator"></div>
-
-    <h3>rejections by country</h3>
-    <% if @rejections_by_country.any? %>
-      <table>
-        <thead>
-          <tr>
-            <th>country</th>
-            <th>fatal</th>
-            <th>total rejected</th>
-            <th>fatal %</th>
-            <th>breakdown</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @rejections_by_country.each do |country, data| %>
-            <% next if data[:fatal] == 0 %>
-            <tr>
-              <td><b><%= country %></b></td>
-              <td style="color:var(--red);"><b><%= data[:fatal] %></b></td>
-              <td><%= data[:total] %></td>
-              <td>
-                <% if data[:fatal_rate] >= 50 %>
-                  <span is-="badge" variant-="red"><%= data[:fatal_rate] %>%</span>
-                <% elsif data[:fatal_rate] >= 25 %>
-                  <span is-="badge" variant-="yellow"><%= data[:fatal_rate] %>%</span>
-                <% else %>
-                  <%= data[:fatal_rate] %>%
-                <% end %>
-              </td>
-              <td>
-                <details>
-                  <summary>view all</summary>
-                  <ul style="margin:0.5lh 0 0 2ch;padding:0;">
-                    <% data[:reasons].each do |reason, r| %>
-                      <li>
-                        <%= reason %>: <%= r[:count] %>
-                        <% if r[:fatal] %><span is-="badge" variant-="red">fatal</span><% end %>
-                      </li>
-                    <% end %>
-                  </ul>
-                </details>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">none</p>
+    <%= form_tag backend_dashboard_path, method: :get, style: "display:inline;" do %>
+      <%= select_tag :time_period,
+          options_for_select([
+            ["today", "today"],
+            ["this month", "this_month"],
+            ["all time", "all_time"]
+          ], @time_period),
+          onchange: "this.form.submit()" %>
     <% end %>
-  </article>
-</div>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%# Hero: pending count %>
+  <row align-="center center" gap-="2" pad-="1 1">
+    <column align-="center center">
+      <span style="font-size: 2em; font-weight: bold;"><%= @stats[:pending] %></span>
+      <span style="color: var(--foreground2);">pending</span>
+    </column>
+  </row>
+
+  <row align-="center center" gap-="3" style="color: var(--foreground2);">
+    <span><b><%= @stats[:total] %></b> total</span>
+    <span><b style="color: var(--green);"><%= @stats[:approved] %></b> approved</span>
+    <span><b style="color: var(--red);"><%= @stats[:rejected] %></b> rejected</span>
+    <span>avg wait: <b><%= distance_of_time_in_words 0, (@stats[:average_hangtime] || 0) %></b></span>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%# Two-column: leaderboard + rejection reasons %>
+  <row gap-="3" align-="start">
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">leaderboard</span>
+      <% if @leaderboard.any? %>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>user</th>
+              <th>processed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @leaderboard.each_with_index do |entry, index| %>
+              <tr>
+                <td><%= index + 1 %></td>
+                <td><%= render entry[:user] %></td>
+                <td><b><%= entry[:processed_count] %></b></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <span style="color: var(--foreground2);">no activity yet</span>
+      <% end %>
+    </column>
+
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">rejection reasons</span>
+      <% if @rejection_breakdown.any? %>
+        <table>
+          <thead>
+            <tr>
+              <th>reason</th>
+              <th>count</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% total_rejected = @stats[:rejected] %>
+            <% @rejection_breakdown.each do |reason, data| %>
+              <tr>
+                <td>
+                  <%= reason %>
+                  <% if data[:fatal] %><span is-="badge" variant-="red">fatal</span><% end %>
+                </td>
+                <td><b><%= data[:count] %></b></td>
+                <td><%= total_rejected > 0 ? "#{(data[:count].to_f / total_rejected * 100).round(1)}%" : "0%" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <span style="color: var(--foreground2);">no rejections</span>
+      <% end %>
+    </column>
+  </row>
+
+  <div is-="separator"></div>
+
+  <span style="color: var(--foreground2); font-style: italic;">rejections by country</span>
+  <% if @rejections_by_country.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>country</th>
+          <th>fatal</th>
+          <th>total</th>
+          <th>fatal %</th>
+          <th>breakdown</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @rejections_by_country.each do |country, data| %>
+          <% next if data[:fatal] == 0 %>
+          <tr>
+            <td><b><%= country %></b></td>
+            <td style="color: var(--red);"><b><%= data[:fatal] %></b></td>
+            <td><%= data[:total] %></td>
+            <td>
+              <% if data[:fatal_rate] >= 50 %>
+                <span is-="badge" variant-="red"><%= data[:fatal_rate] %>%</span>
+              <% elsif data[:fatal_rate] >= 25 %>
+                <span is-="badge" variant-="yellow"><%= data[:fatal_rate] %>%</span>
+              <% else %>
+                <%= data[:fatal_rate] %>%
+              <% end %>
+            </td>
+            <td>
+              <details>
+                <summary style="color: var(--foreground2);">view</summary>
+                <% data[:reasons].each do |reason, r| %>
+                  <span><%= reason %>: <%= r[:count] %><% if r[:fatal] %> <span is-="badge" variant-="red">fatal</span><% end %></span><br>
+                <% end %>
+              </details>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--foreground2);">none</span>
+  <% end %>
+</column>
