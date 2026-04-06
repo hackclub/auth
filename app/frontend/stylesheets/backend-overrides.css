@@ -153,12 +153,17 @@
       color: var(--foreground2);
       font-weight: normal;
       font-style: italic;
-      padding-bottom: 0.25lh;
+    }
+
+    thead {
       border-bottom: 1px solid var(--background1);
     }
 
-    thead + tbody > tr:first-child > td {
-      padding-top: 0;
+    /* space between header and first data row without affecting hover */
+    thead + tbody::before {
+      content: '';
+      display: table-row;
+      height: 0.25lh;
     }
 
     tbody tr:hover td {
