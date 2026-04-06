@@ -6,16 +6,30 @@
 
   <div is-="separator"></div>
 
-  <column box-="square">
-    <% @users.each do |user| %>
-      <a href="<%= backend_user_path(user) %>" data-navigable-item style="padding: 0 1ch;">
-        <b style="min-width: 20ch;">
-          <%= user.display_name %>
-          <% unless user.active? %><span style="color: var(--red);">✕</span><% end %>
-          <% if user.orphaned? %><span is-="badge" variant-="yellow">orphaned</span><% end %>
-        </b>
-        <span style="color: var(--foreground2);"><%= user.pretty_roles %></span>
-      </a>
-    <% end %>
-  </column>
+  <table>
+    <thead>
+      <tr>
+        <th>user</th>
+        <th>roles</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @users.each do |user| %>
+        <tr>
+          <td>
+            <%= link_to user.display_name, backend_user_path(user) %>
+            <% if user.orphaned? %>
+              <span is-="badge" variant-="yellow">orphaned</span>
+            <% end %>
+            <% unless user.active? %>
+              <span is-="badge" variant-="red">inactive</span>
+            <% end %>
+          </td>
+          <td style="color: var(--foreground2);"><%= user.pretty_roles %></td>
+          <td style="color: var(--foreground2);">→</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
 </column>
