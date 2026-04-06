@@ -5,13 +5,9 @@
       <row gap-="2" align-="center">
         <a href="<%= edit_backend_user_path(@user) %>">edit</a>
         <% if @user.active? %>
-          <%= button_to deactivate_backend_user_path(@user), method: :post, style: "display:inline" do %>
-            <a href="#" style="color: var(--red);">deactivate</a>
-          <% end %>
+          <%= button_to "deactivate", deactivate_backend_user_path(@user), method: :post, form: { style: "display:inline" }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
         <% else %>
-          <%= button_to activate_backend_user_path(@user), method: :post, style: "display:inline" do %>
-            <a href="#" style="color: var(--green);">activate</a>
-          <% end %>
+          <%= button_to "activate", activate_backend_user_path(@user), method: :post, form: { style: "display:inline" }, style: "all:unset; color:var(--green); text-decoration:underline; cursor:pointer;" %>
         <% end %>
       </row>
     <% end %>
