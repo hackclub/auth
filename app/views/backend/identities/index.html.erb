@@ -21,21 +21,16 @@
     <div is-="separator"></div>
   <% end %>
 
-  <column data-navigable-list>
+  <column box-="square" data-navigable-list pad-="0 0">
     <% @identities.each do |identity| %>
-      <a href="<%= backend_identity_path(identity) %>" data-navigable-item>
-        <span style="flex: 1;">
-          <b><%= identity.first_name %> <%= identity.last_name %></b>
-          <span style="color: var(--foreground2); padding-left: 1ch;"><%= identity.primary_email %></span>
-        </span>
-        <row gap-="1" align-="center">
-          <% if identity.verification_status == 'verified' %>
-            <span is-="badge" variant-="green">verified</span>
-          <% end %>
-          <% if identity.ysws_eligible == true %>
-            <span is-="badge" variant-="green">ysws</span>
-          <% end %>
-        </row>
+      <a href="<%= backend_identity_path(identity) %>" data-navigable-item style="padding: 0 1ch;">
+        <b style="min-width: 20ch;"><%= identity.first_name %> <%= identity.last_name %></b>
+        <span style="flex: 1; color: var(--foreground2);"><%= identity.primary_email %></span>
+        <% if identity.verification_status == 'verified' %>
+          <span is-="badge" variant-="green">verified</span>
+        <% elsif identity.verification_status == 'pending' %>
+          <span is-="badge" variant-="yellow">pending</span>
+        <% end %>
       </a>
     <% end %>
   </column>
