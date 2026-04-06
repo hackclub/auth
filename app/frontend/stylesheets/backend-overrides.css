@@ -158,7 +158,7 @@
     }
 
     thead + tbody > tr:first-child > td {
-      padding-top: 0.25lh;
+      padding-top: 0;
     }
 
     tbody tr:hover td {
