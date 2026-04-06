@@ -113,17 +113,9 @@
     #hca-actionbar .hca-user-context { display: none; }
   }
 
-  /* Table: no outer border, subtle cell lines, row hover */
+  /* Table */
   table {
     --table-border-color: var(--background3);
-    width: 100%;
-
-    &::before { display: none; }
-
-    tr td:first-of-type,
-    tr th:first-of-type {
-      padding-left: 0;
-    }
   }
 
   tbody tr:hover {
