@@ -124,8 +124,18 @@
     tr th::before, tr th::after { display: none; }
 
     tr th, tr td {
-      padding: 0.25lh 1ch;
+      padding: 0 1ch;
       text-align: left;
+    }
+
+    /* webtui adds 1lh bottom padding to cells — kill it */
+    tr th, tr td {
+      padding-bottom: 0;
+    }
+
+    :first-child > tr:first-child > td,
+    :first-child > tr:first-child > th {
+      padding-top: 0;
     }
 
     /* vertical column dividers */
