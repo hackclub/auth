@@ -143,15 +143,22 @@
     :first-child > tr:first-child > td,
     :first-child > tr:first-child > th { padding-top: 0; }
 
-    /* vertical column dividers */
+    /* vertical column dividers — barely there */
     tr th + th, tr td + td {
-      border-left: 1px solid var(--background2);
+      border-left: 1px solid var(--background1);
     }
 
-    /* muted header row */
+    /* header row — muted italic, subtle underline */
     thead tr th {
       color: var(--foreground2);
       font-weight: normal;
+      font-style: italic;
+      padding-bottom: 0.25lh;
+      border-bottom: 1px solid var(--background2);
+    }
+
+    thead + tbody > tr:first-child > td {
+      padding-top: 0.25lh;
     }
 
     tbody tr:hover td {
