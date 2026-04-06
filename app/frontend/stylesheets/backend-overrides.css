@@ -155,7 +155,7 @@
       font-style: italic;
     }
 
-    thead {
+    thead tr th {
       border-bottom: 1px solid var(--background1);
     }
 
