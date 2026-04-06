@@ -113,10 +113,11 @@
     #hca-actionbar .hca-user-context { display: none; }
   }
 
-  /* Table — kill webtui default, do our own thing */
+  /* Table — boxed, vertical dividers, no row borders */
   table {
     width: 100%;
     border-spacing: 0;
+    border: 2px solid var(--background2);
 
     /* nuke all webtui pseudo-element borders */
     &::before { display: none; }
@@ -125,18 +126,12 @@
 
     tr th, tr td {
       padding: 0 1ch;
+      padding-bottom: 0;
       text-align: left;
     }
 
-    /* webtui adds 1lh bottom padding to cells — kill it */
-    tr th, tr td {
-      padding-bottom: 0;
-    }
-
     :first-child > tr:first-child > td,
-    :first-child > tr:first-child > th {
-      padding-top: 0;
-    }
+    :first-child > tr:first-child > th { padding-top: 0; }
 
     /* vertical column dividers */
     tr th + th, tr td + td {
@@ -146,15 +141,8 @@
     thead tr th {
       color: var(--foreground2);
       font-weight: bold;
-      border-bottom: 2px solid var(--background2);
     }
 
-    /* zebra striping — very subtle */
-    tbody tr:nth-child(even) {
-      background-color: color-mix(in srgb, var(--background1) 40%, transparent);
-    }
-
-    /* hover overrides stripe */
     tbody tr:hover {
       background-color: var(--background1);
     }

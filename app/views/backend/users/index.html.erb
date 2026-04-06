@@ -1,4 +1,4 @@
-<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
   <row align-="center between">
     <h2>backend users</h2>
     <a href="<%= new_backend_user_path %>"><button size-="small">+ grant access</button></a>
@@ -10,22 +10,28 @@
     <thead>
       <tr>
         <th>user</th>
+        <th>email</th>
         <th>roles</th>
+        <th>slack</th>
+        <th>status</th>
       </tr>
     </thead>
     <tbody>
       <% @users.each do |user| %>
         <tr>
+          <td><%= link_to user.display_name, backend_user_path(user) %></td>
+          <td style="color: var(--foreground2);"><%= user.email || "—" %></td>
+          <td><%= user.pretty_roles %></td>
+          <td style="color: var(--foreground2);"><%= user.slack_id || "—" %></td>
           <td>
-            <%= link_to user.display_name, backend_user_path(user) %>
-            <% if user.orphaned? %>
-              <span is-="badge" variant-="yellow">orphaned</span>
-            <% end %>
-            <% unless user.active? %>
+            <% if !user.active? %>
               <span is-="badge" variant-="red">inactive</span>
+            <% elsif user.orphaned? %>
+              <span is-="badge" variant-="yellow">orphaned</span>
+            <% else %>
+              <span style="color: var(--green);">active</span>
             <% end %>
           </td>
-          <td style="color: var(--foreground2);"><%= user.pretty_roles %></td>
         </tr>
       <% end %>
     </tbody>
