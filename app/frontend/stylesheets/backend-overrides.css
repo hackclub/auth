@@ -113,23 +113,40 @@
     #hca-actionbar .hca-user-context { display: none; }
   }
 
-  /* Table */
+  /* Table — kill webtui default, do our own thing */
   table {
-    --table-border-color: var(--background3);
-  }
+    width: 100%;
+    border-spacing: 0;
 
-  tbody tr {
-    position: relative;
+    /* nuke all webtui pseudo-element borders */
+    &::before { display: none; }
+    tr td::before, tr td::after,
+    tr th::before, tr th::after { display: none; }
 
-    &:hover::after {
-      content: '';
-      position: absolute;
-      left: 0.5ch;
-      right: 0.5ch;
-      top: 0;
-      bottom: 0.5lh;
+    tr th, tr td {
+      padding: 0.25lh 1ch;
+      text-align: left;
+    }
+
+    /* vertical column dividers */
+    tr th + th, tr td + td {
+      border-left: 2px solid var(--background2);
+    }
+
+    thead tr th {
+      color: var(--foreground2);
+      font-weight: bold;
+      border-bottom: 2px solid var(--background2);
+    }
+
+    /* zebra striping */
+    tbody tr:nth-child(even) td {
       background-color: var(--background1);
-      z-index: -1;
+    }
+
+    /* hover overrides stripe */
+    tbody tr:hover td {
+      background-color: var(--background2);
     }
   }
 
