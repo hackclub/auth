@@ -1,4 +1,4 @@
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
   <h2>identities</h2>
 
   <div is-="separator"></div>
@@ -17,33 +17,28 @@
   <div is-="separator"></div>
 
   <% if params[:search].present? %>
-    <span style="color: var(--foreground2); padding-bottom: 0.5lh; display: block;"><%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</span>
+    <span style="color: var(--foreground2);"><%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</span>
+    <div is-="separator"></div>
   <% end %>
 
-  <table>
-    <thead>
-      <tr>
-        <th>name</th>
-        <th>email</th>
-        <th>status</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @identities.each do |identity| %>
-        <tr>
-          <td><%= link_to "#{identity.first_name} #{identity.last_name}", backend_identity_path(identity) %></td>
-          <td style="color: var(--foreground2);"><%= identity.primary_email %></td>
-          <td>
+  <column data-navigable-list>
+    <% @identities.each do |identity| %>
+      <a href="<%= backend_identity_path(identity) %>" data-navigable-item style="padding: 0.25lh 0;">
+        <column style="flex: 1; gap: 0;">
+          <row gap-="2" align-="center">
+            <b><%= identity.first_name %> <%= identity.last_name %></b>
             <% if identity.verification_status == 'verified' %>
               <span is-="badge" variant-="green">verified</span>
-            <% else %>
-              <span style="color: var(--foreground2);"><%= identity.verification_status %></span>
             <% end %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+            <% if identity.ysws_eligible == true %>
+              <span is-="badge" variant-="green">ysws</span>
+            <% end %>
+          </row>
+          <span style="color: var(--foreground2);"><%= identity.primary_email %></span>
+        </column>
+      </a>
+    <% end %>
+  </column>
 
   <div is-="separator"></div>
 
@@ -53,12 +48,17 @@
 
   <row gap-="2" align-="center" style="color: var(--foreground2);">
     <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">/</span>
-      search
+      <span is-="badge" variant-="background2">↑</span>
+      <span is-="badge" variant-="background2">↓</span>
+      navigate
     </row>
     <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">Bksp</span>
-      back
+      <span is-="badge" variant-="background2">↵</span>
+      open
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">/</span>
+      search
     </row>
   </row>
 </column>
