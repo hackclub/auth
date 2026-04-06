@@ -113,9 +113,13 @@
     #hca-actionbar .hca-user-context { display: none; }
   }
 
-  /* Quieter table borders */
+  /* Quieter table borders + row hover */
   table {
     --table-border-color: var(--background3);
+  }
+
+  tbody tr:hover {
+    background-color: var(--background1);
   }
 
   /* Environment indicator */
