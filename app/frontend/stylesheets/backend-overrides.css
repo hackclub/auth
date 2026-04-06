@@ -153,9 +153,7 @@
       color: var(--foreground2);
       font-weight: normal;
       font-style: italic;
-    }
-
-    thead tr th {
+      padding-bottom: 0.25lh;
       border-bottom: 1px solid var(--background1);
     }
 
