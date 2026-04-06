@@ -17,25 +17,33 @@
   <div is-="separator"></div>
 
   <% if params[:search].present? %>
-    <span style="color: var(--foreground2);"><%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</span>
+    <span style="color: var(--foreground2); padding-bottom: 0.5lh; display: block;"><%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</span>
   <% end %>
 
-  <column data-navigable-list>
-    <% @identities.each do |identity| %>
-      <a href="<%= backend_identity_path(identity) %>" data-navigable-item>
-        <span style="flex: 1;">
-          <b><%= render identity %></b>
-          <span style="color: var(--foreground2);"><%= identity.primary_email %></span>
-        </span>
-        <row gap-="1" align-="center">
-          <span is-="badge" variant-="<%= identity.verification_status == 'verified' ? 'green' : 'background2' %>"><%= identity.verification_status %></span>
-          <% unless identity.ysws_eligible.nil? %>
-            <span is-="badge" variant-="<%= identity.ysws_eligible ? 'green' : 'red' %>">ysws</span>
-          <% end %>
-        </row>
-      </a>
-    <% end %>
-  </column>
+  <table>
+    <thead>
+      <tr>
+        <th>name</th>
+        <th>email</th>
+        <th>status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @identities.each do |identity| %>
+        <tr>
+          <td><%= link_to "#{identity.first_name} #{identity.last_name}", backend_identity_path(identity) %></td>
+          <td style="color: var(--foreground2);"><%= identity.primary_email %></td>
+          <td>
+            <% if identity.verification_status == 'verified' %>
+              <span is-="badge" variant-="green">verified</span>
+            <% else %>
+              <span style="color: var(--foreground2);"><%= identity.verification_status %></span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
 
   <div is-="separator"></div>
 
@@ -44,15 +52,6 @@
   <div is-="separator"></div>
 
   <row gap-="2" align-="center" style="color: var(--foreground2);">
-    <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">↑</span>
-      <span is-="badge" variant-="background2">↓</span>
-      navigate
-    </row>
-    <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">↵</span>
-      open
-    </row>
     <row gap-="1" align-="center">
       <span is-="badge" variant-="background2">/</span>
       search
