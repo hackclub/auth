@@ -118,7 +118,7 @@
     --table-border-color: var(--background3);
   }
 
-  tbody tr:hover {
+  tbody tr:hover td {
     background-color: var(--background1);
   }
 
