@@ -139,14 +139,14 @@
       border-bottom: 2px solid var(--background2);
     }
 
-    /* zebra striping */
-    tbody tr:nth-child(even) td {
-      background-color: var(--background1);
+    /* zebra striping — very subtle */
+    tbody tr:nth-child(even) {
+      background-color: color-mix(in srgb, var(--background1) 40%, transparent);
     }
 
     /* hover overrides stripe */
-    tbody tr:hover td {
-      background-color: var(--background2);
+    tbody tr:hover {
+      background-color: var(--background1);
     }
   }
 
