@@ -113,16 +113,26 @@
     #hca-actionbar .hca-user-context { display: none; }
   }
 
-  /* Table — boxed, vertical dividers, no row borders */
+  /* Table — looks like box-="square" with column alignment */
   table {
     width: 100%;
     border-spacing: 0;
-    border: 2px solid var(--background2);
 
-    /* nuke all webtui pseudo-element borders */
+    /* nuke webtui pseudo-element borders */
     &::before { display: none; }
     tr td::before, tr td::after,
     tr th::before, tr th::after { display: none; }
+
+    /* box-like outer border */
+    position: relative;
+    padding: 1lh 1ch;
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0.5lh 0.5ch;
+      border: 2px solid var(--box-border-color);
+      pointer-events: none;
+    }
 
     tr th, tr td {
       padding: 0 1ch;
@@ -135,15 +145,16 @@
 
     /* vertical column dividers */
     tr th + th, tr td + td {
-      border-left: 2px solid var(--background2);
+      border-left: 1px solid var(--background2);
     }
 
+    /* muted header row */
     thead tr th {
       color: var(--foreground2);
-      font-weight: bold;
+      font-weight: normal;
     }
 
-    tbody tr:hover {
+    tbody tr:hover td {
       background-color: var(--background1);
     }
   }
