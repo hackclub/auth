@@ -118,8 +118,19 @@
     --table-border-color: var(--background3);
   }
 
-  tbody tr:hover td {
-    background-color: var(--background1);
+  tbody tr {
+    position: relative;
+
+    &:hover::after {
+      content: '';
+      position: absolute;
+      left: 0.5ch;
+      right: 0.5ch;
+      top: 0;
+      bottom: 0.5lh;
+      background-color: var(--background1);
+      z-index: -1;
+    }
   }
 
   /* Environment indicator */
