@@ -43,6 +43,16 @@
     padding-top: 2lh;
   }
 
+  /* Links — webtui only styles <a> inside <p>/<li>, we need them everywhere */
+  a[href]:not([data-navigable-item]) {
+    color: var(--foreground2);
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--foreground0);
+    }
+  }
+
   /* Sidebar-style nav links (tree markers) */
   ul {
     list-style: none;
