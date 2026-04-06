@@ -21,7 +21,10 @@ when 0
 
       We take our <https://hackclub.com/conduct|Code of Conduct> seriously — it's enforced by the Fire Department. DM <@U07K4TS9HQE> if you ever have a concern.
 
+      :beltparrot::beltparrot::beltparrot::beltparrot::beltparrot::beltparrot::beltparrot::beltparrot::beltparrot::beltparrot:
       Here are some places to start:
+
+      *<##{chan_welcome}>* - Ask questions, or just introduce yourself! 
 
       *<##{chan_announcements}>* - Important news and updates
 
@@ -30,8 +33,6 @@ when 0
       *<##{chan_neighbourhood}>* - Channel containing many more other channels
 
       *<##{chan_ship}>* - Show off what you've built!
-
-      *<##{chan_welcome}>* - Meet new friends and introduce yourself!
 
       Have fun! 💚
     TEXT
