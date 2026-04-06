@@ -1,49 +1,73 @@
-<div class="tui-page">
-  <article box-="round">
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
     <h2>identities</h2>
-    <div is-="separator"></div>
-    <div class="tui-search">
-      <%= form_with url: backend_identities_path, method: :get, local: true do |f| %>
-        <span>&gt; search:</span>
-        <%= f.search_field :search, value: params[:search], placeholder: "name, email, slack id..." %>
-        <button type="submit"><kbd>&#x23ce;</kbd></button>
-        <% if params[:search].present? %>
-          <a href="<%= backend_identities_path %>"><button type="button">CLR</button></a>
-        <% end %>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%= form_with url: backend_identities_path, method: :get, local: true do |f| %>
+    <row gap-="1" align-="center">
+      <span style="color: var(--foreground2);">⌕</span>
+      <%= f.search_field :search, value: params[:search], placeholder: "name, email, slack id...", style: "flex: 1; border: none;" %>
+      <button type="submit" size-="small">search</button>
+      <% if params[:search].present? %>
+        <a href="<%= backend_identities_path %>"><button type="button" size-="small">clear</button></a>
       <% end %>
-    </div>
-    <% if params[:search].present? %>
-      <p style="color:var(--overlay1);padding:0.5lh 0;">found <%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</p>
-    <% end %>
-    <div is-="separator"></div>
-    <div data-navigable-list>
-      <table>
-        <thead>
-          <tr>
-            <th>name</th>
-            <th>email</th>
-            <th>status</th>
-            <th>ysws</th>
+    </row>
+  <% end %>
+
+  <% if params[:search].present? %>
+    <span style="color: var(--foreground2);"><%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</span>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <div data-navigable-list>
+    <table>
+      <thead>
+        <tr>
+          <th>name</th>
+          <th>email</th>
+          <th>status</th>
+          <th>ysws</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @identities.each do |identity| %>
+          <tr data-navigable-item>
+            <td><%= link_to backend_identity_path(identity) do %><%= render identity %><% end %></td>
+            <td><%= identity.primary_email %></td>
+            <td>
+              <span is-="badge" variant-="<%= identity.verification_status == 'verified' ? 'green' : 'yellow' %>"><%= identity.verification_status %></span>
+            </td>
+            <td><%= identity.ysws_eligible.nil? ? "?" : render_checkbox(identity.ysws_eligible) %></td>
           </tr>
-        </thead>
-        <tbody>
-          <% @identities.each do |identity| %>
-            <tr data-navigable-item>
-              <td><%= link_to backend_identity_path(identity) do %><%= render identity %><% end %></td>
-              <td><%= identity.primary_email %></td>
-              <td>
-                <span is-="badge" variant-="<%= identity.verification_status == 'verified' ? 'green' : 'yellow' %>"><%= identity.verification_status %></span>
-              </td>
-              <td><%= identity.ysws_eligible.nil? ? "?" : render_checkbox(identity.ysws_eligible) %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
-    <%= paginate @identities, params: { search: params[:search] } %>
-  </article>
-  <div class="tui-keyhints">
-    <span><kbd>j</kbd>/<kbd>k</kbd> navigate</span>
-    <span><kbd>enter</kbd> open</span>
+        <% end %>
+      </tbody>
+    </table>
   </div>
-</div>
+
+  <%= paginate @identities, params: { search: params[:search] } %>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">↑</span>
+      <span is-="badge" variant-="background2">↓</span>
+      navigate
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">↵</span>
+      open
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">/</span>
+      search
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span>
+      back
+    </row>
+  </row>
+</column>
