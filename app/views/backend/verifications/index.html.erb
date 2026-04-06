@@ -1,58 +1,56 @@
-<div class="tui-page">
-  <article box-="round">
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
     <h2>all verifications</h2>
-    <div is-="separator"></div>
-    <a href="<%= pending_backend_verifications_path %>" class="tui-item">
-      <span class="tui-item-icon">&#x2b62;</span>
-      <span class="tui-item-text"><b>pending verifications</b> [ PEND ]</span>
-    </a>
-    <div is-="separator"></div>
-    <% if @recent_verifications.any? %>
-      <table>
-        <thead>
+    <a href="<%= pending_backend_verifications_path %>"><button size-="small">review pending →</button></a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <% if @recent_verifications.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>identity</th>
+          <th>type</th>
+          <th>status</th>
+          <th>date</th>
+          <th>reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @recent_verifications.each do |verification| %>
           <tr>
-            <th>identity</th>
-            <th>type</th>
-            <th>status</th>
-            <th>date</th>
-            <th>reason</th>
+            <td>
+              <%= link_to "#{verification.identity.first_name} #{verification.identity.last_name}", backend_verification_path(verification) %>
+            </td>
+            <td>
+              <%= verification.document_type %>
+              <% if verification.ignored_at.present? %>
+                <span is-="badge" variant-="yellow">ignored</span>
+              <% end %>
+            </td>
+            <td>
+              <% if verification.approved? %>
+                <span is-="badge" variant-="green">approved</span>
+              <% else %>
+                <span is-="badge" variant-="red">rejected</span>
+              <% end %>
+            </td>
+            <td style="color: var(--foreground2);"><%= verification.updated_at.strftime("%Y-%m-%d") %></td>
+            <td style="color: var(--foreground2);">
+              <% if verification.ignored_at.present? %>
+                <%= verification.ignored_reason %>
+              <% elsif verification.rejection_reason_name.present? %>
+                <%= verification.rejection_reason_name %>
+              <% end %>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          <% @recent_verifications.each do |verification| %>
-            <tr>
-              <td>
-                <%= link_to backend_verification_path(verification) do %>
-                  <%= verification.identity.first_name %> <%= verification.identity.last_name %>
-                <% end %>
-                <br><small><%= verification.identity.primary_email %></small>
-              </td>
-              <td>
-                <%= verification.document_type %>
-                <% if verification.ignored_at.present? %>
-                  <span is-="badge" variant-="yellow">ignored</span>
-                <% end %>
-              </td>
-              <td>
-                <span is-="badge" variant-="<%= verification.approved? ? 'green' : 'red' %>">
-                  <%= verification.status %>
-                </span>
-              </td>
-              <td><%= verification.updated_at.strftime("%m/%d/%Y") %></td>
-              <td>
-                <% if verification.ignored_at.present? %>
-                  <%= verification.ignored_reason %>
-                <% else %>
-                  <%= verification.rejection_reason_name %>
-                <% end %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-      <%= paginate @recent_verifications %>
-    <% else %>
-      <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no verifications found</p>
-    <% end %>
-  </article>
-</div>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= paginate @recent_verifications %>
+  <% else %>
+    <span style="color: var(--foreground2);">no verifications found</span>
+  <% end %>
+</column>

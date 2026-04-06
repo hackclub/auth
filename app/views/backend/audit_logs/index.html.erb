@@ -1,18 +1,20 @@
-<div class="tui-page">
-  <article box-="round">
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
     <h2>audit logs</h2>
-    <div is-="separator"></div>
-    <div style="display:flex;gap:1ch;">
+    <row gap-="1" align-="center">
       <% if params[:admin_actions_only] %>
-        <a href="<%= backend_audit_logs_path %>"><button type="button">ALL</button></a>
-        <button type="button" disabled>ADMIN</button>
+        <a href="<%= backend_audit_logs_path %>" style="color: var(--foreground2); text-decoration: none;">all</a>
+        <span is-="badge" variant-="foreground0">admin</span>
       <% else %>
-        <button type="button" disabled>ALL</button>
-        <a href="<%= backend_audit_logs_path(admin_actions_only: true) %>"><button type="button">ADMIN</button></a>
+        <span is-="badge" variant-="foreground0">all</span>
+        <a href="<%= backend_audit_logs_path(admin_actions_only: true) %>" style="color: var(--foreground2); text-decoration: none;">admin</a>
       <% end %>
-    </div>
-    <div is-="separator"></div>
-    <%= render "backend/shared/activity_log", activities: @activities %>
-    <%= paginate @activities %>
-  </article>
-</div>
+    </row>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%= render "backend/shared/activity_log", activities: @activities %>
+
+  <%= paginate @activities %>
+</column>

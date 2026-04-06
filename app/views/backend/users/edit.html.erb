@@ -1,12 +1,10 @@
-<div class="tui-page">
-  <article box-="round">
+<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
     <h2>edit: <%= @user.display_name %></h2>
-    <div is-="separator"></div>
-    <a href="<%= backend_user_path(@user) %>" class="tui-item">
-      <span class="tui-item-icon">&#x2b60;</span>
-      <span class="tui-item-text"><b>cancel</b></span>
-    </a>
-    <div is-="separator"></div>
-    <%= render Backend::Users::Form.new @user %>
-  </article>
-</div>
+    <a href="<%= backend_user_path(@user) %>" style="color: var(--foreground2); text-decoration: none;">cancel</a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%= render Backend::Users::Form.new @user %>
+</column>

@@ -1,62 +1,50 @@
-<div class="tui-page">
-  <article box-="round">
-    <h2>user: <%= @user.display_name %></h2>
-    <div is-="separator"></div>
-    <a href="<%= backend_users_path %>" class="tui-item">
-      <span class="tui-item-icon">&#x2b60;</span>
-      <span class="tui-item-text"><b>back to users</b></span>
-    </a>
-    <div is-="separator"></div>
-    <% if @user.orphaned? %>
-      <div box-="square" class="tui-banner tui-banner-warning">[!] orphaned user — not linked to an identity, cannot log in.</div>
-    <% else %>
-      <h3>linked identity</h3>
-      <div class="tui-detail">
-        <span class="tui-detail-label">name</span>
-        <span class="tui-detail-value"><%= @user.first_name %> <%= @user.last_name %></span>
-      </div>
-      <div class="tui-detail">
-        <span class="tui-detail-label">email</span>
-        <span class="tui-detail-value"><%= @user.email %></span>
-      </div>
-      <div class="tui-detail">
-        <span class="tui-detail-label">slack</span>
-        <span class="tui-detail-value"><%= @user.slack_id || "not linked" %></span>
-      </div>
-    <% end %>
-    <div is-="separator"></div>
-    <h3>permissions</h3>
-    <div class="tui-detail">
-      <span class="tui-detail-label">roles</span>
-      <span class="tui-detail-value"><%= @user.pretty_roles %></span>
-    </div>
-    <div class="tui-detail">
-      <span class="tui-detail-label">programs</span>
-      <span class="tui-detail-value">
-        <% if @user.organized_programs.any? %>
-          <%= @user.organized_programs.map(&:name).join(", ") %>
+<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2><%= @user.display_name %></h2>
+    <row gap-="1" align-="center">
+      <% super_admin_tool do %>
+        <a href="<%= edit_backend_user_path(@user) %>"><button size-="small">edit</button></a>
+        <% if @user.active? %>
+          <%= button_to "deactivate", deactivate_backend_user_path(@user), method: :post, size: "small" %>
         <% else %>
-          <i>none</i>
-        <% end %>
-      </span>
-    </div>
-    <% super_admin_tool do %>
-      <div is-="separator"></div>
-      <a href="<%= edit_backend_user_path(@user) %>" class="tui-item">
-        <span class="tui-item-icon">&#x270e;</span>
-        <span class="tui-item-text"><b>edit user</b></span>
-      </a>
-      <% if @user.active? %>
-        <%= button_to deactivate_backend_user_path(@user), method: :post, class: "tui-item" do %>
-          <span class="tui-item-icon">&#x2715;</span>
-          <span class="tui-item-text"><b>deactivate</b> <i>(stops login)</i></span>
-        <% end %>
-      <% else %>
-        <%= button_to activate_backend_user_path(@user), method: :post, class: "tui-item" do %>
-          <span class="tui-item-icon">&#x2713;</span>
-          <span class="tui-item-text"><b>activate</b> <i>(allows login)</i></span>
+          <%= button_to "activate", activate_backend_user_path(@user), method: :post, size: "small" %>
         <% end %>
       <% end %>
-    <% end %>
-  </article>
-</div>
+    </row>
+  </row>
+
+  <% if @user.orphaned? %>
+    <div box-="square" class="tui-banner tui-banner-warning">[!] orphaned — not linked to an identity, cannot log in</div>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <% unless @user.orphaned? %>
+    <row gap-="3">
+      <column style="flex: 1;">
+        <span style="color: var(--foreground2);">identity</span>
+        <span><%= @user.first_name %> <%= @user.last_name %></span>
+        <span style="color: var(--foreground2);"><%= @user.email %></span>
+        <% if @user.slack_id %>
+          <span style="color: var(--foreground2);">slack: <%= @user.slack_id %></span>
+        <% end %>
+      </column>
+      <column style="flex: 1;">
+        <span style="color: var(--foreground2);">permissions</span>
+        <span><%= @user.pretty_roles %></span>
+        <% if @user.organized_programs.any? %>
+          <span style="color: var(--foreground2);">programs: <%= @user.organized_programs.map(&:name).join(", ") %></span>
+        <% end %>
+      </column>
+    </row>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span>
+      back
+    </row>
+  </row>
+</column>
