@@ -14,12 +14,11 @@
     </row>
   <% end %>
 
-  <div is-="separator"></div>
-
   <% if params[:search].present? %>
     <span style="color: var(--foreground2);"><%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</span>
-    <div is-="separator"></div>
   <% end %>
+
+  <div is-="separator"></div>
 
   <column box-="square" data-navigable-list>
     <% @identities.each do |identity| %>
@@ -39,8 +38,6 @@
       </a>
     <% end %>
   </column>
-
-  <div is-="separator"></div>
 
   <%= paginate @identities, params: { search: params[:search] } %>
 
