@@ -163,8 +163,8 @@ module SCIMService
 
       slack_id = response.body["id"]
 
-      if user_type == :multi_channel_guest
-        channel_ids = scenario.slack_channels if scenario.slack_channels.any?
+      if scenario.slack_channels.any?
+        channel_ids = scenario.slack_channels
         sleep(2)
         assigned = SlackService.assign_to_workspace(user_id: slack_id, user_type:, channel_ids:)
         unless assigned

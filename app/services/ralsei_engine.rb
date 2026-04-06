@@ -21,7 +21,7 @@ module RalseiEngine
       Rails.logger.info "RalseiEngine: #{identity.public_id} agreed to tutorial"
       scenario = identity.onboarding_scenario_instance
 
-      if identity.promote_click_count == 0
+      if identity.promote_click_count == 0 && scenario&.slack_user_type != :full_member
         SlackService.promote_user(identity.slack_id)
 
         promotion_channels = scenario&.promotion_channels
@@ -82,11 +82,14 @@ module RalseiEngine
       return if identity.promote_click_count > 0
 
       scenario = identity.onboarding_scenario_instance
-      SlackService.promote_user(identity.slack_id)
 
-      promotion_channels = scenario&.promotion_channels
-      if promotion_channels.present?
-        SlackService.add_to_channels(user_id: identity.slack_id, channel_ids: promotion_channels)
+      if scenario&.slack_user_type != :full_member
+        SlackService.promote_user(identity.slack_id)
+
+        promotion_channels = scenario&.promotion_channels
+        if promotion_channels.present?
+          SlackService.add_to_channels(user_id: identity.slack_id, channel_ids: promotion_channels)
+        end
       end
 
       track_dialogue_event("dialogue.promoted", scenario: scenario&.class&.slug)
