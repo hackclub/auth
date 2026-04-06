@@ -1,16 +1,20 @@
 <column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
   <row align-="center between">
     <h2><%= @user.display_name %></h2>
-    <row gap-="1" align-="center">
-      <% super_admin_tool do %>
-        <a href="<%= edit_backend_user_path(@user) %>"><button size-="small">edit</button></a>
+    <% super_admin_tool do %>
+      <row gap-="2" align-="center">
+        <a href="<%= edit_backend_user_path(@user) %>">edit</a>
         <% if @user.active? %>
-          <%= button_to "deactivate", deactivate_backend_user_path(@user), method: :post, size: "small" %>
+          <%= button_to deactivate_backend_user_path(@user), method: :post, style: "display:inline" do %>
+            <a href="#" style="color: var(--red);">deactivate</a>
+          <% end %>
         <% else %>
-          <%= button_to "activate", activate_backend_user_path(@user), method: :post, size: "small" %>
+          <%= button_to activate_backend_user_path(@user), method: :post, style: "display:inline" do %>
+            <a href="#" style="color: var(--green);">activate</a>
+          <% end %>
         <% end %>
-      <% end %>
-    </row>
+      </row>
+    <% end %>
   </row>
 
   <% if @user.orphaned? %>
