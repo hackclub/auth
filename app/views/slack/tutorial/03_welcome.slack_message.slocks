@@ -6,17 +6,50 @@ chan_neighbourhood = Rails.configuration.slack_channels.neighbourhood
 chan_ship = Rails.configuration.slack_channels.ship
 chan_welcome = Rails.configuration.slack_channels.welcome_to_hack_club
 
+scenario = @identity.onboarding_scenario_instance
+is_full_member = scenario&.slack_user_type == :full_member
+
 case @identity.promote_click_count
 when 0
-  header "🎉 welcome in!"
+  if is_full_member
+    image "https://cdn.hackclub.com/019c297b-5d42-7256-a5e5-7d8f9f7adcd5/welcome.gif", "Welcome to Hack Club!"
 
-  section <<~TEXT, markdown: true
-    Great! The Code of Conduct is enforced by the Fire Department. DM <@U07K4TS9HQE> if you ever have a concern.
+    header "🎉 welcome to Hack Club!"
 
-    You now have access to all channels! Reload Slack to see them.
+    section <<~TEXT, markdown: true
+      You're in! All channels are open to you.
 
-    Visit <##{chan_welcome_to_hc}> for questions, advice, or just to introduce yourself!
-  TEXT
+      We take our <https://hackclub.com/conduct|Code of Conduct> seriously — it's enforced by the Fire Department. DM <@U07K4TS9HQE> if you ever have a concern.
+
+      Here are some places to start:
+
+      *<##{chan_announcements}>* - Important news and updates
+
+      *<##{chan_library}>* - Channel containing other channels
+
+      *<##{chan_neighbourhood}>* - Channel containing many more other channels
+
+      *<##{chan_ship}>* - Show off what you've built!
+
+      *<##{chan_welcome}>* - Meet new friends and introduce yourself!
+
+      Have fun! 💚
+    TEXT
+
+    actions [
+      button("🔥 pet the skull", "tutorial_agree")
+    ]
+  else
+    header "🎉 welcome in!"
+
+    section <<~TEXT, markdown: true
+      Great! The Code of Conduct is enforced by the Fire Department. DM <@U07K4TS9HQE> if you ever have a concern.
+
+      You now have access to all channels! Reload Slack to see them.
+
+      Visit <##{chan_welcome_to_hc}> for questions, advice, or just to introduce yourself!
+    TEXT
+  end
 
 when 1
   header "✨ you're already in!"
