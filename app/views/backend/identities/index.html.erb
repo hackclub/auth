@@ -1,7 +1,5 @@
 <column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <row align-="center between">
-    <h2>identities</h2>
-  </row>
+  <h2>identities</h2>
 
   <div is-="separator"></div>
 
@@ -16,36 +14,30 @@
     </row>
   <% end %>
 
+  <div is-="separator"></div>
+
   <% if params[:search].present? %>
     <span style="color: var(--foreground2);"><%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</span>
   <% end %>
 
-  <div is-="separator"></div>
+  <column data-navigable-list>
+    <% @identities.each do |identity| %>
+      <a href="<%= backend_identity_path(identity) %>" data-navigable-item>
+        <span style="flex: 1;">
+          <b><%= render identity %></b>
+          <span style="color: var(--foreground2);"><%= identity.primary_email %></span>
+        </span>
+        <row gap-="1" align-="center">
+          <span is-="badge" variant-="<%= identity.verification_status == 'verified' ? 'green' : 'background2' %>"><%= identity.verification_status %></span>
+          <% unless identity.ysws_eligible.nil? %>
+            <span is-="badge" variant-="<%= identity.ysws_eligible ? 'green' : 'red' %>">ysws</span>
+          <% end %>
+        </row>
+      </a>
+    <% end %>
+  </column>
 
-  <div data-navigable-list>
-    <table>
-      <thead>
-        <tr>
-          <th>name</th>
-          <th>email</th>
-          <th>status</th>
-          <th>ysws</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @identities.each do |identity| %>
-          <tr data-navigable-item>
-            <td><%= link_to backend_identity_path(identity) do %><%= render identity %><% end %></td>
-            <td><%= identity.primary_email %></td>
-            <td>
-              <span is-="badge" variant-="<%= identity.verification_status == 'verified' ? 'green' : 'yellow' %>"><%= identity.verification_status %></span>
-            </td>
-            <td><%= identity.ysws_eligible.nil? ? "?" : render_checkbox(identity.ysws_eligible) %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
+  <div is-="separator"></div>
 
   <%= paginate @identities, params: { search: params[:search] } %>
 
