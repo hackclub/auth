@@ -54,7 +54,11 @@
       if (e.key === 'r' && shortcuts.focus_reject) {
         e.preventDefault();
         const select = document.querySelector('select[name="rejection_reason"]');
-        if (select) select.focus();
+        if (select) {
+          select.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          select.focus();
+          select.showPicker?.();
+        }
         return;
       }
 

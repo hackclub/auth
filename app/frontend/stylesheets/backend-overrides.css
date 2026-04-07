@@ -176,6 +176,25 @@
     }
   }
 
+  /* Select — match WebTUI input styling */
+  select {
+    background-color: var(--background1);
+    color: var(--foreground0);
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    line-height: var(--line-height);
+    border: none;
+    outline: none;
+    padding: 0 1ch;
+    height: 1lh;
+  }
+
+  /* Colored button variants — use size-=small for solid fill */
+  button[variant-="green"], input[type=submit][variant-="green"] { --button-primary: var(--green); --button-secondary: var(--background0); }
+  button[variant-="red"], input[type=submit][variant-="red"] { --button-primary: var(--red); --button-secondary: var(--background0); }
+  button[variant-="yellow"], input[type=submit][variant-="yellow"] { --button-primary: var(--yellow); --button-secondary: var(--background0); }
+  button[variant-="blue"], input[type=submit][variant-="blue"] { --button-primary: var(--blue); --button-secondary: var(--background0); }
+
   /* Environment indicator */
   #hca-env {
     position: fixed;
