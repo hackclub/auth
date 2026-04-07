@@ -216,34 +216,40 @@ $gate-green: #14a314;
 @mixin admin-gate($color, $label) {
   position: relative;
   overflow: visible;
-  padding-top: 1.5lh;
+  isolation: isolate;
 
   &::before {
     content: '';
     position: absolute;
     inset: -3px;
-    border: 2px dotted rgba($color, 0.4);
-    background: rgba($color, 0.06);
+    border: 2px dashed rgba($color, 0.3);
+    border-radius: 0.5rem;
+    background: rgba($color, 0.08);
     pointer-events: none;
     z-index: -1;
   }
 
-  &::after {
-    content: $label;
-    position: absolute;
-    top: 0.15lh;
-    left: 1ch;
-    font-size: 0.75em;
-    color: rgba($color, 0.7);
-    pointer-events: none;
+  // block-level gates get a text label above content
+  &:not(span) {
+    padding-top: 1.5lh;
+
+    &::after {
+      content: $label;
+      position: absolute;
+      top: 0.15lh;
+      left: 1ch;
+      font-size: 0.75em;
+      color: rgba($color, 0.7);
+      pointer-events: none;
+    }
   }
 }
 
-div.super-admin-tool { @include admin-gate($gate-orange, 'super admin'); }
-div.break-glass-tool { @include admin-gate($gate-orange, 'break glass'); }
-div.mdv-tool { @include admin-gate($gate-orange, 'document verifier'); }
-div.program-manager-tool { @include admin-gate($gate-orange, 'program manager'); }
-div.dev-tool { @include admin-gate($gate-green, 'dev only'); }
+.super-admin-tool { @include admin-gate($gate-orange, 'super admin'); }
+.break-glass-tool { @include admin-gate($gate-orange, 'break glass'); }
+.mdv-tool { @include admin-gate($gate-orange, 'document verifier'); }
+.program-manager-tool { @include admin-gate($gate-orange, 'program manager'); }
+.dev-tool { @include admin-gate($gate-green, 'dev only'); }
 
 /* Dark banner tokens — override when using gruvbox dark theme */
 [data-webtui-theme="gruvbox-dark-hard"] {
