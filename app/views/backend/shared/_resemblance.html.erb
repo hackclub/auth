@@ -1,25 +1,33 @@
-<column box-="square" style="--box-border-color: var(--yellow);">
-  <b><%= resemblance.title %></b>
+<column box-="round" style="--box-border-color: var(--yellow);">
+  <row align-="center" gap-="1">
+    <span style="color: var(--yellow); font-weight: bold;">⚠ <%= resemblance.title %></span>
+    <% if resemblance.matched_verification %>
+      <span is-="badge" variant-="yellow"><%= link_to "verification →", backend_verification_path(resemblance.matched_verification), target: "_blank", style: "color: inherit; text-decoration: none;" %></span>
+    <% end %>
+  </row>
+
+  <div is-="separator"></div>
+
   <column>
-    <row><span style="min-width: 12ch; color: var(--foreground2);">this identity</span> <%= resemblance.current_label %></row>
     <row>
-      <span style="min-width: 12ch; color: var(--foreground2);">matches</span>
-      <span>
-        <% if resemblance.past_identity %>
-          <%= link_to resemblance.matched_label, backend_identity_path(resemblance.past_identity), target: "_blank" %>
-        <% else %>
-          <span style="color: var(--foreground2);">[deleted identity]</span>
-        <% end %>
-        <% if resemblance.matched_verification %>
-          (<%= link_to "verification", backend_verification_path(resemblance.matched_verification), target: "_blank" %>)
-        <% end %>
-      </span>
+      <span style="min-width: 16ch; color: var(--foreground2);">this identity</span>
+      <b><%= resemblance.current_label %></b>
+    </row>
+    <row>
+      <span style="min-width: 16ch; color: var(--foreground2);">matches</span>
+      <% if resemblance.past_identity %>
+        <b><%= link_to resemblance.matched_label, backend_identity_path(resemblance.past_identity), target: "_blank" %></b>
+      <% else %>
+        <span style="color: var(--foreground2);">[deleted identity]</span>
+      <% end %>
     </row>
   </column>
+
   <% if resemblance.past_identity %>
     <div is-="separator"></div>
-    <span style="color: var(--foreground2);">matched identity</span>
+    <span style="color: var(--yellow); font-style: italic;">matched identity</span>
     <%= render "backend/shared/identity_details", identity: resemblance.past_identity %>
   <% end %>
+
   <%= render "backend/shared/inspector", record: resemblance %>
 </column>

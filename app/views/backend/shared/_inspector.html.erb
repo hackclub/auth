@@ -1,8 +1,8 @@
 <% if Rails.env.development? %>
-  <details class="inspector">
-    <summary>
+  <details style="color: var(--foreground2); margin-top: 0.5lh;">
+    <summary style="cursor: pointer;">
       <%= local_assigns[:small] ? "#{record.class.name} #{record&.try(:public_id) || record&.id}" : "inspect #{record.class.name} #{record&.try(:public_id) || record&.id}" %>
     </summary>
-    <pre class="inspector-content"><%= record.nil? ? "nil" : ap(record) %></pre>
+    <pre style="font-size: 0.85em; overflow-x: auto; padding: 0.5lh 1ch; background: var(--background1);"><%= record.nil? ? "nil" : ap(record) %></pre>
   </details>
 <% end %>

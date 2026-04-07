@@ -1,211 +1,225 @@
-<div class="tui-page">
-  <article box-="round">
-    <%# === Header === %>
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <h2><%= @identity.first_name %> <%= @identity.last_name %></h2>
-        <div style="color:var(--overlay1);">
-          <%= @identity.primary_email %> · <%= @identity.country %>
-          · <span is-="badge" variant-="<%= @identity.verification_status == 'verified' ? 'green' : 'yellow' %>"><%= @identity.verification_status %></span>
-          <% unless @identity.ysws_eligible.nil? %>
-            · ysws: <span is-="badge" variant-="<%= @identity.ysws_eligible ? 'green' : 'red' %>"><%= @identity.ysws_eligible ? 'eligible' : 'ineligible' %></span>
-          <% end %>
-        </div>
-      </div>
-      <div style="display:flex;gap:1ch;align-items:center;">
-        <% break_glass_tool do %>
-          <a href="<%= edit_backend_identity_path(@identity) %>"><button>[e] edit</button></a>
-          <% if @identity.slack_id.present? %>
-            <%= button_to promote_to_full_user_backend_identity_path(@identity), method: :post do %>
-              [↑] promote
-            <% end %>
-          <% end %>
+<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
+  <%# === Header === %>
+  <row align-="center between">
+    <column>
+      <h2><%= @identity.first_name %> <%= @identity.last_name %></h2>
+      <row gap-="1" align-="center" style="color: var(--foreground2); flex-wrap: wrap;">
+        <span><%= @identity.primary_email %></span>
+        <span>·</span>
+        <span><%= @identity.country %></span>
+        <span>·</span>
+        <% if @identity.verification_status == 'verified' %>
+          <span is-="badge" variant-="green">verified</span>
+        <% elsif @identity.verification_status == 'pending' %>
+          <span is-="badge" variant-="yellow">pending</span>
+        <% else %>
+          <span is-="badge"><%= @identity.verification_status %></span>
         <% end %>
-        <a href="<%= backend_identities_path %>" class="tui-item" style="width:auto;">
-          <span class="tui-item-icon">⭠</span>
-          <span class="tui-item-text">back <kbd>Bksp</kbd></span>
-        </a>
-      </div>
-    </div>
+        <% if @identity.ysws_eligible == true %>
+          <span is-="badge" variant-="green">ysws</span>
+        <% elsif @identity.ysws_eligible == false %>
+          <span is-="badge" variant-="red">ysws ineligible</span>
+        <% end %>
+      </row>
+    </column>
+    <% break_glass_tool do %>
+      <row gap-="1" align-="center">
+        <a href="<%= edit_backend_identity_path(@identity) %>"><button size-="small">[e] edit</button></a>
+        <% if @identity.slack_id.present? %>
+          <%= button_to "[↑] promote", promote_to_full_user_backend_identity_path(@identity), method: :post, form: { style: "display:inline" }, size: "small" %>
+        <% end %>
+      </row>
+    <% end %>
+  </row>
 
-    <% if @identity.permabanned %>
-      <div box-="square" class="tui-banner tui-banner-danger" style="margin-top:0.5lh;">
-        [!] PERMABANNED — this identity is permanently banned.
-      </div>
+  <% if @identity.permabanned %>
+    <div box-="square" class="tui-banner tui-banner-danger">[!] PERMABANNED — this identity is permanently banned.</div>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <%# === Tabs === %>
+  <div data-tab-view='[{"id":"details","label":"details","shortcut":"1"},{"id":"verifications","label":"verifications","shortcut":"2"},{"id":"programs","label":"programs","shortcut":"3"},{"id":"audit","label":"audit","shortcut":"4"}]'></div>
+
+  <%# --- Details tab --- %>
+  <div data-tab="details">
+    <%= render "backend/shared/identity_details", identity: @identity, show_legal_name: @available_scopes.include?("legal_name") %>
+
+    <% if @available_scopes.include?("address") && @addresses.any? %>
+      <div is-="separator"></div>
+      <span style="color: var(--foreground2); font-style: italic;">addresses</span>
+      <table>
+        <thead>
+          <tr>
+            <th>name</th>
+            <th>address</th>
+            <th>city</th>
+            <th>country</th>
+            <th>primary</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @addresses.each do |address| %>
+            <tr>
+              <td><%= address.first_name %> <%= address.last_name %></td>
+              <td><%= address.line_1 %><% if address.line_2.present? %><br><%= address.line_2 %><% end %></td>
+              <td><%= address.city %>, <%= address.state %> <%= address.postal_code %></td>
+              <td><%= address.country %></td>
+              <td><%= @identity.primary_address == address ? "✓" : "—" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+
+  <%# --- Verifications tab --- %>
+  <div data-tab="verifications" style="display:none;">
+    <% super_admin_tool do %>
+      <a href="<%= new_vouch_backend_identity_path(@identity) %>"><button size-="small">+ vouch</button></a>
+      <div is-="separator"></div>
+    <% end %>
+    <% if @verifications.any? %>
+      <table>
+        <thead>
+          <tr>
+            <th>type</th>
+            <th>status</th>
+            <th>submitted</th>
+            <th>reason</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @verifications.each do |verification| %>
+            <tr>
+              <td>
+                <% case verification %>
+                <% when Verification::AadhaarVerification %>
+                  Aadhaar
+                <% when Verification::DocumentVerification %>
+                  <%= Identity::Document::FRIENDLY_NAMES[verification.identity_document.document_type.to_sym] %>
+                <% when Verification::VouchVerification %>
+                  Vouch
+                <% end %>
+                <% if verification.ignored_at.present? %>
+                  <span is-="badge" variant-="yellow">ignored</span>
+                <% end %>
+              </td>
+              <td>
+                <span is-="badge" variant-="<%= verification.pending? ? 'yellow' : verification.approved? ? 'green' : 'red' %>">
+                  <%= verification.status %>
+                </span>
+              </td>
+              <td style="color: var(--foreground2);">
+                <% if verification.respond_to?(:pending_at) && verification.pending_at %>
+                  <%= verification.pending_at.strftime("%b %d, %Y") %>
+                <% else %>
+                  <%= verification.created_at.strftime("%b %d, %Y") %>
+                <% end %>
+              </td>
+              <td style="color: var(--foreground2);">
+                <% if verification.ignored_at.present? %>
+                  <%= verification.ignored_reason %>
+                <% elsif verification.rejection_reason.present? %>
+                  <%= verification.rejection_reason_name %>
+                <% else %>
+                  —
+                <% end %>
+              </td>
+              <td><%= link_to "view →", backend_verification_path(verification) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <span style="color: var(--foreground2);">no verifications submitted</span>
+    <% end %>
+  </div>
+
+  <%# --- Programs tab --- %>
+  <div data-tab="programs" style="display:none;">
+    <span style="color: var(--foreground2); font-style: italic;">authorized programs</span>
+    <% if @all_programs.any? %>
+      <table>
+        <thead>
+          <tr>
+            <th>program</th>
+            <th>scopes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @all_programs.each do |program| %>
+            <tr>
+              <td><%= link_to program.name, developer_app_path(program) %></td>
+              <td><code><%= program.scopes.presence || "—" %></code></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <span style="color: var(--foreground2);">no programs accessed</span>
     <% end %>
 
     <div is-="separator"></div>
 
-    <%# === Tabs === %>
-    <div data-tab-view='[{"id":"details","label":"details"},{"id":"verifications","label":"verifications"},{"id":"programs","label":"programs"},{"id":"audit","label":"audit"}]'></div>
-
-    <%# --- Details tab --- %>
-    <div data-tab="details">
-      <%= render "backend/shared/identity_details", identity: @identity, show_legal_name: @available_scopes.include?("legal_name") %>
-
-      <% if @available_scopes.include?("address") && @addresses.any? %>
-        <div is-="separator"></div>
-        <h4>addresses</h4>
-        <table>
-          <thead>
+    <span style="color: var(--foreground2); font-style: italic;">developed apps</span>
+    <% if @owned_apps.any? || @collaborated_apps.any? %>
+      <table>
+        <thead>
+          <tr>
+            <th>app</th>
+            <th>role</th>
+            <th>trust</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @owned_apps.each do |app| %>
             <tr>
-              <th>name</th>
-              <th>address</th>
-              <th>city</th>
-              <th>country</th>
-              <th>primary</th>
+              <td><%= link_to app.name, developer_app_path(app) %></td>
+              <td>owner</td>
+              <td><span is-="badge" variant-="<%= app.hq_official? ? 'green' : '' %>"><%= app.trust_level.to_s.titleize %></span></td>
             </tr>
-          </thead>
-          <tbody>
-            <% @addresses.each do |address| %>
-              <tr>
-                <td><%= address.first_name %> <%= address.last_name %></td>
-                <td><%= address.line_1 %><% if address.line_2.present? %><br><%= address.line_2 %><% end %></td>
-                <td><%= address.city %>, <%= address.state %> <%= address.postal_code %></td>
-                <td><%= address.country %></td>
-                <td><%= @identity.primary_address == address ? "✓" : "—" %></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      <% end %>
-    </div>
-
-    <%# --- Verifications tab --- %>
-    <div data-tab="verifications" style="display:none;">
-      <% super_admin_tool do %>
-        <div style="margin-bottom:0.5lh;">
-          <a href="<%= new_vouch_backend_identity_path(@identity) %>"><button>+ VOUCH</button></a>
-        </div>
-      <% end %>
-      <% if @verifications.any? %>
-        <table>
-          <thead>
+          <% end %>
+          <% @collaborated_apps.each do |app| %>
             <tr>
-              <th>type</th>
-              <th>status</th>
-              <th>submitted</th>
-              <th>reason</th>
-              <th></th>
+              <td><%= link_to app.name, developer_app_path(app) %></td>
+              <td>collaborator</td>
+              <td><span is-="badge" variant-="<%= app.hq_official? ? 'green' : '' %>"><%= app.trust_level.to_s.titleize %></span></td>
             </tr>
-          </thead>
-          <tbody>
-            <% @verifications.each do |verification| %>
-              <tr>
-                <td>
-                  <% case verification %>
-                  <% when Verification::AadhaarVerification %>
-                    Aadhaar
-                  <% when Verification::DocumentVerification %>
-                    <%= Identity::Document::FRIENDLY_NAMES[verification.identity_document.document_type.to_sym] %>
-                  <% when Verification::VouchVerification %>
-                    Vouch
-                  <% end %>
-                  <% if verification.ignored_at.present? %>
-                    <span is-="badge" variant-="yellow">ignored</span>
-                  <% end %>
-                </td>
-                <td>
-                  <span is-="badge" variant-="<%= verification.pending? ? 'yellow' : verification.approved? ? 'green' : 'red' %>">
-                    <%= verification.status %>
-                  </span>
-                </td>
-                <td>
-                  <% if verification.respond_to?(:pending_at) && verification.pending_at %>
-                    <%= verification.pending_at.strftime("%b %d, %Y") %>
-                  <% else %>
-                    <%= verification.created_at.strftime("%b %d, %Y") %>
-                  <% end %>
-                </td>
-                <td>
-                  <% if verification.ignored_at.present? %>
-                    <%= verification.ignored_reason %>
-                  <% elsif verification.rejection_reason.present? %>
-                    <%= verification.rejection_reason_name %>
-                  <% else %>
-                    —
-                  <% end %>
-                </td>
-                <td><%= link_to "view →", backend_verification_path(verification) %></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      <% else %>
-        <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no verifications submitted</p>
-      <% end %>
-    </div>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <span style="color: var(--foreground2);">no developer apps</span>
+    <% end %>
+  </div>
 
-    <%# --- Programs tab --- %>
-    <div data-tab="programs" style="display:none;">
-      <h4>authorized programs</h4>
-      <% if @all_programs.any? %>
-        <table>
-          <thead>
-            <tr>
-              <th>program</th>
-              <th>scopes</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @all_programs.each do |program| %>
-              <tr>
-                <td><%= link_to program.name, developer_app_path(program) %></td>
-                <td><code><%= program.scopes.presence || "—" %></code></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      <% else %>
-        <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no programs accessed</p>
-      <% end %>
+  <%# --- Audit tab --- %>
+  <div data-tab="audit" style="display:none;">
+    <% if @activities.any? %>
+      <%= render "backend/shared/activity_log", activities: @activities %>
+    <% else %>
+      <span style="color: var(--foreground2);">no audit entries</span>
+    <% end %>
+  </div>
 
-      <div is-="separator"></div>
-      <h4>developed apps</h4>
-      <% if @owned_apps.any? || @collaborated_apps.any? %>
-        <table>
-          <thead>
-            <tr>
-              <th>app</th>
-              <th>role</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @owned_apps.each do |app| %>
-              <tr>
-                <td><%= link_to app.name, developer_app_path(app) %> <span is-="badge" variant-="<%= app.hq_official? ? 'green' : '' %>"><%= app.trust_level.to_s.titleize %></span></td>
-                <td>owner</td>
-              </tr>
-            <% end %>
-            <% @collaborated_apps.each do |app| %>
-              <tr>
-                <td><%= link_to app.name, developer_app_path(app) %> <span is-="badge" variant-="<%= app.hq_official? ? 'green' : '' %>"><%= app.trust_level.to_s.titleize %></span></td>
-                <td>collaborator</td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      <% else %>
-        <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no developer apps</p>
-      <% end %>
-    </div>
+  <div is-="separator"></div>
 
-    <%# --- Audit tab --- %>
-    <div data-tab="audit" style="display:none;">
-      <% if @activities.any? %>
-        <%= render "backend/shared/activity_log", activities: @activities %>
-      <% else %>
-        <p style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no audit entries</p>
-      <% end %>
-    </div>
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">1</span>-<span is-="badge" variant-="background2">4</span>
+      tabs
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">e</span>
+      edit
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span>
+      back
+    </row>
+  </row>
+</column>
 
-    <div is-="separator"></div>
-    <div class="tui-keyhints">
-      <span><kbd>1</kbd>-<kbd>4</kbd> switch tabs</span>
-      <span><kbd>e</kbd> edit</span>
-      <span><kbd>Bksp</kbd> back</span>
-    </div>
-  </article>
-
-  <%= render "backend/shared/inspector", record: @identity %>
-</div>
+<%= render "backend/shared/inspector", record: @identity %>

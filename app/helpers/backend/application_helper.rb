@@ -54,7 +54,7 @@ module Backend::ApplicationHelper
     content_tag(:a, href: path, "data-navigable-item": true) do
       left = content_tag(:span, style: "flex: 1;") do
         concat label
-        concat " ".html_safe + content_tag(:i, sub, style: "color: var(--overlay0);") if sub
+        concat " ".html_safe + content_tag(:i, sub, style: "color: var(--foreground2);") if sub
       end
       right = content_tag(:span, code, "is-": "badge", "variant-": variant)
       left + right

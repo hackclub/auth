@@ -1,105 +1,93 @@
-<div class="tui-page-wide">
-  <article box-="round">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <h2>document review</h2>
-      <a href="<%= pending_backend_verifications_path %>" class="tui-item" style="width:auto;">
-        <span class="tui-item-icon">⭠</span>
-        <span class="tui-item-text">back to pending <kbd>Bksp</kbd></span>
-      </a>
-    </div>
-    <div is-="separator"></div>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>document review</h2>
+    <a href="<%= pending_backend_verifications_path %>" style="color: var(--foreground2); text-decoration: none;">← back to pending</a>
+  </row>
 
-    <%# === Two-panel layout === %>
-    <div class="tui-two-panel">
+  <div is-="separator"></div>
 
-      <%# --- Left column: identity + document + warnings --- %>
-      <div class="tui-panel-left">
-        <section box-="round">
-          <h4>identity</h4>
-          <div is-="separator"></div>
-          <%= render "backend/shared/review_basic_details", identity: @verification.identity %>
-        </section>
+  <%# === Two-panel layout === %>
+  <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 3ch; align-items: start;">
 
-        <section box-="round">
-          <h4>document</h4>
-          <div is-="separator"></div>
-          <% case @verification %>
-          <% when Verification::DocumentVerification %>
-            <%= render "backend/shared/review_document_info", verification: @verification %>
-          <% when Verification::AadhaarVerification %>
-            <%= render "backend/shared/review_aadhaar_info", verification: @verification %>
+    <%# --- Left column: identity + document + warnings --- %>
+    <column gap-="1">
+      <span style="color: var(--foreground2); font-style: italic;">identity</span>
+      <%= render "backend/shared/review_basic_details", identity: @verification.identity %>
+
+      <div is-="separator"></div>
+
+      <span style="color: var(--foreground2); font-style: italic;">document</span>
+      <% case @verification %>
+      <% when Verification::DocumentVerification %>
+        <%= render "backend/shared/review_document_info", verification: @verification %>
+      <% when Verification::AadhaarVerification %>
+        <%= render "backend/shared/review_aadhaar_info", verification: @verification %>
+      <% end %>
+
+      <%# --- Warnings --- %>
+      <% if @verification.identity.birthday && @verification.identity.birthday < 19.years.ago %>
+        <div box-="square" class="tui-banner tui-banner-warning">
+          [!] birthday (<%= @verification.identity.birthday %>) is more than 19 years ago
+        </div>
+      <% end %>
+
+      <% if @verification.identity.resemblances.any? %>
+        <% @verification.identity.resemblances.each do |resemblance| %>
+          <%= render "backend/shared/resemblance", resemblance: resemblance %>
+        <% end %>
+      <% end %>
+
+      <% if @verification.respond_to?(:issues) && @verification.issues.any? %>
+        <div box-="square" class="tui-banner tui-banner-info">
+          [i] automated checks:
+          <% @verification.issues.each do |issue| %>
+            <br>· <%= issue %>
           <% end %>
-        </section>
+        </div>
+      <% end %>
+    </column>
 
-        <% if @verification.identity.birthday < 19.years.ago %>
-          <div box-="square" class="tui-banner tui-banner-warning">
-            [!] birthday (<%= @verification.identity.birthday %>) is more than 19 years ago
-          </div>
+    <%# --- Right column: files --- %>
+    <column>
+      <span style="color: var(--foreground2); font-style: italic;">files</span>
+      <% if @verification.is_a?(Verification::VouchVerification) %>
+        <span style="color: var(--foreground2);">manually vouched on <%= @verification.created_at.strftime("%B %d, %Y at %I:%M %p") %></span>
+        <% if @verification.evidence.attached? %>
+          <img src="<%= url_for(@verification.evidence) %>" alt="vouch evidence" style="max-width: 100%;">
+        <% else %>
+          <span style="color: var(--foreground2);">no evidence attached</span>
+        <% end %>
+      <% else %>
+        <%= render "backend/shared/break_the_glass", break_glassable: @relevant_object, auto_break_glass: (@verification.pending? ? "to review validity" : nil) do %>
+          <% case @relevant_object %>
+          <% when Identity::Document %>
+            <%= render "backend/shared/review_document_files", document: @relevant_object %>
+          <% when Identity::AadhaarRecord %>
+            <%= render "backend/shared/review_aadhaar_full", aadhaar_record: @relevant_object %>
+          <% end %>
+        <% end %>
+      <% end %>
+    </column>
+  </div>
+
+  <div is-="separator"></div>
+
+  <%# === Decision bar === %>
+  <% if @verification.pending? %>
+    <column box-="square" gap-="1">
+      <row align-="center" gap-="2" style="flex-wrap: wrap;">
+        <% mdv_tool do %>
+          <%= form_with url: approve_backend_verification_path(@verification), method: :patch, local: true, style: "display:inline" do |form| %>
+            <%= form.hidden_field :ysws_eligible, value: true %>
+            <%= form.submit "[a] APPROVE YSWS", data: { confirm: "approve and mark ysws eligible?" } %>
+          <% end %>
+          <%= form_with url: approve_backend_verification_path(@verification), method: :patch, local: true, style: "display:inline" do |form| %>
+            <%= form.hidden_field :ysws_eligible, value: false %>
+            <%= form.submit "[A] APPROVE NOT YSWS", data: { confirm: "approve but mark ysws ineligible?" } %>
+          <% end %>
         <% end %>
 
-        <% if @verification.identity.resemblances.any? %>
-          <div box-="square" class="tui-banner tui-banner-warning">
-            [!] POSSIBLE DUPLICATE
-          </div>
-          <% @verification.identity.resemblances.each do |resemblance| %>
-            <%= render "backend/shared/resemblance", resemblance: resemblance %>
-          <% end %>
-        <% end %>
-
-        <% if @verification.issues.any? %>
-          <div box-="square" class="tui-banner tui-banner-info">
-            [i] automated checks noticed:
-            <ul style="margin:0.25lh 0 0 2ch;padding:0;">
-              <% @verification.issues.each do |issue| %>
-                <li><%= issue %></li>
-              <% end %>
-            </ul>
-          </div>
-        <% end %>
-      </div>
-
-      <%# --- Right column: files --- %>
-      <div class="tui-panel-right">
-        <section box-="round" style="height:100%;">
-          <h4>files</h4>
-          <div is-="separator"></div>
-          <% if @verification.is_a?(Verification::VouchVerification) %>
-            <p>manually vouched on <%= @verification.created_at.strftime("%B %d, %Y at %I:%M %p") %></p>
-            <% if @verification.evidence.attached? %>
-              <img src="<%= url_for(@verification.evidence) %>" alt="vouch evidence" style="max-width:100%;">
-            <% else %>
-              <p style="text-align:center;color:var(--overlay1);">no evidence attached</p>
-            <% end %>
-          <% else %>
-            <%= render "backend/shared/break_the_glass", break_glassable: @relevant_object, auto_break_glass: (@verification.pending? ? "to review validity" : nil) do %>
-              <% case @relevant_object %>
-              <% when Identity::Document %>
-                <%= render "backend/shared/review_document_files", document: @relevant_object %>
-              <% when Identity::AadhaarRecord %>
-                <%= render "backend/shared/review_aadhaar_full", aadhaar_record: @relevant_object %>
-              <% end %>
-            <% end %>
-          <% end %>
-        </section>
-      </div>
-    </div>
-
-    <%# === Decision bar === %>
-    <div is-="separator"></div>
-    <% if @verification.pending? %>
-      <div class="tui-decision-bar" style="position:relative;">
-        <div class="tui-decision-bar-actions">
-          <% mdv_tool do %>
-            <%= form_with url: approve_backend_verification_path(@verification), method: :patch, local: true, style: "display:inline" do |form| %>
-              <%= form.hidden_field :ysws_eligible, value: true %>
-              <%= form.submit "[a] APPROVE YSWS", data: { confirm: "approve and mark ysws eligible?" } %>
-            <% end %>
-            <%= form_with url: approve_backend_verification_path(@verification), method: :patch, local: true, style: "display:inline" do |form| %>
-              <%= form.hidden_field :ysws_eligible, value: false %>
-              <%= form.submit "[A] APPROVE NOT YSWS", data: { confirm: "approve but mark ysws ineligible?" } %>
-            <% end %>
-          <% end %>
-          <span style="color:var(--overlay0);">│</span>
+        <row gap-="1" align-="center" style="margin-left: auto;">
           <span>status: <span is-="badge" variant-="yellow">pending</span></span>
           <% if @verification.identity.ysws_eligible.nil? %>
             <span>ysws: <span is-="badge">not reviewed</span></span>
@@ -108,141 +96,158 @@
           <% else %>
             <span>ysws: <span is-="badge" variant-="red">ineligible</span></span>
           <% end %>
-        </div>
+        </row>
+      </row>
 
-        <div is-="separator"></div>
-
-        <% mdv_tool do %>
-          <%= form_with url: reject_backend_verification_path(@verification), method: :patch, local: true do |form| %>
-            <% if @verification.identity.under_13? %>
-              <div box-="square" class="tui-banner tui-banner-warning" style="margin-bottom:0.5lh;">
-                [!] identity is under 13 (age <%= @verification.identity.age.round(2) %>)
-              </div>
-            <% end %>
-            <div style="display:flex;gap:2ch;align-items:flex-start;flex-wrap:wrap;">
-              <div>
-                <%= form.label :rejection_reason, "[r] reason" %>
-                <% if @verification.is_a?(Verification::AadhaarVerification) %>
-                  <%
-                    default_selection = if @verification.identity.under_13?
-                      "under_13"
-                    elsif @verification.identity.resemblances.any?
-                      "duplicate"
-                    else
-                      nil
-                    end
-                  %>
-                  <%= form.select :rejection_reason,
-                                 grouped_options_for_select([
-                                   ["Retryable", Verification::AadhaarVerification::RETRYABLE_REJECTION_REASONS.map { |reason| [Verification::AadhaarVerification::REJECTION_REASON_NAMES[reason], reason] }],
-                                   ["Fatal", Verification::AadhaarVerification::FATAL_REJECTION_REASONS.map { |reason| [Verification::AadhaarVerification::REJECTION_REASON_NAMES[reason], reason] }]
-                                 ], default_selection),
-                                 { include_blank: "select..." } %>
-                <% elsif @verification.is_a?(Verification::DocumentVerification) %>
-                  <%
-                    default_selection = if @verification.identity.under_13?
-                      "under_13"
-                    elsif @verification.identity.resemblances.any?
-                      "duplicate"
-                    else
-                      nil
-                    end
-                  %>
-                  <%= form.select :rejection_reason,
-                                 grouped_options_for_select([
-                                   ["Retryable", Verification::DocumentVerification::RETRYABLE_REJECTION_REASONS.map { |reason| [Verification::DocumentVerification::REJECTION_REASON_NAMES[reason], reason] }],
-                                   ["Fatal", Verification::DocumentVerification::FATAL_REJECTION_REASONS.map { |reason| [Verification::DocumentVerification::REJECTION_REASON_NAMES[reason], reason] }]
-                                 ], default_selection),
-                                 { include_blank: "select..." } %>
-                <% end %>
-              </div>
-              <div style="flex:1;min-width:20ch;">
-                <%= form.label :rejection_reason_details, "details" %>
-                <%= form.text_area :rejection_reason_details, rows: 2, placeholder: "feedback for user..." %>
-              </div>
-              <div style="flex:1;min-width:20ch;">
-                <%= form.label :internal_rejection_comment, "internal" %>
-                <%= form.text_area :internal_rejection_comment, rows: 2, placeholder: "internal notes (not visible to user)..." %>
-              </div>
-              <div style="align-self:flex-end;">
-                <%= form.submit "REJECT", data: { confirm: "reject this document?" } %>
-              </div>
-            </div>
-          <% end %>
-        <% end %>
-      </div>
-    <% else %>
-      <section>
-        <h3>processed</h3>
-        <div style="background:var(--surface0);padding:0.5lh 2ch;">
-          <div class="tui-detail">
-            <span class="tui-detail-label">status</span>
-            <span class="tui-detail-value"><span is-="badge" variant-="<%= @verification.approved? ? 'green' : 'red' %>"><%= @verification.status %></span></span>
-          </div>
-          <% if @verification.rejection_reason.present? %>
-            <div class="tui-detail">
-              <span class="tui-detail-label">reason</span>
-              <span class="tui-detail-value"><%= @verification.rejection_reason_name %></span>
-            </div>
-            <% if @verification.rejection_reason_details.present? %>
-              <div class="tui-detail">
-                <span class="tui-detail-label">details</span>
-                <span class="tui-detail-value"><%= @verification.rejection_reason_details %></span>
-              </div>
-            <% end %>
-            <% if @verification.internal_rejection_comment.present? %>
-              <div class="tui-detail">
-                <span class="tui-detail-label">internal</span>
-                <span class="tui-detail-value"><i><%= @verification.internal_rejection_comment %></i></span>
-              </div>
-            <% end %>
-          <% end %>
-        </div>
-      </section>
-    <% end %>
-
-    <% if @verification.ignored_at.blank? %>
-      <% super_admin_tool do %>
-        <div is-="separator"></div>
-        <details class="tui-section">
-          <summary>[!!] super admin</summary>
-          <div style="padding:0.5lh 0;">
-            <%= form_with url: ignore_backend_verification_path(@verification), method: :patch, local: true do |f| %>
-              <div style="margin-bottom:0.5lh;">
-                <%= f.label :reason, "ignore reason" %>
-                <%= f.text_area :reason, placeholder: "reason for ignoring (logged in audit trail)...", rows: 2 %>
-              </div>
-              <%= f.submit "ignore verification", data: { confirm: "ignore this verification? this cannot be undone." } %>
-            <% end %>
-          </div>
-        </details>
-      <% end %>
-    <% elsif @verification.ignored_at.present? %>
       <div is-="separator"></div>
-      <section>
-        <h3>ignored</h3>
-        <div style="background:var(--surface0);padding:0.5lh 2ch;">
-          <div class="tui-detail">
-            <span class="tui-detail-label">ignored on</span>
-            <span class="tui-detail-value"><%= @verification.ignored_at.strftime("%B %d, %Y at %I:%M %p") %></span>
-          </div>
-          <div class="tui-detail">
-            <span class="tui-detail-label">reason</span>
-            <span class="tui-detail-value"><%= @verification.ignored_reason %></span>
-          </div>
-        </div>
-      </section>
-    <% end %>
 
+      <% mdv_tool do %>
+        <%= form_with url: reject_backend_verification_path(@verification), method: :patch, local: true do |form| %>
+          <% if @verification.identity.under_13? %>
+            <div box-="square" class="tui-banner tui-banner-warning" style="margin-bottom: 0.5lh;">
+              [!] identity is under 13 (age <%= @verification.identity.age.round(2) %>)
+            </div>
+          <% end %>
+          <row gap-="2" align-="start" style="flex-wrap: wrap;">
+            <column style="min-width: 16ch;">
+              <%= form.label :rejection_reason, "[r] reason" %>
+              <% if @verification.is_a?(Verification::AadhaarVerification) %>
+                <%
+                  default_selection = if @verification.identity.under_13?
+                    "under_13"
+                  elsif @verification.identity.resemblances.any?
+                    "duplicate"
+                  else
+                    nil
+                  end
+                %>
+                <%= form.select :rejection_reason,
+                               grouped_options_for_select([
+                                 ["Retryable", Verification::AadhaarVerification::RETRYABLE_REJECTION_REASONS.map { |reason| [Verification::AadhaarVerification::REJECTION_REASON_NAMES[reason], reason] }],
+                                 ["Fatal", Verification::AadhaarVerification::FATAL_REJECTION_REASONS.map { |reason| [Verification::AadhaarVerification::REJECTION_REASON_NAMES[reason], reason] }]
+                               ], default_selection),
+                               { include_blank: "select..." } %>
+              <% elsif @verification.is_a?(Verification::DocumentVerification) %>
+                <%
+                  default_selection = if @verification.identity.under_13?
+                    "under_13"
+                  elsif @verification.identity.resemblances.any?
+                    "duplicate"
+                  else
+                    nil
+                  end
+                %>
+                <%= form.select :rejection_reason,
+                               grouped_options_for_select([
+                                 ["Retryable", Verification::DocumentVerification::RETRYABLE_REJECTION_REASONS.map { |reason| [Verification::DocumentVerification::REJECTION_REASON_NAMES[reason], reason] }],
+                                 ["Fatal", Verification::DocumentVerification::FATAL_REJECTION_REASONS.map { |reason| [Verification::DocumentVerification::REJECTION_REASON_NAMES[reason], reason] }]
+                               ], default_selection),
+                               { include_blank: "select..." } %>
+              <% end %>
+            </column>
+            <column style="flex: 1; min-width: 16ch;">
+              <%= form.label :rejection_reason_details, "details" %>
+              <%= form.text_area :rejection_reason_details, rows: 2, placeholder: "feedback for user..." %>
+            </column>
+            <column style="flex: 1; min-width: 16ch;">
+              <%= form.label :internal_rejection_comment, "internal" %>
+              <%= form.text_area :internal_rejection_comment, rows: 2, placeholder: "internal notes (not visible to user)..." %>
+            </column>
+            <column style="align-self: flex-end;">
+              <%= form.submit "REJECT", data: { confirm: "reject this document?" } %>
+            </column>
+          </row>
+        <% end %>
+      <% end %>
+    </column>
+  <% else %>
+    <%# Already processed %>
+    <column box-="square">
+      <row gap-="2" align-="center">
+        <span>status: <span is-="badge" variant-="<%= @verification.approved? ? 'green' : 'red' %>"><%= @verification.status %></span></span>
+        <% if @verification.rejection_reason.present? %>
+          <span>reason: <b><%= @verification.rejection_reason_name %></b></span>
+        <% end %>
+      </row>
+      <% if @verification.rejection_reason_details.present? %>
+        <row>
+          <span style="min-width: 12ch; color: var(--foreground2);">details</span>
+          <span><%= @verification.rejection_reason_details %></span>
+        </row>
+      <% end %>
+      <% if @verification.internal_rejection_comment.present? %>
+        <row>
+          <span style="min-width: 12ch; color: var(--foreground2);">internal</span>
+          <i><%= @verification.internal_rejection_comment %></i>
+        </row>
+      <% end %>
+    </column>
+  <% end %>
+
+  <% if @verification.ignored_at.present? %>
     <div is-="separator"></div>
-    <details class="tui-section">
-      <summary>audit log</summary>
-      <div style="padding:0.5lh 0;">
-        <%= render "backend/shared/activity_log", activities: @activities %>
-      </div>
-    </details>
-  </article>
+    <column box-="square">
+      <row gap-="2" align-="center">
+        <span is-="badge" variant-="yellow">ignored</span>
+        <span style="color: var(--foreground2);"><%= @verification.ignored_at.strftime("%B %d, %Y at %I:%M %p") %></span>
+      </row>
+      <row>
+        <span style="min-width: 12ch; color: var(--foreground2);">reason</span>
+        <span><%= @verification.ignored_reason %></span>
+      </row>
+    </column>
+  <% elsif @verification.ignored_at.blank? %>
+    <% super_admin_tool do %>
+      <div is-="separator"></div>
+      <details>
+        <summary style="color: var(--foreground2); cursor: pointer;">▸ super admin tools</summary>
+        <column pad-="1 0" gap-="1">
+          <%= form_with url: ignore_backend_verification_path(@verification), method: :patch, local: true do |f| %>
+            <column gap-="1">
+              <%= f.label :reason, "ignore reason" %>
+              <%= f.text_area :reason, placeholder: "reason for ignoring (logged in audit trail)...", rows: 2 %>
+              <%= f.submit "ignore verification", data: { confirm: "ignore this verification? this cannot be undone." } %>
+            </column>
+          <% end %>
+        </column>
+      </details>
+    <% end %>
+  <% end %>
 
-  <%= render "backend/shared/inspector", record: @verification %>
+  <div is-="separator"></div>
+
+  <details>
+    <summary style="color: var(--foreground2); cursor: pointer;">▸ audit log</summary>
+    <column pad-="1 0">
+      <%= render "backend/shared/activity_log", activities: @activities %>
+    </column>
+  </details>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <% if @verification.pending? %>
+      <row gap-="1" align-="center">
+        <span is-="badge" variant-="background2">a</span>
+        approve ysws
+      </row>
+      <row gap-="1" align-="center">
+        <span is-="badge" variant-="background2">A</span>
+        approve not ysws
+      </row>
+      <row gap-="1" align-="center">
+        <span is-="badge" variant-="background2">r</span>
+        reject
+      </row>
+    <% end %>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span>
+      back
+    </row>
+  </row>
+</column>
+
+<%= render "backend/shared/inspector", record: @verification %>
+<% if @relevant_object %>
   <%= render "backend/shared/inspector", record: @relevant_object %>
-</div>
+<% end %>

@@ -2,7 +2,7 @@
   <column box-="round" style="width: min(64ch, 100vw - 2ch); --box-border-color: var(--foreground2);">
     <column data-navigable-list>
       <% if current_user.super_admin? %>
-        <span style="color: var(--subtext0); padding: 0 1ch;">Super admin</span>
+        <span style="color: var(--foreground2); padding: 0 1ch;">Super admin</span>
         <ul>
           <%= render_nav_item backend_flipper_path, "Flipper", "FLIP", sub: "(i hardly know 'er!)" %>
           <%= render_nav_item backend_audits1984_path, "Audits1984", "ORWL" %>
@@ -12,14 +12,14 @@
       <% end %>
 
       <% if current_user&.program_manager? || current_user&.super_admin? %>
-        <span style="color: var(--subtext0); padding: 0 1ch;">Program manager</span>
+        <span style="color: var(--foreground2); padding: 0 1ch;">Program manager</span>
         <ul>
           <%= render_nav_item developer_apps_path, "Manage OAuth2 apps", "APPS" %>
         </ul>
       <% end %>
 
       <% if current_user&.manual_document_verifier? || current_user&.super_admin? %>
-        <span style="color: var(--subtext0); padding: 0 1ch;">Document verifier</span>
+        <span style="color: var(--foreground2); padding: 0 1ch;">Document verifier</span>
         <ul>
           <%= render_nav_item pending_backend_verifications_path, "Review pending", "PEND", variant: "yellow" %>
         </ul>
@@ -34,7 +34,7 @@
 
       <a href="#" onclick="window.openKbar && window.openKbar(); return false;" data-navigable-item>
         <span style="flex: 1;">Go anywhere</span>
-        <span style="color: var(--subtext0);"><kbd>⌘K</kbd></span>
+        <span style="color: var(--foreground2);"><kbd>⌘K</kbd></span>
       </a>
 
       <div is-="separator"></div>
@@ -44,7 +44,7 @@
 
     <div is-="separator"></div>
 
-    <row gap-="2" align-="center center" pad-="1 0" style="color: var(--overlay1);">
+    <row gap-="2" align-="center center" pad-="1 0" style="color: var(--foreground2);">
       <row gap-="1" align-="center">
         <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowUp', bubbles: true}))">↑</button>
         <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true}))">↓</button>

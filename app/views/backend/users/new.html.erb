@@ -43,8 +43,7 @@
     <%= form_with url: backend_users_path, method: :post, local: true do |f| %>
       <%= hidden_field_tag :identity_id, identity.id %>
       <div is-="separator"></div>
-      <span style="color: var(--foreground2);">permissions</span>
-      <%= render Backend::Users::PermissionsForm.new(Backend::User.new) %>
+      <%= render "backend/shared/permissions_form", f: f, user: Backend::User.new %>
       <div is-="separator"></div>
       <button type="submit">grant access</button>
     <% end %>

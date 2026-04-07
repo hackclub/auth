@@ -6,5 +6,35 @@
 
   <div is-="separator"></div>
 
-  <%= render Backend::Users::Form.new @user %>
+  <% unless @user.orphaned? %>
+    <column box-="square">
+      <span style="color: var(--foreground2);">linked identity</span>
+      <b><%= @user.first_name %> <%= @user.last_name %></b>
+      <span style="color: var(--foreground2);"><%= @user.email %></span>
+      <span style="color: var(--foreground2);">slack: <%= @user.slack_id || "not linked" %></span>
+    </column>
+
+    <div is-="separator"></div>
+  <% end %>
+
+  <%= form_with model: @user, url: backend_user_path(@user), method: :patch, local: true do |f| %>
+    <column gap-="1">
+      <% if @user.orphaned? %>
+        <column>
+          <%= f.label :username, "display name" %>
+          <%= f.text_field :username %>
+        </column>
+        <div is-="separator"></div>
+      <% end %>
+
+      <%= render "backend/shared/permissions_form", f: f, user: @user %>
+
+      <div is-="separator"></div>
+
+      <row gap-="1">
+        <%= f.submit "save" %>
+        <a href="<%= backend_user_path(@user) %>"><button type="button">cancel</button></a>
+      </row>
+    </column>
+  <% end %>
 </column>

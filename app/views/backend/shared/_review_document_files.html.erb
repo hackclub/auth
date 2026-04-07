@@ -1,11 +1,11 @@
 <% if document.files.attached? %>
-  <div class="document-files">
+  <column gap-="2">
     <% document.files.each_with_index do |file, index| %>
-      <div class="document-file">
-        <div class="file-header">
-          <span class="file-name"><%= index + 1 %>. <%= file.filename %></span>
-          <%= link_to "open ↗", url_for(file), target: "_blank", class: "file-action" %>
-        </div>
+      <column gap-="1">
+        <row align-="center between">
+          <b><%= index + 1 %>. <%= file.filename %></b>
+          <%= link_to "open ↗", url_for(file), target: "_blank" %>
+        </row>
         <% if file.content_type.start_with?("image/") %>
           <%
             image_src = if file.content_type.in?(%w[image/heic image/heif])
@@ -14,47 +14,35 @@
               url_for(file)
             end
           %>
-          <div class="file-preview">
-            <div id="loader-<%= index %>" class="file-loader">
-              <%= file.content_type.in?(%w[image/heic image/heif]) ? "converting heic..." : "loading..." %>
-              <br>
-              <%= vite_image_tag "images/loader.gif", class: "loader-gif" %>
-            </div>
-            <div id="image-container-<%= index %>" class="image-container hidden">
-              <%= image_tag image_src,
-                alt: "document file #{index + 1}",
-                class: "preview-image",
-                id: "image-#{index}",
-                data: { rotation: 0 },
-                onload: "document.getElementById('loader-#{index}').style.display='none'; document.getElementById('image-container-#{index}').classList.remove('hidden');",
-                onerror: "document.getElementById('loader-#{index}').innerHTML='error loading image';" %>
-              <button type="button" class="rotate-button" onclick="rotateImage(<%= index %>)">&#8635; rotate</button>
-            </div>
+          <div id="loader-<%= index %>" style="color: var(--foreground2); padding: 1lh 0;">
+            <%= file.content_type.in?(%w[image/heic image/heif]) ? "converting heic..." : "loading..." %>
+          </div>
+          <div id="image-container-<%= index %>" style="display: none;">
+            <%= image_tag image_src,
+              alt: "document file #{index + 1}",
+              id: "image-#{index}",
+              style: "max-width: 100%; transition: transform 0.2s;",
+              data: { rotation: 0 },
+              onload: "document.getElementById('loader-#{index}').style.display='none'; document.getElementById('image-container-#{index}').style.display='block';",
+              onerror: "document.getElementById('loader-#{index}').textContent='error loading image';" %>
+            <button type="button" size-="small" onclick="rotateImage(<%= index %>)">↻ rotate</button>
           </div>
         <% elsif file.content_type == "application/pdf" %>
-          <div class="file-preview pdf-preview">
-            <iframe src="<%= url_for(file) %>" class="pdf-frame" type="application/pdf">
-              <p class="pdf-fallback">
-                browser doesn't support pdf embedding.
-                <%= link_to "open pdf", url_for(file), target: "_blank" %>
-              </p>
-            </iframe>
-          </div>
+          <iframe src="<%= url_for(file) %>" style="width: 100%; height: 60vh; border: 1px solid var(--background2);" type="application/pdf">
+            <span style="color: var(--foreground2);">
+              browser doesn't support pdf embedding.
+              <%= link_to "open pdf", url_for(file), target: "_blank" %>
+            </span>
+          </iframe>
         <% else %>
-          <div class="file-preview" style="background:var(--surface0);padding:0.5lh 2ch;">
-            <div class="tui-detail">
-              <span class="tui-detail-label">type</span>
-              <span class="tui-detail-value"><%= file.content_type %></span>
-            </div>
-            <div class="tui-detail">
-              <span class="tui-detail-label">download</span>
-              <span class="tui-detail-value"><%= link_to "download file", url_for(file), target: "_blank" %></span>
-            </div>
-          </div>
+          <column style="background: var(--background1); padding: 0.5lh 2ch;">
+            <row><span style="min-width: 12ch; color: var(--foreground2);">type</span> <%= file.content_type %></row>
+            <row><span style="min-width: 12ch; color: var(--foreground2);">download</span> <%= link_to "download file", url_for(file), target: "_blank" %></row>
+          </column>
         <% end %>
-      </div>
+      </column>
     <% end %>
-  </div>
+  </column>
   <script>
     function rotateImage(index) {
       const img = document.getElementById('image-' + index);
@@ -65,5 +53,5 @@
     }
   </script>
 <% else %>
-  <div style="text-align:center;color:var(--overlay1);padding:1lh 2ch;">no files attached</div>
+  <span style="color: var(--foreground2);">no files attached</span>
 <% end %>
