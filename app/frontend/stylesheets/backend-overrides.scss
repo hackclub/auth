@@ -210,34 +210,40 @@
 }
 
 /* Admin tool gates — HCB-style dotted borders with labels */
-div.super-admin-tool, div.break-glass-tool, div.mdv-tool, div.program-manager-tool, div.dev-tool {
+$gate-orange: #ec8e2b;
+$gate-green: #14a314;
+
+@mixin admin-gate($color, $label) {
   position: relative;
   overflow: visible;
   padding-top: 1.5lh;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border: 2px dotted rgba($color, 0.4);
+    background: rgba($color, 0.06);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  &::after {
+    content: $label;
+    position: absolute;
+    top: 0.15lh;
+    left: 1ch;
+    font-size: 0.75em;
+    color: rgba($color, 0.7);
+    pointer-events: none;
+  }
 }
-div.super-admin-tool::before, div.break-glass-tool::before, div.mdv-tool::before, div.program-manager-tool::before, div.dev-tool::before {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border: 2px dotted rgba(236, 142, 43, 0.4);
-  background: rgba(236, 142, 43, 0.06);
-  pointer-events: none;
-  z-index: -1;
-}
-div.super-admin-tool::after, div.break-glass-tool::after, div.mdv-tool::after, div.program-manager-tool::after, div.dev-tool::after {
-  position: absolute;
-  top: 0.15lh;
-  left: 1ch;
-  font-size: 0.75em;
-  color: rgba(236, 142, 43, 0.7);
-  pointer-events: none;
-}
-div.super-admin-tool::after { content: 'super admin'; }
-div.break-glass-tool::after { content: 'break glass'; }
-div.mdv-tool::after { content: 'document verifier'; }
-div.program-manager-tool::after { content: 'program manager'; }
-div.dev-tool::before { border-color: rgba(20, 163, 20, 0.4); background: rgba(20, 163, 20, 0.06); }
-div.dev-tool::after { content: 'dev only'; color: rgba(20, 163, 20, 0.7); }
+
+div.super-admin-tool { @include admin-gate($gate-orange, 'super admin'); }
+div.break-glass-tool { @include admin-gate($gate-orange, 'break glass'); }
+div.mdv-tool { @include admin-gate($gate-orange, 'document verifier'); }
+div.program-manager-tool { @include admin-gate($gate-orange, 'program manager'); }
+div.dev-tool { @include admin-gate($gate-green, 'dev only'); }
 
 /* Dark banner tokens — override when using gruvbox dark theme */
 [data-webtui-theme="gruvbox-dark-hard"] {

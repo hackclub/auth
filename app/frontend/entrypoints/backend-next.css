@@ -33,4 +33,4 @@
 @import "@webtui/theme-vitesse";
 
 /* Backend overrides */
-@import "../stylesheets/backend-overrides.css";
+@import "../stylesheets/backend-overrides.scss";
