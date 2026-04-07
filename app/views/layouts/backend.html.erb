@@ -27,7 +27,9 @@
             <span style="color: var(--foreground0);"><%= crumb[:label] %></span>
           <% end %>
         <% end %>
-        <span class="hca-user-context" style="color: var(--foreground2); margin-left: auto;">
+      </row>
+      <row gap-="2" align-="center">
+        <span class="hca-user-context" style="color: var(--foreground2);">
           <% if current_user.identity %>
             <a href="<%= backend_identity_path(current_user.identity) %>" style="color: var(--foreground2);"><%= current_user.display_name %></a>
           <% else %>
@@ -35,8 +37,6 @@
           <% end %>
           · <%= current_user.pretty_roles %>
         </span>
-      </row>
-      <row gap-="1" align-="center">
         <span id="theme-toggle-slot"></span>
         <button size-="small" onclick="window.openHints && window.openHints()">?</button>
         <button size-="small" onclick="window.openKbar && window.openKbar()">⌘K</button>
