@@ -210,7 +210,7 @@
 }
 
 /* Admin tool gates — HCB-style dotted borders with labels */
-$gate-orange: #ec8e2b;
+$gate-orange: #ff8c37;
 $gate-green: #14a314;
 
 @mixin admin-gate($color, $label) {
@@ -224,7 +224,7 @@ $gate-green: #14a314;
     inset: -3px;
     border: 2px dashed rgba($color, 0.3);
     border-radius: 0.5rem;
-    background: rgba($color, 0.08);
+    background-color: rgba($color, 0.0625);
     pointer-events: none;
     z-index: -1;
   }
@@ -250,6 +250,11 @@ $gate-green: #14a314;
 .mdv-tool { @include admin-gate($gate-orange, 'document verifier'); }
 .program-manager-tool { @include admin-gate($gate-orange, 'program manager'); }
 .dev-tool { @include admin-gate($gate-green, 'dev only'); }
+
+/* Light theme tweaks — better contrast for muted text */
+[data-webtui-theme="vitesse-light-soft"] {
+  --foreground2: #555b60;
+}
 
 /* Dark banner tokens — override when using gruvbox dark theme */
 [data-webtui-theme="gruvbox-dark-hard"] {
