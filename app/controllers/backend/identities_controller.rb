@@ -59,6 +59,9 @@ module Backend
       @owned_apps = @identity.owned_developer_apps
       @collaborated_apps = @identity.collaborated_programs
 
+      @sessions = @identity.sessions.order(created_at: :desc).limit(10)
+      @active_session_count = @identity.sessions.not_expired.count
+
       verification_ids = @identity.verifications.pluck(:id)
       document_ids = @identity.documents.pluck(:id)
       break_glass_record_ids = BreakGlassRecord.where(break_glassable_type: "Identity::Document", break_glassable_id: document_ids).pluck(:id)
