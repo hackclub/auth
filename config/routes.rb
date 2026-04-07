@@ -226,6 +226,7 @@ Rails.application.routes.draw do
         get :new_vouch
         post :create_vouch
         post :promote_to_full_user
+        post :revoke_sessions
       end
       resources :addresses, only: [ :new, :create, :edit, :update, :destroy ], controller: "identity_addresses"
     end

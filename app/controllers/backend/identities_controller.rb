@@ -168,6 +168,22 @@ module Backend
       end
     end
 
+    def revoke_sessions
+      authorize @identity, :update?
+
+      count = @identity.sessions.not_expired.count
+      @identity.sessions.not_expired.update_all(signed_out_at: Time.current, expires_at: Time.now)
+
+      if count > 0
+        @identity.create_activity(:revoke_all_sessions, owner: current_user, recipient: @identity, parameters: { count: count })
+        flash[:success] = "Revoked #{count} active #{"session".pluralize(count)}."
+      else
+        flash[:notice] = "No active sessions to revoke."
+      end
+
+      redirect_to backend_identity_path(@identity)
+    end
+
     def promote_to_full_user
       authorize @identity
 

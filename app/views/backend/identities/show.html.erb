@@ -136,7 +136,11 @@
   <% if @sessions.any? %>
     <div is-="separator"></div>
     <details>
-      <summary style="color: var(--foreground2); cursor: pointer;">recent sessions (<%= @active_session_count %> active)</summary>
+      <summary style="color: var(--foreground2); cursor: pointer;">recent sessions (<%= @active_session_count %> active)
+        <% if @active_session_count > 0 && (current_user&.can_break_glass? || current_user&.super_admin?) %>
+          — <%= button_to "revoke all", revoke_sessions_backend_identity_path(@identity), method: :post, data: { confirm: "revoke all #{@active_session_count} active sessions for #{@identity.first_name}?" }, form: { style: "display:inline" } %>
+        <% end %>
+      </summary>
       <table>
         <thead>
           <tr><th>created</th><th>last seen</th><th>device</th><th>ip</th><th>status</th></tr>
