@@ -194,6 +194,7 @@ Rails.application.routes.draw do
     root "static_pages#index", as: :root
     get "login", to: "static_pages#login", as: :login
     get "session_dump", to: "static_pages#session_dump", as: :session_dump unless Rails.env.production?
+    get "flash_test", to: "static_pages#flash_test", as: :flash_test unless Rails.env.production?
 
 
     get "kbar/search", to: "kbar#search", as: :kbar_search

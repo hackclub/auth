@@ -4,15 +4,15 @@
     <a href="<%= backend_identity_path(@identity) %>" style="color: var(--foreground2); text-decoration: none;">cancel</a>
   </row>
 
-  <div box-="square" class="tui-banner tui-banner-warning">[!] break glass access required. all changes are permanently logged.</div>
+  <%= render Components::Backend::Banner.new(kind: :warning) do %>break glass access required. all changes are permanently logged.<% end %>
 
   <% if @identity.errors.any? %>
-    <div box-="square" class="tui-banner tui-banner-danger">
-      [!] <%= pluralize(@identity.errors.count, "error") %>:
+    <%= render Components::Backend::Banner.new(kind: :danger) do %>
+      <%= pluralize(@identity.errors.count, "error") %>:
       <% @identity.errors.full_messages.each do |message| %>
         <%= message %>.
       <% end %>
-    </div>
+    <% end %>
   <% end %>
 
   <div is-="separator"></div>

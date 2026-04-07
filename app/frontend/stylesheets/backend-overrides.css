@@ -98,15 +98,22 @@
     }
   }
 
-  /* TUI banners — colored boxes with [!]/[+]/[i] prefix */
-  .tui-banner { margin: 0.5lh 0; }
-  .tui-banner-success { color: var(--green); --box-border-color: var(--green); }
-  .tui-banner-error,
-  .tui-banner-danger,
-  .tui-banner-alert { color: var(--red); --box-border-color: var(--red); }
-  .tui-banner-warning { color: var(--yellow); --box-border-color: var(--yellow); }
-  .tui-banner-info,
-  .tui-banner-notice { color: var(--blue); --box-border-color: var(--blue); }
+  /* Banner color tokens — matching the main app's _colors.scss (light) */
+  --error-bg: #fbf2f4; --error-border: #eab4bc; --error-fg-strong: #78202e;
+  --warning-bg: #fffcf2; --warning-border: #ffe69b; --warning-fg-strong: #6a311c;
+  --success-bg: #f3f8f5; --success-border: #a1caad; --success-fg-strong: #285a37;
+  --info-bg: #f2f7fb; --info-border: #b2d1ea; --info-fg-strong: #1f5077;
+
+  /* Banners — same style as main app */
+  .tui-banner-success { color: var(--success-fg-strong); --box-border-color: var(--success-border); }
+  .tui-banner-success::before { background: var(--success-bg); }
+  .tui-banner-error, .tui-banner-danger, .tui-banner-alert { color: var(--error-fg-strong); --box-border-color: var(--error-border); }
+  .tui-banner-error::before, .tui-banner-danger::before, .tui-banner-alert::before { background: var(--error-bg); }
+  .tui-banner-warning { color: var(--warning-fg-strong); --box-border-color: var(--warning-border); }
+  .tui-banner-warning::before { background: var(--warning-bg); }
+  .tui-banner-info, .tui-banner-notice { color: var(--info-fg-strong); --box-border-color: var(--info-border); }
+  .tui-banner-info::before, .tui-banner-notice::before { background: var(--info-bg); }
+
 
   /* Responsive */
   @media (max-width: 64ch) {
@@ -179,4 +186,12 @@
     color: var(--foreground2);
     background: var(--background1);
   }
+}
+
+/* Dark banner tokens — override when using gruvbox dark theme */
+[data-webtui-theme="gruvbox-dark-hard"] {
+  --error-bg: #3b1017; --error-border: #8b2535; --error-fg-strong: #e39aa5;
+  --warning-bg: #33290b; --warning-border: #7f661c; --warning-fg-strong: #ffecb4;
+  --success-bg: #142c1b; --success-border: #285a37; --success-fg-strong: #b9d8c2;
+  --info-bg: #0f273b; --info-border: #436075; --info-fg-strong: #d2e8f7;
 }

@@ -1,8 +1,8 @@
 <% flash.each do |type, message| %>
   <% next if type == "sentry_event_id" %>
   <% if message.present? %>
-    <div box-="square" class="tui-banner tui-banner-<%= type %>" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-      [<%= { "success" => "+", "error" => "!", "alert" => "!", "danger" => "!", "warning" => "!", "notice" => "i", "info" => "i" }[type] || "i" %>] <%= message %>
+    <div style="max-width: 120ch; margin: 0 auto; width: 100%;">
+      <%= render Components::Backend::Banner.new(kind: type.to_sym) do %><%= message %><% end %>
     </div>
   <% end %>
 <% end %>

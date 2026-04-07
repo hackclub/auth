@@ -1,5 +1,5 @@
-<div box-="square" class="tui-banner tui-banner-warning">
-  [!] <b><%= resemblance.title %></b>:
+<%= render Components::Backend::Banner.new(kind: :warning) do %>
+  <b><%= resemblance.title %></b>:
   <%= resemblance.current_label %> matches
   <% if resemblance.past_identity %>
     <%= link_to resemblance.matched_label, backend_identity_path(resemblance.past_identity), target: "_blank", style: "color: inherit; text-decoration: underline;" %>
@@ -9,4 +9,4 @@
   <% if resemblance.matched_verification %>
     (<%= link_to "verification", backend_verification_path(resemblance.matched_verification), target: "_blank", style: "color: inherit; text-decoration: underline;" %>)
   <% end %>
-</div>
+<% end %>

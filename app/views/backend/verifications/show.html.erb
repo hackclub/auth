@@ -26,9 +26,7 @@
 
       <%# --- Warnings --- %>
       <% if @verification.identity.birthday && @verification.identity.birthday < 19.years.ago %>
-        <div box-="square" class="tui-banner tui-banner-warning">
-          [!] birthday (<%= @verification.identity.birthday %>) is more than 19 years ago
-        </div>
+        <%= render Components::Backend::Banner.new(kind: :warning) do %>birthday (<%= @verification.identity.birthday %>) is more than 19 years ago<% end %>
       <% end %>
 
       <% if @verification.identity.resemblances.any? %>
@@ -38,12 +36,12 @@
       <% end %>
 
       <% if @verification.respond_to?(:issues) && @verification.issues.any? %>
-        <div box-="square" class="tui-banner tui-banner-info">
-          [i] automated checks:
+        <%= render Components::Backend::Banner.new(kind: :info) do %>
+          automated checks:
           <% @verification.issues.each do |issue| %>
             <br>· <%= issue %>
           <% end %>
-        </div>
+        <% end %>
       <% end %>
     </column>
 
@@ -104,9 +102,7 @@
       <% mdv_tool do %>
         <%= form_with url: reject_backend_verification_path(@verification), method: :patch, local: true do |form| %>
           <% if @verification.identity.under_13? %>
-            <div box-="square" class="tui-banner tui-banner-warning" style="margin-bottom: 0.5lh;">
-              [!] identity is under 13 (age <%= @verification.identity.age.round(2) %>)
-            </div>
+            <%= render Components::Backend::Banner.new(kind: :warning) do %>identity is under 13 (age <%= @verification.identity.age.round(2) %>)<% end %>
           <% end %>
           <row gap-="2" align-="start" style="flex-wrap: wrap;">
             <column style="min-width: 16ch;">
@@ -200,7 +196,7 @@
     <% super_admin_tool do %>
       <div is-="separator"></div>
       <details>
-        <summary style="color: var(--foreground2); cursor: pointer;">▸ super admin tools</summary>
+        <summary style="color: var(--foreground2); cursor: pointer;">super admin tools</summary>
         <column pad-="1 0" gap-="1">
           <%= form_with url: ignore_backend_verification_path(@verification), method: :patch, local: true do |f| %>
             <column gap-="1">
@@ -217,7 +213,7 @@
   <div is-="separator"></div>
 
   <details>
-    <summary style="color: var(--foreground2); cursor: pointer;">▸ audit log</summary>
+    <summary style="color: var(--foreground2); cursor: pointer;">audit log</summary>
     <column pad-="1 0">
       <%= render "backend/shared/activity_log", activities: @activities %>
     </column>

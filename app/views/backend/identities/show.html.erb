@@ -25,7 +25,7 @@
   </row>
 
   <% if @identity.permabanned %>
-    <div box-="square" class="tui-banner tui-banner-danger">[!] PERMABANNED — this identity is permanently banned.</div>
+    <%= render Components::Backend::Banner.new(kind: :danger) do %>PERMABANNED — this identity is permanently banned.<% end %>
   <% end %>
 
   <div is-="separator"></div>
@@ -138,7 +138,7 @@
   <% if @activities.any? %>
     <div is-="separator"></div>
     <details>
-      <summary style="color: var(--foreground2); cursor: pointer;">▸ audit log (<%= @activities.size %>)</summary>
+      <summary style="color: var(--foreground2); cursor: pointer;">audit log (<%= @activities.size %>)</summary>
       <column pad-="1 0">
         <%= render "backend/shared/activity_log", activities: @activities %>
       </column>

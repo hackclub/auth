@@ -14,7 +14,7 @@
   </row>
 
   <% if @user.orphaned? %>
-    <div box-="square" class="tui-banner tui-banner-warning">[!] orphaned — not linked to an identity, cannot log in</div>
+    <%= render Components::Backend::Banner.new(kind: :warning) do %>orphaned — not linked to an identity, cannot log in<% end %>
   <% end %>
 
   <div is-="separator"></div>
