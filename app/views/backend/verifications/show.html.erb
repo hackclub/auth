@@ -30,8 +30,24 @@
       <% end %>
 
       <% if @verification.identity.resemblances.any? %>
-        <% @verification.identity.resemblances.each do |resemblance| %>
-          <%= render "backend/shared/resemblance", resemblance: resemblance %>
+        <%= render Components::Backend::Banner.new(kind: :warning) do %>
+          POSSIBLE DUPLICATE — <%= pluralize(@verification.identity.resemblances.size, "match") %>
+          <details style="margin-top: 0.5lh;">
+            <summary style="cursor: pointer; color: inherit;">show resemblances</summary>
+            <% @verification.identity.resemblances.each do |resemblance| %>
+              <div style="padding: 0.25lh 0;">
+                <b><%= resemblance.title %></b>: <%= resemblance.current_label %> matches
+                <% if resemblance.past_identity %>
+                  <%= link_to resemblance.matched_label, backend_identity_path(resemblance.past_identity), target: "_blank", style: "color: inherit; text-decoration: underline;" %>
+                <% else %>
+                  [deleted]
+                <% end %>
+                <% if resemblance.matched_verification %>
+                  (<%= link_to "verification", backend_verification_path(resemblance.matched_verification), target: "_blank", style: "color: inherit; text-decoration: underline;" %>)
+                <% end %>
+              </div>
+            <% end %>
+          </details>
         <% end %>
       <% end %>
 
