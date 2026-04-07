@@ -1,0 +1,18 @@
+<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>new address for <%= @identity.first_name %> <%= @identity.last_name %></h2>
+    <a href="<%= backend_identity_path(@identity) %>" style="color: var(--foreground2); text-decoration: none;">cancel</a>
+  </row>
+
+  <% if @address.errors.any? %>
+    <%= render Components::Backend::Banner.new(kind: :danger) do %>
+      <%= pluralize(@address.errors.count, "error") %>: <%= @address.errors.full_messages.join(", ") %>
+    <% end %>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <%= form_with model: @address, url: backend_identity_addresses_path(@identity), method: :post, local: true do |f| %>
+    <%= render "form", f: f, address: @address %>
+  <% end %>
+</column>

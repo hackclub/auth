@@ -227,6 +227,7 @@ Rails.application.routes.draw do
         post :create_vouch
         post :promote_to_full_user
       end
+      resources :addresses, only: [ :new, :create, :edit, :update, :destroy ], controller: "identity_addresses"
     end
 
     # Programs management moved to DeveloperAppsController (unified UI)

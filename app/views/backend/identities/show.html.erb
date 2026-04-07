@@ -33,25 +33,40 @@
   <%# === Identity details === %>
   <%= render "backend/shared/identity_details", identity: @identity, show_legal_name: @available_scopes.include?("legal_name") %>
 
-  <% if @available_scopes.include?("address") && @addresses.any? %>
+  <% if @available_scopes.include?("address") %>
     <div is-="separator"></div>
-    <span style="color: var(--foreground2); font-style: italic;">addresses</span>
-    <table>
-      <thead>
-        <tr><th>name</th><th>address</th><th>city</th><th>country</th><th>primary</th></tr>
-      </thead>
-      <tbody>
-        <% @addresses.each do |address| %>
-          <tr>
-            <td><%= address.first_name %> <%= address.last_name %></td>
-            <td><%= address.line_1 %><% if address.line_2.present? %>, <%= address.line_2 %><% end %></td>
-            <td><%= address.city %>, <%= address.state %> <%= address.postal_code %></td>
-            <td><%= address.country %></td>
-            <td><%= @identity.primary_address == address ? "✓" : "—" %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
+    <row align-="center between">
+      <span style="color: var(--foreground2); font-style: italic;">addresses</span>
+      <% if current_user&.can_break_glass? || current_user&.super_admin? %>
+        <a href="<%= new_backend_identity_address_path(@identity) %>">+ add</a>
+      <% end %>
+    </row>
+    <% if @addresses.any? %>
+      <table>
+        <thead>
+          <tr><th>name</th><th>address</th><th>city</th><th>country</th><th>primary</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% @addresses.each do |address| %>
+            <tr>
+              <td><%= address.first_name %> <%= address.last_name %></td>
+              <td><%= address.line_1 %><% if address.line_2.present? %>, <%= address.line_2 %><% end %></td>
+              <td><%= address.city %>, <%= address.state %> <%= address.postal_code %></td>
+              <td><%= address.country %></td>
+              <td><%= @identity.primary_address == address ? "✓" : "—" %></td>
+              <td>
+                <% if current_user&.can_break_glass? || current_user&.super_admin? %>
+                  <a href="<%= edit_backend_identity_address_path(@identity, address) %>">edit</a>
+                  · <%= button_to "delete", backend_identity_address_path(@identity, address), method: :delete, data: { confirm: "delete this address?" }, form: { style: "display:inline" } %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <span style="color: var(--foreground2);">no addresses</span>
+    <% end %>
   <% end %>
 
   <%# === Account & Security === %>
