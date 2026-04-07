@@ -1,5 +1,7 @@
 module Backend
   class IdentityAddressesController < ApplicationController
+    include IdentityAuthorizable
+
     before_action :set_identity
     before_action :set_address, only: [ :edit, :update, :destroy ]
 
