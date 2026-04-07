@@ -360,12 +360,12 @@ namespace :backend do
     # ─── Activity entries ───────────────────────────────────────
     act = 0
     identities.sample(10).each do |identity|
-      PublicActivity::Activity.create!(trackable: identity, owner: bu.sample, key: "identity.update", parameters: { changes: Faker::Lorem.word }, created_at: rand(1..30).days.ago)
+      identity.create_activity(:update, owner: bu.sample, parameters: { changes: Faker::Lorem.word })
       act += 1
     end
     Verification.limit(8).each do |v|
-      key = v.approved? ? "verification.approved" : v.rejected? ? "verification.rejected" : "verification.create"
-      PublicActivity::Activity.create!(trackable: v, owner: bu.sample, recipient: v.identity, key: key, created_at: rand(1..14).days.ago)
+      key = v.approved? ? :approved : v.rejected? ? :rejected : :create
+      v.create_activity(key, owner: bu.sample, recipient: v.identity)
       act += 1
     end
     puts "  #{act} activity log entries"

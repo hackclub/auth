@@ -8,6 +8,17 @@
     </tr>
   </thead>
   <tbody>
-    <%= render_activities(activities) %>
+    <% activities.each do |activity| %>
+      <% begin %>
+        <%= render_activity activity %>
+      <% rescue => e %>
+        <tr>
+          <td style="color: var(--foreground2);"><%= activity.owner&.try(:display_name) || activity.owner&.try(:full_name) || "system" %></td>
+          <td><%= activity.key.split(".").last.gsub("_", " ") %></td>
+          <td style="color: var(--foreground2);"><%= activity.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+          <% if Rails.env.development? %><td style="color: var(--red);"><%= e.message[0..60] %></td><% end %>
+        </tr>
+      <% end %>
+    <% end %>
   </tbody>
 </table>

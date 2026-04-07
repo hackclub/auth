@@ -31,4 +31,20 @@ Rails.application.config.to_prepare do
     def validate_each(record, attribute, value)
     end
   end
+
+  # Fix public_activity 3.0.2 crash when `parameters` column contains
+  # raw strings instead of YAML-deserialized hashes.
+  PublicActivity::Activity.prepend(Module.new do
+    def prepare_parameters(params)
+      p = self.parameters
+      if p.is_a?(String)
+        p = (YAML.safe_load(p, permitted_classes: [Symbol]) rescue {}) || {}
+      end
+      if p.is_a?(Hash)
+        @prepared_params ||= p.with_indifferent_access.merge(params)
+      else
+        @prepared_params ||= params
+      end
+    end
+  end)
 end
