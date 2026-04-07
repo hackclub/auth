@@ -139,9 +139,7 @@
       <summary style="color: var(--foreground2); cursor: pointer;">recent sessions (<%= @active_session_count %> active)
         <% break_glass_tool(element: "span") do %>
           <% if @active_session_count > 0 %>
-            — <%= form_with url: revoke_sessions_backend_identity_path(@identity), method: :post, local: true, style: "display:inline" do %>
-              <button type="submit" size-="small" variant-="red" onclick="return confirm('revoke all <%= @active_session_count %> active sessions for <%= @identity.first_name %>?')">revoke all</button>
-            <% end %>
+            — <%= button_to "revoke all", revoke_sessions_backend_identity_path(@identity), method: :post, data: { confirm: "revoke all #{@active_session_count} active sessions for #{@identity.first_name}?" }, form: { style: "display:inline" } %>
           <% end %>
         <% end %>
       </summary>
