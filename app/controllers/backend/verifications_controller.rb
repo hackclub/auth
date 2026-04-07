@@ -9,6 +9,7 @@ module Backend
 
     def index
       authorize Verification
+      add_breadcrumb "VERF"
 
       set_keyboard_shortcut(:back, backend_root_path)
 
@@ -21,6 +22,7 @@ module Backend
 
     def pending
       authorize Verification
+      add_breadcrumb "PEND"
 
       set_keyboard_shortcut(:back, backend_root_path)
 
@@ -34,6 +36,8 @@ module Backend
 
     def show
       authorize @verification
+      add_breadcrumb "PEND", pending_backend_verifications_path
+      add_breadcrumb "#{@verification.identity.first_name} #{@verification.identity.last_name}"
 
       set_keyboard_shortcut(:back, pending_backend_verifications_path)
       if @verification.pending?

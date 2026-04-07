@@ -1,15 +1,13 @@
 <% doc_type = break_glass_document_type(break_glassable) %>
-<column box-="square" align-="center" pad-="2 2" gap-="1" style="--box-border-color: var(--yellow);">
-  <b style="color: var(--yellow);">⚠ break the glass</b>
-  <span style="color: var(--foreground2);">this <%= doc_type %> has already been reviewed. affirm you have a legitimate need to view it.</span>
-
-  <%= form_with url: "/backend/break_glass", method: :post, local: true do |form| %>
+<%= render Components::Backend::Banner.new(kind: :warning) do %>
+  <b>break the glass</b> — this <%= doc_type %> has already been reviewed.
+  <%= form_with url: "/backend/break_glass", method: :post, local: true, style: "margin-top: 0.5lh;" do |form| %>
     <%= form.hidden_field :break_glassable_id, value: break_glassable.id %>
     <%= form.hidden_field :break_glassable_type, value: break_glassable.class.name %>
     <row gap-="1" align-="center" style="flex-wrap: wrap;">
       <span>i'm accessing this <%= doc_type %></span>
-      <%= form.text_field :reason, placeholder: "because...", style: "flex: 1; min-width: 16ch;" %>
-      <%= form.submit "i promise." %>
+      <%= form.text_field :reason, placeholder: "because...", style: "flex: 1; min-width: 16ch; background: var(--background0);" %>
+      <button type="submit" size-="small">i promise.</button>
     </row>
   <% end %>
-</column>
+<% end %>

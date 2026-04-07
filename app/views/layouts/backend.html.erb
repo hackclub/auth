@@ -17,9 +17,17 @@
   </head>
   <body>
     <row id="hca-actionbar" align-="center between">
-      <row gap-="2" align-="center">
+      <row gap-="1" align-="center">
         <a href="<%= backend_root_path %>" style="text-decoration: none; color: var(--foreground0);"><b>HCA</b></a>
-        <span class="hca-user-context" style="color: var(--foreground2);">
+        <% breadcrumbs.each do |crumb| %>
+          <span style="color: var(--foreground2);">/</span>
+          <% if crumb[:path] %>
+            <a href="<%= crumb[:path] %>" style="color: var(--foreground2); text-decoration: none;"><%= crumb[:label] %></a>
+          <% else %>
+            <span style="color: var(--foreground0);"><%= crumb[:label] %></span>
+          <% end %>
+        <% end %>
+        <span class="hca-user-context" style="color: var(--foreground2); margin-left: auto;">
           <% if current_user.identity %>
             <a href="<%= backend_identity_path(current_user.identity) %>" style="color: var(--foreground2);"><%= current_user.display_name %></a>
           <% else %>
@@ -27,7 +35,6 @@
           <% end %>
           · <%= current_user.pretty_roles %>
         </span>
-        <%= yield :toolbar %>
       </row>
       <row gap-="1" align-="center">
         <span id="theme-toggle-slot"></span>

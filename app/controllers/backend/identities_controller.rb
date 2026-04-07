@@ -10,6 +10,7 @@ module Backend
 
     def index
       authorize Identity
+      add_breadcrumb "IDNT"
 
       set_keyboard_shortcut(:back, backend_root_path)
 
@@ -27,6 +28,8 @@ module Backend
 
     def show
       authorize @identity
+      add_breadcrumb "IDNT", backend_identities_path
+      add_breadcrumb "#{@identity.first_name} #{@identity.last_name}"
 
       set_keyboard_shortcut(:back, backend_identities_path)
       set_keyboard_shortcut(:edit, edit_backend_identity_path(@identity))
@@ -70,6 +73,9 @@ module Backend
 
     def edit
       authorize @identity, :edit?
+      add_breadcrumb "IDNT", backend_identities_path
+      add_breadcrumb @identity.first_name, backend_identity_path(@identity)
+      add_breadcrumb "edit"
     end
 
     def update
@@ -142,6 +148,9 @@ module Backend
 
     def new_vouch
       authorize Verification::VouchVerification, :create?
+      add_breadcrumb "IDNT", backend_identities_path
+      add_breadcrumb @identity.first_name, backend_identity_path(@identity)
+      add_breadcrumb "vouch"
       @vouch = @identity.vouch_verifications.build
     end
 
