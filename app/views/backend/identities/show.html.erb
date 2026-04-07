@@ -37,7 +37,7 @@
     <div is-="separator"></div>
     <row align-="center between">
       <span style="color: var(--foreground2); font-style: italic;">addresses</span>
-      <% break_glass_tool(element: "span") do %>
+      <% super_admin_tool(element: "span") do %>
         <a href="<%= new_backend_identity_address_path(@identity) %>">+ add</a>
       <% end %>
     </row>
@@ -55,7 +55,7 @@
               <td><%= address.country %></td>
               <td><%= @identity.primary_address == address ? "✓" : "—" %></td>
               <td>
-                <% break_glass_tool(element: "span") do %>
+                <% super_admin_tool(element: "span") do %>
                   <a href="<%= edit_backend_identity_address_path(@identity, address) %>">edit</a>
                   · <%= button_to "delete", backend_identity_address_path(@identity, address), method: :delete, data: { confirm: "delete this address?" }, form: { style: "display:inline" } %>
                 <% end %>
@@ -139,7 +139,9 @@
       <summary style="color: var(--foreground2); cursor: pointer;">recent sessions (<%= @active_session_count %> active)
         <% break_glass_tool(element: "span") do %>
           <% if @active_session_count > 0 %>
-            — <%= button_to "revoke all", revoke_sessions_backend_identity_path(@identity), method: :post, data: { confirm: "revoke all #{@active_session_count} active sessions for #{@identity.first_name}?" }, form: { style: "display:inline" } %>
+            — <%= form_with url: revoke_sessions_backend_identity_path(@identity), method: :post, local: true, style: "display:inline" do %>
+              <button type="submit" size-="small" variant-="red" onclick="return confirm('revoke all <%= @active_session_count %> active sessions for <%= @identity.first_name %>?')">revoke all</button>
+            <% end %>
           <% end %>
         <% end %>
       </summary>
@@ -164,7 +166,9 @@
               <td>
                 <% if !sess.expired? %>
                   <% break_glass_tool(element: "span") do %>
-                    <%= button_to "revoke", revoke_session_backend_identity_path(@identity, session_id: sess.id), method: :post, data: { confirm: "revoke this session?" }, form: { style: "display:inline" } %>
+                    <%= form_with url: revoke_session_backend_identity_path(@identity, session_id: sess.id), method: :post, local: true, style: "display:inline" do %>
+                      <button type="submit" size-="small" onclick="return confirm('revoke this session?')">revoke</button>
+                    <% end %>
                   <% end %>
                 <% end %>
               </td>

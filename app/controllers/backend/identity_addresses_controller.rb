@@ -4,22 +4,22 @@ module Backend
     before_action :set_address, only: [ :edit, :update, :destroy ]
 
     def new
-      authorize @identity, :update?
-      add_breadcrumb "IDNT", backend_identities_path
-      add_breadcrumb @identity.first_name, backend_identity_path(@identity)
-      add_breadcrumb "new address"
-
       @address = @identity.addresses.build(
         first_name: @identity.first_name,
         last_name: @identity.last_name,
         country: @identity.country,
         phone_number: @identity.phone_number,
       )
+      authorize @address
+
+      add_breadcrumb "IDNT", backend_identities_path
+      add_breadcrumb @identity.first_name, backend_identity_path(@identity)
+      add_breadcrumb "new address"
     end
 
     def create
-      authorize @identity, :update?
       @address = @identity.addresses.build(address_params)
+      authorize @address
 
       if @address.save
         @identity.update!(primary_address: @address) if @identity.primary_address.nil?
@@ -33,14 +33,15 @@ module Backend
     end
 
     def edit
-      authorize @identity, :update?
+      authorize @address
+
       add_breadcrumb "IDNT", backend_identities_path
       add_breadcrumb @identity.first_name, backend_identity_path(@identity)
       add_breadcrumb "edit address"
     end
 
     def update
-      authorize @identity, :update?
+      authorize @address
 
       if @address.update(address_params)
         redirect_to backend_identity_path(@identity), notice: "Address updated."
@@ -53,7 +54,8 @@ module Backend
     end
 
     def destroy
-      authorize @identity, :update?
+      authorize @address
+
       @identity.update!(primary_address: nil) if @identity.primary_address == @address
       @address.destroy!
       redirect_to backend_identity_path(@identity), notice: "Address deleted."

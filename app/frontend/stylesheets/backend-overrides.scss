@@ -222,26 +222,33 @@ $gate-green: #14a314;
     content: '';
     position: absolute;
     inset: -3px;
-    border: 2px dashed rgba($color, 0.3);
+    border: 2px dashed rgba($color, 0.5);
     border-radius: 0.5rem;
-    background-color: rgba($color, 0.0625);
+    background-color: rgba($color, 0.08);
     pointer-events: none;
     z-index: -1;
   }
 
-  // block-level gates get a text label above content
-  &:not(span) {
-    padding-top: 1.5lh;
+  &:is(div) {
+    padding: 0.5lh 1ch;
+    margin-top: 1lh;
+  }
 
-    &::after {
-      content: $label;
-      position: absolute;
-      top: 0.15lh;
-      left: 1ch;
-      font-size: 0.75em;
-      color: rgba($color, 0.7);
-      pointer-events: none;
-    }
+  &:is(span) {
+    display: inline-block;
+    padding: 2px 4px;
+  }
+
+  &::after {
+    content: $label;
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    font-size: 0.75em;
+    line-height: 1;
+    color: rgba($color, 0.8);
+    pointer-events: none;
+    white-space: nowrap;
   }
 }
 
