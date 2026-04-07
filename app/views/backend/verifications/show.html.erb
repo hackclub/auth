@@ -90,7 +90,7 @@
   <% if @verification.pending? %>
     <column gap-="1">
       <row align-="center" gap-="2" style="flex-wrap: wrap;">
-        <% if current_user&.manual_document_verifier? || current_user&.super_admin? %>
+        <% mdv_tool(element: "span") do %>
           <%= form_with url: approve_backend_verification_path(@verification), method: :patch, local: true, style: "display:inline" do |form| %>
             <%= form.hidden_field :ysws_eligible, value: true %>
             <button type="submit" variant-="green" size-="small">[a] APPROVE YSWS</button>
@@ -115,7 +115,7 @@
 
       <div is-="separator"></div>
 
-      <% if current_user&.manual_document_verifier? || current_user&.super_admin? %>
+      <% mdv_tool do %>
         <%= form_with url: reject_backend_verification_path(@verification), method: :patch, local: true do |form| %>
           <% if @verification.identity.under_13? %>
             <%= render Components::Backend::Banner.new(kind: :warning) do %>identity is under 13 (age <%= @verification.identity.age.round(2) %>)<% end %>
@@ -209,20 +209,17 @@
         <span><%= @verification.ignored_reason %></span>
       </row>
     </column>
-  <% elsif @verification.ignored_at.blank? && (current_user&.super_admin?) %>
-    <div is-="separator"></div>
-    <details>
-      <summary style="color: var(--foreground2); cursor: pointer;">super admin tools</summary>
-      <column pad-="1 0" gap-="1">
-        <%= form_with url: ignore_backend_verification_path(@verification), method: :patch, local: true do |f| %>
-          <column gap-="1">
-            <%= f.label :reason, "ignore reason" %>
-            <%= f.text_area :reason, placeholder: "reason for ignoring (logged in audit trail)...", rows: 2 %>
-            <%= f.submit "ignore verification", data: { confirm: "ignore this verification? this cannot be undone." } %>
-          </column>
-        <% end %>
-      </column>
-    </details>
+  <% elsif @verification.ignored_at.blank? %>
+    <% super_admin_tool do %>
+      <div is-="separator"></div>
+      <%= form_with url: ignore_backend_verification_path(@verification), method: :patch, local: true do |f| %>
+        <column gap-="1">
+          <%= f.label :reason, "ignore reason" %>
+          <%= f.text_area :reason, placeholder: "reason for ignoring (logged in audit trail)...", rows: 2 %>
+          <%= f.submit "ignore verification", data: { confirm: "ignore this verification? this cannot be undone." } %>
+        </column>
+      <% end %>
+    <% end %>
   <% end %>
 
   <div is-="separator"></div>

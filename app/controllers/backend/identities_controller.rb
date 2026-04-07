@@ -184,6 +184,15 @@ module Backend
       redirect_to backend_identity_path(@identity)
     end
 
+    def revoke_session
+      authorize @identity, :update?
+      session = @identity.sessions.find(params[:session_id])
+      session.update!(signed_out_at: Time.current, expires_at: Time.now)
+      @identity.create_activity(:revoke_all_sessions, owner: current_user, recipient: @identity, parameters: { count: 1 })
+      flash[:success] = "Session revoked."
+      redirect_to backend_identity_path(@identity)
+    end
+
     def promote_to_full_user
       authorize @identity
 

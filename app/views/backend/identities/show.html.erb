@@ -15,7 +15,7 @@
     <% elsif @identity.ysws_eligible == false %>
       <span is-="badge" variant-="red">ysws ineligible</span>
     <% end %>
-    <% if current_user&.can_break_glass? || current_user&.super_admin? %>
+    <% break_glass_tool(element: "span") do %>
       <span>·</span>
       <a href="<%= edit_backend_identity_path(@identity) %>">edit</a>
       <% if @identity.slack_id.present? %>
@@ -37,7 +37,7 @@
     <div is-="separator"></div>
     <row align-="center between">
       <span style="color: var(--foreground2); font-style: italic;">addresses</span>
-      <% if current_user&.can_break_glass? || current_user&.super_admin? %>
+      <% break_glass_tool(element: "span") do %>
         <a href="<%= new_backend_identity_address_path(@identity) %>">+ add</a>
       <% end %>
     </row>
@@ -55,7 +55,7 @@
               <td><%= address.country %></td>
               <td><%= @identity.primary_address == address ? "✓" : "—" %></td>
               <td>
-                <% if current_user&.can_break_glass? || current_user&.super_admin? %>
+                <% break_glass_tool(element: "span") do %>
                   <a href="<%= edit_backend_identity_address_path(@identity, address) %>">edit</a>
                   · <%= button_to "delete", backend_identity_address_path(@identity, address), method: :delete, data: { confirm: "delete this address?" }, form: { style: "display:inline" } %>
                 <% end %>
@@ -137,13 +137,15 @@
     <div is-="separator"></div>
     <details>
       <summary style="color: var(--foreground2); cursor: pointer;">recent sessions (<%= @active_session_count %> active)
-        <% if @active_session_count > 0 && (current_user&.can_break_glass? || current_user&.super_admin?) %>
-          — <%= button_to "revoke all", revoke_sessions_backend_identity_path(@identity), method: :post, data: { confirm: "revoke all #{@active_session_count} active sessions for #{@identity.first_name}?" }, form: { style: "display:inline" } %>
+        <% break_glass_tool(element: "span") do %>
+          <% if @active_session_count > 0 %>
+            — <%= button_to "revoke all", revoke_sessions_backend_identity_path(@identity), method: :post, data: { confirm: "revoke all #{@active_session_count} active sessions for #{@identity.first_name}?" }, form: { style: "display:inline" } %>
+          <% end %>
         <% end %>
       </summary>
       <table>
         <thead>
-          <tr><th>created</th><th>last seen</th><th>device</th><th>ip</th><th>status</th></tr>
+          <tr><th>created</th><th>last seen</th><th>device</th><th>ip</th><th>status</th><th></th></tr>
         </thead>
         <tbody>
           <% @sessions.each do |sess| %>
@@ -159,6 +161,13 @@
                   <span is-="badge" variant-="green">active</span>
                 <% end %>
               </td>
+              <td>
+                <% if !sess.expired? %>
+                  <% break_glass_tool(element: "span") do %>
+                    <%= button_to "revoke", revoke_session_backend_identity_path(@identity, session_id: sess.id), method: :post, data: { confirm: "revoke this session?" }, form: { style: "display:inline" } %>
+                  <% end %>
+                <% end %>
+              </td>
             </tr>
           <% end %>
         </tbody>
@@ -171,7 +180,7 @@
     <div is-="separator"></div>
     <row align-="center between">
       <span style="color: var(--foreground2); font-style: italic;">verifications</span>
-      <% if current_user&.super_admin? %>
+      <% super_admin_tool(element: "span") do %>
         <a href="<%= new_vouch_backend_identity_path(@identity) %>">+ vouch</a>
       <% end %>
     </row>
