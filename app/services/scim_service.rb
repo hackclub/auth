@@ -221,7 +221,7 @@ module SCIMService
       response = client.patch("Users/#{slack_id}", {
         schemas: [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
         Operations: [
-          { op: "remove", path: "photos" }
+          { op: "replace", path: "photos", value: [] }
         ]
       })
 
