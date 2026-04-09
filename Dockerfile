@@ -21,13 +21,13 @@ RUN apt-get update -qq && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ARG NODE_VERSION=23.6.0
+ARG NODE_VERSION=24.14.1
 ARG YARN_VERSION=1.22.22
 ENV PATH=/usr/local/node/bin:$PATH
-ARG NODE_BUILD_VERSION=v5.4.3
+ARG NODE_BUILD_VERSION=v5.4.33
 RUN curl -sL "https://github.com/nodenv/node-build/archive/refs/tags/${NODE_BUILD_VERSION}.tar.gz" \
       -o /tmp/node-build.tar.gz && \
-    echo "1ff1a2c1fb51b5456d4d9edfd6a6fa9cc83dbdf473e0a61d7816a0ed935af165  /tmp/node-build.tar.gz" | sha256sum -c - && \
+    echo "e07b8e6d6859537e07a6d3caf690c530f233812704b71f900029f2d8c43dd6e8  /tmp/node-build.tar.gz" | sha256sum -c - && \
     tar xz -C /tmp/ -f /tmp/node-build.tar.gz && \
     /tmp/node-build-*/bin/node-build "${NODE_VERSION}" /usr/local/node && \
     rm -rf /tmp/node-build* && \
