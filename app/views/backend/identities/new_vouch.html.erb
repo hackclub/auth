@@ -1,22 +1,19 @@
-<div class="grid">
-  <%= render Components::Backend::Card.new(title: "vouch for #{@identity.first_name} #{@identity.last_name}") do %>
-    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_identity_path(@identity)) do %>
-      <b>cancel</b>
-    <% end %>
-    <hr>
-    <%= form_with model: [@identity, @vouch], url: create_vouch_backend_identity_path(@identity), method: :post, local: true do |f| %>
-      <div class="section">
-        <div class="section-header"><h3>evidence</h3></div>
-        <div class="section-content">
-          <div class="form-row">
-            <%= f.label :evidence, "upload picture" %>
-            <%= f.file_field :evidence, required: true %>
-          </div>
-        </div>
-      </div>
-      <div class="form-actions">
-        <%= f.submit "create vouch", class: "action_button" %>
-      </div>
-    <% end %>
+<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>vouch for <%= @identity.first_name %> <%= @identity.last_name %></h2>
+    <a href="<%= backend_identity_path(@identity) %>" style="color: var(--foreground2); text-decoration: none;">cancel</a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%= form_with model: [@identity, @vouch], url: create_vouch_backend_identity_path(@identity), method: :post, local: true do |f| %>
+    <column gap-="1">
+      <column>
+        <%= f.label :evidence, "upload evidence" %>
+        <%= f.file_field :evidence, required: true %>
+      </column>
+      <div is-="separator"></div>
+      <button type="submit">create vouch</button>
+    </column>
   <% end %>
-</div>
+</column>

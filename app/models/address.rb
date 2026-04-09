@@ -31,6 +31,7 @@ class Address < ApplicationRecord
 
   has_paper_trail
   set_public_id_prefix "addr"
+  alias_method :to_param, :public_id
 
   belongs_to :identity
 

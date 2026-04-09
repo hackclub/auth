@@ -1,0 +1,18 @@
+<column>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">type</span> <%= verification.document_type %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">uploaded</span> <%= verification.identity_document.created_at.strftime("%B %d, %Y at %I:%M %p") %></row>
+  <% if verification.identity.country == "IN" %>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">aadhaar pw</span> <%= copy_to_clipboard(verification.identity.suggested_aadhaar_password, tooltip_direction: "e") %></row>
+  <% end %>
+  <row>
+    <span style="min-width: 12ch; color: var(--foreground2);">status</span>
+    <% if verification.pending? %>
+      <span is-="badge" variant-="yellow">pending</span>
+    <% elsif verification.approved? %>
+      <span is-="badge" variant-="green">approved</span>
+    <% else %>
+      <span is-="badge" variant-="red">rejected</span>
+    <% end %>
+  </row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">files</span> <%= verification.identity_document.files.count %></row>
+</column>

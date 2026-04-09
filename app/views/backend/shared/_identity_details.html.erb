@@ -1,0 +1,34 @@
+<%
+  show_legal_name = local_assigns.fetch(:show_legal_name, false)
+%>
+<column>
+  <%= render identity %>
+  <% if identity.legal_first_name.present? && show_legal_name %>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">legal name</span> <%= identity.legal_first_name %> <%= identity.legal_last_name %></row>
+  <% end %>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">country</span> <%= identity.country %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">email</span> <%= identity.primary_email %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">birthday</span> <%= identity.birthday %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">phone</span> <%= identity.phone_number %></row>
+  <row>
+    <span style="min-width: 12ch; color: var(--foreground2);">status</span>
+    <% if identity.verification_status == 'verified' %>
+      <span is-="badge" variant-="green">verified</span>
+    <% else %>
+      <%= identity.verification_status.humanize %>
+    <% end %>
+  </row>
+  <% if identity.ysws_eligible == true %>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">ysws</span> <span is-="badge" variant-="green">eligible</span></row>
+  <% elsif identity.ysws_eligible == false %>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">ysws</span> <span is-="badge" variant-="red">ineligible</span></row>
+  <% end %>
+  <row>
+    <span style="min-width: 12ch; color: var(--foreground2);">slack</span>
+    <% if identity.slack_id.present? %>
+      <%= link_to identity.slack_id, "https://hackclub.slack.com/team/#{identity.slack_id}" %>
+    <% else %>
+      <i style="color: var(--foreground2);">not set</i>
+    <% end %>
+  </row>
+</column>

@@ -21,10 +21,13 @@
     "@noble/curves": "^1.9.1",
     "@picocss/pico": "^2.1.1",
     "@rails/activestorage": "^8.0.200",
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
+    "@webtui/css": "^0.1.7",
+    "@webtui/theme-gruvbox": "^0.0.2",
+    "@webtui/theme-vitesse": "^0.0.2",
     "alpinejs": "^3.14.9",
     "axios": "^1.9.0",
-    "dreamland": "^0.1.2",
     "htmx.org": "^1.9.12",
-    "jquery": "^3.7.1"
+    "svelte": "^5.55.1"
   }
 }
