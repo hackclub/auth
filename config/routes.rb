@@ -225,6 +225,7 @@ Rails.application.routes.draw do
         post :reprovision_slack
         get :new_vouch
         post :create_vouch
+        post :clear_slack_photo
         post :promote_to_full_user
         post :revoke_sessions
         post :revoke_session

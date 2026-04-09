@@ -22,6 +22,11 @@
         <%= button_to "promote", promote_to_full_user_backend_identity_path(@identity), method: :post, form: { style: "display:inline" } %>
       <% end %>
     <% end %>
+    <% if @identity.slack_id.present? %>
+      <% super_admin_tool(element: "span") do %>
+        <%= button_to "clear photo", clear_slack_photo_backend_identity_path(@identity), method: :post, data: { confirm: "clear #{@identity.first_name}'s Slack profile photo?" }, form: { style: "display:inline" } %>
+      <% end %>
+    <% end %>
   </row>
 
   <% if @identity.permabanned %>

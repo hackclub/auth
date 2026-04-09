@@ -217,6 +217,32 @@ module SCIMService
 
     def scim_token = ENV["SLACK_SCIM_TOKEN"] || raise("SLACK_SCIM_TOKEN not configured")
 
+    def clear_profile_photo(slack_id:)
+      response = client.patch("Users/#{slack_id}", {
+        schemas: [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
+        Operations: [
+          { op: "remove", path: "photos" }
+        ]
+      })
+
+      if response.success?
+        { success: true }
+      else
+        error_msg = if response.body.is_a?(Hash)
+          response.body.dig("Errors", 0, "description") ||
+            response.body["detail"] ||
+            response.body["message"] ||
+            response.body["error"]
+        end
+        error_msg ||= "Unknown error (Status #{response.status})"
+        { success: false, error: error_msg }
+      end
+    rescue => e
+      Rails.logger.error "Error clearing Slack profile photo: #{e.message}"
+      Sentry.capture_exception(e, tags: { component: "slack", operation: "scim_clear_photo" })
+      { success: false, error: e.message }
+    end
+
     def find_existing_user_by_email(email)
       response = client.get("Users") do |req|
         req.params["filter"] = "emails eq \"#{email}\""

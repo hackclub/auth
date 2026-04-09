@@ -193,6 +193,27 @@ module Backend
       redirect_to backend_identity_path(@identity)
     end
 
+    def clear_slack_photo
+      authorize @identity
+
+      unless @identity.slack_id.present?
+        flash[:error] = "Identity has no Slack account"
+        redirect_to backend_identity_path(@identity)
+        return
+      end
+
+      result = SCIMService.clear_profile_photo(slack_id: @identity.slack_id)
+
+      if result[:success]
+        @identity.create_activity(:clear_slack_photo, owner: current_user)
+        flash[:notice] = "Slack profile photo cleared."
+      else
+        flash[:error] = "Failed to clear profile photo: #{result[:error]}"
+      end
+
+      redirect_to backend_identity_path(@identity)
+    end
+
     def promote_to_full_user
       authorize @identity
 
