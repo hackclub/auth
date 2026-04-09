@@ -28,7 +28,7 @@ namespace :backend do
       Program.create!(name: "Hack Club YSWS", redirect_uri: "https://ysws.hackclub.com/callback", scopes: "basic_info email name verification_status", trust_level: :hq_official),
       Program.create!(name: "Sprig Console", redirect_uri: "https://sprig.hackclub.com/callback", scopes: "basic_info email name slack_id", trust_level: :hq_official),
       Program.create!(name: Faker::App.name, redirect_uri: "https://#{Faker::Internet.domain_name}/callback", scopes: "openid email name slack_id", trust_level: :community_trusted),
-      Program.create!(name: Faker::App.name, redirect_uri: "https://#{Faker::Internet.domain_name}/callback", scopes: "openid profile", trust_level: :community_untrusted),
+      Program.create!(name: Faker::App.name, redirect_uri: "https://#{Faker::Internet.domain_name}/callback", scopes: "openid profile", trust_level: :community_untrusted)
     ]
     puts "  #{programs.size} programs"
 
@@ -41,7 +41,7 @@ namespace :backend do
         country: "US",
         birthday: Faker::Date.birthday(min_age: 13, max_age: 18),
         phone_number: Faker::PhoneNumber.cell_phone_with_country_code,
-        slack_id: "USEED#{SecureRandom.hex(4).upcase}",
+        slack_id: "USEED#{SecureRandom.hex(4).upcase}"
       }
       merged = defaults.merge(attrs)
       merged[:legal_first_name] ||= merged[:first_name]
@@ -109,8 +109,8 @@ namespace :backend do
               photo: "",
               "Father Name": Faker::Name.name,
               co: "S/O #{Faker::Name.last_name}",
-              address: { house: Faker::Address.building_number, street: Faker::Address.street_name, dist: Faker::Address.city, state: "Karnataka", pincode: Faker::Address.zip_code },
-            },
+              address: { house: Faker::Address.building_number, street: Faker::Address.street_name, dist: Faker::Address.city, state: "Karnataka", pincode: Faker::Address.zip_code }
+            }
           }.to_json,
           name: "#{i.first_name} #{i.last_name}",
           date_of_birth: i.birthday,
@@ -283,7 +283,7 @@ namespace :backend do
         first_name: identity.first_name,
         last_name: identity.last_name,
         line_1: Faker::Address.street_address,
-        line_2: [nil, Faker::Address.secondary_address].sample,
+        line_2: [ nil, Faker::Address.secondary_address ].sample,
         city: Faker::Address.city,
         state: Faker::Address.state_abbr,
         postal_code: Faker::Address.zip_code,

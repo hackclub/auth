@@ -38,7 +38,7 @@ Rails.application.config.to_prepare do
     def prepare_parameters(params)
       p = self.parameters
       if p.is_a?(String)
-        p = (YAML.safe_load(p, permitted_classes: [Symbol]) rescue {}) || {}
+        p = (YAML.safe_load(p, permitted_classes: [ Symbol ]) rescue {}) || {}
       end
       if p.is_a?(Hash)
         @prepared_params ||= p.with_indifferent_access.merge(params)

@@ -4,32 +4,32 @@ module Backend
 
     ALL = [
       Hint[:list_navigation, [
-        { keys: ["j", "↓"], action: "next" },
-        { keys: ["k", "↑"], action: "prev" },
-        { keys: ["↵"], action: "open" },
-        { keys: ["g"], action: "first" },
-        { keys: ["G"], action: "last" },
+        { keys: [ "j", "↓" ], action: "next" },
+        { keys: [ "k", "↑" ], action: "prev" },
+        { keys: [ "↵" ], action: "open" },
+        { keys: [ "g" ], action: "first" },
+        { keys: [ "G" ], action: "last" }
       ]],
       Hint[:search_focus, [
-        { keys: ["/"], action: "focus search" },
+        { keys: [ "/" ], action: "focus search" }
       ]],
       Hint[:verification_review, [
-        { keys: ["a"], action: "approve (YSWS)" },
-        { keys: ["A"], action: "approve (not YSWS)" },
-        { keys: ["r"], action: "focus reject" },
-        { keys: ["Bksp"], action: "back to pending" },
+        { keys: [ "a" ], action: "approve (YSWS)" },
+        { keys: [ "A" ], action: "approve (not YSWS)" },
+        { keys: [ "r" ], action: "focus reject" },
+        { keys: [ "Bksp" ], action: "back to pending" }
       ]],
       Hint[:identity_actions, [
-        { keys: ["e"], action: "edit" },
-        { keys: ["Bksp"], action: "back" },
+        { keys: [ "e" ], action: "edit" },
+        { keys: [ "Bksp" ], action: "back" }
       ]],
       Hint[:back_navigation, [
-        { keys: ["Bksp"], action: "go back" },
+        { keys: [ "Bksp" ], action: "go back" }
       ]],
       Hint[:pagination, [
-        { keys: ["n"], action: "next page" },
-        { keys: ["p"], action: "prev page" },
-      ]],
+        { keys: [ "n" ], action: "next page" },
+        { keys: [ "p" ], action: "prev page" }
+      ]]
     ].freeze.index_by(&:slug)
 
     def self.find(slug) = ALL[slug]
