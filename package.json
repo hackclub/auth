@@ -26,7 +26,7 @@
     "@webtui/theme-gruvbox": "^0.0.2",
     "@webtui/theme-vitesse": "^0.0.2",
     "alpinejs": "^3.14.9",
-    "axios": "^1.9.0",
+    "axios": "^1.15.0",
     "htmx.org": "^1.9.12",
     "svelte": "^5.55.1"
   }
