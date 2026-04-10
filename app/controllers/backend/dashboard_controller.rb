@@ -81,18 +81,9 @@ module Backend
       rejected_verifications.each do |verification|
         next unless verification.rejection_reason.present?
 
-        is_fatal = case verification.class.name
-        when "Verification::DocumentVerification"
-            Verification::DocumentVerification::FATAL_REJECTION_REASONS.include?(verification.rejection_reason)
-        when "Verification::AadhaarVerification"
-            Verification::AadhaarVerification::FATAL_REJECTION_REASONS.include?(verification.rejection_reason)
-        else
-            false
-        end
-
         reason_name = verification.try(:rejection_reason_name) || verification.rejection_reason.humanize
 
-        breakdown[reason_name] ||= { count: 0, fatal: is_fatal }
+        breakdown[reason_name] ||= { count: 0, fatal: verification.fatal? }
         breakdown[reason_name][:count] += 1
       end
 

@@ -10,7 +10,7 @@
   %>
   rejected <%= is_current ? "your" : "#{activity.trackable.identity.first_name} #{activity.trackable.identity.last_name}'s" %> <%= verification_text %><%
   unless activity.parameters[:reason].nil?
-                                                                                                                                                       %> for <%= Verification::DocumentVerification::REJECTION_REASON_NAMES[activity.parameters[:reason]].downcase %><%
+                                                                                                                                                       %> for <%= (activity.trackable&.rejection_reason_name || activity.parameters[:reason]).downcase %><%
   end
                                                                                                                                                                                                                                                                       %>.
 <% end %>

@@ -303,13 +303,6 @@ class Identity < ApplicationRecord
     needs_resubmission?
   end
 
-  def needs_aadhaar_upload?
-    return false unless country == "IN"
-    return false if verification_status == "ineligible"
-    return true unless verifications.not_ignored.where(status: %w[approved pending draft]).any?
-    return false if verification_status == "verified"
-    needs_resubmission?
-  end
 
   def under_13? = age < 13
 
