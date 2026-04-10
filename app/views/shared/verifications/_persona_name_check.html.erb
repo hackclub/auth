@@ -1,0 +1,29 @@
+<% first = @identity.legal_first_name.presence || @identity.first_name %>
+<% last = @identity.legal_last_name.presence || @identity.last_name %>
+<% verf = @identity.persona_verifications.where(status: :draft).first %>
+<% if verf %>
+  <div class="persona-name-check" x-data="{ editing: false }"
+       style="text-align: center; font-size: 0.9em; color: var(--foreground2); margin: 0.5lh 0;">
+    <p x-show="!editing">
+      Verifying as <strong style="color: var(--foreground);"><%= first %> <%= last %></strong>
+      &middot;
+      <a href="#" @click.prevent="editing = true" style="color: var(--link);">not what's on your ID?</a>
+    </p>
+
+    <div x-show="editing" x-cloak>
+      <%= form_with url: local_assigns[:form_url] || update_legal_name_path, method: :patch, local: true do |f| %>
+        <p style="margin-bottom: 0.5lh;">Enter the name exactly as it appears on your ID</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5lh; max-width: 24rem; margin: 0 auto;">
+          <%= f.text_field :legal_first_name, value: first, required: true, autocomplete: "given-name",
+              placeholder: "First name", style: "font-size: 0.9em; padding: 0.4em 0.6em;" %>
+          <%= f.text_field :legal_last_name, value: last, required: true, autocomplete: "family-name",
+              placeholder: "Last name", style: "font-size: 0.9em; padding: 0.4em 0.6em;" %>
+        </div>
+        <div style="margin-top: 0.5lh;">
+          <%= f.submit "Update name", class: "secondary", style: "font-size: 0.85em; padding: 0.4em 1.2em;" %>
+          <a href="#" @click.prevent="editing = false" style="margin-left: 0.5em; font-size: 0.85em;">cancel</a>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

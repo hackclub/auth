@@ -45,6 +45,33 @@ class VerificationsController < ApplicationController
     render :persona
   end
 
+  def update_legal_name
+    @identity = current_identity
+    verf = @identity.persona_verifications.where(status: :draft).first
+
+    unless verf
+      redirect_to persona_verification_path
+      return
+    end
+
+    @identity.update!(
+      legal_first_name: params[:legal_first_name].presence || @identity.first_name,
+      legal_last_name: params[:legal_last_name].presence || @identity.last_name
+    )
+
+    # expire the existing inquiry so it gets recreated with the updated name
+    if verf.persona_inquiry_id.present?
+      begin
+        Persona.instance.expire_inquiry(verf.persona_inquiry_id)
+      rescue Persona::APIError
+        # fine, just abandon it
+      end
+      verf.update!(persona_inquiry_id: nil, persona_session_token: nil)
+    end
+
+    redirect_to persona_verification_path
+  end
+
   def show
     @identity = current_identity
 

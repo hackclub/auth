@@ -318,6 +318,7 @@ Rails.application.routes.draw do
   get "/verifications/new", to: "verifications#new", as: :new_verifications
   get "/verifications/status", to: "verifications#status", as: :verification_status
   get "/verifications/persona", to: "verifications#persona", as: :persona_verification
+  patch "/verifications/persona/legal-name", to: "verifications#update_legal_name", as: :update_legal_name
   get "/verifications/:id", to: "verifications#show", as: :verification_step
   put "/verifications/:id", to: "verifications#update", as: :update_verification_step
 
@@ -335,6 +336,7 @@ Rails.application.routes.draw do
     get "verify/document", to: "verifications#portal", as: :verify_document
     post "verify/document", to: "verifications#create"
     get "verify/persona", to: "verifications#persona", as: :verify_persona
+    patch "verify/persona/legal-name", to: "verifications#update_legal_name", as: :verify_persona_legal_name
     delete "verify", to: "verifications#cancel"
     get "address", to: "addresses#portal"
     post "address", to: "addresses#create"

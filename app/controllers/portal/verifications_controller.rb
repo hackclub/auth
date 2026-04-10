@@ -59,6 +59,31 @@ class Portal::VerificationsController < Portal::BaseController
     setup_persona_step
   end
 
+  def update_legal_name
+    @identity = current_identity
+    verf = @identity.persona_verifications.where(status: :draft).first
+
+    unless verf
+      redirect_to portal_verify_persona_path
+      return
+    end
+
+    @identity.update!(
+      legal_first_name: params[:legal_first_name].presence || @identity.first_name,
+      legal_last_name: params[:legal_last_name].presence || @identity.last_name
+    )
+
+    if verf.persona_inquiry_id.present?
+      begin
+        Persona.instance.expire_inquiry(verf.persona_inquiry_id)
+      rescue Persona::APIError
+      end
+      verf.update!(persona_inquiry_id: nil, persona_session_token: nil)
+    end
+
+    redirect_to portal_verify_persona_path
+  end
+
   def cancel
     cancel_portal_flow
   end
