@@ -36,6 +36,7 @@ class VerificationsController < ApplicationController
     end
 
     setup_persona_step
+    render :persona
   end
 
   def show
