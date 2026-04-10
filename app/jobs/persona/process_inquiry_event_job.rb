@@ -41,12 +41,24 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
 
     gov_id = service.retrieve_government_id_verification(gov_id_ver_id)
 
+    # collect photos from all documents + verifications on the inquiry
+    photos = Persona::PhotoSet.empty
+    inquiry.document_ids.each do |ref|
+      photos += service.retrieve_document_photos(ref[:id], type: ref[:type])
+    rescue Persona::APIError => e
+      Sentry.capture_exception(e)
+    end
+    inquiry.verification_ids.each do |ref|
+      photos += service.retrieve_verification_photos(ref[:id], type: ref[:type])
+    rescue Persona::APIError => e
+      Sentry.capture_exception(e)
+    end
+
     # store full response for audit trail — strip photo URLs (images stored in Identity::Document)
     gov_id_hash = gov_id.to_h.except(:front_photo, :back_photo, :selfie_photo)
     raw_response = { inquiry: inquiry.to_h, government_id_verification: gov_id_hash }
 
     ActiveRecord::Base.transaction do
-      # find existing record (from partial failure) or create new one
       record = Identity::PersonaRecord.find_or_create_by!(inquiry_id: inquiry_id) do |r|
         r.identity = @identity
         r.raw_json_response = raw_response.to_json
@@ -61,16 +73,9 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
         r.checks = gov_id.checks
       end
 
-      # create the gov ID document with front/back photos (if not already linked)
       unless @verification.identity_document.present?
-        doc = Identity::Document.new(
-          identity: @identity,
-          document_type: :persona_gov_id
-        )
-        attach_photo(doc, gov_id.front_photo, "front")
-        attach_photo(doc, gov_id.back_photo, "back")
-        doc.save!
-
+        all_photos = photos.document + photos.liveness
+        doc = create_document(:persona_gov_id, all_photos)
         @verification.update!(persona_record: record, identity_document: doc)
       end
 
@@ -78,13 +83,18 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
       @identity.update!(persona_account_id: inquiry.account_id) if @identity.persona_account_id.blank?
 
       @verification.mark_pending!
+      @identity.create_activity(:persona_inquiry_completed, owner: @identity, recipient: @identity,
+        parameters: { inquiry_id: inquiry_id, verification_id: @verification.id })
     end
   end
 
   def handle_approved
-    return if @verification.approved? # idempotent guard
-
+    return if @verification.approved?
+    handle_completed(@verification.persona_inquiry_id) if @verification.draft?
+    @verification.reload
     @verification.approve!
+    @identity.create_activity(:persona_inquiry_approved, owner: @identity, recipient: @identity,
+      parameters: { inquiry_id: @verification.persona_inquiry_id, verification_id: @verification.id })
   end
 
   def handle_declined(inquiry_id)
@@ -94,18 +104,37 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     reason = map_decline_reason(inquiry.status)
 
     @verification.mark_as_rejected!(reason)
+    @identity.create_activity(:persona_inquiry_declined, owner: @identity, recipient: @identity,
+      parameters: { inquiry_id: inquiry_id, verification_id: @verification.id })
   end
 
   def handle_failed
     return if @verification.rejected?
 
     @verification.mark_as_rejected!("too_many_attempts", "User exceeded the maximum number of verification attempts in Persona.")
+    @identity.create_activity(:persona_inquiry_failed, owner: @identity, recipient: @identity,
+      parameters: { verification_id: @verification.id })
   end
 
   def handle_expired
     return if @verification.rejected?
 
     @verification.mark_as_rejected!("inquiry_expired", "The verification session expired before the user completed it.")
+    @identity.create_activity(:persona_inquiry_expired, owner: @identity, recipient: @identity,
+      parameters: { verification_id: @verification.id })
+  end
+
+  def create_document(type, photo_array)
+    return nil if photo_array.blank?
+
+    doc = Identity::Document.new(identity: @identity, document_type: type)
+    photo_array.each_with_index do |photo, i|
+      attach_photo(doc, photo, photo[:label] || photo[:filename] || "photo_#{i + 1}")
+    end
+
+    return nil unless doc.files.any?
+    doc.save!
+    doc
   end
 
   def attach_photo(doc, photo_data, label)

@@ -31,7 +31,31 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
       status: "completed",
       account_id: "act_xyz789",
       session_token: nil,
-      verification_ids: [{ type: "verification/government-id", id: "ver_gov123" }]
+      verification_ids: [
+        { type: "verification/government-id", id: "ver_gov123" },
+        { type: "verification/selfie", id: "ver_selfie456" }
+      ],
+      document_ids: [{ type: "document/government-id", id: "doc_gov123" }]
+    )
+  end
+
+  let(:document_photos) do
+    Persona::PhotoSet.new(
+      document: [
+        { filename: "front.jpg", url: "https://files.withpersona.com/front.jpg?access_token=tok123", byte_size: 12345, label: "front" },
+        { filename: "back.jpg", url: "https://files.withpersona.com/back.jpg?access_token=tok456", byte_size: 12345, label: "back" }
+      ],
+      liveness: []
+    )
+  end
+
+  let(:selfie_photos) do
+    Persona::PhotoSet.new(
+      document: [],
+      liveness: [
+        { url: "https://files.withpersona.com/center.jpg?access_token=mock", label: "selfie_center" },
+        { url: "https://files.withpersona.com/left.jpg?access_token=mock", label: "selfie_left" }
+      ]
     )
   end
 
@@ -39,6 +63,9 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
     allow(Persona).to receive(:instance).and_return(mock_service)
     allow(mock_service).to receive(:retrieve_inquiry).and_return(inquiry_data)
     allow(mock_service).to receive(:retrieve_government_id_verification).and_return(gov_id_verification)
+    allow(mock_service).to receive(:retrieve_document_photos).and_return(document_photos)
+    allow(mock_service).to receive(:retrieve_verification_photos).with("ver_gov123", type: "verification/government-id").and_return(Persona::PhotoSet.empty)
+    allow(mock_service).to receive(:retrieve_verification_photos).with("ver_selfie456", type: "verification/selfie").and_return(selfie_photos)
     allow(mock_service).to receive(:download_file).and_return(StringIO.new("fake image data"))
   end
 
@@ -59,7 +86,7 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
       expect(record.country_code).to eq("US")
     end
 
-    it "creates an Identity::Document with front and back photos attached" do
+    it "creates one Identity::Document with all photos attached" do
       expect {
         described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
       }.to change(Identity::Document, :count).by(1)
@@ -68,6 +95,7 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
       expect(doc.document_type).to eq("persona_gov_id")
       expect(doc.identity).to eq(identity)
       expect(doc.files).to be_attached
+      expect(doc.files.count).to eq(4) # front + back + 2 selfies
     end
 
     it "links the persona record and document to the verification" do
@@ -76,6 +104,7 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
       verification.reload
       expect(verification.persona_record).to be_present
       expect(verification.identity_document).to be_present
+      expect(verification.identity_document).to be_persona_gov_id
     end
 
     it "transitions the verification to pending" do
