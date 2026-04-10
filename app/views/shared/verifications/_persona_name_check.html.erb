@@ -2,14 +2,14 @@
 <% last = @identity.legal_last_name.presence || @identity.last_name %>
 <% verf = @identity.persona_verifications.where(status: :draft).first %>
 <% if verf %>
-  <div class="persona-name-check" x-data="{ editing: false }">
-    <p x-show="!editing">
+  <div class="persona-name-check">
+    <p x-show="!editingName">
       Verifying as <strong><%= first %> <%= last %></strong>
       &middot;
-      <a href="#" @click.prevent="editing = true">not what's on your ID?</a>
+      <a href="#" @click.prevent="editingName = true">not what's on your ID?</a>
     </p>
 
-    <div x-show="editing" x-cloak>
+    <div x-show="editingName" x-cloak>
       <%= form_with url: local_assigns[:form_url] || update_legal_name_path, method: :patch, local: true,
             html: { class: "persona-name-form" } do |f| %>
         <p>Enter the name as it appears on your ID</p>
@@ -19,7 +19,7 @@
         </div>
         <div class="persona-name-actions">
           <%= f.submit "Update", class: "secondary" %>
-          <a href="#" @click.prevent="editing = false">cancel</a>
+          <a href="#" @click.prevent="editingName = false">cancel</a>
         </div>
       <% end %>
     </div>

@@ -20,6 +20,7 @@
 
     <% else %>
       <section class="section-card persona-verify-card"
+               x-data="{ editingName: false }"
                data-persona-verify
                data-inquiry-id="<%= @inquiry_id %>"
                data-session-token="<%= @session_token %>"
@@ -72,7 +73,7 @@
 
         <p class="persona-message" data-persona-message></p>
 
-        <button data-persona-start type="button" class="persona-begin-button">
+        <button data-persona-start type="button" class="persona-begin-button" x-show="!editingName">
           <%= t("verifications.persona.begin_verification") %> →
         </button>
 

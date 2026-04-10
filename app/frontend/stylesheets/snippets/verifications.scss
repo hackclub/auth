@@ -465,7 +465,9 @@
     gap: $space-2;
 
     input {
-      width: 10rem;
+      width: 10rem !important;
+      min-width: 0;
+      max-width: 10rem;
       font-size: 0.85rem;
       padding: 0.35em 0.5em;
     }
