@@ -12,7 +12,7 @@ module SpecialAppCards
 
     def icon = "game.png"
 
-    def url = "https://game.hackclub.com"
+    def url = "https://game.hackclub.com?utm_source=auth-card"
 
     def launch_text = "Play Now!"
   end
