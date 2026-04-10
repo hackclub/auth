@@ -3,7 +3,7 @@
 module SpecialAppCards
   class Game < Base
     def visible?
-      Flipper.enabled?(:game, identity)
+      Flipper.enabled?(:game_10_04_2026, identity)
     end
 
     def friendly_name = "Hack Club: The Game"
