@@ -29,6 +29,16 @@ class Persona::MockAPIService
     )
   end
 
+  def expire_inquiry(inquiry_id)
+    Persona::Inquiry.new(
+      id:               inquiry_id,
+      status:           "expired",
+      account_id:       "act_test_mock",
+      session_token:    nil,
+      verification_ids: []
+    )
+  end
+
   def retrieve_government_id_verification(_verification_id)
     Persona::GovernmentIdVerification.new(
       id:           "ver_test_#{SecureRandom.hex(8)}",

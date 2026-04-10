@@ -1,6 +1,6 @@
 module Backend
   class VerificationsController < ApplicationController
-    before_action :set_verification, only: [ :show, :approve, :reject, :ignore ]
+    before_action :set_verification, except: [ :index, :pending ]
 
     hint :list_navigation, on: [ :index, :pending ]
     hint :pagination, on: [ :index, :pending ]
@@ -135,6 +135,41 @@ module Backend
 
       flash[:notice] = "Verification ignored successfully"
       redirect_to backend_identity_path(@verification.identity)
+    end
+
+    def nuke_inquiry
+      authorize @verification, :nuke_inquiry?
+
+      unless @verification.is_a?(Verification::PersonaVerification)
+        flash[:error] = "Only persona verifications can be nuked"
+        redirect_to backend_verification_path(@verification) and return
+      end
+
+      unless @verification.draft? || @verification.pending?
+        flash[:error] = "Can only nuke draft or pending verifications"
+        redirect_to backend_verification_path(@verification) and return
+      end
+
+      identity = @verification.identity
+      old_inquiry = @verification.persona_inquiry_id
+
+      # expire the inquiry on persona's side so it's not left dangling
+      begin
+        Persona.instance.expire_inquiry(old_inquiry) if old_inquiry.present?
+      rescue Persona::APIError => e
+        Sentry.capture_exception(e, tags: { component: "persona" })
+      end
+
+      @verification.create_activity(
+        :nuke_inquiry,
+        owner: current_user,
+        parameters: { nuked_inquiry_id: old_inquiry }
+      )
+
+      @verification.destroy!
+
+      flash[:success] = "Nuked & expired inquiry #{old_inquiry} — user will get a fresh one on next visit"
+      redirect_to backend_identity_path(identity)
     end
 
     rescue_from AASM::InvalidTransition, with: :oops

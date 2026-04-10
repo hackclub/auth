@@ -43,6 +43,8 @@
 class Verification < ApplicationRecord
   acts_as_paranoid
 
+  def self.policy_class = VerificationPolicy
+
   include AASM
   include PublicActivity::Model
 
@@ -55,6 +57,7 @@ class Verification < ApplicationRecord
 
   belongs_to :identity
   belongs_to :identity_document, class_name: "Identity::Document", optional: true
+  belongs_to :persona_record, class_name: "Identity::PersonaRecord", optional: true
 
   scope :rejected, -> { where(status: "rejected") }
   scope :pending, -> { where(status: "pending") }

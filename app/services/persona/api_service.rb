@@ -28,6 +28,11 @@ class Persona::APIService
     build_inquiry(data, session_token: meta[:session_token])
   end
 
+  def expire_inquiry(inquiry_id)
+    data, meta = request!(:post, "/api/v1/inquiries/#{inquiry_id}/expire")
+    build_inquiry(data, session_token: meta[:session_token])
+  end
+
   def retrieve_government_id_verification(verification_id)
     data, _ = request!(:get, "/api/v1/verification/government-ids/#{verification_id}")
     attrs = data[:attributes]

@@ -44,6 +44,9 @@ class Identity < ApplicationRecord
 
   include CountryEnumable
 
+  include HasPersonaUrl
+  has_persona_url "accounts", :persona_account_id
+
   include PublicIdentifiable
   set_public_id_prefix "ident"
 

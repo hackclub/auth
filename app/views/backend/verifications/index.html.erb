@@ -31,11 +31,7 @@
               <% end %>
             </td>
             <td>
-              <% if verification.approved? %>
-                <span is-="badge" variant-="green">approved</span>
-              <% else %>
-                <span is-="badge" variant-="red">rejected</span>
-              <% end %>
+              <span is-="badge" variant-="<%= verification.approved? ? 'green' : verification.rejected? ? 'red' : 'yellow' %>"><%= verification.status %></span>
             </td>
             <td style="color: var(--foreground2);"><%= verification.updated_at.strftime("%Y-%m-%d") %></td>
             <td style="color: var(--foreground2);">

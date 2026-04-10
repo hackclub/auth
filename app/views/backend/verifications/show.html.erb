@@ -2,7 +2,14 @@
 <column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
   <row align-="center between">
     <h2>document review</h2>
-    <a href="<%= pending_backend_verifications_path %>" style="color: var(--foreground2); text-decoration: none;">← back to pending</a>
+    <row gap-="2" align-="center">
+      <% if @verification.respond_to?(:persona_dashboard_url) && @verification.persona_dashboard_url %>
+        <% super_admin_tool(element: "span") do %>
+          <a href="<%= @verification.persona_dashboard_url %>" target="_blank" style="color: var(--foreground2);">persona ↗</a>
+        <% end %>
+      <% end %>
+      <a href="<%= pending_backend_verifications_path %>" style="color: var(--foreground2); text-decoration: none;">← back to pending</a>
+    </row>
   </row>
 
   <div is-="separator"></div>
@@ -80,7 +87,9 @@
 
   <%# === Files === %>
   <span style="color: var(--foreground2); font-style: italic;">files</span>
-  <% if @verification.needs_break_glass? %>
+  <% if @relevant_object.nil? %>
+    <column box-="square" style="color: var(--foreground2);">no files yet — awaiting persona completion</column>
+  <% elsif @verification.needs_break_glass? %>
     <%= render "backend/shared/break_the_glass", break_glassable: @relevant_object, auto_break_glass: (@verification.pending? ? "to review validity" : nil) do %>
       <%= render @verification.review_full_partial, record: @relevant_object %>
     <% end %>
@@ -91,7 +100,14 @@
   <div is-="separator"></div>
 
   <%# === Decision bar === %>
-  <% if @verification.pending? %>
+  <% if @verification.draft? %>
+    <column box-="square">
+      <row gap-="2" align-="center">
+        <span>status: <span is-="badge">draft</span></span>
+        <span style="color: var(--foreground2);">user hasn't completed persona yet</span>
+      </row>
+    </column>
+  <% elsif @verification.pending? %>
     <column gap-="1">
       <row align-="center" gap-="2" style="flex-wrap: wrap;">
         <% mdv_tool(element: "span") do %>
@@ -196,6 +212,14 @@
           <%= f.text_area :reason, placeholder: "reason for ignoring (logged in audit trail)...", rows: 2 %>
           <%= f.submit "ignore verification", data: { confirm: "ignore this verification? this cannot be undone." } %>
         </column>
+      <% end %>
+      <% if @verification.is_a?(Verification::PersonaVerification) && (@verification.draft? || @verification.pending?) %>
+        <div is-="separator"></div>
+        <%= button_to "nuke inquiry & start fresh",
+              nuke_inquiry_backend_verification_path(@verification),
+              method: :delete,
+              data: { confirm: "destroy this verification and its persona inquiry? the user will get a fresh inquiry on their next visit." },
+              style: "color: var(--red);" %>
       <% end %>
     <% end %>
   <% end %>

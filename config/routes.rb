@@ -216,6 +216,7 @@ Rails.application.routes.draw do
         patch :approve
         patch :reject
         patch :ignore
+        delete :nuke_inquiry
       end
     end
 

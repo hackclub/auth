@@ -1,7 +1,7 @@
 class Verification::PersonaVerification < Verification
   include Verification::Rejectable
-
-  belongs_to :persona_record, class_name: "Identity::PersonaRecord", optional: true
+  include HasPersonaUrl
+  has_persona_url "inquiries", :persona_inquiry_id
 
   encrypts :persona_session_token
 
