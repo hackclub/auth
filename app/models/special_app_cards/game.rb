@@ -2,9 +2,7 @@
 
 module SpecialAppCards
   class Game < Base
-    def visible?
-      Flipper.enabled?(:hctg_10_04_2026, identity)
-    end
+    def visible? = Flipper.enabled?(:hctg_2026_04_10, identity)
 
     def friendly_name = "Hack Club: The Game"
 
