@@ -18,8 +18,7 @@
           <%= f.text_field :legal_last_name, value: last, required: true, autocomplete: "family-name", placeholder: "Last name" %>
         </div>
         <div class="persona-name-actions">
-          <%= f.submit "Update", class: "secondary" %>
-          <a href="#" @click.prevent="editingName = false">cancel</a>
+          <%= f.submit "save" %> <span>&middot;</span> <a href="#" @click.prevent="editingName = false">cancel</a>
         </div>
       <% end %>
     </div>

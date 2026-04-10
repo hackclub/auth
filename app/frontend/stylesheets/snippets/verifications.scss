@@ -476,16 +476,28 @@
   .persona-name-actions {
     display: flex;
     align-items: center;
-    gap: $space-3;
+    justify-content: center;
+    gap: 0.25em;
+    font-size: 0.85rem;
 
-    button, input[type="submit"] {
-      font-size: 0.8rem;
-      padding: 0.3em 1em;
-      width: auto;
+    input[type="submit"] {
+      all: unset;
+      color: var(--pico-primary);
+      cursor: pointer;
+      font-size: inherit;
+      font-weight: 500;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    span {
+      color: var(--text-muted-strong);
     }
 
     a {
-      font-size: 0.8rem;
+      font-size: inherit;
     }
   }
 }
