@@ -1,5 +1,6 @@
 require "rails_helper"
 require_relative "../../support/shared_examples/verification_interface"
+require_relative "../../support/shared_examples/rejectable"
 
 RSpec.describe Verification::PersonaVerification, type: :model do
   let(:identity) { create(:identity) }
@@ -7,6 +8,7 @@ RSpec.describe Verification::PersonaVerification, type: :model do
   subject { build(:persona_verification, identity: identity) }
 
   it_behaves_like "a verification type"
+  it_behaves_like "a rejectable verification"
 
   describe "associations" do
     it "belongs to identity" do

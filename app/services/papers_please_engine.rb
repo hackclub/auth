@@ -5,6 +5,10 @@ module PapersPleaseEngine
         [] # maybe someday OCR documents & check for discrepancies?
     when Verification::AadhaarVerification
         [ AadhaarScrutinizer ]
+    when Verification::PersonaVerification
+        [] # persona does its own verification — nothing to scrutinize
+    else
+        []
     end
 
     issues = tactics.flat_map do |tactic|
