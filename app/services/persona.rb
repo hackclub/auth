@@ -14,9 +14,11 @@ module Persona
 
   class << self
     def instance
-      @instance ||= Rails.env.production? ?
-        APIService.new(api_key: Rails.application.credentials.persona.api_key) :
+      @instance ||= if Rails.env.test?
         MockAPIService.new
+      else
+        APIService.new(api_key: Rails.application.credentials.persona.api_key)
+      end
     end
 
     def reset! = @instance = nil
