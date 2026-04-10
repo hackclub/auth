@@ -13,7 +13,7 @@ module Backend
 
       set_keyboard_shortcut(:back, backend_root_path)
 
-      @recent_verifications = Verification.includes(:identity, :identity_document)
+      @recent_verifications = Verification.includes(:identity, :identity_document, :persona_record)
         .where.not(status: "pending")
         .order(updated_at: :desc)
         .page(params[:page])
@@ -26,7 +26,7 @@ module Backend
 
       set_keyboard_shortcut(:back, backend_root_path)
 
-      @pending_verifications = Verification.includes(:identity, :identity_document, identity_document: { files_attachments: :blob }, identity: [ :resemblances, :tombstone_collisions ])
+      @pending_verifications = Verification.includes(:identity, :identity_document, :persona_record, identity_document: { files_attachments: :blob }, identity: [ :resemblances, :tombstone_collisions ])
         .where(status: "pending")
         .order(created_at: :asc)
         .page(params[:page])
@@ -143,7 +143,7 @@ module Backend
 
     def set_verification
       @verification = Verification
-        .includes(:identity, identity_document: :break_glass_records)
+        .includes(:identity, identity_document: :break_glass_records, persona_record: :break_glass_records)
         .find_by_public_id!(params[:id])
 
       ActiveRecord::Associations::Preloader.new(
