@@ -54,10 +54,18 @@ class VerificationsController < ApplicationController
       return
     end
 
-    @identity.update!(
-      legal_first_name: params[:legal_first_name].presence || @identity.first_name,
-      legal_last_name: params[:legal_last_name].presence || @identity.last_name
-    )
+    old_first = @identity.legal_first_name
+    old_last = @identity.legal_last_name
+    new_first = params[:legal_first_name].presence || @identity.first_name
+    new_last = params[:legal_last_name].presence || @identity.last_name
+
+    @identity.update!(legal_first_name: new_first, legal_last_name: new_last)
+
+    @identity.create_activity(:legal_name_updated, owner: @identity, recipient: @identity,
+      parameters: {
+        old_name: "#{old_first} #{old_last}",
+        new_name: "#{new_first} #{new_last}"
+      })
 
     # expire the existing inquiry so it gets recreated with the updated name
     if verf.persona_inquiry_id.present?
