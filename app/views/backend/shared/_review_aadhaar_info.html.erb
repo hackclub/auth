@@ -1,0 +1,4 @@
+<column>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">aadhaar #</span> <%= verification.identity.aadhaar_number %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">uploaded</span> <%= verification.pending_at&.strftime("%B %d, %Y at %I:%M %p") || "N/A" %></row>
+</column>

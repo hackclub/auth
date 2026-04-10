@@ -1,34 +1,74 @@
-<div class="grid">
-  <%= render Components::Backend::Card.new(title: "pending verifications (#{@pending_verifications.total_count})") do %>
-    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_verifications_path) do %>
-      <b>all verifications</b>
-    <% end %>
-    <hr>
-    <% if @average_hangtime.present? %>
-      <div class="detail-row">
-        <span class="detail-label">avg hangtime</span>
-        <span class="detail-value"><%= distance_of_time_in_words(0, @average_hangtime) %></span>
-      </div>
-    <% end %>
-    <% if @pending_verifications.any? %>
-      <div data-navigable-list>
-        <% @pending_verifications.each do |verification| %>
-          <div data-navigable-item>
-            <%= render Components::Backend::Item.new(icon: "⭢", href: backend_verification_path(verification)) do %>
-              <b><%= verification.document_type %></b>
-              &nbsp;·&nbsp;
-              <%= verification.identity.first_name %> <%= verification.identity.last_name %>
-              &nbsp;·&nbsp;
-              <small><%= time_ago_in_words(verification.pending_at || verification.created_at) %> ago</small>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <row gap-="2" align-="center">
+      <h2>pending (<%= @pending_verifications.total_count %>)</h2>
+      <% if @average_hangtime.present? %>
+        <span style="color: var(--foreground2);">avg wait: <%= distance_of_time_in_words(0, @average_hangtime) %></span>
+      <% end %>
+    </row>
+    <a href="<%= backend_verifications_path %>" style="color: var(--foreground2); text-decoration: none;">all verifications →</a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <% if @pending_verifications.any? %>
+    <column data-navigable-list>
+      <% @pending_verifications.each do |verification| %>
+        <%
+          wait_seconds = (Time.current - (verification.pending_at || verification.created_at)).to_i
+          urgency = if wait_seconds > 86400 then "red"
+                    elsif wait_seconds > 21600 then "yellow"
+                    else nil end
+          has_dupes = verification.identity.resemblances.any?
+        %>
+        <a href="<%= backend_verification_path(verification) %>" data-navigable-item>
+          <span style="flex: 1;">
+            <b><%= verification.document_type %></b>
+            · <%= verification.identity.first_name %> <%= verification.identity.last_name %>
+            <% if has_dupes %>
+              <span style="color: var(--yellow);">⚠</span>
             <% end %>
-          </div>
-        <% end %>
-      </div>
-      <%= paginate @pending_verifications %>
-    <% else %>
-      <div class="empty-state">
-        no documents pending verification 🎉
-      </div>
-    <% end %>
+          </span>
+          <row gap-="1" align-="center">
+            <span style="<%= urgency ? "color: var(--#{urgency});" : "color: var(--foreground2);" %>">
+              <%= time_ago_in_words(verification.pending_at || verification.created_at) %>
+            </span>
+            <% if verification.identity.country.present? %>
+              <span is-="badge" variant-="background2"><%= verification.identity.country %></span>
+            <% end %>
+          </row>
+        </a>
+      <% end %>
+    </column>
+
+    <div is-="separator"></div>
+    <%= paginate @pending_verifications %>
+  <% else %>
+    <column align-="center center" pad-="2 2" style="color: var(--foreground2);">
+      no documents pending verification
+    </column>
   <% end %>
-</div>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">↑</span>
+      <span is-="badge" variant-="background2">↓</span>
+      navigate
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">↵</span>
+      review
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">n</span>
+      <span is-="badge" variant-="background2">p</span>
+      page
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span>
+      back
+    </row>
+  </row>
+</column>

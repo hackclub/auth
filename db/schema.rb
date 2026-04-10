@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_02_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_24_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
   enable_extension "pgcrypto"
 
   create_table "active_storage_attachments", force: :cascade do |t|
@@ -301,7 +302,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_02_000002) do
     t.boolean "saml_debug"
     t.boolean "is_in_workspace", default: false, null: false
     t.string "slack_dm_channel_id"
-    t.string "webauthn_id"
     t.boolean "is_alum", default: false
     t.boolean "can_hq_officialize", default: false, null: false
     t.index "lower((primary_email)::text)", name: "idx_identities_unique_primary_email", unique: true, where: "(deleted_at IS NULL)"
@@ -447,6 +447,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_02_000002) do
     t.integer "sign_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "compromised_at"
     t.index ["external_id"], name: "index_identity_webauthn_credentials_on_external_id", unique: true
     t.index ["identity_id"], name: "index_identity_webauthn_credentials_on_identity_id"
   end
@@ -516,6 +517,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_02_000002) do
     t.integer "trust_level", default: 0, null: false
     t.bigint "owner_identity_id"
     t.string "onboarding_scenario"
+    t.string "byline"
     t.index ["owner_identity_id"], name: "index_oauth_applications_on_owner_identity_id"
     t.index ["program_key_bidx"], name: "index_oauth_applications_on_program_key_bidx", unique: true
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
@@ -602,18 +604,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_02_000002) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
-  create_table "webauthn_credentials", force: :cascade do |t|
-    t.bigint "identity_id", null: false
-    t.string "external_id", null: false
-    t.string "public_key", null: false
-    t.string "nickname", null: false
-    t.integer "sign_count", default: 0, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["external_id"], name: "index_webauthn_credentials_on_external_id", unique: true
-    t.index ["identity_id"], name: "index_webauthn_credentials_on_identity_id"
-  end
-
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "addresses", "identities"
@@ -648,5 +638,4 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_02_000002) do
   add_foreign_key "verifications", "identities"
   add_foreign_key "verifications", "identity_aadhaar_records", column: "aadhaar_record_id"
   add_foreign_key "verifications", "identity_documents"
-  add_foreign_key "webauthn_credentials", "identities"
 end

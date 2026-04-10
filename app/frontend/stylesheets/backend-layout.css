@@ -1,0 +1,47 @@
+/* Layout primitives adapted from webtui site (web/src/styles/) */
+
+@layer utils {
+  column,
+  [is-~='column'] {
+    flex-direction: column;
+  }
+
+  row,
+  column,
+  [is-~='row'],
+  [is-~='column'] {
+    display: flex;
+
+    /* attr() with types is experimental — explicit fallbacks */
+    &[gap-="0"] { column-gap: 0; row-gap: 0; }
+    &[gap-="1"] { column-gap: 1ch; row-gap: 1lh; }
+    &[gap-="2"] { column-gap: 2ch; row-gap: 2lh; }
+    &[gap-="3"] { column-gap: 3ch; row-gap: 3lh; }
+
+    &[self-~='grow'] { flex-grow: 1; }
+    &[self-~='!grow'] { flex-grow: 0; }
+    &[self-~='shrink'] { flex-shrink: 1; }
+    &[self-~='!shrink'] { flex-shrink: 0; }
+    &[self-~='!basis'] { flex-basis: 0; }
+
+    &[align-^='start'] { align-items: flex-start; }
+    &[align-^='end'] { align-items: flex-end; }
+    &[align-^='center'] { align-items: center; }
+    &[align-^='stretch'] { align-items: stretch; }
+
+    &[align-$='between'] { justify-content: space-between; }
+    &[align-$='start'] { justify-content: flex-start; }
+    &[align-$='end'] { justify-content: flex-end; }
+    &[align-$='center'] { justify-content: center; }
+  }
+
+  [pad-] {
+    &[pad-^='0'] { padding-left: 0; padding-right: 0; }
+    &[pad-^='1'] { padding-left: 1ch; padding-right: 1ch; }
+    &[pad-^='2'] { padding-left: 2ch; padding-right: 2ch; }
+
+    &[pad-$='0'] { padding-top: 0; padding-bottom: 0; }
+    &[pad-$='1'] { padding-top: 1lh; padding-bottom: 1lh; }
+    &[pad-$='2'] { padding-top: 2lh; padding-bottom: 2lh; }
+  }
+}

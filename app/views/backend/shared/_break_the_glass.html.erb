@@ -1,0 +1,5 @@
+<% if glass_broken?(break_glassable, auto_break_glass: local_assigns.fetch(:auto_break_glass, nil)) %>
+  <%= yield %>
+<% else %>
+  <%= render "backend/shared/break_the_glass_form", break_glassable: break_glassable %>
+<% end %>

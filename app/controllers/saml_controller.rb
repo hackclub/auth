@@ -145,7 +145,7 @@ class SAMLController < ApplicationController
 
       AssignSlackWorkspaceJob.perform_later(
         slack_id: current_identity.slack_id,
-        user_type: :multi_channel_guest,
+        user_type: scenario.slack_user_type,
         channel_ids: scenario.slack_channels,
         identity_id: current_identity.id
       )

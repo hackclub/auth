@@ -1,112 +1,72 @@
-<div class="grid">
-  <%= render Components::Backend::Card.new(title: "edit: #{@identity.first_name} #{@identity.last_name}") do %>
-    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_identity_path(@identity)) do %>
-      <b>cancel</b>
-    <% end %>
-    <hr>
-    <% if @identity.errors.any? %>
-      <div class="banner danger">
-        <h3><%= pluralize(@identity.errors.count, "error") %></h3>
-        <ul>
-          <% @identity.errors.full_messages.each do |message| %>
-            <li><%= message %></li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
-    <%= form_with model: [@identity], url: backend_identity_path(@identity), method: :patch, local: true do |f| %>
-      <div class="section">
-        <div class="section-header"><h3>identity</h3></div>
-        <div class="section-content">
-          <div class="form-row">
-            <%= f.label :first_name %>
-            <%= f.text_field :first_name %>
-          </div>
-          <div class="form-row">
-            <%= f.label :last_name %>
-            <%= f.text_field :last_name %>
-          </div>
-          <div class="form-row">
-            <%= f.label :legal_first_name, "legal first" %>
-            <%= f.text_field :legal_first_name %>
-          </div>
-          <div class="form-row">
-            <%= f.label :legal_last_name, "legal last" %>
-            <%= f.text_field :legal_last_name %>
-          </div>
-          <div class="form-row">
-            <%= f.label :primary_email, "email" %>
-            <%= f.email_field :primary_email %>
-          </div>
-          <div class="form-row">
-            <%= f.label :phone_number, "phone" %>
-            <%= f.telephone_field :phone_number %>
-          </div>
-          <div class="form-row">
-            <%= f.label :birthday, "dob" %>
-            <%= f.date_field :birthday %>
-          </div>
-          <div class="form-row">
-            <%= f.label :country %>
-            <%= f.select :country, options_for_select(Identity.countries_for_select.map {|code, name| [name, code]}, @identity.country), { prompt: "select..." } %>
-          </div>
-        </div>
-      </div>
-      <div class="section">
-        <div class="section-header"><h3>overrides</h3></div>
-        <div class="section-content">
-          <div class="form-row">
-            <%= f.label :hq_override, "hq override" %>
-            <%= f.check_box :hq_override %>
-            <small>bypass normal eligibility rules</small>
-          </div>
-          <div class="form-row">
-            <%= f.label :ysws_eligible, "ysws eligible" %>
-            <%= f.check_box :ysws_eligible %>
-          </div>
-          <% super_admin_tool do %>
-            <div class="form-row">
-              <%= f.label :permabanned %>
-              <%= f.check_box :permabanned %>
-              <small>permanently ban (makes ineligible)</small>
-            </div>
-            <div class="form-row">
-              <%= f.label :can_hq_officialize, "can officialize apps" %>
-              <%= f.check_box :can_hq_officialize %>
-              <small>allow this identity to promote apps to hq_official</small>
-            </div>
-          <% end %>
-        </div>
-      </div>
-      <div class="section">
-        <div class="section-header"><h3>reason for change</h3></div>
-        <div class="section-content">
-          <%= text_area_tag :reason, params[:reason], placeholder: "required - will be logged in audit trail", rows: 3 %>
-        </div>
-      </div>
-      <div class="form-actions">
-        <%= link_to backend_identity_path(@identity), class: "action_button" do %>
-          <span class="content">CANCEL</span>
-        <% end %>
-        <%= f.submit "save", class: "action_button" %>
-      </div>
-    <% end %>
-    <hr>
-    <div class="lowered">
-      <p><b>⚠ break glass access required</b></p>
-      <p>all changes are permanently logged with your user info.</p>
-    </div>
-    <hr>
-    <% if @identity.slack_id.present? %>
-      <%= button_to clear_slack_id_backend_identity_path(@identity), class: "item" do %>
-        <figure class="icon">✕</figure>
-        <span class="text"><b>clear slack id</b></span>
-      <% end %>
-    <% else %>
-      <%= button_to reprovision_slack_backend_identity_path(@identity), class: "item" do %>
-        <figure class="icon">+</figure>
-        <span class="text"><b>provision slack account</b></span>
+<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>edit: <%= @identity.first_name %> <%= @identity.last_name %></h2>
+    <a href="<%= backend_identity_path(@identity) %>" style="color: var(--foreground2); text-decoration: none;">cancel</a>
+  </row>
+
+  <%= render Components::Backend::Banner.new(kind: :warning) do %>break glass access required. all changes are permanently logged.<% end %>
+
+  <% if @identity.errors.any? %>
+    <%= render Components::Backend::Banner.new(kind: :danger) do %>
+      <%= pluralize(@identity.errors.count, "error") %>:
+      <% @identity.errors.full_messages.each do |message| %>
+        <%= message %>.
       <% end %>
     <% end %>
   <% end %>
-</div>
+
+  <div is-="separator"></div>
+
+  <%= form_with model: [@identity], url: backend_identity_path(@identity), method: :patch, local: true do |f| %>
+    <column gap-="1">
+      <span style="color: var(--foreground2);">identity</span>
+      <row gap-="2">
+        <column style="flex: 1;"><%= f.label :first_name %><%= f.text_field :first_name %></column>
+        <column style="flex: 1;"><%= f.label :last_name %><%= f.text_field :last_name %></column>
+      </row>
+      <row gap-="2">
+        <column style="flex: 1;"><%= f.label :legal_first_name, "legal first" %><%= f.text_field :legal_first_name %></column>
+        <column style="flex: 1;"><%= f.label :legal_last_name, "legal last" %><%= f.text_field :legal_last_name %></column>
+      </row>
+      <column><%= f.label :primary_email, "email" %><%= f.email_field :primary_email %></column>
+      <column><%= f.label :phone_number, "phone" %><%= f.telephone_field :phone_number %></column>
+      <row gap-="2">
+        <column style="flex: 1;"><%= f.label :birthday, "dob" %><%= f.date_field :birthday %></column>
+        <column style="flex: 1;"><%= f.label :country %><%= f.select :country, options_for_select(Identity.countries_for_select.map {|code, name| [name, code]}, @identity.country), { prompt: "select..." } %></column>
+      </row>
+
+      <div is-="separator"></div>
+
+      <span style="color: var(--foreground2);">overrides</span>
+      <label><%= f.check_box :hq_override %> hq override <span style="color: var(--foreground2);">— bypass normal eligibility rules</span></label>
+      <label><%= f.check_box :ysws_eligible %> ysws eligible</label>
+      <% super_admin_tool do %>
+        <label><%= f.check_box :permabanned %> permabanned <span style="color: var(--foreground2);">— permanently ban</span></label>
+        <label><%= f.check_box :can_hq_officialize %> can officialize apps</label>
+      <% end %>
+
+      <div is-="separator"></div>
+
+      <span style="color: var(--foreground2);">reason for change</span>
+      <%= text_area_tag :reason, params[:reason], placeholder: "required — will be logged in audit trail", rows: 3 %>
+
+      <div is-="separator"></div>
+
+      <row gap-="1">
+        <%= f.submit "save" %>
+        <a href="<%= backend_identity_path(@identity) %>"><button type="button">cancel</button></a>
+      </row>
+    </column>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <span style="color: var(--foreground2);">danger zone</span>
+  <row gap-="1">
+    <% if @identity.slack_id.present? %>
+      <%= button_to "clear slack id", clear_slack_id_backend_identity_path(@identity), size: "small" %>
+    <% else %>
+      <%= button_to "provision slack", reprovision_slack_backend_identity_path(@identity), size: "small" %>
+    <% end %>
+  </row>
+</column>

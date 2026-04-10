@@ -11,13 +11,11 @@ module SessionsHelper
 
     # Preserve flow data before resetting session
     return_to = session[:return_to]
-    stashed_data = session[:stashed_data]
 
     reset_session
 
     # Restore flow data after session reset
     session[:return_to] = return_to if return_to.present?
-    session[:stashed_data] = stashed_data if stashed_data.present?
 
     session_token = SecureRandom.urlsafe_base64
     session_duration = 1.month

@@ -1,0 +1,272 @@
+/*
+ * Backend overrides for WebTUI.
+ * Use generic webtui vars (--background0, --foreground0, etc.)
+ * NOT catppuccin-specific vars (--base, --surface0, etc.)
+ * so both mocha and latte themes work correctly.
+ */
+
+@layer base {
+  :root {
+    --box-border-color: var(--background2);
+
+  }
+
+  body, html {
+    width: 100vw;
+    height: 100vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@layer components {
+  /* Action bar — fixed top nav */
+  #hca-actionbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2ch;
+    height: 2lh;
+    background: var(--background0);
+    border-bottom: 2px solid var(--background2);
+  }
+
+  /* Page body offset for fixed actionbar */
+  #hca-body {
+    padding-top: 2lh;
+  }
+
+  /* Links — webtui only styles <a> inside <p>/<li>, we need them everywhere */
+  a[href]:not([data-navigable-item]) {
+    color: var(--foreground2);
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--foreground0);
+    }
+  }
+
+  /* Sidebar-style nav links (tree markers) */
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* All navigable links */
+  a[data-navigable-item] {
+    color: var(--foreground2);
+    text-decoration: none;
+    outline: none;
+    display: flex;
+    align-items: center;
+    padding: 0 1ch;
+
+    &:hover, &:focus, &.selected {
+      background-color: var(--background1);
+      color: var(--foreground0);
+    }
+  }
+
+  /* Tree markers only for links inside <ul> */
+  ul > a[data-navigable-item]::before {
+    content: '├ ';
+    white-space: pre;
+    color: var(--foreground2);
+    flex-shrink: 0;
+  }
+
+  ul > a[data-navigable-item]:last-of-type::before {
+    content: '└ ';
+  }
+
+  details > summary {
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--foreground1);
+    padding: 0 1ch;
+
+    &:hover, &:focus {
+      background-color: var(--background1);
+    }
+  }
+
+  /* Banner color tokens — matching the main app's _colors.scss (light) */
+  --error-bg: #fbf2f4; --error-border: #eab4bc; --error-fg-strong: #78202e;
+  --warning-bg: #fffcf2; --warning-border: #ffe69b; --warning-fg-strong: #6a311c;
+  --success-bg: #f3f8f5; --success-border: #a1caad; --success-fg-strong: #285a37;
+  --info-bg: #f2f7fb; --info-border: #b2d1ea; --info-fg-strong: #1f5077;
+
+  /* Banners — same style as main app */
+  .tui-banner-success { color: var(--success-fg-strong); --box-border-color: var(--success-border); }
+  .tui-banner-success::before { background: var(--success-bg); }
+  .tui-banner-error, .tui-banner-danger, .tui-banner-alert { color: var(--error-fg-strong); --box-border-color: var(--error-border); }
+  .tui-banner-error::before, .tui-banner-danger::before, .tui-banner-alert::before { background: var(--error-bg); }
+  .tui-banner-warning { color: var(--warning-fg-strong); --box-border-color: var(--warning-border); }
+  .tui-banner-warning::before { background: var(--warning-bg); }
+  .tui-banner-info, .tui-banner-notice { color: var(--info-fg-strong); --box-border-color: var(--info-border); }
+  .tui-banner-info::before, .tui-banner-notice::before { background: var(--info-bg); }
+
+
+  /* Admin tool gates — HCB-style dotted borders with labels */
+
+  /* Responsive */
+  @media (max-width: 64ch) {
+    #hca-actionbar .hca-user-context { display: none; }
+  }
+
+  /* Table — looks like box-="square" with column alignment */
+  table {
+    width: 100%;
+    border-spacing: 0;
+
+    /* nuke webtui pseudo-element borders */
+    &::before { display: none; }
+    tr td::before, tr td::after,
+    tr th::before, tr th::after { display: none; }
+
+    /* box-like outer border */
+    position: relative;
+    padding: 1lh 1ch;
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0.5lh 0.5ch;
+      border: 2px solid var(--box-border-color);
+      pointer-events: none;
+    }
+
+    tr th, tr td {
+      padding: 0 1ch;
+      padding-bottom: 0;
+      text-align: left;
+    }
+
+    :first-child > tr:first-child > td,
+    :first-child > tr:first-child > th { padding-top: 0; }
+
+    /* vertical column dividers — barely there */
+    tr th + th, tr td + td {
+      border-left: 1px solid var(--background1);
+    }
+
+    /* header row — muted italic, faint underline */
+    thead tr th {
+      color: var(--foreground2);
+      font-weight: normal;
+      font-style: italic;
+      padding-bottom: 0.25lh;
+      border-bottom: 1px solid var(--background1);
+    }
+
+    /* space between header and first data row without affecting hover */
+    thead + tbody::before {
+      content: '';
+      display: table-row;
+      height: 0.25lh;
+    }
+
+    tbody tr:hover td {
+      background-color: var(--background1);
+    }
+  }
+
+  /* Select — match WebTUI input styling */
+  select {
+    background-color: var(--background1);
+    color: var(--foreground0);
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    line-height: var(--line-height);
+    border: none;
+    outline: none;
+    padding: 0 1ch;
+    height: 1lh;
+  }
+
+  /* Colored button variants — use size-=small for solid fill */
+  button[variant-="green"], input[type=submit][variant-="green"] { --button-primary: var(--green); --button-secondary: var(--background0); }
+  button[variant-="red"], input[type=submit][variant-="red"] { --button-primary: var(--red); --button-secondary: var(--background0); }
+  button[variant-="yellow"], input[type=submit][variant-="yellow"] { --button-primary: var(--yellow); --button-secondary: var(--background0); }
+  button[variant-="blue"], input[type=submit][variant-="blue"] { --button-primary: var(--blue); --button-secondary: var(--background0); }
+
+  /* Environment indicator */
+  #hca-env {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    padding: 0.25lh 1ch;
+    font-size: 0.75em;
+    color: var(--foreground2);
+    background: var(--background1);
+  }
+}
+
+/* Admin tool gates — HCB-style dotted borders with labels */
+$gate-orange: #ff8c37;
+$gate-green: #14a314;
+
+@mixin admin-gate($color, $label) {
+  position: relative;
+  overflow: visible;
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border: 2px dashed rgba($color, 0.5);
+    border-radius: 0.5rem;
+    background-color: rgba($color, 0.08);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  &:is(div) {
+    padding: 0.5lh 1ch;
+    margin-top: 1lh;
+  }
+
+  &:is(span) {
+    display: inline-block;
+    padding: 2px 4px;
+  }
+
+  &::after {
+    content: $label;
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    font-size: 0.75em;
+    line-height: 1;
+    color: rgba($color, 0.8);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+}
+
+.super-admin-tool { @include admin-gate($gate-orange, 'super admin'); }
+.break-glass-tool { @include admin-gate($gate-orange, 'break glass'); }
+.mdv-tool { @include admin-gate($gate-orange, 'document verifier'); }
+.program-manager-tool { @include admin-gate($gate-orange, 'program manager'); }
+.dev-tool { @include admin-gate($gate-green, 'dev only'); }
+
+/* Light theme tweaks — better contrast for muted text */
+[data-webtui-theme="vitesse-light-soft"] {
+  --foreground2: #555b60;
+}
+
+/* Dark banner tokens — override when using gruvbox dark theme */
+[data-webtui-theme="gruvbox-dark-hard"] {
+  --error-bg: #3b1017; --error-border: #8b2535; --error-fg-strong: #e39aa5;
+  --warning-bg: #33290b; --warning-border: #7f661c; --warning-fg-strong: #ffecb4;
+  --success-bg: #142c1b; --success-border: #285a37; --success-fg-strong: #b9d8c2;
+  --info-bg: #0f273b; --info-border: #436075; --info-fg-strong: #d2e8f7;
+}

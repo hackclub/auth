@@ -1,14 +1,14 @@
 class AddressesController < ApplicationController
-  include IsSneaky
   include AddressManagement
   include AhoyAnalytics
+  include IdentityAuthorizable
 
   before_action :set_address, only: [ :show, :edit, :update, :destroy, :make_primary ]
-  before_action :hide_some_data_away, only: %i[program_create_address]
 
   def index
-    @addresses = current_identity.addresses
+    @addresses = policy_scope(Address).where(identity: current_identity)
     build_address
+    authorize Address
 
     if htmx_request? && params[:refresh_list]
       render_address_list
@@ -16,10 +16,12 @@ class AddressesController < ApplicationController
   end
 
   def show
+    authorize @address
   end
 
   def new
     build_address
+    authorize @address
   end
 
   def create
@@ -32,15 +34,18 @@ class AddressesController < ApplicationController
 
   def program_create_address
     build_address
+    authorize @address, :create?
   end
 
   def edit
+    authorize @address
     if htmx_request?
       render partial: "addresses/edit_form", locals: { address: @address, portal: portal_context? }, layout: false
     end
   end
 
   def update
+    authorize @address
     if params[:make_primary] == "true"
       current_identity.update!(primary_address: @address)
       respond_to_make_primary
@@ -60,6 +65,7 @@ class AddressesController < ApplicationController
   end
 
   def destroy
+    authorize @address
     can_destroy = current_identity.primary_address != @address
 
     if !can_destroy && Rails.env.development?
@@ -76,6 +82,7 @@ class AddressesController < ApplicationController
   end
 
   def make_primary
+    authorize @address, :update?
     current_identity.update(primary_address: @address)
     respond_to_make_primary
   end
@@ -85,8 +92,6 @@ class AddressesController < ApplicationController
   def respond_to_create_success
     if htmx_request?
       render_address_list
-    elsif params[:address][:from_program] == "true"
-      redirect_to safe_redirect_url("address_return_to") || addresses_path, notice: "address created successfully!", allow_other_host: true
     else
       redirect_to addresses_path, notice: "address created successfully!"
     end
@@ -148,7 +153,7 @@ class AddressesController < ApplicationController
   end
 
   def set_address
-    @address = current_identity.addresses.find(params[:id])
+    @address = policy_scope(Address).find_by_public_id!(params[:id])
   end
 
   def address_params
@@ -157,6 +162,7 @@ class AddressesController < ApplicationController
 
   def create_address
     @address = current_identity.addresses.new(address_params)
+    authorize @address
 
     if @address.save
       track_event("address.created", country: @address.country, is_first: current_identity.addresses.count == 1, scenario: analytics_scenario_for(current_identity))
