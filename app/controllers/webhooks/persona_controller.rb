@@ -45,6 +45,10 @@ module Webhooks
       )
 
       unless signatures.any? { |sig| ActiveSupport::SecurityUtils.secure_compare(sig, expected) }
+        Sentry.capture_message("Persona webhook signature mismatch",
+          level: :warning,
+          tags: { component: "persona" },
+          extra: { timestamp: timestamp, ip: request.remote_ip })
         return head(:unauthorized)
       end
     end

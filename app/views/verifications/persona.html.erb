@@ -1,6 +1,6 @@
 <div class="page-header">
-  <h1>Verify Your Identity</h1>
-  <p>We'll verify your identity using a government-issued ID. This takes about 2 minutes.</p>
+  <h1><%= t(".title") %></h1>
+  <p><%= t(".subtitle") %></p>
 </div>
 
 <div class="page-sections">
@@ -8,7 +8,7 @@
     <section class="section-card">
       <p><%= @persona_error %></p>
       <p>
-        <a href="<%= verification_step_path(:document) %>">Use document upload instead</a>
+        <a href="<%= verification_step_path(:document) %>"><%= t(".fallback_link") %></a>
       </p>
     </section>
   <% else %>
@@ -16,17 +16,20 @@
              data-persona-verify
              data-inquiry-id="<%= @inquiry_id %>"
              data-session-token="<%= @session_token %>"
-             data-status-url="<%= verification_status_path %>">
+             data-status-url="<%= verification_status_path %>"
+             data-msg-complete="<%= t(".complete_message") %>"
+             data-msg-cancel="<%= t(".cancel_message") %>"
+             data-msg-error="<%= t(".error_sdk") %>">
 
       <p data-persona-message></p>
 
       <button data-persona-start type="button" is="button" variant-="primary">
-        Begin verification
+        <%= t(".begin_verification") %>
       </button>
 
       <p style="margin-top: 2lh; color: var(--foreground2); font-size: 0.9em;">
-        Can't do this right now?
-        <a href="<%= verification_step_path(:document) %>">Upload a document instead</a>
+        <%= t(".cant_do_this") %>
+        <a href="<%= verification_step_path(:document) %>"><%= t(".fallback_prompt") %></a>
       </p>
     </section>
   <% end %>

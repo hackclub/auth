@@ -88,8 +88,15 @@ module VerificationFlow
     @inquiry_id = @verification.persona_inquiry_id
     @session_token = @verification.persona_session_token
   rescue Persona::APIError => e
-    Rails.logger.error("[persona] inquiry setup failed: #{e.message}")
-    @persona_error = "We couldn't connect to our verification provider. Please try again in a moment."
+    Sentry.capture_exception(e,
+      tags: { component: "persona" },
+      extra: {
+        identity_id: @identity.id,
+        identity_public_id: @identity.public_id,
+        verification_id: @verification&.id,
+        inquiry_id: @verification&.persona_inquiry_id
+      })
+    @persona_error = I18n.t("verifications.persona.error_message")
   end
 
   def find_or_create_persona_verification

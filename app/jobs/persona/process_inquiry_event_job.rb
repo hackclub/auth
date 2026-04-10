@@ -5,6 +5,16 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     @verification = Verification::PersonaVerification.find_by!(persona_inquiry_id: inquiry_id)
     @identity = @verification.identity
 
+    Sentry.set_tags(component: "persona", event: event_name)
+    Sentry.set_extras(
+      inquiry_id: inquiry_id,
+      identity_id: @identity.id,
+      identity_public_id: @identity.public_id,
+      verification_id: @verification.id,
+      verification_status: @verification.status,
+      persona_account_id: @identity.persona_account_id
+    )
+
     case event_name
     when "inquiry.completed"  then handle_completed(inquiry_id)
     when "inquiry.approved"   then handle_approved
