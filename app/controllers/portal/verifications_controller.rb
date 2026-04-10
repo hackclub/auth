@@ -13,6 +13,11 @@ class Portal::VerificationsController < Portal::BaseController
       redirect_to_portal_return(status: :verified)
     when "pending"
       redirect_to_portal_return(status: :pending)
+    else
+      case @identity.required_verification_method
+      when :persona  then redirect_to portal_verify_persona_path
+      when :document then redirect_to portal_verify_document_path
+      end
     end
   end
 
@@ -31,6 +36,22 @@ class Portal::VerificationsController < Portal::BaseController
 
     setup_document_step
     render :document
+  end
+
+  def persona
+    @identity = current_identity
+    status = @identity.verification_status
+
+    case status
+    when "verified"
+      redirect_to_portal_return(status: :verified)
+      return
+    when "pending"
+      redirect_to_portal_return(status: :pending)
+      return
+    end
+
+    setup_persona_step
   end
 
   def cancel

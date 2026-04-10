@@ -109,7 +109,7 @@
         </div>
 
         <div class="status-actions">
-          <%= link_to t(".needs_submission.resubmission.resubmit_documents"), verification_step_path(:document), role: "button" %>
+          <%= link_to t(".needs_submission.resubmission.resubmit_documents"), new_verifications_path, role: "button" %>
         </div>
       </section>
     <% else %>
@@ -121,7 +121,7 @@
       </div>
 
       <div class="status-actions">
-      <%= link_to t(".needs_submission.initial.start_verification"), verification_step_path(:document), role: "button" %>
+      <%= link_to t(".needs_submission.initial.start_verification"), new_verifications_path, role: "button" %>
       </div>
       </section>
       <% end %>
@@ -135,7 +135,7 @@
       </div>
 
       <div class="status-actions">
-        <%= link_to t(".needs_submission.initial.start_verification"), verification_step_path(:document), role: "button" %>
+        <%= link_to t(".needs_submission.initial.start_verification"), new_verifications_path, role: "button" %>
       </div>
     </section>
   <% end %>

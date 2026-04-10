@@ -1,0 +1,36 @@
+<% content_for(:portal_wrapper, true) %>
+<div class="container-sm">
+  <div class="page-header-centered">
+    <h1>Verify Your Identity</h1>
+    <p>We'll verify your identity using a government-issued ID. This takes about 2 minutes.</p>
+  </div>
+
+  <div class="page-sections">
+    <% if @persona_error %>
+      <section class="section-card">
+        <p><%= @persona_error %></p>
+        <p>
+          <a href="<%= portal_verify_document_path %>">Use document upload instead</a>
+        </p>
+      </section>
+    <% else %>
+      <section class="section-card"
+               data-persona-verify
+               data-inquiry-id="<%= @inquiry_id %>"
+               data-session-token="<%= @session_token %>"
+               data-status-url="<%= verification_status_path %>">
+
+        <p data-persona-message></p>
+
+        <button data-persona-start type="button" is="button" variant-="primary">
+          Begin verification
+        </button>
+
+        <p style="margin-top: 2lh; color: var(--foreground2); font-size: 0.9em;">
+          Can't do this right now?
+          <a href="<%= portal_verify_document_path %>">Upload a document instead</a>
+        </p>
+      </section>
+    <% end %>
+  </div>
+</div>

@@ -81,6 +81,33 @@ module VerificationFlow
     params.require(:identity_document).permit(:document_type, files: [])
   end
 
+  def setup_persona_step
+    @verification = find_or_create_persona_verification
+    @inquiry = @verification.persona_inquiry_id ? reuse_inquiry : create_inquiry
+
+    @inquiry_id = @verification.persona_inquiry_id
+    @session_token = @verification.persona_session_token
+  rescue Persona::APIError => e
+    Rails.logger.error("[persona] inquiry setup failed: #{e.message}")
+    @persona_error = "We couldn't connect to our verification provider. Please try again in a moment."
+  end
+
+  def find_or_create_persona_verification
+    @identity.persona_verifications.where(status: :draft).first ||
+      Verification::PersonaVerification.create!(identity: @identity)
+  end
+
+  def create_inquiry
+    @verification.generate_inquiry!
+  end
+
+  def reuse_inquiry
+    # session token may have expired — refresh it
+    inquiry = Persona.instance.resume_inquiry(@verification.persona_inquiry_id)
+    @verification.update!(persona_session_token: inquiry.session_token)
+    inquiry
+  end
+
   def verification_should_redirect?(status)
     %w[pending verified ineligible].include?(status)
   end

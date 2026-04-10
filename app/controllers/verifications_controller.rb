@@ -14,13 +14,28 @@ class VerificationsController < ApplicationController
       return
     end
 
-    redirect_to verification_step_path(:document)
+    case current_identity.required_verification_method
+    when :persona  then redirect_to persona_verification_path
+    when :document then redirect_to verification_step_path(:document)
+    end
   end
 
   def status
     @identity = current_identity
     @status = @identity.verification_status
     @latest_verification = @identity.latest_verification
+  end
+
+  def persona
+    @identity = current_identity
+
+    status = @identity.verification_status
+    if verification_should_redirect?(status)
+      redirect_to verification_status_path
+      return
+    end
+
+    setup_persona_step
   end
 
   def show
