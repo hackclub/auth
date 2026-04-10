@@ -191,7 +191,7 @@ RSpec.describe Persona::APIService do
         name_first: "HEIDI",
         name_last: "TRASHWORTH",
         birthdate: "2005-06-15",
-        address_country_code: "US",
+        country_code: "US",
         front_photo: { filename: "front.jpg", url: "https://files.withpersona.com/front.jpg", byte_size: 12345 },
         back_photo: { filename: "back.jpg", url: "https://files.withpersona.com/back.jpg", byte_size: 12345 },
         selfie_photo: nil

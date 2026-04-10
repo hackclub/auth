@@ -51,9 +51,42 @@ class Persona::APIService
       selfie_photo:             attrs[:selfie_photo],
       id_class:                 attrs[:id_class],
       expiration_date:          attrs[:expiration_date] ? Date.parse(attrs[:expiration_date]) : nil,
-      entity_confidence_score:  attrs[:entity_confidence_score],
+      entity_confidence_score:  attrs[:entity_confidence_score]&.then { |s| s > 1 ? s / 100.0 : s },
       checks:                   attrs[:checks] || []
     )
+  end
+
+  def retrieve_document_photos(document_id, type:)
+    case type
+    when "document/government-id"
+      attrs = fetch_resource("document/government-ids", document_id)
+      Persona::PhotoSet.new(
+        document: [attrs[:front_photo], attrs[:back_photo]].filter_map { |p| photo(p) },
+        liveness: []
+      )
+    else
+      attrs = fetch_resource("documents", document_id)
+      Persona::PhotoSet.new(
+        document: (attrs[:files] || []).each_with_index.map { |f, i| f.merge(label: "file_#{i + 1}") },
+        liveness: []
+      )
+    end
+  end
+
+  def retrieve_verification_photos(verification_id, type:)
+    case type
+    when "verification/selfie"
+      attrs = fetch_resource("verification/selfies", verification_id)
+      Persona::PhotoSet.new(
+        document: [],
+        liveness: %i[center left right].filter_map { |dir|
+          url = attrs[:"#{dir}_photo_url"]
+          { url: url, label: "selfie_#{dir}" } if url.is_a?(String)
+        }
+      )
+    else
+      Persona::PhotoSet.empty
+    end
   end
 
   def download_file(url)
@@ -90,14 +123,26 @@ class Persona::APIService
 
   def build_inquiry(data, session_token: nil)
     verifications = data.dig(:relationships, :verifications, :data) || []
+    documents = data.dig(:relationships, :documents, :data) || []
 
     Persona::Inquiry.new(
       id:               data[:id],
       status:           data.dig(:attributes, :status),
       account_id:       data.dig(:relationships, :account, :data, :id),
       session_token:    session_token,
-      verification_ids: verifications
+      verification_ids: verifications,
+      document_ids:     documents
     )
+  end
+
+  def fetch_resource(endpoint, id)
+    data, _ = request!(:get, "/api/v1/#{endpoint}/#{id}")
+    data[:attributes]
+  end
+
+  def photo(data)
+    return nil unless data.is_a?(Hash) && data[:url]
+    data
   end
 
   def error_message(response)

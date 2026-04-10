@@ -5,7 +5,8 @@ class Persona::MockAPIService
       status:           "created",
       account_id:       "act_test_#{Digest::SHA256.hexdigest(account_reference_id)[0..11]}",
       session_token:    "session_tok_#{SecureRandom.hex(16)}",
-      verification_ids: [{ type: "verification/government-id", id: "ver_gov_test_#{SecureRandom.hex(8)}" }]
+      verification_ids: [{ type: "verification/government-id", id: "ver_gov_test_#{SecureRandom.hex(8)}" }],
+      document_ids:     [{ type: "document/government-id", id: "doc_test_#{SecureRandom.hex(8)}" }]
     )
   end
 
@@ -15,7 +16,8 @@ class Persona::MockAPIService
       status:           "completed",
       account_id:       "act_test_mock",
       session_token:    nil,
-      verification_ids: [{ type: "verification/government-id", id: "ver_gov_#{inquiry_id.delete_prefix('inq_')}" }]
+      verification_ids: [{ type: "verification/government-id", id: "ver_gov_#{inquiry_id.delete_prefix('inq_')}" }],
+      document_ids:     [{ type: "document/government-id", id: "doc_#{inquiry_id.delete_prefix('inq_')}" }]
     )
   end
 
@@ -25,7 +27,8 @@ class Persona::MockAPIService
       status:           "pending",
       account_id:       "act_test_mock",
       session_token:    "session_tok_#{SecureRandom.hex(16)}",
-      verification_ids: []
+      verification_ids: [],
+      document_ids:     []
     )
   end
 
@@ -35,8 +38,35 @@ class Persona::MockAPIService
       status:           "expired",
       account_id:       "act_test_mock",
       session_token:    nil,
-      verification_ids: []
+      verification_ids: [],
+      document_ids:     []
     )
+  end
+
+  def retrieve_document_photos(_document_id, type: "document/government-id")
+    Persona::PhotoSet.new(
+      document: [
+        { filename: "front.jpg", url: "https://files.withpersona.com/front.jpg?access_token=mock", byte_size: 12345 },
+        { filename: "back.jpg", url: "https://files.withpersona.com/back.jpg?access_token=mock", byte_size: 12345 }
+      ],
+      liveness: []
+    )
+  end
+
+  def retrieve_verification_photos(_verification_id, type: "verification/government-id")
+    case type
+    when "verification/selfie"
+      Persona::PhotoSet.new(
+        document: [],
+        liveness: [
+          { url: "https://files.withpersona.com/center.jpg?access_token=mock", label: "selfie_center" },
+          { url: "https://files.withpersona.com/left.jpg?access_token=mock", label: "selfie_left" },
+          { url: "https://files.withpersona.com/right.jpg?access_token=mock", label: "selfie_right" }
+        ]
+      )
+    else
+      Persona::PhotoSet.empty
+    end
   end
 
   def retrieve_government_id_verification(_verification_id)

@@ -1,7 +1,15 @@
 module Persona
-  Inquiry = Data.define(:id, :status, :account_id, :session_token, :verification_ids) do
+  Inquiry = Data.define(:id, :status, :account_id, :session_token, :verification_ids, :document_ids) do
     def gov_id_verification_id
       verification_ids&.find { |v| v[:type] == "verification/government-id" }&.dig(:id)
+    end
+
+    def gov_id_document_id
+      document_ids&.find { |d| d[:type] == "document/government-id" }&.dig(:id)
+    end
+
+    def selfie_verification_id
+      verification_ids&.find { |v| v[:type] == "verification/selfie" }&.dig(:id)
     end
   end
 
@@ -10,6 +18,17 @@ module Persona
     :country_code, :front_photo, :back_photo, :selfie_photo,
     :id_class, :expiration_date, :entity_confidence_score, :checks
   )
+
+  PhotoSet = Data.define(:document, :liveness) do
+    def self.empty = new(document: [], liveness: [])
+
+    def +(other)
+      PhotoSet.new(
+        document:  document + other.document,
+        liveness:  liveness + other.liveness
+      )
+    end
+  end
 
   APIError = Class.new(StandardError)
 
