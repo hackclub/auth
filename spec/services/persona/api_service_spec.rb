@@ -140,8 +140,78 @@ RSpec.describe Persona::APIService do
     end
   end
 
+  describe "#retrieve_document_photos" do
+    it "returns a PhotoSet with front/back for government-id documents" do
+      stub_request(:get, "#{base_url}/api/v1/document/government-ids/doc_gov123")
+        .with(headers: expected_headers)
+        .to_return(
+          status: 200,
+          headers: { "Content-Type" => "application/json" },
+          body: { data: { id: "doc_gov123", type: "document/government-id", attributes: {
+            front_photo: { filename: "front.jpg", url: "https://files.withpersona.com/front.jpg", byte_size: 12345 },
+            back_photo: { filename: "back.jpg", url: "https://files.withpersona.com/back.jpg", byte_size: 12345 }
+          } }, meta: {} }.to_json
+        )
+
+      result = service.retrieve_document_photos("doc_gov123", type: "document/government-id")
+
+      expect(result).to be_a(Persona::PhotoSet)
+      expect(result.document.length).to eq(2)
+      expect(result.liveness).to be_empty
+    end
+
+    it "returns files array for generic documents" do
+      stub_request(:get, "#{base_url}/api/v1/documents/doc_generic")
+        .with(headers: expected_headers)
+        .to_return(
+          status: 200,
+          headers: { "Content-Type" => "application/json" },
+          body: { data: { id: "doc_generic", type: "document", attributes: {
+            files: [{ url: "https://files.withpersona.com/file1.pdf", filename: "file1.pdf" }]
+          } }, meta: {} }.to_json
+        )
+
+      result = service.retrieve_document_photos("doc_generic", type: "document/generic")
+
+      expect(result).to be_a(Persona::PhotoSet)
+      expect(result.document.length).to eq(1)
+      expect(result.document.first[:label]).to eq("file_1")
+    end
+  end
+
+  describe "#retrieve_verification_photos" do
+    it "returns liveness photos for selfie verifications" do
+      stub_request(:get, "#{base_url}/api/v1/verification/selfies/ver_selfie123")
+        .with(headers: expected_headers)
+        .to_return(
+          status: 200,
+          headers: { "Content-Type" => "application/json" },
+          body: { data: { id: "ver_selfie123", type: "verification/selfie", attributes: {
+            center_photo_url: "https://files.withpersona.com/center.jpg",
+            left_photo_url: "https://files.withpersona.com/left.jpg",
+            right_photo_url: "https://files.withpersona.com/right.jpg"
+          } }, meta: {} }.to_json
+        )
+
+      result = service.retrieve_verification_photos("ver_selfie123", type: "verification/selfie")
+
+      expect(result).to be_a(Persona::PhotoSet)
+      expect(result.document).to be_empty
+      expect(result.liveness.length).to eq(3)
+      expect(result.liveness.map { |l| l[:label] }).to contain_exactly("selfie_center", "selfie_left", "selfie_right")
+    end
+
+    it "returns empty PhotoSet for non-selfie verifications" do
+      result = service.retrieve_verification_photos("ver_gov123", type: "verification/government-id")
+
+      expect(result).to be_a(Persona::PhotoSet)
+      expect(result.document).to be_empty
+      expect(result.liveness).to be_empty
+    end
+  end
+
   describe "#download_file" do
-    it "downloads from a self-signed file URL without API key" do
+    it "downloads from withpersona.com" do
       file_url = "https://files.withpersona.com/photo.jpg?access_token=tok123"
       fake_image = "\x89PNG\r\n\x1a\n" + ("x" * 100)
 
@@ -152,6 +222,24 @@ RSpec.describe Persona::APIService do
 
       expect(result).to respond_to(:read)
       expect(result.read).to include("PNG")
+    end
+
+    it "rejects non-https URLs" do
+      expect {
+        service.download_file("http://files.withpersona.com/photo.jpg")
+      }.to raise_error(Persona::APIError, /untrusted host/)
+    end
+
+    it "rejects non-persona hosts" do
+      expect {
+        service.download_file("https://evil.com/photo.jpg")
+      }.to raise_error(Persona::APIError, /untrusted host/)
+    end
+
+    it "rejects internal IPs" do
+      expect {
+        service.download_file("https://169.254.169.254/latest/meta-data/")
+      }.to raise_error(Persona::APIError, /untrusted host/)
     end
   end
 
