@@ -31,6 +31,14 @@ module Shortcodes
       # Common
       shortcuts << Shortcode.new(code: "LOGS", label: "Audit logs", controller: "backend/audit_logs", action: "index", icon: "⭢", role: :general, path_override: nil)
 
+      # Dashboard + analytics
+      if user&.manual_document_verifier? || user&.super_admin?
+        shortcuts << Shortcode.new(code: "DASH", label: "Dashboard", controller: "backend/dashboard", action: "show", icon: "⭢", role: :mdv, path_override: nil)
+      end
+      if user&.super_admin? || user&.program_manager?
+        shortcuts << Shortcode.new(code: "ANLZ", label: "Analytics", controller: "backend/analytics", action: "show", icon: "⭢", role: :program_manager, path_override: nil)
+      end
+
       # Program manager / developer
       if user&.program_manager? || user&.super_admin?
         shortcuts << Shortcode.new(code: "APPS", label: "OAuth2 apps", controller: "developer_apps", action: "index", icon: "⭢", role: :program_manager, path_override: "/developer/apps")
@@ -44,6 +52,14 @@ module Shortcodes
           Shortcode.new(code: "FLIP", label: "Feature flags", controller: "flipper/features", action: "index", icon: "⭢", role: :super_admin, path_override: "/backend/flipper"),
           Shortcode.new(code: "ORWL", label: "Console audit", controller: "audits1984/audits", action: "index", icon: "⭢", role: :super_admin, path_override: "/backend/console_audit")
         ]
+      end
+
+      # Utility
+      shortcuts << Shortcode.new(code: "SRCH", label: "Focus search", controller: nil, action: nil, icon: "⌕", role: :general, path_override: "#search")
+      shortcuts << Shortcode.new(code: "HELP", label: "Keyboard shortcuts", controller: nil, action: nil, icon: "?", role: :general, path_override: "#hints")
+
+      if user&.super_admin? && Rails.env.development?
+        shortcuts << Shortcode.new(code: "SDMP", label: "Session dump", controller: "backend/static_pages", action: "session_dump", icon: "⭢", role: :super_admin, path_override: nil)
       end
 
       # Exit last

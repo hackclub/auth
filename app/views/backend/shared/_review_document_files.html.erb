@@ -1,0 +1,57 @@
+<% if document.files.attached? %>
+  <column gap-="2">
+    <% document.files.each_with_index do |file, index| %>
+      <column gap-="1">
+        <row align-="center between">
+          <b><%= index + 1 %>. <%= file.filename %></b>
+          <%= link_to "open ↗", url_for(file), target: "_blank" %>
+        </row>
+        <% if file.content_type.start_with?("image/") %>
+          <%
+            image_src = if file.content_type.in?(%w[image/heic image/heif])
+              url_for(file.variant(format: :png))
+            else
+              url_for(file)
+            end
+          %>
+          <div id="loader-<%= index %>" style="color: var(--foreground2); padding: 1lh 0;">
+            <%= file.content_type.in?(%w[image/heic image/heif]) ? "converting heic..." : "loading..." %>
+          </div>
+          <div id="image-container-<%= index %>" style="display: none;">
+            <%= image_tag image_src,
+              alt: "document file #{index + 1}",
+              id: "image-#{index}",
+              style: "max-width: 100%; transition: transform 0.2s;",
+              data: { rotation: 0 },
+              onload: "document.getElementById('loader-#{index}').style.display='none'; document.getElementById('image-container-#{index}').style.display='block';",
+              onerror: "document.getElementById('loader-#{index}').textContent='error loading image';" %>
+            <button type="button" size-="small" onclick="rotateImage(<%= index %>)">↻ rotate</button>
+          </div>
+        <% elsif file.content_type == "application/pdf" %>
+          <iframe src="<%= url_for(file) %>" style="width: 100%; height: 60vh; border: 1px solid var(--background2);" type="application/pdf">
+            <span style="color: var(--foreground2);">
+              browser doesn't support pdf embedding.
+              <%= link_to "open pdf", url_for(file), target: "_blank" %>
+            </span>
+          </iframe>
+        <% else %>
+          <column style="background: var(--background1); padding: 0.5lh 2ch;">
+            <row><span style="min-width: 12ch; color: var(--foreground2);">type</span> <%= file.content_type %></row>
+            <row><span style="min-width: 12ch; color: var(--foreground2);">download</span> <%= link_to "download file", url_for(file), target: "_blank" %></row>
+          </column>
+        <% end %>
+      </column>
+    <% end %>
+  </column>
+  <script>
+    function rotateImage(index) {
+      const img = document.getElementById('image-' + index);
+      let currentRotation = parseInt(img.dataset.rotation || 0);
+      currentRotation = (currentRotation + 90);
+      img.dataset.rotation = currentRotation;
+      img.style.transform = 'rotate(' + currentRotation + 'deg)';
+    }
+  </script>
+<% else %>
+  <span style="color: var(--foreground2);">no files attached</span>
+<% end %>

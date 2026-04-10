@@ -26,7 +26,6 @@ RSpec.describe "doorkeeper/authorizations/new", type: :view do
   before do
     assign(:pre_auth, pre_auth)
     allow(view).to receive(:current_identity).and_return(identity)
-    allow(view).to receive(:session).and_return({ stashed_data: nil })
     allow(Program).to receive(:find_by).and_return(program)
     allow(view).to receive(:oauth_authorization_path).and_return("/oauth/authorize")
   end

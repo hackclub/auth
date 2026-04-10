@@ -9,6 +9,7 @@ module Backend
 
     def index
       authorize Verification
+      add_breadcrumb "VERF"
 
       set_keyboard_shortcut(:back, backend_root_path)
 
@@ -21,10 +22,11 @@ module Backend
 
     def pending
       authorize Verification
+      add_breadcrumb "PEND"
 
       set_keyboard_shortcut(:back, backend_root_path)
 
-      @pending_verifications = Verification.includes(:identity, :identity_document, identity_document: { files_attachments: :blob })
+      @pending_verifications = Verification.includes(:identity, :identity_document, identity_document: { files_attachments: :blob }, identity: :resemblances)
         .where(status: "pending")
         .order(created_at: :asc)
         .page(params[:page])
@@ -34,6 +36,8 @@ module Backend
 
     def show
       authorize @verification
+      add_breadcrumb "PEND", pending_backend_verifications_path
+      add_breadcrumb "#{@verification.identity.first_name} #{@verification.identity.last_name}"
 
       set_keyboard_shortcut(:back, pending_backend_verifications_path)
       if @verification.pending?

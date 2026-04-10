@@ -1,20 +1,20 @@
-<div class="grid">
-  <%= render Components::Backend::Card.new(title: "audit logs") do %>
-    <div class="button_group full">
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>audit logs</h2>
+    <row gap-="1" align-="center">
       <% if params[:admin_actions_only] %>
-        <%= link_to backend_audit_logs_path do %>
-          <%= render Components::Backend::ActionButton.new { "ALL" } %>
-        <% end %>
-        <%= render Components::Backend::ActionButton.new(selected: true) { "ADMIN" } %>
+        <a href="<%= backend_audit_logs_path %>" style="color: var(--foreground2); text-decoration: none;">all</a>
+        <span is-="badge" variant-="foreground0">admin</span>
       <% else %>
-        <%= render Components::Backend::ActionButton.new(selected: true) { "ALL" } %>
-        <%= link_to backend_audit_logs_path(admin_actions_only: true) do %>
-          <%= render Components::Backend::ActionButton.new { "ADMIN" } %>
-        <% end %>
+        <span is-="badge" variant-="foreground0">all</span>
+        <a href="<%= backend_audit_logs_path(admin_actions_only: true) %>" style="color: var(--foreground2); text-decoration: none;">admin</a>
       <% end %>
-    </div>
-    <hr>
-    <%= render Components::PublicActivity::Container.new(@activities) %>
-    <%= paginate @activities %>
-  <% end %>
-</div>
+    </row>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%= render "backend/shared/activity_log", activities: @activities %>
+
+  <%= paginate @activities %>
+</column>

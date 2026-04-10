@@ -8,6 +8,7 @@ module Backend
 
     def index
       authorize Backend::User
+      add_breadcrumb "USRS"
 
       set_keyboard_shortcut(:back, backend_root_path)
 
@@ -18,6 +19,8 @@ module Backend
 
     def new
       authorize User
+      add_breadcrumb "USRS", backend_users_path
+      add_breadcrumb "new"
       @identities = if params[:query].present?
         Identity.search(params[:query]).where.not(id: User.linked.select(:identity_id)).limit(20)
       else
@@ -27,6 +30,9 @@ module Backend
 
     def edit
       authorize @user
+      add_breadcrumb "USRS", backend_users_path
+      add_breadcrumb @user.display_name, backend_user_path(@user)
+      add_breadcrumb "edit"
     end
 
     def update
@@ -66,6 +72,8 @@ module Backend
 
     def show
       authorize @user
+      add_breadcrumb "USRS", backend_users_path
+      add_breadcrumb @user.display_name
     end
 
     def activate

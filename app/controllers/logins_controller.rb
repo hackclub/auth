@@ -350,7 +350,7 @@ class LoginsController < ApplicationController
 
             # Assign workspace/channels after SAML login completes (user is now activated)
             should_assign = slack_result[:created] || slack_result[:needs_workspace_assignment]
-            if should_assign && scenario.slack_user_type == :multi_channel_guest && scenario.slack_channels.any?
+            if should_assign && scenario.slack_channels.any?
                 AssignSlackWorkspaceJob.perform_later(
                     slack_id: slack_result[:slack_id],
                     user_type: scenario.slack_user_type,

@@ -1,0 +1,20 @@
+<%# expects: f (form builder), user (Backend::User) %>
+<column gap-="1">
+  <span style="color: var(--foreground2);">roles</span>
+  <label><%= f.check_box :super_admin %> super admin <span style="color: var(--foreground2);">— access to all permissions, can manage users</span></label>
+  <label><%= f.check_box :program_manager %> program manager <span style="color: var(--foreground2);">— provision API keys and program tags</span></label>
+  <label><%= f.check_box :human_endorser %> human endorser <span style="color: var(--foreground2);">— mark identities as human-endorsed</span></label>
+  <label><%= f.check_box :all_fields_access %> all fields access <span style="color: var(--foreground2);">— view all fields on all identities</span></label>
+  <label><%= f.check_box :manual_document_verifier %> document verifier <span style="color: var(--foreground2);">— review and verify documents</span></label>
+  <label><%= f.check_box :can_break_glass %> break glass <span style="color: var(--foreground2);">— view ID docs after review</span></label>
+
+  <div is-="separator"></div>
+
+  <span style="color: var(--foreground2);">program organizer positions</span>
+  <% Program.all.each do |program| %>
+    <label>
+      <%= check_box_tag "backend_user[organized_program_ids][]", program.id, user.organized_programs.include?(program), id: "organized_program_#{program.id}" %>
+      <%= program.name %>
+    </label>
+  <% end %>
+</column>
