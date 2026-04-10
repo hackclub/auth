@@ -8,7 +8,7 @@ module SpecialAppCards
 
     def friendly_name = "Beest"
 
-    def tagline = "Design a hardware project, get up to $400 to build it!"
+    def tagline = "Build to earn a ticket to a week long hackathon in the Netherlands!"
 
     def icon = "Beest.png"
 
