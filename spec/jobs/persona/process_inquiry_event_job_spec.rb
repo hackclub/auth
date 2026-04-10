@@ -14,8 +14,8 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
       name_last: "TRASHWORTH",
       birthdate: Date.parse("2010-06-15"),
       country_code: "US",
-      front_photo: { "url" => "https://files.withpersona.com/front.jpg", "filename" => "front.jpg" },
-      back_photo: { "url" => "https://files.withpersona.com/back.jpg", "filename" => "back.jpg" },
+      front_photo: { url: "https://files.withpersona.com/front.jpg", filename: "front.jpg" },
+      back_photo: { url: "https://files.withpersona.com/back.jpg", filename: "back.jpg" },
       selfie_photo: nil
     )
   end

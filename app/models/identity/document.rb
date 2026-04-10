@@ -31,13 +31,15 @@ class Identity::Document < ApplicationRecord
   enum :document_type, {
          government_id: 0,
          transcript: 1,
-         persona_gov_id: 2
+         persona_gov_id: 2,
+         persona_liveness: 3
        }
 
   FRIENDLY_NAMES = {
     government_id: "Government-issued ID",
     transcript: "Transcript & Student ID",
-    persona_gov_id: "Government ID (Persona)"
+    persona_gov_id: "Government ID (Persona)",
+    persona_liveness: "Liveness Check (Persona)"
   }
 
   validates :document_type, presence: true
@@ -91,6 +93,8 @@ class Identity::Document < ApplicationRecord
       errors.add(:files, "must include exactly 1 file") unless actual_count == 1
     when "persona_gov_id"
       errors.add(:files, "must include 1 or 2 files") unless actual_count.between?(1, 2)
+    when "persona_liveness"
+      errors.add(:files, "must include at least 1 file") unless actual_count >= 1
     end
   end
 

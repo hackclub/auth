@@ -7,7 +7,6 @@ class Identity::PersonaRecord < ApplicationRecord
 
   encrypts :raw_json_response
 
-  has_many_attached :liveness_images
   has_many :break_glass_records, as: :break_glassable, dependent: :destroy
 
   validates :inquiry_id, presence: true, uniqueness: true

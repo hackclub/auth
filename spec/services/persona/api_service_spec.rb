@@ -105,8 +105,8 @@ RSpec.describe Persona::APIService do
       expect(result.name_last).to eq("TRASHWORTH")
       expect(result.birthdate).to eq(Date.parse("2005-06-15"))
       expect(result.country_code).to eq("US")
-      expect(result.front_photo).to include("url")
-      expect(result.back_photo).to include("url")
+      expect(result.front_photo).to include(:url)
+      expect(result.back_photo).to include(:url)
     end
   end
 

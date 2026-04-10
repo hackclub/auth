@@ -96,10 +96,4 @@ RSpec.describe Identity::PersonaRecord, type: :model do
       expect(parsed[:data][:attributes][:name_first]).to eq("Heidi")
     end
   end
-
-  describe "liveness_images" do
-    it "supports has_many_attached liveness_images" do
-      expect(subject).to respond_to(:liveness_images)
-    end
-  end
 end

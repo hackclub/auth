@@ -27,8 +27,8 @@ class Persona::MockAPIService
       name_last: "TRASHWORTH",
       birthdate: Date.parse("2008-06-15"),
       country_code: "US",
-      front_photo: { "filename" => "front.jpg", "url" => "https://example.com/front.jpg", "byte_size" => 12345 },
-      back_photo: { "filename" => "back.jpg", "url" => "https://example.com/back.jpg", "byte_size" => 12345 },
+      front_photo: { filename: "front.jpg", url: "https://example.com/front.jpg", byte_size: 12345 },
+      back_photo: { filename: "back.jpg", url: "https://example.com/back.jpg", byte_size: 12345 },
       selfie_photo: nil
     )
   end

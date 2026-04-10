@@ -6,7 +6,7 @@ class Persona::APIService
   end
 
   def create_inquiry(template_id:, account_reference_id:)
-    response = connection.post("/api/v1/inquiries") do |req|
+    data, included = request!(:post, "/api/v1/inquiries") do |req|
       req.body = {
         data: {
           attributes: {
@@ -21,66 +21,61 @@ class Persona::APIService
       }
     end
 
-    raise Persona::APIError, error_message(response) unless response.success?
-
-    data = response.body["data"]
-    included = response.body["included"] || []
-    session = included.find { |i| i["type"] == "inquiry-session" }
+    session = included.find { |i| i[:type] == "inquiry-session" }
 
     Persona::Inquiry.new(
-      id: data["id"],
-      status: data.dig("attributes", "status"),
-      account_id: data.dig("relationships", "account", "data", "id"),
-      session_token: session&.dig("attributes", "session_token")
+      id: data[:id],
+      status: data.dig(:attributes, :status),
+      account_id: data.dig(:relationships, :account, :data, :id),
+      session_token: session&.dig(:attributes, :session_token)
     )
   end
 
   def retrieve_inquiry(inquiry_id)
-    response = connection.get("/api/v1/inquiries/#{inquiry_id}")
-
-    raise Persona::APIError, error_message(response) unless response.success?
-
-    data = response.body["data"]
-    included = response.body["included"] || []
-    session = included.find { |i| i["type"] == "inquiry-session" }
+    data, included = request!(:get, "/api/v1/inquiries/#{inquiry_id}")
+    session = included.find { |i| i[:type] == "inquiry-session" }
 
     Persona::Inquiry.new(
-      id: data["id"],
-      status: data.dig("attributes", "status"),
-      account_id: data.dig("relationships", "account", "data", "id"),
-      session_token: session&.dig("attributes", "session_token")
+      id: data[:id],
+      status: data.dig(:attributes, :status),
+      account_id: data.dig(:relationships, :account, :data, :id),
+      session_token: session&.dig(:attributes, :session_token)
     )
   end
 
   def retrieve_government_id_verification(verification_id)
-    response = connection.get("/api/v1/verification/government-ids/#{verification_id}")
-
-    raise Persona::APIError, error_message(response) unless response.success?
-
-    attrs = response.body.dig("data", "attributes")
+    data, _ = request!(:get, "/api/v1/verification/government-ids/#{verification_id}")
+    attrs = data[:attributes]
 
     Persona::GovernmentIdVerification.new(
-      id: response.body.dig("data", "id"),
-      status: attrs["status"],
-      name_first: attrs["name_first"],
-      name_last: attrs["name_last"],
-      birthdate: attrs["birthdate"] ? Date.parse(attrs["birthdate"]) : nil,
-      country_code: attrs["address_country_code"],
-      front_photo: attrs["front_photo"],
-      back_photo: attrs["back_photo"],
-      selfie_photo: attrs["selfie_photo"]
+      id: data[:id],
+      status: attrs[:status],
+      name_first: attrs[:name_first],
+      name_last: attrs[:name_last],
+      birthdate: attrs[:birthdate] ? Date.parse(attrs[:birthdate]) : nil,
+      country_code: attrs[:address_country_code],
+      front_photo: attrs[:front_photo],
+      back_photo: attrs[:back_photo],
+      selfie_photo: attrs[:selfie_photo]
     )
   end
 
   def download_file(file_id)
     response = connection.get("/api/v1/files/#{file_id}")
-
     raise Persona::APIError, error_message(response) unless response.success?
 
     StringIO.new(response.body)
   end
 
   private
+
+  def request!(method, path, &block)
+    response = connection.send(method, path, &block)
+    raise Persona::APIError, error_message(response) unless response.success?
+
+    body = response.body.deep_symbolize_keys
+    [body[:data], body[:included] || []]
+  end
 
   def connection
     @connection ||= Faraday.new(

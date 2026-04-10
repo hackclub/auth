@@ -7,8 +7,8 @@ module Webhooks
     def create
       return head(:bad_request) unless parsed_body
 
-      event_name = parsed_body.dig("data", "attributes", "name")
-      inquiry_id = parsed_body.dig("data", "attributes", "payload", "data", "id")
+      event_name = parsed_body.dig(:data, :attributes, :name)
+      inquiry_id = parsed_body.dig(:data, :attributes, :payload, :data, :id)
 
       Persona::ProcessInquiryEventJob.perform_later(
         event_name: event_name,
@@ -43,7 +43,7 @@ module Webhooks
     end
 
     def parsed_body
-      @parsed_body ||= JSON.parse(request.raw_post)
+      @parsed_body ||= JSON.parse(request.raw_post, symbolize_names: true)
     rescue JSON::ParserError
       head(:bad_request) and return
     end

@@ -75,11 +75,11 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
   end
 
   def attach_photo(doc, photo_data, label)
-    return unless photo_data.is_a?(Hash) && photo_data["url"]
+    return unless photo_data.is_a?(Hash) && photo_data[:url]
 
-    raw = Persona.instance.download_file(photo_data["url"])
+    raw = Persona.instance.download_file(photo_data[:url])
     bytes = raw.respond_to?(:read) ? raw.read : raw
-    filename = photo_data["filename"] || "#{label}.jpg"
+    filename = photo_data[:filename] || "#{label}.jpg"
 
     doc.files.attach(
       io: StringIO.new(bytes),
