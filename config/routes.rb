@@ -419,6 +419,10 @@ Rails.application.routes.draw do
     post "/interactivity", to: "interactivity#create"
   end
 
+  namespace :webhooks do
+    post "persona", to: "persona#create"
+  end
+
   scope :saml do
     get "/metadata", to: "saml#metadata"
     get "/welcome", to: "saml#welcome", as: :saml_welcome

@@ -65,10 +65,12 @@ class Identity < ApplicationRecord
   end
 
   has_many :documents, class_name: "Identity::Document", dependent: :destroy
+  has_many :persona_records, class_name: "Identity::PersonaRecord", dependent: :destroy
   has_many :verifications, class_name: "Verification", dependent: :destroy
   has_many :document_verifications, class_name: "Verification::DocumentVerification", dependent: :destroy
   has_many :aadhaar_verifications, class_name: "Verification::AadhaarVerification", dependent: :destroy
   has_many :vouch_verifications, class_name: "Verification::VouchVerification", dependent: :destroy
+  has_many :persona_verifications, class_name: "Verification::PersonaVerification", dependent: :destroy
   has_many :addresses, class_name: "Address", dependent: :destroy
   belongs_to :primary_address, class_name: "Address", optional: true
 
@@ -94,6 +96,7 @@ class Identity < ApplicationRecord
   validate :validate_email_not_tombstoned, if: -> { new_record? || primary_email_changed? }
 
   validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, allow_blank: true
+  validates :persona_account_id, uniqueness: true, allow_blank: true
   validates :aadhaar_number, uniqueness: true, allow_blank: true
   validates :aadhaar_number, format: { with: /\A\d{12}\z/, message: "must be 12 digits" }, if: -> { aadhaar_number.present? }
 

@@ -1,0 +1,39 @@
+class Persona::MockAPIService
+  def create_inquiry(template_id:, account_reference_id:)
+    inquiry_id = "inq_test_#{SecureRandom.hex(8)}"
+
+    Persona::Inquiry.new(
+      id: inquiry_id,
+      status: "created",
+      account_id: "act_test_#{Digest::SHA256.hexdigest(account_reference_id)[0..11]}",
+      session_token: "session_tok_#{SecureRandom.hex(16)}"
+    )
+  end
+
+  def retrieve_inquiry(inquiry_id)
+    Persona::Inquiry.new(
+      id: inquiry_id,
+      status: "completed",
+      account_id: "act_test_mock",
+      session_token: nil
+    )
+  end
+
+  def retrieve_government_id_verification(_verification_id)
+    Persona::GovernmentIdVerification.new(
+      id: "ver_test_#{SecureRandom.hex(8)}",
+      status: "passed",
+      name_first: "HEIDI",
+      name_last: "TRASHWORTH",
+      birthdate: Date.parse("2008-06-15"),
+      country_code: "US",
+      front_photo: { "filename" => "front.jpg", "url" => "https://example.com/front.jpg", "byte_size" => 12345 },
+      back_photo: { "filename" => "back.jpg", "url" => "https://example.com/back.jpg", "byte_size" => 12345 },
+      selfie_photo: nil
+    )
+  end
+
+  def download_file(_file_id)
+    StringIO.new("mock image data for testing")
+  end
+end

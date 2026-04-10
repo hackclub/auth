@@ -305,10 +305,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000003) do
     t.string "slack_dm_channel_id"
     t.boolean "is_alum", default: false
     t.boolean "can_hq_officialize", default: false, null: false
+    t.string "persona_account_id"
     t.index "lower((primary_email)::text)", name: "idx_identities_unique_primary_email", unique: true, where: "(deleted_at IS NULL)"
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
     t.index ["legacy_migrated_at"], name: "index_identities_on_legacy_migrated_at"
+    t.index ["persona_account_id"], name: "index_identities_on_persona_account_id", unique: true
     t.index ["primary_address_id"], name: "index_identities_on_primary_address_id"
     t.index ["slack_id"], name: "index_identities_on_slack_id"
   end
@@ -378,6 +380,23 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000003) do
     t.datetime "updated_at", null: false
     t.string "return_url"
     t.index ["identity_id"], name: "index_identity_login_codes_on_identity_id"
+  end
+
+  create_table "identity_persona_records", force: :cascade do |t|
+    t.bigint "identity_id", null: false
+    t.string "inquiry_id", null: false
+    t.text "raw_json_response"
+    t.string "name_first"
+    t.string "name_last"
+    t.date "birthdate"
+    t.string "country_code"
+    t.string "persona_status"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deleted_at"], name: "index_identity_persona_records_on_deleted_at"
+    t.index ["identity_id"], name: "index_identity_persona_records_on_identity_id"
+    t.index ["inquiry_id"], name: "index_identity_persona_records_on_inquiry_id", unique: true
   end
 
   create_table "identity_resemblances", force: :cascade do |t|
@@ -488,6 +507,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000003) do
     t.datetime "created_at", null: false
     t.datetime "revoked_at"
     t.string "resource_owner_type", null: false
+    t.bigint "source_session_id"
     t.index ["application_id"], name: "index_oauth_access_grants_on_application_id"
     t.index ["resource_owner_id", "resource_owner_type"], name: "polymorphic_owner_oauth_access_grants"
     t.index ["resource_owner_id"], name: "index_oauth_access_grants_on_resource_owner_id"
@@ -606,11 +626,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000003) do
     t.datetime "approved_at"
     t.datetime "rejected_at"
     t.text "internal_rejection_comment"
+    t.string "persona_inquiry_id"
+    t.text "persona_session_token"
+    t.bigint "persona_record_id"
     t.index ["aadhaar_record_id"], name: "index_verifications_on_aadhaar_record_id"
     t.index ["deleted_at"], name: "index_verifications_on_deleted_at"
     t.index ["fatal"], name: "index_verifications_on_fatal"
     t.index ["identity_document_id"], name: "index_verifications_on_identity_document_id"
     t.index ["identity_id"], name: "index_verifications_on_identity_id"
+    t.index ["persona_inquiry_id"], name: "index_verifications_on_persona_inquiry_id"
+    t.index ["persona_record_id"], name: "index_verifications_on_persona_record_id"
     t.index ["type"], name: "index_verifications_on_type"
   end
 
@@ -639,6 +664,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000003) do
   add_foreign_key "identity_documents", "identities"
   add_foreign_key "identity_email_change_requests", "identities"
   add_foreign_key "identity_login_codes", "identities"
+  add_foreign_key "identity_persona_records", "identities"
   add_foreign_key "identity_resemblances", "identities"
   add_foreign_key "identity_resemblances", "identities", column: "past_identity_id"
   add_foreign_key "identity_resemblances", "identity_documents", column: "document_id"
