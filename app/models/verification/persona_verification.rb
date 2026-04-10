@@ -80,7 +80,6 @@ class Verification::PersonaVerification < Verification
     fields[:birthdate] = identity.birthday.iso8601 if identity.birthday
     fields[:"email-address"] = identity.primary_email if identity.primary_email.present?
     fields[:"phone-number"] = identity.phone_number if identity.phone_number.present?
-    fields[:"country-code"] = identity.country if identity.country.present?
     fields
   end
 
