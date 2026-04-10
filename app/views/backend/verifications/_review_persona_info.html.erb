@@ -1,11 +1,38 @@
 <column>
   <row><span style="min-width: 12ch; color: var(--foreground2);">type</span> Government ID (Persona)</row>
   <% if verification.persona_inquiry_id.present? %>
-    <row><span style="min-width: 12ch; color: var(--foreground2);">inquiry</span> <%= verification.persona_inquiry_id %></row>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">inquiry</span> <code><%= verification.persona_inquiry_id %></code></row>
   <% end %>
   <% if verification.persona_record.present? %>
-    <row><span style="min-width: 12ch; color: var(--foreground2);">name</span> <%= verification.persona_record.name_first %> <%= verification.persona_record.name_last %></row>
-    <row><span style="min-width: 12ch; color: var(--foreground2);">birthdate</span> <%= verification.persona_record.birthdate %></row>
-    <row><span style="min-width: 12ch; color: var(--foreground2);">country</span> <%= verification.persona_record.country_code %></row>
+    <% record = verification.persona_record %>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">name</span> <%= record.name_first %> <%= record.name_last %></row>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">birthdate</span> <%= record.birthdate&.strftime("%B %d, %Y") %></row>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">country</span> <%= record.country_code %></row>
+    <% if record.id_class.present? %>
+      <row><span style="min-width: 12ch; color: var(--foreground2);">ID type</span> <%= record.id_class_label %></row>
+    <% end %>
+    <% if record.expiration_date %>
+      <row>
+        <span style="min-width: 12ch; color: var(--foreground2);">expires</span>
+        <% if record.expiration_date < Date.current %>
+          <span style="color: var(--red);"><%= record.expiration_date %> (expired)</span>
+        <% else %>
+          <%= record.expiration_date %>
+        <% end %>
+      </row>
+    <% end %>
+    <% if record.entity_confidence_score %>
+      <row>
+        <span style="min-width: 12ch; color: var(--foreground2);">confidence</span>
+        <% pct = (record.entity_confidence_score * 100).round(1) %>
+        <% if record.entity_confidence_score < 0.85 %>
+          <span style="color: var(--red);"><%= pct %>%</span>
+        <% elsif record.entity_confidence_score < 0.95 %>
+          <span style="color: var(--yellow);"><%= pct %>%</span>
+        <% else %>
+          <span style="color: var(--green);"><%= pct %>%</span>
+        <% end %>
+      </row>
+    <% end %>
   <% end %>
 </column>

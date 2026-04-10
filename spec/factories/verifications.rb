@@ -27,12 +27,16 @@ FactoryBot.define do
   factory :identity_persona_record, class: "Identity::PersonaRecord" do
     association :identity
     inquiry_id { "inq_#{SecureRandom.hex(12)}" }
-    raw_json_response { { data: { attributes: { status: "approved" } } }.to_json }
+    raw_json_response { { inquiry: { id: "inq_test", status: "approved" }, government_id_verification: {} }.to_json }
     name_first { "Heidi" }
     name_last { "Trashworth" }
     birthdate { Date.parse("2005-06-15") }
     country_code { "US" }
     persona_status { "approved" }
+    id_class { "dl" }
+    expiration_date { 3.years.from_now.to_date }
+    entity_confidence_score { 0.98 }
+    checks { [] }
   end
 
   factory :document_verification, class: "Verification::DocumentVerification" do

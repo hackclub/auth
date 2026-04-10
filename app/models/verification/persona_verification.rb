@@ -60,13 +60,22 @@ class Verification::PersonaVerification < Verification
 
     inquiry = Persona.instance.create_inquiry(
       template_id: Rails.application.credentials.persona.template_id,
-      account_reference_id: identity.public_id
+      account_reference_id: identity.public_id,
+      fields: prefill_fields
     )
 
     update!(persona_inquiry_id: inquiry.id, persona_session_token: inquiry.session_token)
     identity.update!(persona_account_id: inquiry.account_id) if identity.persona_account_id.blank?
 
     inquiry
+  end
+
+  def prefill_fields
+    fields = {}
+    fields[:"name-first"] = identity.legal_first_name.presence || identity.first_name
+    fields[:"name-last"] = identity.legal_last_name.presence || identity.last_name
+    fields[:birthdate] = identity.birthday.iso8601 if identity.birthday
+    fields
   end
 
   private

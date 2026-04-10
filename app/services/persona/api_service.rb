@@ -3,9 +3,9 @@ class Persona::APIService
 
   def initialize(api_key:) = @api_key = api_key
 
-  def create_inquiry(template_id:, account_reference_id:)
+  def create_inquiry(template_id:, account_reference_id:, fields: {})
     data, meta = request!(:post, "/api/v1/inquiries") do |req|
-      req.body = {
+      body = {
         data: { attributes: { inquiry_template_id: template_id } },
         meta: {
           auto_create_account: true,
@@ -13,6 +13,8 @@ class Persona::APIService
           auto_create_inquiry_session: true
         }
       }
+      body[:data][:attributes][:fields] = fields if fields.any?
+      req.body = body
     end
 
     build_inquiry(data, session_token: meta[:session_token])
@@ -38,15 +40,19 @@ class Persona::APIService
     attrs = data[:attributes]
 
     Persona::GovernmentIdVerification.new(
-      id:           data[:id],
-      status:       attrs[:status],
-      name_first:   attrs[:name_first],
-      name_last:    attrs[:name_last],
-      birthdate:    attrs[:birthdate] ? Date.parse(attrs[:birthdate]) : nil,
-      country_code: attrs[:address_country_code],
-      front_photo:  attrs[:front_photo],
-      back_photo:   attrs[:back_photo],
-      selfie_photo: attrs[:selfie_photo]
+      id:                       data[:id],
+      status:                   attrs[:status],
+      name_first:               attrs[:name_first],
+      name_last:                attrs[:name_last],
+      birthdate:                attrs[:birthdate] ? Date.parse(attrs[:birthdate]) : nil,
+      country_code:             attrs[:address_country_code],
+      front_photo:              attrs[:front_photo],
+      back_photo:               attrs[:back_photo],
+      selfie_photo:             attrs[:selfie_photo],
+      id_class:                 attrs[:id_class],
+      expiration_date:          attrs[:expiration_date] ? Date.parse(attrs[:expiration_date]) : nil,
+      entity_confidence_score:  attrs[:entity_confidence_score],
+      checks:                   attrs[:checks] || []
     )
   end
 

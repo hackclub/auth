@@ -1,5 +1,5 @@
 class Persona::MockAPIService
-  def create_inquiry(template_id:, account_reference_id:)
+  def create_inquiry(template_id:, account_reference_id:, fields: {})
     Persona::Inquiry.new(
       id:               "inq_test_#{SecureRandom.hex(8)}",
       status:           "created",
@@ -41,15 +41,27 @@ class Persona::MockAPIService
 
   def retrieve_government_id_verification(_verification_id)
     Persona::GovernmentIdVerification.new(
-      id:           "ver_test_#{SecureRandom.hex(8)}",
-      status:       "passed",
-      name_first:   "HEIDI",
-      name_last:    "TRASHWORTH",
-      birthdate:    Date.parse("2008-06-15"),
-      country_code: "US",
-      front_photo:  { filename: "front.jpg", url: "https://files.withpersona.com/front.jpg?access_token=mock", byte_size: 12345 },
-      back_photo:   { filename: "back.jpg", url: "https://files.withpersona.com/back.jpg?access_token=mock", byte_size: 12345 },
-      selfie_photo: nil
+      id:                       "ver_test_#{SecureRandom.hex(8)}",
+      status:                   "passed",
+      name_first:               "HEIDI",
+      name_last:                "TRASHWORTH",
+      birthdate:                Date.parse("2008-06-15"),
+      country_code:             "US",
+      front_photo:              { filename: "front.jpg", url: "https://files.withpersona.com/front.jpg?access_token=mock", byte_size: 12345 },
+      back_photo:               { filename: "back.jpg", url: "https://files.withpersona.com/back.jpg?access_token=mock", byte_size: 12345 },
+      selfie_photo:             nil,
+      id_class:                 "dl",
+      expiration_date:          Date.parse("2029-06-15"),
+      entity_confidence_score:  0.98,
+      checks:                   [
+        { "name" => "id_aamva_database_lookup", "status" => "passed", "reasons" => [], "requirement" => "not_required" },
+        { "name" => "id_account_comparison", "status" => "passed", "reasons" => [], "requirement" => "not_required" },
+        { "name" => "id_age_comparison", "status" => "passed", "reasons" => [], "requirement" => "not_required" },
+        { "name" => "id_barcode_detection", "status" => "passed", "reasons" => [], "requirement" => "required" },
+        { "name" => "id_entity_detection", "status" => "passed", "reasons" => [], "requirement" => "required" },
+        { "name" => "id_expired_detection", "status" => "passed", "reasons" => [], "requirement" => "required" },
+        { "name" => "id_extraction_detection", "status" => "passed", "reasons" => [], "requirement" => "required" }
+      ]
     )
   end
 

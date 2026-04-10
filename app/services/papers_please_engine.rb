@@ -6,7 +6,7 @@ module PapersPleaseEngine
     when Verification::AadhaarVerification
         [ AadhaarScrutinizer ]
     when Verification::PersonaVerification
-        [] # persona does its own verification — nothing to scrutinize
+        [ PersonaScrutinizer ]
     else
         []
     end

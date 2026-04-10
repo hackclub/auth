@@ -7,7 +7,8 @@ module Persona
 
   GovernmentIdVerification = Data.define(
     :id, :status, :name_first, :name_last, :birthdate,
-    :country_code, :front_photo, :back_photo, :selfie_photo
+    :country_code, :front_photo, :back_photo, :selfie_photo,
+    :id_class, :expiration_date, :entity_confidence_score, :checks
   )
 
   APIError = Class.new(StandardError)

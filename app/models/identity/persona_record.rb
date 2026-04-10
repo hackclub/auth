@@ -16,5 +16,15 @@ class Identity::PersonaRecord < ApplicationRecord
   validates :birthdate, presence: true
   validates :country_code, presence: true
 
+  ID_CLASS_LABELS = {
+    "dl" => "driver's license",
+    "pp" => "passport",
+    "id" => "national ID",
+    "rp" => "residence permit",
+    "vi" => "visa"
+  }.freeze
+
+  def id_class_label = ID_CLASS_LABELS[id_class] || id_class
+
   def doc_json = JSON.parse(raw_json_response.strip, symbolize_names: true)
 end

@@ -100,7 +100,7 @@
   <div is-="separator"></div>
 
   <%# === Decision bar === %>
-  <% if @verification.draft? %>
+  <% if @verification.try :draft? %>
     <column box-="square">
       <row gap-="2" align-="center">
         <span>status: <span is-="badge">draft</span></span>

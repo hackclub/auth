@@ -39,16 +39,23 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
 
     gov_id = service.retrieve_government_id_verification(gov_id_ver_id)
 
-    # create the persona record
+    # store full response for audit trail — strip photo URLs (images stored in Identity::Document)
+    gov_id_hash = gov_id.to_h.except(:front_photo, :back_photo, :selfie_photo)
+    raw_response = { inquiry: inquiry.to_h, government_id_verification: gov_id_hash }
+
     record = Identity::PersonaRecord.create!(
       identity: @identity,
       inquiry_id: inquiry_id,
-      raw_json_response: inquiry.to_h.to_json,
+      raw_json_response: raw_response.to_json,
       name_first: gov_id.name_first,
       name_last: gov_id.name_last,
       birthdate: gov_id.birthdate,
       country_code: gov_id.country_code,
-      persona_status: inquiry.status
+      persona_status: inquiry.status,
+      id_class: gov_id.id_class,
+      expiration_date: gov_id.expiration_date,
+      entity_confidence_score: gov_id.entity_confidence_score,
+      checks: gov_id.checks
     )
 
     # create the gov ID document with front/back photos

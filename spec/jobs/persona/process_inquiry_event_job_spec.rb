@@ -16,7 +16,13 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
       country_code: "US",
       front_photo: { url: "https://files.withpersona.com/front.jpg?access_token=tok123", filename: "front.jpg" },
       back_photo: { url: "https://files.withpersona.com/back.jpg?access_token=tok456", filename: "back.jpg" },
-      selfie_photo: nil
+      selfie_photo: nil,
+      id_class: "dl",
+      expiration_date: Date.parse("2029-06-15"),
+      entity_confidence_score: 0.98,
+      checks: [
+        { "name" => "id_entity_detection", "status" => "passed", "reasons" => [], "requirement" => "required" }
+      ]
     )
   end
   let(:inquiry_data) do

@@ -205,7 +205,8 @@ RSpec.describe Verification::PersonaVerification, type: :model do
 
       expect(mock_service).to have_received(:create_inquiry).with(
         template_id: anything,
-        account_reference_id: identity.public_id
+        account_reference_id: identity.public_id,
+        fields: hash_including(:"name-first", :"name-last")
       )
     end
 

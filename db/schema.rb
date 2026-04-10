@@ -394,6 +394,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000003) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "id_class"
+    t.date "expiration_date"
+    t.float "entity_confidence_score"
+    t.jsonb "checks", default: []
     t.index ["deleted_at"], name: "index_identity_persona_records_on_deleted_at"
     t.index ["identity_id"], name: "index_identity_persona_records_on_identity_id"
     t.index ["inquiry_id"], name: "index_identity_persona_records_on_inquiry_id", unique: true
@@ -570,7 +574,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000003) do
     t.string "invited_email"
     t.index ["identity_id"], name: "index_program_collaborators_on_identity_id"
     t.index ["program_id", "identity_id"], name: "index_program_collaborators_on_program_id_and_identity_id", unique: true
-    t.index ["program_id", "invited_email"], name: "idx_program_collabs_on_program_email_visible", unique: true, where: "((status)::text = ANY ((ARRAY['pending'::character varying, 'accepted'::character varying])::text[]))"
+    t.index ["program_id", "invited_email"], name: "idx_program_collabs_on_program_email_visible", unique: true, where: "((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('accepted'::character varying)::text]))"
     t.index ["program_id"], name: "index_program_collaborators_on_program_id"
   end
 
@@ -679,6 +683,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000003) do
   add_foreign_key "login_attempts", "identities"
   add_foreign_key "login_attempts", "identity_sessions", column: "session_id"
   add_foreign_key "oauth_access_grants", "identities", column: "resource_owner_id"
+  add_foreign_key "oauth_access_grants", "identity_sessions", column: "source_session_id", on_delete: :nullify
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "identities", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
@@ -688,4 +693,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000003) do
   add_foreign_key "verifications", "identities"
   add_foreign_key "verifications", "identity_aadhaar_records", column: "aadhaar_record_id"
   add_foreign_key "verifications", "identity_documents"
+  add_foreign_key "verifications", "identity_persona_records", column: "persona_record_id"
 end
