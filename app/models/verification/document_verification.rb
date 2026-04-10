@@ -128,6 +128,20 @@ class Verification::DocumentVerification < Verification
 
   def rejection_reason_name = REJECTION_REASON_NAMES[rejection_reason] || rejection_reason
 
+  # Polymorphic interface
+  def document_type_label = document_type || "Document"
+  def review_info_partial = "backend/shared/review_document_info"
+  def review_full_partial = "backend/shared/review_document_files"
+  def relevant_record = identity_document
+  def needs_break_glass? = true
+
+  def rejection_reason_options
+    {
+      retryable: RETRYABLE_REJECTION_REASONS.map { |r| [ REJECTION_REASON_NAMES[r], r ] },
+      fatal: FATAL_REJECTION_REASONS.map { |r| [ REJECTION_REASON_NAMES[r], r ] }
+    }
+  end
+
   private
 
   # Override to include document-specific fatal rejection reasons

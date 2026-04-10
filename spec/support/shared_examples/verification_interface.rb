@@ -6,6 +6,7 @@ RSpec.shared_examples "a verification type" do
     it { is_expected.to respond_to(:document_type_label) }
     it { is_expected.to respond_to(:rejection_reason_options) }
     it { is_expected.to respond_to(:rejection_reason_name) }
+    it { is_expected.to respond_to(:needs_break_glass?) }
 
     describe "#review_info_partial" do
       it "returns a partial path string" do

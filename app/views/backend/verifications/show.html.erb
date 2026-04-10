@@ -19,11 +19,7 @@
     <column style="flex: 1; min-width: 30ch;">
       <span style="color: var(--foreground2); font-style: italic;">document</span>
       <column box-="square">
-        <% if @verification.is_a?(Verification::DocumentVerification) %>
-          <%= render "backend/shared/review_document_info", verification: @verification %>
-        <% elsif @verification.is_a?(Verification::AadhaarVerification) %>
-          <%= render "backend/shared/review_aadhaar_info", verification: @verification %>
-        <% end %>
+        <%= render @verification.review_info_partial, verification: @verification %>
       </column>
     </column>
   </row>
@@ -84,21 +80,12 @@
 
   <%# === Files === %>
   <span style="color: var(--foreground2); font-style: italic;">files</span>
-  <% if @verification.is_a?(Verification::VouchVerification) %>
-    <span style="color: var(--foreground2);">manually vouched on <%= @verification.created_at.strftime("%B %d, %Y at %I:%M %p") %></span>
-    <% if @verification.evidence.attached? %>
-      <img src="<%= url_for(@verification.evidence) %>" alt="vouch evidence" style="max-width: 100%;">
-    <% else %>
-      <span style="color: var(--foreground2);">no evidence attached</span>
+  <% if @verification.needs_break_glass? %>
+    <%= render "backend/shared/break_the_glass", break_glassable: @relevant_object, auto_break_glass: (@verification.pending? ? "to review validity" : nil) do %>
+      <%= render @verification.review_full_partial, record: @relevant_object %>
     <% end %>
   <% else %>
-    <%= render "backend/shared/break_the_glass", break_glassable: @relevant_object, auto_break_glass: (@verification.pending? ? "to review validity" : nil) do %>
-      <% if @relevant_object.is_a?(Identity::Document) %>
-        <%= render "backend/shared/review_document_files", document: @relevant_object %>
-      <% elsif @relevant_object.is_a?(Identity::AadhaarRecord) %>
-        <%= render "backend/shared/review_aadhaar_full", aadhaar_record: @relevant_object %>
-      <% end %>
-    <% end %>
+    <%= render @verification.review_full_partial, verification: @verification %>
   <% end %>
 
   <div is-="separator"></div>
@@ -140,39 +127,13 @@
           <row gap-="2" align-="start" style="flex-wrap: wrap;">
             <column style="min-width: 16ch;">
               <%= form.label :rejection_reason, "[r] reason" %>
-              <% if @verification.is_a?(Verification::AadhaarVerification) %>
-                <%
-                  default_selection = if @verification.identity.under_13?
-                    "under_13"
-                  elsif @verification.identity.resemblances.any?
-                    "duplicate"
-                  else
-                    nil
-                  end
-                %>
-                <%= form.select :rejection_reason,
-                               grouped_options_for_select([
-                                 ["Retryable", Verification::AadhaarVerification::RETRYABLE_REJECTION_REASONS.map { |reason| [Verification::AadhaarVerification::REJECTION_REASON_NAMES[reason], reason] }],
-                                 ["Fatal", Verification::AadhaarVerification::FATAL_REJECTION_REASONS.map { |reason| [Verification::AadhaarVerification::REJECTION_REASON_NAMES[reason], reason] }]
-                               ], default_selection),
-                               { include_blank: "select..." } %>
-              <% elsif @verification.is_a?(Verification::DocumentVerification) %>
-                <%
-                  default_selection = if @verification.identity.under_13?
-                    "under_13"
-                  elsif @verification.identity.resemblances.any?
-                    "duplicate"
-                  else
-                    nil
-                  end
-                %>
-                <%= form.select :rejection_reason,
-                               grouped_options_for_select([
-                                 ["Retryable", Verification::DocumentVerification::RETRYABLE_REJECTION_REASONS.map { |reason| [Verification::DocumentVerification::REJECTION_REASON_NAMES[reason], reason] }],
-                                 ["Fatal", Verification::DocumentVerification::FATAL_REJECTION_REASONS.map { |reason| [Verification::DocumentVerification::REJECTION_REASON_NAMES[reason], reason] }]
-                               ], default_selection),
-                               { include_blank: "select..." } %>
-              <% end %>
+              <% options = @verification.rejection_reason_options %>
+              <%= form.select :rejection_reason,
+                             grouped_options_for_select([
+                               ["Retryable", options[:retryable]],
+                               ["Fatal", options[:fatal]]
+                             ], @verification.default_rejection_reason),
+                             { include_blank: "select..." } %>
             </column>
             <column style="flex: 1; min-width: 16ch;">
               <%= form.label :rejection_reason_details, "details" %>

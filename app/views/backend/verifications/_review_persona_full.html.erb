@@ -1,0 +1,8 @@
+<% if record&.respond_to?(:doc_json) %>
+  <column>
+    <details>
+      <summary style="cursor: pointer; color: var(--foreground2);">raw persona response</summary>
+      <pre style="white-space: pre-wrap; font-size: 0.85em; padding: 1lh 0;"><%= JSON.pretty_generate(record.doc_json) %></pre>
+    </details>
+  </column>
+<% end %>

@@ -62,6 +62,17 @@ class Verification::VouchVerification < Verification
 
   def rejection_reason_name = rejection_reason
 
+  # Polymorphic interface
+  def document_type_label = "Vouch"
+  def review_info_partial = "backend/verifications/review_vouch_info"
+  def review_full_partial = "backend/verifications/review_vouch_full"
+  def relevant_record = nil
+  def needs_break_glass? = false
+
+  def rejection_reason_options
+    { retryable: [], fatal: [] }
+  end
+
   private
 
   def fatal_rejection_reason?(reason) = false

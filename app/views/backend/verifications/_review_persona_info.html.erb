@@ -1,0 +1,11 @@
+<column>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">type</span> Government ID (Persona)</row>
+  <% if verification.persona_inquiry_id.present? %>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">inquiry</span> <%= verification.persona_inquiry_id %></row>
+  <% end %>
+  <% if verification.persona_record.present? %>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">name</span> <%= verification.persona_record.name_first %> <%= verification.persona_record.name_last %></row>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">birthdate</span> <%= verification.persona_record.birthdate %></row>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">country</span> <%= verification.persona_record.country_code %></row>
+  <% end %>
+</column>

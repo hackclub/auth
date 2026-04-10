@@ -66,6 +66,14 @@ class Verification < ApplicationRecord
   def fatal_rejection? = rejected? && fatal?
   def retryable_rejection? = rejected? && !fatal?
 
+  def default_rejection_reason
+    if identity.under_13?
+      "under_13"
+    elsif identity.resemblances.any?
+      "duplicate"
+    end
+  end
+
   alias_method :to_param, :public_id
 
   private

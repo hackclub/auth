@@ -136,6 +136,20 @@ class Verification::AadhaarVerification < Verification
 
   def rejection_reason_name = REJECTION_REASON_NAMES[rejection_reason] || rejection_reason
 
+  # Polymorphic interface
+  def document_type_label = "Aadhaar"
+  def review_info_partial = "backend/shared/review_aadhaar_info"
+  def review_full_partial = "backend/shared/review_aadhaar_full"
+  def relevant_record = aadhaar_record
+  def needs_break_glass? = true
+
+  def rejection_reason_options
+    {
+      retryable: RETRYABLE_REJECTION_REASONS.map { |r| [ REJECTION_REASON_NAMES[r], r ] },
+      fatal: FATAL_REJECTION_REASONS.map { |r| [ REJECTION_REASON_NAMES[r], r ] }
+    }
+  end
+
   private
 
   # Override to include Aadhaar-specific fatal rejection reasons

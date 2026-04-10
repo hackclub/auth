@@ -201,13 +201,7 @@
         <% @verifications.each do |verification| %>
           <tr>
             <td>
-              <% if verification.is_a?(Verification::AadhaarVerification) %>
-                Aadhaar
-              <% elsif verification.is_a?(Verification::DocumentVerification) %>
-                <%= Identity::Document::FRIENDLY_NAMES[verification.identity_document.document_type.to_sym] %>
-              <% elsif verification.is_a?(Verification::VouchVerification) %>
-                Vouch
-              <% end %>
+              <%= verification.document_type_label %>
               <% if verification.ignored_at.present? %> <span is-="badge" variant-="yellow">ignored</span><% end %>
             </td>
             <td>

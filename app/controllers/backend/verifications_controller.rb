@@ -51,9 +51,9 @@ module Backend
 
       # Fetch break glass activities efficiently with a single query
       break_glass_activities = []
-      unless @verification.is_a?(Verification::VouchVerification)
-        @relevant_object = @verification.identity_document || @verification.aadhaar_record
-        break_glass_record_ids = @relevant_object&.break_glass_records&.pluck(:id) || []
+      @relevant_object = @verification.relevant_record
+      if @verification.needs_break_glass? && @relevant_object
+        break_glass_record_ids = @relevant_object.break_glass_records&.pluck(:id) || []
         break_glass_activities = PublicActivity::Activity
           .where(trackable_type: "BreakGlassRecord", trackable_id: break_glass_record_ids)
           .includes(:trackable, :owner)

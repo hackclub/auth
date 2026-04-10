@@ -86,6 +86,7 @@ class Verification::PersonaVerification < Verification
   def review_info_partial = "backend/verifications/review_persona_info"
   def review_full_partial = "backend/verifications/review_persona_full"
   def relevant_record = persona_record
+  def needs_break_glass? = true
 
   def rejection_reason_options
     {

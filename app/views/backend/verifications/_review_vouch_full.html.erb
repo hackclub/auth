@@ -1,0 +1,5 @@
+<% if verification.evidence.attached? %>
+  <img src="<%= url_for(verification.evidence) %>" alt="vouch evidence" style="max-width: 100%;">
+<% else %>
+  <span style="color: var(--foreground2);">no evidence attached</span>
+<% end %>
