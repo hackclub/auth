@@ -16,8 +16,10 @@ module Persona
     def instance
       @instance ||= if Rails.env.test?
         MockAPIService.new
+      elsif (creds = Rails.application.credentials.persona)&.api_key
+        APIService.new(api_key: creds.api_key)
       else
-        APIService.new(api_key: Rails.application.credentials.persona.api_key)
+        raise APIError, "persona credentials not configured — add persona.api_key to Rails credentials"
       end
     end
 
