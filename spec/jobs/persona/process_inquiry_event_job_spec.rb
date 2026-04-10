@@ -193,6 +193,32 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
     end
   end
 
+  describe "inquiry.failed" do
+    let(:event_name) { "inquiry.failed" }
+
+    it "rejects the verification with too_many_attempts" do
+      described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
+
+      verification.reload
+      expect(verification).to be_rejected
+      expect(verification.rejection_reason).to eq("too_many_attempts")
+      expect(verification).not_to be_fatal
+    end
+  end
+
+  describe "inquiry.expired" do
+    let(:event_name) { "inquiry.expired" }
+
+    it "rejects the verification with inquiry_expired" do
+      described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
+
+      verification.reload
+      expect(verification).to be_rejected
+      expect(verification.rejection_reason).to eq("inquiry_expired")
+      expect(verification).not_to be_fatal
+    end
+  end
+
   describe "idempotency" do
     let(:event_name) { "inquiry.completed" }
 

@@ -45,7 +45,7 @@ class Persona::APIService
       name_first:               attrs[:name_first],
       name_last:                attrs[:name_last],
       birthdate:                attrs[:birthdate] ? Date.parse(attrs[:birthdate]) : nil,
-      country_code:             attrs[:address_country_code],
+      country_code:             attrs[:country_code],
       front_photo:              attrs[:front_photo],
       back_photo:               attrs[:back_photo],
       selfie_photo:             attrs[:selfie_photo],

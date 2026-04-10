@@ -5,7 +5,8 @@ module Webhooks
     before_action :verify_signature!
 
     HANDLED_EVENTS = %w[
-      inquiry.completed inquiry.approved inquiry.declined inquiry.marked_for_review
+      inquiry.completed inquiry.approved inquiry.declined
+      inquiry.failed inquiry.expired inquiry.marked_for_review
     ].freeze
 
     def create

@@ -14,7 +14,6 @@ class Identity::PersonaRecord < ApplicationRecord
   validates :name_first, presence: true
   validates :name_last, presence: true
   validates :birthdate, presence: true
-  validates :country_code, presence: true
 
   ID_CLASS_LABELS = {
     "dl" => "driver's license",

@@ -16,9 +16,11 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     )
 
     case event_name
-    when "inquiry.completed"  then handle_completed(inquiry_id)
-    when "inquiry.approved"   then handle_approved
-    when "inquiry.declined"   then handle_declined(inquiry_id)
+    when "inquiry.completed"         then handle_completed(inquiry_id)
+    when "inquiry.approved"          then handle_approved
+    when "inquiry.declined"          then handle_declined(inquiry_id)
+    when "inquiry.failed"            then handle_failed
+    when "inquiry.expired"           then handle_expired
     when "inquiry.marked_for_review" then nil # no state change
     end
   rescue AASM::InvalidTransition
@@ -29,7 +31,7 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
   private
 
   def handle_completed(inquiry_id)
-    return if @verification.persona_record.present? # idempotent guard
+    return if @verification.pending? || @verification.approved? # idempotent guard
 
     service = Persona.instance
     inquiry = service.retrieve_inquiry(inquiry_id)
@@ -43,37 +45,40 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     gov_id_hash = gov_id.to_h.except(:front_photo, :back_photo, :selfie_photo)
     raw_response = { inquiry: inquiry.to_h, government_id_verification: gov_id_hash }
 
-    record = Identity::PersonaRecord.create!(
-      identity: @identity,
-      inquiry_id: inquiry_id,
-      raw_json_response: raw_response.to_json,
-      name_first: gov_id.name_first,
-      name_last: gov_id.name_last,
-      birthdate: gov_id.birthdate,
-      country_code: gov_id.country_code,
-      persona_status: inquiry.status,
-      id_class: gov_id.id_class,
-      expiration_date: gov_id.expiration_date,
-      entity_confidence_score: gov_id.entity_confidence_score,
-      checks: gov_id.checks
-    )
+    ActiveRecord::Base.transaction do
+      # find existing record (from partial failure) or create new one
+      record = Identity::PersonaRecord.find_or_create_by!(inquiry_id: inquiry_id) do |r|
+        r.identity = @identity
+        r.raw_json_response = raw_response.to_json
+        r.name_first = gov_id.name_first
+        r.name_last = gov_id.name_last
+        r.birthdate = gov_id.birthdate
+        r.country_code = gov_id.country_code || @identity.country
+        r.persona_status = inquiry.status
+        r.id_class = gov_id.id_class
+        r.expiration_date = gov_id.expiration_date
+        r.entity_confidence_score = gov_id.entity_confidence_score
+        r.checks = gov_id.checks
+      end
 
-    # create the gov ID document with front/back photos
-    doc = Identity::Document.new(
-      identity: @identity,
-      document_type: :persona_gov_id
-    )
-    attach_photo(doc, gov_id.front_photo, "front")
-    attach_photo(doc, gov_id.back_photo, "back")
-    doc.save!
+      # create the gov ID document with front/back photos (if not already linked)
+      unless @verification.identity_document.present?
+        doc = Identity::Document.new(
+          identity: @identity,
+          document_type: :persona_gov_id
+        )
+        attach_photo(doc, gov_id.front_photo, "front")
+        attach_photo(doc, gov_id.back_photo, "back")
+        doc.save!
 
-    # link everything to the verification
-    @verification.update!(persona_record: record, identity_document: doc)
+        @verification.update!(persona_record: record, identity_document: doc)
+      end
 
-    # store account ID on identity if not set
-    @identity.update!(persona_account_id: inquiry.account_id) if @identity.persona_account_id.blank?
+      # store account ID on identity if not set
+      @identity.update!(persona_account_id: inquiry.account_id) if @identity.persona_account_id.blank?
 
-    @verification.mark_pending!
+      @verification.mark_pending!
+    end
   end
 
   def handle_approved
@@ -89,6 +94,18 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     reason = map_decline_reason(inquiry.status)
 
     @verification.mark_as_rejected!(reason)
+  end
+
+  def handle_failed
+    return if @verification.rejected?
+
+    @verification.mark_as_rejected!("too_many_attempts", "User exceeded the maximum number of verification attempts in Persona.")
+  end
+
+  def handle_expired
+    return if @verification.rejected?
+
+    @verification.mark_as_rejected!("inquiry_expired", "The verification session expired before the user completed it.")
   end
 
   def attach_photo(doc, photo_data, label)

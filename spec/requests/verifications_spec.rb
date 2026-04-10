@@ -20,13 +20,13 @@ RSpec.describe "Verifications", type: :request do
   end
 
   describe "GET /verifications/status" do
-    it "shows pending when a draft persona verification exists" do
+    it "shows processing when a draft persona verification exists" do
       Flipper.enable(:persona_verification_2026_04_09, identity)
       create(:persona_verification, identity: identity, status: :draft)
 
       get verification_status_path
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("under review").or include("Under review").or include("under_review")
+      expect(response.body).to include("verifying your identity")
     ensure
       Flipper.disable(:persona_verification_2026_04_09)
     end

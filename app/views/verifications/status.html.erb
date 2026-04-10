@@ -6,26 +6,8 @@
 <div class="page-sections">
   <% case @status %>
   <% when "pending" %>
-    <section class="section-card">
-      <div class="status-indicator">
-        <span class="status-badge pending"><%= t(".badges.under_review") %></span>
-        <h3><%= t(".pending.title") %></h3>
-        <p><%= t(".pending.subtitle") %></p>
-      </div>
-
-      <div class="status-content">
-        <p><%= t(".pending.description", email: @identity.primary_email) %></p>
-
-        <% if @latest_verification.present? %>
-          <div class="meta">
-            <%= t(".pending.submitted_ago", time: time_ago_in_words(@latest_verification.created_at)) %>
-            <% if @latest_verification.document_type_label.present? %>
-              • <%= @latest_verification.document_type_label %>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
-    </section>
+    <%= render @latest_verification.status_pending_partial,
+         verification: @latest_verification, identity: @identity %>
 
   <% when "verified" %>
     <section class="section-card verification-verified">

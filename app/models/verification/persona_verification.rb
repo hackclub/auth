@@ -11,6 +11,8 @@ class Verification::PersonaVerification < Verification
     expired:       { name: "Expired document",                    fatal: false },
     under_13:      { name: "Submitter is under 13 years old",     fatal: false },
     other:         { name: "Other fixable issue",                 fatal: false },
+    too_many_attempts: { name: "Too many failed attempts",        fatal: false },
+    inquiry_expired:   { name: "Verification session expired",    fatal: false },
     info_mismatch: { name: "Information doesn't match profile",   fatal: true },
     altered:       { name: "Document appears altered/fraudulent", fatal: true },
     duplicate:     { name: "This identity is a duplicate",        fatal: true },
@@ -53,7 +55,8 @@ class Verification::PersonaVerification < Verification
   def review_info_partial = "backend/verifications/review_persona_info"
   def review_full_partial = "backend/verifications/review_persona_full"
   def relevant_record     = persona_record
-  def needs_break_glass?  = true
+  def needs_break_glass?      = true
+  def status_pending_partial  = "verifications/status/pending_persona"
 
   def generate_inquiry!
     raise "this verification already has an inquiry!" if persona_inquiry_id.present?
