@@ -574,7 +574,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000003) do
     t.string "invited_email"
     t.index ["identity_id"], name: "index_program_collaborators_on_identity_id"
     t.index ["program_id", "identity_id"], name: "index_program_collaborators_on_program_id_and_identity_id", unique: true
-    t.index ["program_id", "invited_email"], name: "idx_program_collabs_on_program_email_visible", unique: true, where: "((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('accepted'::character varying)::text]))"
+    t.index ["program_id", "invited_email"], name: "idx_program_collabs_on_program_email_visible", unique: true, where: "((status)::text = ANY ((ARRAY['pending'::character varying, 'accepted'::character varying])::text[]))"
     t.index ["program_id"], name: "index_program_collaborators_on_program_id"
   end
 
