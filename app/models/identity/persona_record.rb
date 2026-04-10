@@ -16,7 +16,5 @@ class Identity::PersonaRecord < ApplicationRecord
   validates :birthdate, presence: true
   validates :country_code, presence: true
 
-  def doc_json
-    JSON.parse(raw_json_response.strip, symbolize_names: true)
-  end
+  def doc_json = JSON.parse(raw_json_response.strip, symbolize_names: true)
 end
