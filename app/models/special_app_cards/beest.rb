@@ -3,7 +3,7 @@
 module SpecialAppCards
   class Beest < Base
     def visible?
-      identity.ysws_eligible != false && Flipper.enabled?(:beest, identity)
+      identity.ysws_eligible != false && Flipper.enabled?(:beest_2026_10_04, identity) 
     end
 
     def friendly_name = "Beest"
