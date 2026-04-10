@@ -89,7 +89,14 @@ class Persona::APIService
     end
   end
 
+  ALLOWED_DOWNLOAD_HOSTS = %w[files.withpersona.com withpersona.com].freeze
+
   def download_file(url)
+    uri = URI.parse(url)
+    unless uri.scheme == "https" && ALLOWED_DOWNLOAD_HOSTS.include?(uri.host)
+      raise Persona::APIError, "refusing to download from untrusted host: #{uri.host}"
+    end
+
     response = Faraday.get(url)
     raise Persona::APIError, "failed to download file (#{response.status})" unless response.success?
     StringIO.new(response.body)

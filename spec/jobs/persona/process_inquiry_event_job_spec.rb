@@ -171,6 +171,23 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
         described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
       }.to have_enqueued_mail(VerificationMailer, :approved)
     end
+
+    context "when approved arrives before completed finishes (race condition)" do
+      before do
+        # revert to draft — simulates approved webhook arriving while
+        # the verification is still draft (completed hasn't run yet)
+        verification.update!(status: "draft", persona_record: nil, identity_document: nil)
+      end
+
+      it "runs completed first, then approves" do
+        described_class.perform_now(event_name: "inquiry.approved", inquiry_id: inquiry_id)
+
+        verification.reload
+        expect(verification).to be_approved
+        expect(verification.persona_record).to be_present
+        expect(verification.identity_document).to be_present
+      end
+    end
   end
 
   describe "inquiry.declined" do
