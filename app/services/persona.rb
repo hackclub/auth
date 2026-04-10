@@ -6,24 +6,19 @@ module Persona
   end
 
   GovernmentIdVerification = Data.define(
-    :id, :status,
-    :name_first, :name_last, :birthdate, :country_code,
-    :front_photo, :back_photo, :selfie_photo
+    :id, :status, :name_first, :name_last, :birthdate,
+    :country_code, :front_photo, :back_photo, :selfie_photo
   )
 
   APIError = Class.new(StandardError)
 
   class << self
     def instance
-      @instance ||= if Rails.env.production?
-        Persona::APIService.new(api_key: Rails.application.credentials.persona.api_key)
-      else
-        Persona::MockAPIService.new
-      end
+      @instance ||= Rails.env.production? ?
+        APIService.new(api_key: Rails.application.credentials.persona.api_key) :
+        MockAPIService.new
     end
 
-    def reset!
-      @instance = nil
-    end
+    def reset! = @instance = nil
   end
 end
