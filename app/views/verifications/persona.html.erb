@@ -1,4 +1,4 @@
-<div class="page-header">
+<div class="page-header-centered">
   <h1><%= t(".title") %></h1>
   <p><%= t(".subtitle") %></p>
 </div>
@@ -6,13 +6,18 @@
 <div class="page-sections">
   <% if @persona_error %>
     <section class="section-card">
-      <p><%= @persona_error %></p>
-      <p>
-        <a href="<%= verification_step_path(:document) %>"><%= t(".fallback_link") %></a>
-      </p>
+      <div class="status-indicator">
+        <span class="status-badge rejected">error</span>
+        <h3><%= t(".error_title") %></h3>
+        <p><%= @persona_error %></p>
+      </div>
+      <div class="status-actions">
+        <%= link_to t(".fallback_link"), verification_step_path(:document), role: "button", class: "secondary" %>
+      </div>
     </section>
+
   <% else %>
-    <section class="section-card"
+    <section class="section-card persona-verify-card"
              data-persona-verify
              data-inquiry-id="<%= @inquiry_id %>"
              data-session-token="<%= @session_token %>"
@@ -21,18 +26,55 @@
              data-status-url="<%= verification_status_path %>"
              data-msg-complete="<%= t(".complete_message") %>"
              data-msg-cancel="<%= t(".cancel_message") %>"
-             data-msg-error="<%= t(".error_sdk") %>">
+             data-msg-error="<%= t(".error_sdk") %>"
+             data-fallback-url="<%= verification_step_path(:document) %>">
 
-      <p data-persona-message></p>
+      <div class="persona-hero">
+        <div class="persona-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2"/>
+            <circle cx="8.5" cy="11.5" r="2.5"/>
+            <path d="M14 10h4M14 14h2"/>
+            <path d="M4 20c0-2 2.5-3 4.5-3s4.5 1 4.5 3"/>
+          </svg>
+        </div>
+        <h3><%= t(".hero_title") %></h3>
+        <p><%= t(".hero_description") %></p>
+      </div>
 
-      <button data-persona-start type="button" is="button" variant-="primary">
-        <%= t(".begin_verification") %>
+      <div class="persona-steps">
+        <div class="persona-step">
+          <span class="persona-step-number">1</span>
+          <div>
+            <strong><%= t(".steps.scan.title") %></strong>
+            <span><%= t(".steps.scan.description") %></span>
+          </div>
+        </div>
+        <div class="persona-step">
+          <span class="persona-step-number">2</span>
+          <div>
+            <strong><%= t(".steps.selfie.title") %></strong>
+            <span><%= t(".steps.selfie.description") %></span>
+          </div>
+        </div>
+        <div class="persona-step">
+          <span class="persona-step-number">3</span>
+          <div>
+            <strong><%= t(".steps.done.title") %></strong>
+            <span><%= t(".steps.done.description") %></span>
+          </div>
+        </div>
+      </div>
+
+      <p class="persona-message" data-persona-message></p>
+
+      <button data-persona-start type="button" class="persona-begin-button">
+        <%= t(".begin_verification") %> →
       </button>
 
-      <p style="margin-top: 2lh; color: var(--foreground2); font-size: 0.9em;">
-        <%= t(".cant_do_this") %>
-        <a href="<%= verification_step_path(:document) %>"><%= t(".fallback_prompt") %></a>
-      </p>
+      <div class="persona-footer">
+        <p><%= t(".privacy_note") %></p>
+      </div>
     </section>
   <% end %>
 </div>

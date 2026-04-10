@@ -34,6 +34,11 @@ class Portal::VerificationsController < Portal::BaseController
       return
     end
 
+    if @identity.required_verification_method == :persona
+      flash[:info] = "We use automated verification now — it's faster!"
+      redirect_to portal_verify_persona_path and return
+    end
+
     setup_document_step
     render :document
   end
@@ -65,6 +70,10 @@ class Portal::VerificationsController < Portal::BaseController
     if status == "pending" || status == "verified"
       redirect_to_portal_return(status: status.to_sym)
       return
+    end
+
+    if @identity.required_verification_method == :persona
+      redirect_to portal_verify_persona_path and return
     end
 
     handle_document_submission

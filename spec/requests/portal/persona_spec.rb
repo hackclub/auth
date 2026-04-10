@@ -22,6 +22,29 @@ RSpec.describe "Portal persona verification", type: :request do
 
   after { Flipper.disable(:persona_verification_2026_04_09) }
 
+  describe "document gate for persona-flagged users" do
+    describe "GET /portal/verify/document" do
+      it "redirects persona-flagged users to persona page" do
+        get "/portal/verify/document"
+        expect(response).to redirect_to(portal_verify_persona_path)
+      end
+
+      it "includes flash message about automated verification" do
+        get "/portal/verify/document"
+        expect(flash[:info]).to include("automated verification")
+      end
+    end
+
+    describe "POST /portal/verify/document" do
+      it "redirects persona-flagged users to persona page" do
+        post "/portal/verify/document", params: {
+          identity_document: { document_type: "government_id", files: [] }
+        }
+        expect(response).to redirect_to(portal_verify_persona_path)
+      end
+    end
+  end
+
   describe "GET /portal/verify/persona" do
     it "renders the persona verification page" do
       get "/portal/verify/persona"

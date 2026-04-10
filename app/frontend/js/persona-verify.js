@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const el = document.querySelector("[data-persona-verify]");
   if (!el) return;
 
-  const { inquiryId, sessionToken, environmentId, host, statusUrl, msgComplete, msgCancel, msgError } = el.dataset;
+  const { inquiryId, sessionToken, environmentId, host, statusUrl, fallbackUrl, msgComplete, msgCancel, msgError } = el.dataset;
   const button = el.querySelector("[data-persona-start]");
   const message = el.querySelector("[data-persona-message]");
 
@@ -23,7 +23,11 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     onError: (error) => {
       console.error("[persona]", error);
-      if (message) message.textContent = msgError;
+      if (message && fallbackUrl) {
+        message.innerHTML = `${msgError} <a href="${fallbackUrl}">Upload a document instead.</a>`;
+      } else if (message) {
+        message.textContent = msgError;
+      }
     },
   });
 

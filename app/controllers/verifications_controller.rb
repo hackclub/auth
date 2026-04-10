@@ -24,6 +24,12 @@ class VerificationsController < ApplicationController
     @identity = current_identity
     @status = @identity.verification_status
     @latest_verification = @identity.latest_verification
+
+    # Draft persona/aadhaar verifications mean the user has started an async
+    # flow — show "pending" instead of "not started" while we wait for the webhook.
+    if @status == "needs_submission" && @identity.verifications.not_ignored.where(status: :draft).any?
+      @status = "pending"
+    end
   end
 
   def persona
@@ -48,6 +54,11 @@ class VerificationsController < ApplicationController
       return
     end
 
+    if @identity.required_verification_method == :persona && step == :document
+      flash[:info] = "We use automated verification now — it's faster!"
+      redirect_to persona_verification_path and return
+    end
+
     case step
     when :document
       setup_document_step
@@ -58,6 +69,10 @@ class VerificationsController < ApplicationController
 
   def update
     @identity = current_identity
+
+    if @identity.required_verification_method == :persona
+      redirect_to persona_verification_path and return
+    end
 
     case step
     when :document

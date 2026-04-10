@@ -75,6 +75,9 @@ class Verification::PersonaVerification < Verification
     fields[:"name-first"] = identity.legal_first_name.presence || identity.first_name
     fields[:"name-last"] = identity.legal_last_name.presence || identity.last_name
     fields[:birthdate] = identity.birthday.iso8601 if identity.birthday
+    fields[:"email-address"] = identity.primary_email if identity.primary_email.present?
+    fields[:"phone-number"] = identity.phone_number if identity.phone_number.present?
+    fields[:"country-code"] = identity.country if identity.country.present?
     fields
   end
 

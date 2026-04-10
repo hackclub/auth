@@ -640,14 +640,28 @@ en:
         purpose: "Purpose: Used only for age verification and preventing duplicate accounts."
       submit_documents: Submit Documents
     persona:
-      title: Verify Your Identity
-      subtitle: "We'll verify your identity using a government-issued ID. This takes about 2 minutes."
+      title: One last step
+      subtitle: "Quick ID check so we know you're really you — takes about 2 minutes."
+      hero_title: Scan your ID, take a selfie
+      hero_description: "We use Persona to securely verify your government-issued ID. Your photos are encrypted and never shared."
+      steps:
+        scan:
+          title: Scan your ID
+          description: "Driver's license, passport, or national ID"
+        selfie:
+          title: Quick selfie
+          description: "We'll match your face to the photo on your ID"
+        done:
+          title: That's it!
+          description: "Usually verified in under a minute"
       begin_verification: Begin verification
-      error_message: "We couldn't connect to our verification provider. Please try again in a moment."
-      fallback_link: Use document upload instead
+      error_title: Couldn't connect
+      error_message: "We couldn't reach our verification provider. Please try again in a moment."
+      fallback_link: Upload a document instead
       cancel_message: "No worries — you can pick up where you left off anytime."
       error_sdk: "Something went wrong. Try again, or use a different verification method."
       complete_message: "Verification complete — redirecting…"
+      privacy_note: "Your ID photos are encrypted end-to-end and only used for verification."
       cant_do_this: "Can't do this right now?"
       fallback_prompt: Upload a document instead
     status:
@@ -750,8 +764,8 @@ en:
         check_back: We'll email you once the review is complete. You can close this window.
         return_button: Return to app
       persona:
-        title: Verify Your Identity
-        subtitle: "We'll verify your identity using a government-issued ID. This takes about 2 minutes."
+        title: One last step
+        subtitle: "Quick ID check so we know you're really you — takes about 2 minutes."
     addresses:
       title: We'll need your address...
       subtitle: Please use a real address — we're going to send you something here!
