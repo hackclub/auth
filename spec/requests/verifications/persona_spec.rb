@@ -55,13 +55,24 @@ RSpec.describe "Persona verification flow", type: :request do
     end
 
     it "reuses an existing draft verification" do
-      existing = create(:persona_verification, identity: identity, status: :draft)
+      create(:persona_verification, identity: identity, status: :draft)
 
       expect {
         get "/verifications/persona"
       }.not_to change(Verification::PersonaVerification, :count)
 
       expect(response).to have_http_status(:ok)
+    end
+
+    it "resumes an existing inquiry with a fresh session token" do
+      verification = create(:persona_verification, identity: identity, status: :draft,
+        persona_inquiry_id: "inq_existing_123", persona_session_token: "old_token")
+
+      get "/verifications/persona"
+
+      expect(response).to have_http_status(:ok)
+      verification.reload
+      expect(verification.persona_session_token).not_to eq("old_token")
     end
 
     it "includes inquiry_id and session_token in the response body" do
