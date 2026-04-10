@@ -187,6 +187,56 @@ RSpec.describe "Webhooks::Persona", type: :request do
       end
     end
 
+    context "with missing event_name or inquiry_id" do
+      it "returns 400 when event_name is missing" do
+        body = { data: { attributes: { payload: { data: { id: "inq_123" } } } } }.to_json
+        post "/webhooks/persona",
+          params: body,
+          headers: {
+            "Content-Type" => "application/json",
+            "Persona-Signature" => sign_payload(body)
+          }
+
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 when inquiry_id is missing" do
+        body = { data: { attributes: { name: "inquiry.completed" } } }.to_json
+        post "/webhooks/persona",
+          params: body,
+          headers: {
+            "Content-Type" => "application/json",
+            "Persona-Signature" => sign_payload(body)
+          }
+
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
+
+    context "with unhandled event type" do
+      it "returns 200 without enqueuing a job" do
+        body = {
+          data: {
+            attributes: {
+              name: "account.created",
+              payload: { data: { id: "inq_123", type: "inquiry" } }
+            }
+          }
+        }.to_json
+
+        expect {
+          post "/webhooks/persona",
+            params: body,
+            headers: {
+              "Content-Type" => "application/json",
+              "Persona-Signature" => sign_payload(body)
+            }
+        }.not_to have_enqueued_job(Persona::ProcessInquiryEventJob)
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
     context "with multiple signatures (key rotation)" do
       it "accepts if any v1 signature is valid" do
         valid_sig = sign_payload(inquiry_completed_payload)

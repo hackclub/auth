@@ -1,5 +1,9 @@
 module Persona
-  Inquiry = Data.define(:id, :status, :account_id, :session_token)
+  Inquiry = Data.define(:id, :status, :account_id, :session_token, :verification_ids) do
+    def gov_id_verification_id
+      verification_ids&.find { |v| v[:type] == "verification/government-id" }&.dig(:id)
+    end
+  end
 
   GovernmentIdVerification = Data.define(
     :id, :status,

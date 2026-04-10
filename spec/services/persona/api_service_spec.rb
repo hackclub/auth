@@ -139,6 +139,11 @@ RSpec.describe Persona::APIService do
       relationships: {
         account: {
           data: { type: "account", id: "act_xyz789" }
+        },
+        verifications: {
+          data: [
+            { type: "verification/government-id", id: "ver_gov123" }
+          ]
         }
       }
     }

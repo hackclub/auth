@@ -24,10 +24,10 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     service = Persona.instance
     inquiry = service.retrieve_inquiry(inquiry_id)
 
-    # find the gov ID verification from the inquiry's included data
-    gov_id = service.retrieve_government_id_verification(
-      find_gov_id_verification_id(inquiry_id)
-    )
+    gov_id_ver_id = inquiry.gov_id_verification_id
+    raise "no government ID verification found for inquiry #{inquiry_id}" unless gov_id_ver_id
+
+    gov_id = service.retrieve_government_id_verification(gov_id_ver_id)
 
     # create the persona record
     record = Identity::PersonaRecord.create!(
@@ -86,12 +86,6 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
       filename: filename,
       content_type: "image/jpeg"
     )
-  end
-
-  def find_gov_id_verification_id(inquiry_id)
-    # retrieve the inquiry with included verifications to find the gov ID verification ID
-    # for now, use a convention-based approach
-    "ver_gov_#{inquiry_id.delete_prefix('inq_')}"
   end
 
   def map_decline_reason(status)

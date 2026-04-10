@@ -23,24 +23,14 @@ class Persona::APIService
 
     session = included.find { |i| i[:type] == "inquiry-session" }
 
-    Persona::Inquiry.new(
-      id: data[:id],
-      status: data.dig(:attributes, :status),
-      account_id: data.dig(:relationships, :account, :data, :id),
-      session_token: session&.dig(:attributes, :session_token)
-    )
+    build_inquiry(data, session)
   end
 
   def retrieve_inquiry(inquiry_id)
     data, included = request!(:get, "/api/v1/inquiries/#{inquiry_id}")
     session = included.find { |i| i[:type] == "inquiry-session" }
 
-    Persona::Inquiry.new(
-      id: data[:id],
-      status: data.dig(:attributes, :status),
-      account_id: data.dig(:relationships, :account, :data, :id),
-      session_token: session&.dig(:attributes, :session_token)
-    )
+    build_inquiry(data, session)
   end
 
   def retrieve_government_id_verification(verification_id)
@@ -84,12 +74,25 @@ class Persona::APIService
         "Authorization" => "Bearer #{@api_key}",
         "Persona-Version" => "2025-12-08",
         "Key-Inflection" => "snake"
-      }
+      },
+      request: { timeout: 30, open_timeout: 10 }
     ) do |f|
       f.request :json
       f.response :json
       f.adapter Faraday.default_adapter
     end
+  end
+
+  def build_inquiry(data, session)
+    verifications = data.dig(:relationships, :verifications, :data) || []
+
+    Persona::Inquiry.new(
+      id: data[:id],
+      status: data.dig(:attributes, :status),
+      account_id: data.dig(:relationships, :account, :data, :id),
+      session_token: session&.dig(:attributes, :session_token),
+      verification_ids: verifications
+    )
   end
 
   def error_message(response)

@@ -4,11 +4,18 @@ module Webhooks
 
     before_action :verify_signature!
 
+    HANDLED_EVENTS = %w[
+      inquiry.completed inquiry.approved inquiry.declined inquiry.marked_for_review
+    ].freeze
+
     def create
       return head(:bad_request) unless parsed_body
 
       event_name = parsed_body.dig(:data, :attributes, :name)
       inquiry_id = parsed_body.dig(:data, :attributes, :payload, :data, :id)
+
+      return head(:bad_request) if event_name.blank? || inquiry_id.blank?
+      return head(:ok) unless HANDLED_EVENTS.include?(event_name)
 
       Persona::ProcessInquiryEventJob.perform_later(
         event_name: event_name,

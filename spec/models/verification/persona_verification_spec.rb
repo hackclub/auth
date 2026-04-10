@@ -182,7 +182,8 @@ RSpec.describe Verification::PersonaVerification, type: :model do
         id: "inq_abc123",
         status: "created",
         account_id: "act_xyz789",
-        session_token: "session_tok_secret"
+        session_token: "session_tok_secret",
+        verification_ids: [{ type: "verification/government-id", id: "ver_gov123" }]
       )
     end
 

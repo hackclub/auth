@@ -24,7 +24,8 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
       id: inquiry_id,
       status: "completed",
       account_id: "act_xyz789",
-      session_token: nil
+      session_token: nil,
+      verification_ids: [{ type: "verification/government-id", id: "ver_gov123" }]
     )
   end
 
