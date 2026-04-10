@@ -153,7 +153,7 @@ class AddressesController < ApplicationController
   end
 
   def set_address
-    @address = policy_scope(Address).find(params[:id])
+    @address = policy_scope(Address).find_by_public_id!(params[:id])
   end
 
   def address_params
