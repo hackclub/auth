@@ -9,7 +9,9 @@ RSpec.describe Verification::PersonaVerification, type: :model do
   it_behaves_like "a verification type"
 
   describe "associations" do
-    it { is_expected.to belong_to(:identity) }
+    it "belongs to identity" do
+      expect(subject.identity).to eq(identity)
+    end
 
     it "belongs to persona_record (optional)" do
       expect(subject.persona_record).to be_nil
@@ -184,11 +186,14 @@ RSpec.describe Verification::PersonaVerification, type: :model do
       )
     end
 
+    let(:mock_service) { instance_double(Persona::APIService) }
+
     before do
       allow(Persona).to receive(:instance).and_return(mock_service)
+      allow(Rails.application.credentials).to receive(:persona).and_return(
+        OpenStruct.new(template_id: "tmpl_test", api_key: "test_key", webhook_secret: "test_secret")
+      )
     end
-
-    let(:mock_service) { instance_double(Persona::APIService) }
 
     it "calls the Persona service to create an inquiry" do
       allow(mock_service).to receive(:create_inquiry).and_return(mock_inquiry)

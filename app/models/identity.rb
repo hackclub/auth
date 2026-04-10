@@ -201,15 +201,21 @@ class Identity < ApplicationRecord
     scenario_class.new(self)
   end
 
+  def required_verification_method
+    if Flipper.enabled?(:persona_verification_2026_04_09, self)
+      :persona
+    elsif country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self)
+      :aadhaar
+    else
+      :document
+    end
+  end
+
   def onboarding_step
     return :basic_info unless persisted?
 
     unless verifications.where(status: %w[approved pending]).any?
-      if country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self)
-        return :aadhaar
-      else
-        return :document
-      end
+      return required_verification_method
     end
 
     return :address unless primary_address_id.present?
@@ -219,9 +225,15 @@ class Identity < ApplicationRecord
 
   def onboarding_complete? = onboarding_step == :submitted
 
-  def needs_documents? = country != "IN" && onboarding_step == :document
+  def needs_documents? = required_verification_method == :document && onboarding_step == :document
 
-  def needs_aadhaar? = country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self) && onboarding_step == :aadhaar
+  def needs_aadhaar? = required_verification_method == :aadhaar && onboarding_step == :aadhaar
+
+  def needs_persona?
+    return false if permabanned
+    return false unless required_verification_method == :persona
+    !verifications.not_ignored.where(status: %w[approved pending]).any?
+  end
 
   def latest_verification = verifications.not_ignored.order(created_at: :desc).first
 

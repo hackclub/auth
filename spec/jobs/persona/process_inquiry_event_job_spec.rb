@@ -58,7 +58,7 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
       }.to change(Identity::Document, :count).by(1)
 
       doc = Identity::Document.last
-      expect(doc.document_type).to eq("government_id")
+      expect(doc.document_type).to eq("persona_gov_id")
       expect(doc.identity).to eq(identity)
       expect(doc.files).to be_attached
     end

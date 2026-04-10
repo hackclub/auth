@@ -83,12 +83,16 @@ class Persona::APIService
   private
 
   def connection
-    @connection ||= Faraday.new(url: BASE_URL) do |f|
+    @connection ||= Faraday.new(
+      url: BASE_URL,
+      headers: {
+        "Authorization" => "Bearer #{@api_key}",
+        "Persona-Version" => "2025-12-08",
+        "Key-Inflection" => "snake"
+      }
+    ) do |f|
       f.request :json
       f.response :json
-      f.headers["Authorization"] = "Bearer #{@api_key}"
-      f.headers["Persona-Version"] = "2025-12-08"
-      f.headers["Key-Inflection"] = "snake"
       f.adapter Faraday.default_adapter
     end
   end

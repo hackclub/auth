@@ -44,7 +44,7 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     # create the gov ID document with front/back photos
     doc = Identity::Document.new(
       identity: @identity,
-      document_type: :government_id
+      document_type: :persona_gov_id
     )
     attach_photo(doc, gov_id.front_photo, "front")
     attach_photo(doc, gov_id.back_photo, "back")
@@ -77,11 +77,12 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
   def attach_photo(doc, photo_data, label)
     return unless photo_data.is_a?(Hash) && photo_data["url"]
 
-    image_data = Persona.instance.download_file(photo_data["url"])
+    raw = Persona.instance.download_file(photo_data["url"])
+    bytes = raw.respond_to?(:read) ? raw.read : raw
     filename = photo_data["filename"] || "#{label}.jpg"
 
     doc.files.attach(
-      io: image_data,
+      io: StringIO.new(bytes),
       filename: filename,
       content_type: "image/jpeg"
     )

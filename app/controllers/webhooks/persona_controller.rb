@@ -5,6 +5,8 @@ module Webhooks
     before_action :verify_signature!
 
     def create
+      return head(:bad_request) unless parsed_body
+
       event_name = parsed_body.dig("data", "attributes", "name")
       inquiry_id = parsed_body.dig("data", "attributes", "payload", "data", "id")
 

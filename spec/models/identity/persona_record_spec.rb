@@ -6,7 +6,9 @@ RSpec.describe Identity::PersonaRecord, type: :model do
   subject { build(:identity_persona_record, identity: identity) }
 
   describe "associations" do
-    it { is_expected.to belong_to(:identity) }
+    it "belongs to identity" do
+      expect(subject.identity).to eq(identity)
+    end
 
     it "has one persona verification" do
       record = create(:identity_persona_record, identity: identity)
