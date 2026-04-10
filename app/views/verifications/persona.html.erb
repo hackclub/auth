@@ -67,6 +67,10 @@
         </div>
       </div>
 
+      <div class="persona-privacy">
+        <p><%= t(".privacy_note_html").html_safe %></p>
+      </div>
+
       <%= render "shared/verifications/persona_name_check" %>
 
       <p class="persona-message" data-persona-message></p>
@@ -76,7 +80,7 @@
       </button>
 
       <div class="persona-footer">
-        <p><%= t(".privacy_note") %></p>
+        <p><%= t(".cant_do_this") %> <%= link_to t(".fallback_prompt"), verification_step_path(:document) %></p>
       </div>
     </section>
   <% end %>

@@ -640,30 +640,30 @@ en:
         purpose: "Purpose: Used only for age verification and preventing duplicate accounts."
       submit_documents: Submit Documents
     persona:
-      title: One last step
-      subtitle: "Quick ID check so we know you're really you — takes about 2 minutes."
-      hero_title: Scan your ID, take a selfie
-      hero_description: "We use Persona to securely verify your government-issued ID. Your photos are encrypted and never shared."
+      title: Verify your identity
+      subtitle: "To participate in Hack Club programs and receive hardware, we need to confirm you're a real person. This is how we keep the community safe."
+      hero_title: "Here's how it works"
+      hero_description: "You'll scan a government-issued ID (passport, driver's license, etc.) and take a quick selfie. A company called Persona handles the verification automatically."
       steps:
         scan:
           title: Scan your ID
-          description: "Driver's license, passport, or national ID"
+          description: "Take a photo of your passport, driver's license, or national ID card"
         selfie:
-          title: Quick selfie
-          description: "We'll match your face to the photo on your ID"
+          title: Take a selfie
+          description: "Persona checks that you match the photo on your ID"
         done:
-          title: That's it!
-          description: "Usually verified in under a minute"
-      begin_verification: Begin verification
-      error_title: Couldn't connect
-      error_message: "We couldn't reach our verification provider. Please try again in a moment."
-      fallback_link: Upload a document instead
-      cancel_message: "No worries — you can pick up where you left off anytime."
-      error_sdk: "Something went wrong. Try again, or use a different verification method."
-      complete_message: "Verification complete — redirecting…"
-      privacy_note: "Your ID photos are encrypted end-to-end and only used for verification."
+          title: Done
+          description: "Most people are verified automatically within a minute"
+      begin_verification: Start verification
+      error_title: Couldn't connect to Persona
+      error_message: "We're having trouble reaching our verification provider right now. Please try again in a few minutes."
+      fallback_link: Upload a document manually instead
+      cancel_message: "No worries — your progress is saved. Come back anytime to finish."
+      error_sdk: "Something went wrong with the verification. You can try again, or upload a document manually instead."
+      complete_message: "Done! Checking your results…"
+      privacy_note_html: "Your photos are encrypted and stored securely. Hack Club staff can view them if there's an issue with your verification, but access is logged. Persona is an independent identity verification company — <a href=\"https://withpersona.com/security\" target=\"_blank\">learn more about how they handle your data</a>."
       cant_do_this: "Can't do this right now?"
-      fallback_prompt: Upload a document instead
+      fallback_prompt: Upload a document manually instead
     status:
       badges:
         under_review: Under review
@@ -678,9 +678,9 @@ en:
         description: Our team is reviewing your submission. We'll email %{email} when we're done.
         submitted_ago: Submitted %{time} ago
       pending_persona:
-        title: We're verifying your identity
-        subtitle: This usually takes just a few minutes
-        description: "Your ID is being verified automatically. We'll email %{email} as soon as it's done — you don't need to stay on this page."
+        title: Your ID is being checked
+        subtitle: This usually takes under a minute
+        description: "Persona is reviewing your ID automatically. We'll email %{email} as soon as it's done — you don't need to stay on this page."
         submitted_ago: Started %{time} ago
       pending_aadhaar:
         title: Verifying your Aadhaar
