@@ -24,10 +24,12 @@
     <% if record.entity_confidence_score %>
       <row>
         <span style="min-width: 12ch; color: var(--foreground2);">confidence</span>
-        <% pct = (record.entity_confidence_score * 100).round(1) %>
-        <% if record.entity_confidence_score < 0.85 %>
+        <% raw_score = record.entity_confidence_score %>
+        <% pct = raw_score > 1 ? raw_score.round(1) : (raw_score * 100).round(1) %>
+        <% normalized = raw_score > 1 ? raw_score / 100.0 : raw_score %>
+        <% if normalized < 0.85 %>
           <span style="color: var(--red);"><%= pct %>%</span>
-        <% elsif record.entity_confidence_score < 0.95 %>
+        <% elsif normalized < 0.95 %>
           <span style="color: var(--yellow);"><%= pct %>%</span>
         <% else %>
           <span style="color: var(--green);"><%= pct %>%</span>

@@ -58,8 +58,13 @@ module PapersPleaseEngine
       end
 
       # --- Entity confidence ---
-      if record.entity_confidence_score && record.entity_confidence_score < CONFIDENCE_THRESHOLD
-        issues << "Low entity confidence score: #{(record.entity_confidence_score * 100).round(1)}%"
+      if record.entity_confidence_score
+        raw = record.entity_confidence_score
+        normalized = raw > 1 ? raw / 100.0 : raw
+        if normalized < CONFIDENCE_THRESHOLD
+          pct = raw > 1 ? raw.round(1) : (raw * 100).round(1)
+          issues << "Low entity confidence score: #{pct}%"
+        end
       end
 
       # --- Persona's own checks ---
