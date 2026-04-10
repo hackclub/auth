@@ -480,24 +480,8 @@
     gap: 0.25em;
     font-size: 0.85rem;
 
-    input[type="submit"] {
-      all: unset;
-      color: var(--pico-primary);
-      cursor: pointer;
-      font-size: inherit;
-      font-weight: 500;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-
     span {
       color: var(--text-muted-strong);
-    }
-
-    a {
-      font-size: inherit;
     }
   }
 }
