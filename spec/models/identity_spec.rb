@@ -23,22 +23,8 @@ RSpec.describe Identity, type: :model do
     end
 
     context "when persona flag is disabled" do
-      context "with IN country and aadhaar flag enabled" do
-        before do
-          identity.update!(country: "IN")
-          Flipper.enable(:authbridge_aadhaar_2025_07_10, identity)
-        end
-        after { Flipper.disable(:authbridge_aadhaar_2025_07_10) }
-
-        it "returns :aadhaar" do
-          expect(identity.required_verification_method).to eq(:aadhaar)
-        end
-      end
-
-      context "with no flags enabled" do
-        it "returns :document" do
-          expect(identity.required_verification_method).to eq(:document)
-        end
+      it "returns :document" do
+        expect(identity.required_verification_method).to eq(:document)
       end
     end
   end

@@ -204,8 +204,6 @@ class Identity < ApplicationRecord
   def required_verification_method
     if Flipper.enabled?(:persona_verification_2026_04_09, self)
       :persona
-    elsif country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self)
-      :aadhaar
     else
       :document
     end
@@ -226,8 +224,6 @@ class Identity < ApplicationRecord
   def onboarding_complete? = onboarding_step == :submitted
 
   def needs_documents? = required_verification_method == :document && onboarding_step == :document
-
-  def needs_aadhaar? = required_verification_method == :aadhaar && onboarding_step == :aadhaar
 
   def needs_persona?
     return false if permabanned
@@ -291,22 +287,16 @@ class Identity < ApplicationRecord
 
   # TODO: this is schnasty
   def onboarding_redirect_path
-    return Rails.application.routes.url_helpers.basic_info_onboarding_path unless persisted?
+    helpers = Rails.application.routes.url_helpers
 
-    if country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self)
-      return Rails.application.routes.url_helpers.aadhaar_onboarding_path if needs_aadhaar_upload?
-      return Rails.application.routes.url_helpers.aadhaar_step_2_onboarding_path unless aadhaar_verifications.pending.any?
-    else
-      return Rails.application.routes.url_helpers.document_onboarding_path if needs_document_upload?
-    end
+    return helpers.basic_info_onboarding_path unless persisted?
+    return helpers.new_verifications_path if needs_persona? || needs_documents?
+    return helpers.address_onboarding_path unless primary_address_id.present?
 
-    return Rails.application.routes.url_helpers.address_onboarding_path unless primary_address_id.present?
-
-    Rails.application.routes.url_helpers.submitted_onboarding_path
+    helpers.submitted_onboarding_path
   end
 
   def needs_document_upload?
-    return false if country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self)
     return false if verification_status == "ineligible"
     return true unless verifications.not_ignored.where(status: %w[approved pending]).any?
     return false if verification_status == "verified"
