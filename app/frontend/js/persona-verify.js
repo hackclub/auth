@@ -4,13 +4,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const el = document.querySelector("[data-persona-verify]");
   if (!el) return;
 
-  const { inquiryId, sessionToken, statusUrl, msgComplete, msgCancel, msgError } = el.dataset;
+  const { inquiryId, sessionToken, environmentId, host, statusUrl, msgComplete, msgCancel, msgError } = el.dataset;
   const button = el.querySelector("[data-persona-start]");
   const message = el.querySelector("[data-persona-message]");
 
   const client = new Persona.Client({
     inquiryId,
     sessionToken,
+    environmentId,
+    host,
+    frameAncestors: [window.location.origin],
     onComplete: () => {
       if (message) message.textContent = msgComplete;
       window.location.href = statusUrl;

@@ -87,6 +87,8 @@ module VerificationFlow
 
     @inquiry_id = @verification.persona_inquiry_id
     @session_token = @verification.persona_session_token
+    @environment_id = Rails.application.credentials.dig(:persona, :environment_id)
+    @persona_host = Rails.application.credentials.dig(:persona, :host)
   rescue Persona::APIError => e
     Sentry.capture_exception(e,
       tags: { component: "persona" },
