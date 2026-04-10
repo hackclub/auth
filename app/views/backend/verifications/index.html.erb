@@ -25,7 +25,7 @@
               <%= link_to "#{verification.identity.first_name} #{verification.identity.last_name}", backend_verification_path(verification) %>
             </td>
             <td>
-              <%= verification.document_type %>
+              <%= verification.document_type_label %>
               <% if verification.ignored_at.present? %>
                 <span is-="badge" variant-="yellow">ignored</span>
               <% end %>

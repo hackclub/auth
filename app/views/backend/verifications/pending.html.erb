@@ -25,7 +25,7 @@
         %>
         <a href="<%= backend_verification_path(verification) %>" data-navigable-item>
           <span style="flex: 1;">
-            <b><%= verification.document_type %></b>
+            <b><%= verification.document_type_label %></b>
             · <%= verification.identity.first_name %> <%= verification.identity.last_name %>
             <% if has_tombstone %>
               <span style="color: var(--red);" title="potential tombstone collision">☠</span>

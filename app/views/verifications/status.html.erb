@@ -19,8 +19,8 @@
         <% if @latest_verification.present? %>
           <div class="meta">
             <%= t(".pending.submitted_ago", time: time_ago_in_words(@latest_verification.created_at)) %>
-            <% if @latest_verification.respond_to?(:document_type) && @latest_verification.document_type.present? %>
-              • <%= @latest_verification.document_type.titleize %>
+            <% if @latest_verification.document_type_label.present? %>
+              • <%= @latest_verification.document_type_label %>
             <% end %>
           </div>
         <% end %>
