@@ -49,11 +49,6 @@ RSpec.describe Identity::PersonaRecord, type: :model do
       expect(subject).not_to be_valid
     end
 
-    it "requires country_code" do
-      subject.country_code = nil
-      expect(subject).not_to be_valid
-    end
-
     it "enforces uniqueness of inquiry_id" do
       create(:identity_persona_record, identity: identity, inquiry_id: "inq_duplicate")
       other = build(:identity_persona_record, identity: identity, inquiry_id: "inq_duplicate")

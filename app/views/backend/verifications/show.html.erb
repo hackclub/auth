@@ -90,7 +90,7 @@
   <% if @relevant_object.nil? %>
     <column box-="square" style="color: var(--foreground2);">no files yet — awaiting persona completion</column>
   <% elsif @verification.needs_break_glass? %>
-    <%= render "backend/shared/break_the_glass", break_glassable: @relevant_object, auto_break_glass: (@verification.pending? ? "to review validity" : nil) do %>
+    <%= render "backend/shared/break_the_glass", break_glassable: @relevant_object, auto_break_glass: @verification.auto_break_glass_reason do %>
       <%= render @verification.review_full_partial, record: @relevant_object %>
     <% end %>
   <% else %>
@@ -213,7 +213,7 @@
           <%= f.submit "ignore verification", data: { confirm: "ignore this verification? this cannot be undone." } %>
         </column>
       <% end %>
-      <% if @verification.is_a?(Verification::PersonaVerification) && (@verification.draft? || @verification.pending?) %>
+      <% if @verification.nukeable? %>
         <div is-="separator"></div>
         <%= button_to "nuke inquiry & start fresh",
               nuke_inquiry_backend_verification_path(@verification),

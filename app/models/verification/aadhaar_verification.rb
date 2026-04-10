@@ -105,8 +105,9 @@ class Verification::AadhaarVerification < Verification
   def review_info_partial = "backend/shared/review_aadhaar_info"
   def review_full_partial = "backend/shared/review_aadhaar_full"
   def relevant_record     = aadhaar_record
-  def needs_break_glass?      = true
-  def status_pending_partial  = "verifications/status/pending_aadhaar"
+  def needs_break_glass?         = true
+  def auto_break_glass_reason    = pending? ? "to review validity" : nil
+  def status_pending_partial     = "verifications/status/pending_aadhaar"
 
   private
 

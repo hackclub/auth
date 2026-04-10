@@ -1,9 +1,51 @@
+# the shape of an inquiry before it meets a person.
+#
+# a template is a door — it has a name in credentials and a set of
+# fields it will accept as gifts. each field is a small promise:
+# "give me this about the person and i will not ask them twice."
+#
+# when it's time to open the door, the identity walks through
+# and offers what it has. nils are left on the doorstep.
+#
 class Verification::PersonaVerification < Verification
   include Verification::Rejectable
   include HasPersonaUrl
   has_persona_url "inquiries", :persona_inquiry_id
 
   encrypts :persona_session_token
+
+  # -- templates ---------------------------------------------------------
+  #
+  # declare templates here, map fields to lambdas or symbols.
+  # country routing picks the first match; :default has no countries
+  # so it catches everything that falls through.
+  #
+  # the template_id comes from credentials:
+  #   persona.templates.default  /  persona.template_id  (single-key fallback)
+  #
+
+  Template = Data.define(:name, :countries, :fields) do
+    def matches?(identity)
+      countries.empty? || countries.include?(identity.country)
+    end
+
+    def prefill_for(identity)
+      fields.each_with_object({}) do |(field, source), filled|
+        value = source.is_a?(Symbol) ? identity.public_send(source) : source.call(identity)
+        filled[field] = value if value.present?
+      end
+    end
+  end
+
+  TEMPLATES = [
+    Template.new(:default, [], {
+      "name-first":    ->(i) { i.legal_first_name.presence || i.first_name },
+      "name-last":     ->(i) { i.legal_last_name.presence || i.last_name },
+      birthdate:       ->(i) { i.birthday&.iso8601 },
+      "email-address": :primary_email,
+      "phone-number":  :phone_number
+    })
+  ].freeze
 
   rejection_reasons(
     poor_quality:  { name: "Poor image quality",                  fatal: false },
@@ -55,16 +97,18 @@ class Verification::PersonaVerification < Verification
   def review_info_partial = "backend/verifications/review_persona_info"
   def review_full_partial = "backend/verifications/review_persona_full"
   def relevant_record     = persona_record
-  def needs_break_glass?      = true
-  def status_pending_partial  = "verifications/status/pending_persona"
+  def needs_break_glass?         = true
+  def auto_break_glass_reason    = nil
+  def nukeable?                  = draft? || pending?
+  def status_pending_partial     = "verifications/status/pending_persona"
 
   def generate_inquiry!
     raise "this verification already has an inquiry!" if persona_inquiry_id.present?
 
     inquiry = Persona.instance.create_inquiry(
-      template_id: Rails.application.credentials.persona.template_id,
+      template_id: resolve_template_id,
       account_reference_id: identity.public_id,
-      fields: prefill_fields
+      fields: resolve_template.prefill_for(identity)
     )
 
     update!(persona_inquiry_id: inquiry.id, persona_session_token: inquiry.session_token)
@@ -73,17 +117,20 @@ class Verification::PersonaVerification < Verification
     inquiry
   end
 
-  def prefill_fields
-    fields = {}
-    fields[:"name-first"] = identity.legal_first_name.presence || identity.first_name
-    fields[:"name-last"] = identity.legal_last_name.presence || identity.last_name
-    fields[:birthdate] = identity.birthday.iso8601 if identity.birthday
-    fields[:"email-address"] = identity.primary_email if identity.primary_email.present?
-    fields[:"phone-number"] = identity.phone_number if identity.phone_number.present?
-    fields
+  private
+
+  def resolve_template
+    TEMPLATES.find { |t| t.matches?(identity) } || TEMPLATES.first
   end
 
-  private
+  def resolve_template_id
+    creds = Rails.application.credentials.persona
+    if creds.respond_to?(:templates) && creds.templates
+      creds.templates.send(resolve_template.name)
+    else
+      creds.template_id
+    end
+  end
 
   def set_ysws_eligibility!
     return unless persona_record&.birthdate

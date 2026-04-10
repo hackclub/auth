@@ -85,8 +85,9 @@ class Verification::DocumentVerification < Verification
   def review_info_partial = "backend/shared/review_document_info"
   def review_full_partial = "backend/shared/review_document_files"
   def relevant_record     = identity_document
-  def needs_break_glass?      = true
-  def status_pending_partial  = "verifications/status/pending_document"
+  def needs_break_glass?         = true
+  def auto_break_glass_reason    = pending? ? "to review validity" : nil
+  def status_pending_partial     = "verifications/status/pending_document"
 
   private
 

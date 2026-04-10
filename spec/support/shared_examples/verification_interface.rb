@@ -7,6 +7,7 @@ RSpec.shared_examples "a verification type" do
     it { is_expected.to respond_to(:rejection_reason_options) }
     it { is_expected.to respond_to(:rejection_reason_name) }
     it { is_expected.to respond_to(:needs_break_glass?) }
+    it { is_expected.to respond_to(:auto_break_glass_reason) }
     it { is_expected.to respond_to(:status_pending_partial) }
 
     describe "#review_info_partial" do

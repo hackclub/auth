@@ -68,6 +68,7 @@ class Verification < ApplicationRecord
 
   def fatal_rejection? = rejected? && fatal?
   def retryable_rejection? = rejected? && !fatal?
+  def nukeable? = false
 
   def default_rejection_reason
     if identity.under_13?

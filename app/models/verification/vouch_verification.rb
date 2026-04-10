@@ -62,8 +62,9 @@ class Verification::VouchVerification < Verification
   def review_info_partial    = "backend/verifications/review_vouch_info"
   def review_full_partial    = "backend/verifications/review_vouch_full"
   def relevant_record        = nil
-  def needs_break_glass?      = false
-  def status_pending_partial  = "verifications/status/pending_document"
+  def needs_break_glass?         = false
+  def auto_break_glass_reason    = nil
+  def status_pending_partial     = "verifications/status/pending_document"
   def rejection_reason_name  = rejection_reason
   def rejection_reason_options = { retryable: [], fatal: [] }
 end
