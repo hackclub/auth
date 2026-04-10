@@ -4,7 +4,7 @@ require "webmock/rspec"
 RSpec.describe Persona::APIService do
   let(:api_key) { "persona_sandbox_abc123" }
   let(:service) { described_class.new(api_key: api_key) }
-  let(:base_url) { "https://withpersona.com" }
+  let(:base_url) { "https://api.withpersona.com" }
 
   let(:expected_headers) do
     {
@@ -15,12 +15,12 @@ RSpec.describe Persona::APIService do
   end
 
   describe "#create_inquiry" do
-    it "sends correct params and headers, returns Inquiry" do
+    it "sends correct params and headers, returns Inquiry with session token from meta" do
       stub_request(:post, "#{base_url}/api/v1/inquiries")
         .with(
           headers: expected_headers,
           body: hash_including(
-            "data" => { "attributes" => { "inquiry_template_id" => "tmpl_xxx" } },
+            "data" => { "attributes" => { "inquiry_template_id" => "itmpl_xxx" } },
             "meta" => hash_including(
               "auto_create_account" => true,
               "auto_create_account_reference_id" => "ident_abc",
@@ -31,16 +31,21 @@ RSpec.describe Persona::APIService do
         .to_return(
           status: 201,
           headers: { "Content-Type" => "application/json" },
-          body: { data: inquiry_response_data, included: inquiry_included_data }.to_json
+          body: {
+            data: inquiry_response_data,
+            included: [],
+            meta: { session_token: "session_tok_secret" }
+          }.to_json
         )
 
-      result = service.create_inquiry(template_id: "tmpl_xxx", account_reference_id: "ident_abc")
+      result = service.create_inquiry(template_id: "itmpl_xxx", account_reference_id: "ident_abc")
 
       expect(result).to be_a(Persona::Inquiry)
       expect(result.id).to eq("inq_abc123")
       expect(result.status).to eq("created")
       expect(result.account_id).to eq("act_xyz789")
       expect(result.session_token).to eq("session_tok_secret")
+      expect(result.verification_ids).to be_an(Array)
     end
 
     it "raises Persona::APIError on non-2xx response" do
@@ -58,13 +63,17 @@ RSpec.describe Persona::APIService do
   end
 
   describe "#retrieve_inquiry" do
-    it "returns an Inquiry with full details" do
+    it "returns an Inquiry with verification IDs from relationships" do
       stub_request(:get, "#{base_url}/api/v1/inquiries/inq_abc123")
         .with(headers: expected_headers)
         .to_return(
           status: 200,
           headers: { "Content-Type" => "application/json" },
-          body: { data: inquiry_response_data, included: inquiry_included_data }.to_json
+          body: {
+            data: inquiry_response_data,
+            included: [],
+            meta: {}
+          }.to_json
         )
 
       result = service.retrieve_inquiry("inq_abc123")
@@ -72,6 +81,7 @@ RSpec.describe Persona::APIService do
       expect(result).to be_a(Persona::Inquiry)
       expect(result.id).to eq("inq_abc123")
       expect(result.status).to eq("created")
+      expect(result.gov_id_verification_id).to eq("ver_gov123")
     end
 
     it "raises on 404" do
@@ -88,6 +98,26 @@ RSpec.describe Persona::APIService do
     end
   end
 
+  describe "#resume_inquiry" do
+    it "returns an Inquiry with a fresh session token from meta" do
+      stub_request(:post, "#{base_url}/api/v1/inquiries/inq_abc123/resume")
+        .with(headers: expected_headers)
+        .to_return(
+          status: 200,
+          headers: { "Content-Type" => "application/json" },
+          body: {
+            data: inquiry_response_data,
+            meta: { session_token: "fresh_session_tok" }
+          }.to_json
+        )
+
+      result = service.resume_inquiry("inq_abc123")
+
+      expect(result).to be_a(Persona::Inquiry)
+      expect(result.session_token).to eq("fresh_session_tok")
+    end
+  end
+
   describe "#retrieve_government_id_verification" do
     it "returns a GovernmentIdVerification with parsed fields" do
       stub_request(:get, "#{base_url}/api/v1/verification/government-ids/ver_gov123")
@@ -95,7 +125,7 @@ RSpec.describe Persona::APIService do
         .to_return(
           status: 200,
           headers: { "Content-Type" => "application/json" },
-          body: { data: gov_id_verification_data }.to_json
+          body: { data: gov_id_verification_data, meta: {} }.to_json
         )
 
       result = service.retrieve_government_id_verification("ver_gov123")
@@ -111,14 +141,14 @@ RSpec.describe Persona::APIService do
   end
 
   describe "#download_file" do
-    it "returns binary IO data" do
+    it "downloads from a self-signed file URL without API key" do
+      file_url = "https://files.withpersona.com/photo.jpg?access_token=tok123"
       fake_image = "\x89PNG\r\n\x1a\n" + ("x" * 100)
 
-      stub_request(:get, "#{base_url}/api/v1/files/some_file_id")
-        .with(headers: expected_headers)
+      stub_request(:get, file_url)
         .to_return(status: 200, body: fake_image, headers: { "Content-Type" => "image/png" })
 
-      result = service.download_file("some_file_id")
+      result = service.download_file(file_url)
 
       expect(result).to respond_to(:read)
       expect(result.read).to include("PNG")
@@ -144,22 +174,12 @@ RSpec.describe Persona::APIService do
           data: [
             { type: "verification/government-id", id: "ver_gov123" }
           ]
-        }
+        },
+        sessions: { data: [] },
+        documents: { data: [] },
+        selfies: { data: [] }
       }
     }
-  end
-
-  def inquiry_included_data
-    [
-      {
-        type: "inquiry-session",
-        id: "iqse_session1",
-        attributes: {
-          status: "active",
-          session_token: "session_tok_secret"
-        }
-      }
-    ]
   end
 
   def gov_id_verification_data

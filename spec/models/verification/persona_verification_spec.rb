@@ -192,7 +192,7 @@ RSpec.describe Verification::PersonaVerification, type: :model do
     before do
       allow(Persona).to receive(:instance).and_return(mock_service)
       allow(Rails.application.credentials).to receive(:persona).and_return(
-        OpenStruct.new(template_id: "tmpl_test", api_key: "test_key", webhook_secret: "test_secret")
+        OpenStruct.new(template_id: "itmpl_test", api_key: "test_key", webhook_secret: "test_secret")
       )
     end
 

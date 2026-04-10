@@ -1,12 +1,12 @@
 class Persona::APIService
-  BASE_URL = "https://withpersona.com"
+  BASE_URL = "https://api.withpersona.com"
 
   def initialize(api_key:)
     @api_key = api_key
   end
 
   def create_inquiry(template_id:, account_reference_id:)
-    data, included = request!(:post, "/api/v1/inquiries") do |req|
+    data, meta = request!(:post, "/api/v1/inquiries") do |req|
       req.body = {
         data: {
           attributes: {
@@ -21,16 +21,19 @@ class Persona::APIService
       }
     end
 
-    session = included.find { |i| i[:type] == "inquiry-session" }
-
-    build_inquiry(data, session)
+    build_inquiry(data, session_token: meta[:session_token])
   end
 
   def retrieve_inquiry(inquiry_id)
-    data, included = request!(:get, "/api/v1/inquiries/#{inquiry_id}")
-    session = included.find { |i| i[:type] == "inquiry-session" }
+    data, meta = request!(:get, "/api/v1/inquiries/#{inquiry_id}")
 
-    build_inquiry(data, session)
+    build_inquiry(data, session_token: meta[:session_token])
+  end
+
+  def resume_inquiry(inquiry_id)
+    data, meta = request!(:post, "/api/v1/inquiries/#{inquiry_id}/resume")
+
+    build_inquiry(data, session_token: meta[:session_token])
   end
 
   def retrieve_government_id_verification(verification_id)
@@ -50,9 +53,9 @@ class Persona::APIService
     )
   end
 
-  def download_file(file_id)
-    response = connection.get("/api/v1/files/#{file_id}")
-    raise Persona::APIError, error_message(response) unless response.success?
+  def download_file(url)
+    response = Faraday.get(url)
+    raise Persona::APIError, "Failed to download file (#{response.status})" unless response.success?
 
     StringIO.new(response.body)
   end
@@ -64,7 +67,7 @@ class Persona::APIService
     raise Persona::APIError, error_message(response) unless response.success?
 
     body = response.body.deep_symbolize_keys
-    [body[:data], body[:included] || []]
+    [body[:data], body[:meta] || {}]
   end
 
   def connection
@@ -83,14 +86,14 @@ class Persona::APIService
     end
   end
 
-  def build_inquiry(data, session)
+  def build_inquiry(data, session_token: nil)
     verifications = data.dig(:relationships, :verifications, :data) || []
 
     Persona::Inquiry.new(
       id: data[:id],
       status: data.dig(:attributes, :status),
       account_id: data.dig(:relationships, :account, :data, :id),
-      session_token: session&.dig(:attributes, :session_token),
+      session_token: session_token,
       verification_ids: verifications
     )
   end
