@@ -42,7 +42,7 @@ module OnboardingScenarios
 
     # Slack provisioning settings
     # Returns :full_member or :multi_channel_guest
-    def slack_user_type = :multi_channel_guest
+    def slack_user_type = :full_member
 
     # Returns array of channel names/IDs for multi-channel guests during onboarding
     def slack_channels = []

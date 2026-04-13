@@ -8,8 +8,6 @@ module OnboardingScenarios
       [ :first_name, :last_name, :primary_email, :birthday, :country ]
     end
 
-    def slack_user_type = :multi_channel_guest
-
     def slack_channels = chans(:hack_club_the_game, :hctg_bulletin, :hctg_help, :welcome_to_hack_club)
 
     def slack_onboarding_flow = :internal_tutorial
