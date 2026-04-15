@@ -5,6 +5,7 @@ chan_ship = Rails.configuration.slack_channels.ship
 chan_welcome = Rails.configuration.slack_channels.welcome_to_hack_club
 
 
+chan_hq_eng = Rails.configuration.slack_channels.hq_eng
 chan_horizons = Rails.configuration.slack_channels.horizons
 chan_horizons_help = Rails.configuration.slack_channels.horizons_help
 chan_horizons_bulletin = Rails.configuration.slack_channels.horizons_bulletin
