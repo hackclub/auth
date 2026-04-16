@@ -26,7 +26,7 @@
   <row>
     <span style="min-width: 12ch; color: var(--foreground2);">slack</span>
     <% if identity.slack_id.present? %>
-      <%= link_to identity.slack_id, "https://hackclub.slack.com/team/#{identity.slack_id}" %>
+      <%= link_to identity.slack_id, "https://hackclub.slack.com/team/#{identity.slack_id}", target: "_blank", rel: "noopener noreferrer" %>
     <% else %>
       <i style="color: var(--foreground2);">not set</i>
     <% end %>
