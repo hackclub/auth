@@ -214,3 +214,23 @@ production:
               friendly_name: Last Name
               is_required: false
       allow_unsigned_requests: true
+    - slug: persona
+        allow_idp_initiated: false
+        friendly_name: Persona
+        tagline: who even are you
+        icon: persona.png
+        entity_id: https://withpersona.com/saml/hack-club-1e6f3089-5366-4b94-86ba-c99ae03454f5/metadata
+        allowed_emails:
+          - nora@hackclub.com
+          - leo@hackclub.com
+          - zach@hackclub.com
+        assertion_consumer_services:
+          - location: https://withpersona.com/saml/hack-club-1e6f3089-5366-4b94-86ba-c99ae03454f5/acs
+            binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+        attribute_consuming_services:
+          - name: Persona User Profile
+            requested_attributes:
+              - name: email
+                friendly_name: Email Address
+                is_required: true
+        allow_unsigned_requests: true
