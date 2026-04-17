@@ -9,6 +9,7 @@ class ApplicationController < ActionController::Base
 
   helper_method :detected_country_alpha2
 
+  prepend_before_action :set_current_identity_session
   before_action :invalidate_v1_sessions, :authenticate_identity!, :set_honeybadger_context
 
   before_action :set_paper_trail_whodunnit
@@ -109,6 +110,10 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  def set_current_identity_session
+    Current.identity_session = current_session
+  end
 
   def touch_session_last_seen_at
     current_session&.touch_last_seen_at
