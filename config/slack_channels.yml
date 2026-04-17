@@ -11,6 +11,7 @@ production:
   hq_eng: C05SVRTCDGV
   neighbourhood: C01AS1YEM8A
   lounge: C0266FRGV
+  help: C07TM4C0AQ5
   pyramid-scheme: C07N1TCHY3T
   waiting_room: C0A24UHUMA7
   #Below: new welcome channel added Jan 2026. This will 
@@ -52,3 +53,4 @@ shared:
   beest: C0ALJ3NT1D0
   beest_bulletin: C0AQMUTMN8N
   beest_help: C0AQ4T1CWH2
+  help: C07TM4C0AQ5
