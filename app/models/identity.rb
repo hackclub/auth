@@ -304,7 +304,7 @@ class Identity < ApplicationRecord
     needs_resubmission?
   end
 
-  def under_13? = age <= 13
+  def under_13? = age < 13
 
   def locked? = locked_at.present?
 
