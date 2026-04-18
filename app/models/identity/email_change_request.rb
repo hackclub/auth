@@ -52,6 +52,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
   validates :new_email, :old_email, :expires_at, presence: true
   validate :validate_new_email
   validate :new_email_not_taken
+  validate :new_email_not_tombstoned
   validate :new_email_different_from_old
 
   scope :pending, -> { where(completed_at: nil, cancelled_at: nil).where("expires_at > ?", Time.current) }
@@ -170,6 +171,13 @@ class Identity::EmailChangeRequest < ApplicationRecord
   def generate_tokens
     self.old_email_token ||= SecureRandom.urlsafe_base64(32)
     self.new_email_token ||= SecureRandom.urlsafe_base64(32)
+  end
+
+  def new_email_not_tombstoned
+    return unless new_email.present?
+    return unless TombstonedEmail.tombstoned?(new_email)
+
+    errors.add(:new_email, "is not available")
   end
 
   def new_email_not_taken
