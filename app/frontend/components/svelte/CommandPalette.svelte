@@ -154,7 +154,6 @@
       const identityScope = searchScopes.find(s => s.key === 'identities');
       if (identityScope) {
         activeScope = identityScope;
-        return;
       }
     }
 
