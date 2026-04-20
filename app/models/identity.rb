@@ -90,6 +90,7 @@ class Identity < ApplicationRecord
   validates :first_name, :last_name, :country, :primary_email, :birthday, presence: true
   validates :primary_email, uniqueness: { conditions: -> { where(deleted_at: nil) } }
   validate :validate_primary_email, if: -> { new_record? || primary_email_changed? }
+  validate :validate_email_not_tombstoned, if: -> { new_record? || primary_email_changed? }
 
   validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, allow_blank: true
   validates :aadhaar_number, uniqueness: true, allow_blank: true
@@ -304,7 +305,7 @@ class Identity < ApplicationRecord
     needs_resubmission?
   end
 
-  def under_13? = age <= 13
+  def under_13? = age < 13
 
   def locked? = locked_at.present?
 
@@ -427,6 +428,13 @@ class Identity < ApplicationRecord
     if birthday > six_years_ago
       errors.add(:base, "Are you sure about that birthday?")
     end
+  end
+
+  def validate_email_not_tombstoned
+    return unless primary_email.present?
+    return unless TombstonedEmail.tombstoned?(primary_email)
+
+    errors.add(:primary_email, "is not available")
   end
 
   def validate_primary_email

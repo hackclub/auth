@@ -10,6 +10,9 @@ module OnboardingScenarios
 
     def accepts_adults = true
 
+    # Existing users being migrated — they don't need the welcome tutorial
+    def slack_onboarding_flow = :external_program
+
     def next_action = :slack
   end
 end

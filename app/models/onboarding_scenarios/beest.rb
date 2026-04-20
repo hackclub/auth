@@ -10,7 +10,7 @@ module OnboardingScenarios
 
     def slack_user_type = :multi_channel_guest
 
-    def slack_channels = chans(:beest, :beest_bulletin, :beest_help, :welcome_to_hack_club)
+    def slack_channels = chans(:beest, :beest_bulletin, :beest_help, :welcome_to_hack_club, :help)
 
     def slack_onboarding_flow = :internal_tutorial
 

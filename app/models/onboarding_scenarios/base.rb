@@ -51,7 +51,10 @@ module OnboardingScenarios
     def promotion_channels = []
 
     # Returns :internal_tutorial or :external_program
-    def slack_onboarding_flow = :external_program
+    # Defaults to :internal_tutorial so every scenario gets the Flaming Skull welcome
+    # DM and CoC gate. Override to :external_program if the scenario handles onboarding
+    # outside of Slack (e.g. doesn't provision a Slack account, or is migrating existing users).
+    def slack_onboarding_flow = :internal_tutorial
 
     # Whether this scenario should provision a Slack account
     def should_create_slack? = true
