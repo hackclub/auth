@@ -8,7 +8,7 @@ module SpecialAppCards
 
     def friendly_name = "Macondo"
 
-    def tagline = "Build personal hardware or software projects, get them funded, fly to a hackathon in Bogotá."
+    def tagline = "Build personal hardware or software projects, get them funded, fly to a hackathon in Colombia."
 
     def icon = "macondo.png"
 
