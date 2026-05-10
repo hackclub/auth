@@ -1,0 +1,9 @@
+chan = Rails.configuration.slack_channels.horizons_arcana
+
+header "🔮 welcome to arcana!"
+
+section <<~TEXT, markdown: true
+  You've just been added to <##{chan}>, the channel for Horizons Arcana in Singapore! For more info, check out [horizons.hackclub.com/arcana](https://horizons.hackclub.com/arcana).
+
+  Head over and introduce yourself!
+TEXT

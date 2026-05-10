@@ -7,6 +7,7 @@ module Backend
     hint :back_navigation, on: :show
 
     def show
+      add_breadcrumb "DASH"
       set_keyboard_shortcut(:back, backend_root_path)
       authorize Verification
 

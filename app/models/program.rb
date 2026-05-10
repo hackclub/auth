@@ -33,6 +33,7 @@ class Program < ApplicationRecord
   audit_field :scopes_array, type: :array, label: "scopes"
   audit_field :redirect_uris, type: :array, label: "redirect URIs"
   audit_field :active, type: :boolean
+  audit_field :byline
   audit_field :onboarding_scenario, transform: ->(v) { v&.titleize }
 
   COLLABORATOR_ACTIVITY_KEYS = %w[

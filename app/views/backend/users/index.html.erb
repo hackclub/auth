@@ -1,44 +1,39 @@
-<div class="grid">
-  <%= render Components::Backend::Card.new(title: "backend users") do %>
-    <%= form_with url: backend_users_path, method: :get, local: true do |f| %>
-      <div class="form-row">
-        <%= f.search_field :search, value: params[:search], placeholder: "search by email or name..." %>
-        <%= render Components::Backend::ActionButton.new(hotkey: "↵") { "search" } %>
-      </div>
-    <% end %>
-    <hr>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>user</th>
-            <th>email</th>
-            <th>roles</th>
-            <th>active</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @users.each do |user| %>
-            <tr>
-              <td>
-                <%= link_to backend_user_path(user) do %>
-                  <%= user.display_name %>
-                <% end %>
-                <% if user.orphaned? %>
-                  <span class="badge warning">⚠ orphaned</span>
-                <% end %>
-              </td>
-              <td><%= user.email || "—" %></td>
-              <td><%= user.pretty_roles %></td>
-              <td><%= render_checkbox(user.active?) %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
-    <hr>
-    <%= render Components::Backend::Item.new(icon: "+", href: new_backend_user_path) do %>
-      <b>grant backend access</b>
-    <% end %>
-  <% end %>
-</div>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>backend users</h2>
+    <a href="<%= new_backend_user_path %>"><button size-="small">+ grant access</button></a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>user</th>
+        <th>email</th>
+        <th>roles</th>
+        <th>slack</th>
+        <th>status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @users.each do |user| %>
+        <tr>
+          <td><%= link_to user.display_name, backend_user_path(user) %></td>
+          <td style="color: var(--foreground2);"><%= user.email || "—" %></td>
+          <td><%= user.pretty_roles %></td>
+          <td style="color: var(--foreground2);"><%= user.slack_id || "—" %></td>
+          <td>
+            <% if !user.active? %>
+              <span is-="badge" variant-="red">inactive</span>
+            <% elsif user.orphaned? %>
+              <span is-="badge" variant-="yellow">orphaned</span>
+            <% else %>
+              <span style="color: var(--green);">active</span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</column>

@@ -30,7 +30,7 @@ class Components::PublicActivity::Snippet < Components::Base
       td { @activity.created_at.strftime("%Y-%m-%d %H:%M") }
       if Rails.env.development?
         td do
-          render Components::Inspector.new(@activity, small: true)
+          plain "#{@activity.class.name} #{@activity.id}"
         end
       end
     end

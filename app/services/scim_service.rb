@@ -163,8 +163,8 @@ module SCIMService
 
       slack_id = response.body["id"]
 
-      if user_type == :multi_channel_guest
-        channel_ids = scenario.slack_channels if scenario.slack_channels.any?
+      if scenario.slack_channels.any?
+        channel_ids = scenario.slack_channels
         sleep(2)
         assigned = SlackService.assign_to_workspace(user_id: slack_id, user_type:, channel_ids:)
         unless assigned
@@ -216,6 +216,32 @@ module SCIMService
     end
 
     def scim_token = ENV["SLACK_SCIM_TOKEN"] || raise("SLACK_SCIM_TOKEN not configured")
+
+    def clear_profile_photo(slack_id:)
+      response = client.patch("Users/#{slack_id}", {
+        schemas: [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
+        Operations: [
+          { op: "replace", path: "photos", value: [] }
+        ]
+      })
+
+      if response.success?
+        { success: true }
+      else
+        error_msg = if response.body.is_a?(Hash)
+          response.body.dig("Errors", 0, "description") ||
+            response.body["detail"] ||
+            response.body["message"] ||
+            response.body["error"]
+        end
+        error_msg ||= "Unknown error (Status #{response.status})"
+        { success: false, error: error_msg }
+      end
+    rescue => e
+      Rails.logger.error "Error clearing Slack profile photo: #{e.message}"
+      Sentry.capture_exception(e, tags: { component: "slack", operation: "scim_clear_photo" })
+      { success: false, error: e.message }
+    end
 
     def find_existing_user_by_email(email)
       response = client.get("Users") do |req|

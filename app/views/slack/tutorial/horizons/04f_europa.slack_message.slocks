@@ -1,0 +1,9 @@
+chan = Rails.configuration.slack_channels.horizons_europa
+
+header "🏰 welcome to europa!"
+
+section <<~TEXT, markdown: true
+  You've just been added to <##{chan}>, the channel for Horizons Europa in Europe! For more info, check out [horizons.hackclub.com/europa](https://horizons.hackclub.com/europa).
+
+  Head over and introduce yourself!
+TEXT

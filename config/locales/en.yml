@@ -260,6 +260,9 @@ en:
       scopes_not_valid_for_trust_level: not valid for this trust level.
       scopes_locked_by_higher_permission: "Managed by a higher-permission user:"
       admin_settings_heading: Admin Settings
+      byline: Consent Screen Byline
+      byline_hint: Shown on the consent screen for HQ official apps. Leave blank to default to "Hack Club HQ".
+      byline_placeholder: "@nora, @msw, @zrl"
       onboarding_scenario: Onboarding Scenario
       onboarding_default: "(default)"
       onboarding_scenario_hint: Users signing up through this OAuth app will use this onboarding flow
@@ -329,8 +332,12 @@ en:
       new:
         prompt: Authorize %{client_name} to use your account?
         able_to: "This application will be able to:"
+        official_byline: "This is an official Hack Club program run by %{byline}."
+        official_byline_default: Hack Club HQ
+        permissions_details: What account info will be shared?
         deny: Deny
         authorize: Authorize →
+        authorize_official: Okay! →
         banners:
           community_untrusted:
             title: Community Application

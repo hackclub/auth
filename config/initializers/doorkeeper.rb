@@ -19,18 +19,10 @@ Doorkeeper.configure do
 
   # This block will be called to check whether the resource owner is authenticated or not.
   resource_owner_authenticator do
-    hide_some_data_away
     if current_identity
       current_identity
     else
-      # Parse the URL and remove stash_data parameter
-      uri = URI.parse(request.original_url)
-      params = URI.decode_www_form(uri.query || "")
-      params.reject! { |key, _| key == "stash_data" }
-      uri.query = URI.encode_www_form(params) unless params.empty?
-      # Store only the path + query (relative URL) for security
-      # session[:return_to] = uri.request_uri
-      redirect_to "/oauth/welcome?return_to=#{CGI.escape(uri.request_uri)}"
+      redirect_to "/oauth/welcome?return_to=#{CGI.escape(request.fullpath)}"
     end
   end
 

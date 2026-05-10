@@ -1,3 +1,5 @@
-<%= render Components::Window.new("Session dump", close_url: backend_root_path) do %>
-  <%== ap session %>
-<% end %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <h2>session dump</h2>
+  <div is-="separator"></div>
+  <pre><%== ap session %></pre>
+</column>

@@ -172,7 +172,9 @@ end
 Rails.application.routes.draw do
   use_doorkeeper_openid_connect
   use_doorkeeper
-  mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
+  if Rails.env.development?
+    mount LetterOpenerWeb::Engine, at: "/letter_opener"
+  end
   mount ActiveStorageEncryption::Engine, at: "/encrypted_blobs"
 
   # Image conversion routes
@@ -192,6 +194,7 @@ Rails.application.routes.draw do
     root "static_pages#index", as: :root
     get "login", to: "static_pages#login", as: :login
     get "session_dump", to: "static_pages#session_dump", as: :session_dump unless Rails.env.production?
+    get "flash_test", to: "static_pages#flash_test", as: :flash_test unless Rails.env.production?
 
 
     get "kbar/search", to: "kbar#search", as: :kbar_search
@@ -222,8 +225,12 @@ Rails.application.routes.draw do
         post :reprovision_slack
         get :new_vouch
         post :create_vouch
+        post :clear_slack_photo
         post :promote_to_full_user
+        post :revoke_sessions
+        post :revoke_session
       end
+      resources :addresses, only: [ :new, :create, :edit, :update, :destroy ], controller: "identity_addresses"
     end
 
     # Programs management moved to DeveloperAppsController (unified UI)

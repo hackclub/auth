@@ -114,9 +114,16 @@
     </div>
 
     <%# === Card 4: Admin Settings (if applicable) === %>
-    <% if policy(@app).update_onboarding_scenario? || policy(@app).update_active? %>
+    <% if policy(@app).update_byline? || policy(@app).update_onboarding_scenario? || policy(@app).update_active? %>
       <section class="section-card">
         <h3><%= t(".admin_settings_heading", default: "Admin Settings") %></h3>
+        <% if policy(@app).update_byline? %>
+          <div class="field-group">
+            <%= f.label :byline, t(".byline") %>
+            <%= f.text_field :byline, placeholder: t(".byline_placeholder") %>
+            <small class="usn"><%= t(".byline_hint") %></small>
+          </div>
+        <% end %>
         <% if policy(@app).update_onboarding_scenario? %>
           <div class="field-group">
             <%= f.label :onboarding_scenario, t(".onboarding_scenario") %>

@@ -1,80 +1,63 @@
-<div class="grid">
-  <%= render Components::Backend::Card.new(title: "welcome to the cool zone") do %>
-    <div data-navigable-list>
+<column self-="grow" align-="center center">
+  <column box-="round" style="width: min(64ch, 100vw - 2ch); --box-border-color: var(--foreground2);">
+    <column data-navigable-list>
       <% if current_user.super_admin? %>
-        <b>Super admin:</b>
-        <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: backend_flipper_path) do %>
-            <b>Flipper?</b>&nbsp;<i>(i hardly know 'er!)</i>
-            <p class="shortcode">&nbsp; [ FLIP ]</p>
-          <% end %>
-        </div>
-        <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: backend_audits1984_path) do %>
-            <b>Audits1984</b>
-            <p class="shortcode">&nbsp; [ ORWL ]</p>
-          <% end %>
-        </div>
-        <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: backend_good_job_path) do %>
-            <b>Job queue</b>
-            <p class="shortcode">&nbsp; [ JOBS ]</p>
-          <% end %>
-        </div>
-        <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: backend_users_path) do %>
-            <b>Manage users</b>
-            <p class="shortcode">&nbsp; [ USRS ]</p>
-          <% end %>
-        </div>
+        <span style="color: var(--foreground2); padding: 0 1ch;">Super admin</span>
+        <ul>
+          <%= render_nav_item backend_flipper_path, "Flipper", "FLIP", sub: "(i hardly know 'er!)" %>
+          <%= render_nav_item backend_audits1984_path, "Audits1984", "ORWL" %>
+          <%= render_nav_item backend_good_job_path, "Job queue", "JOBS" %>
+          <%= render_nav_item backend_users_path, "Manage users", "USRS" %>
+        </ul>
       <% end %>
 
       <% if current_user&.program_manager? || current_user&.super_admin? %>
-        <b>Program manager:</b>
-        <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: developer_apps_path) do %>
-            <b>Manage OAuth2 apps</b>
-            <p class="shortcode">&nbsp; [ APPS ]</p>
-          <% end %>
-        </div>
+        <span style="color: var(--foreground2); padding: 0 1ch;">Program manager</span>
+        <ul>
+          <%= render_nav_item developer_apps_path, "Manage OAuth2 apps", "APPS" %>
+        </ul>
       <% end %>
 
       <% if current_user&.manual_document_verifier? || current_user&.super_admin? %>
-        <b>Manual document verifier:</b>
-        <div data-navigable-item>
-          <%= render Components::Backend::Item.new(icon: "⭢", href: pending_backend_verifications_path) do %>
-            <b>Review pending verifications</b>
-            <p class="shortcode">&nbsp; [ PEND ]</p>
-          <% end %>
-        </div>
+        <span style="color: var(--foreground2); padding: 0 1ch;">Document verifier</span>
+        <ul>
+          <%= render_nav_item pending_backend_verifications_path, "Review pending", "PEND", variant: "yellow" %>
+        </ul>
       <% end %>
-      <hr>
-      <div data-navigable-item>
-        <%= render Components::Backend::Item.new(icon: "⭢", href: backend_identities_path) do %>
-          <b>Manage identities</b>
-          <p class="shortcode">&nbsp; [ IDNT ]</p>
-        <% end %>
-      </div>
-      <div data-navigable-item>
-        <%= render Components::Backend::Item.new(icon: "⭢", href: backend_audit_logs_path) do %>
-          <b>Audit logs</b>
-          <p class="shortcode">&nbsp; [ LOGS ]</p>
-        <% end %>
-      </div>
-      <hr>
-      <div data-navigable-item>
-        <%= render Components::Backend::Item.new(icon: "⊹", href: "#", onclick: "window.openKbar && window.openKbar(); return false;") do %>
-          <b>Go anywhere</b>
-          <p class="shortcode">&nbsp; <&nbsp;⌘-K&nbsp;&nbsp;></p>
-        <% end %>
-      </div>
-      <hr>
-      <div data-navigable-item>
-        <%= render Components::Backend::Item.new(icon: "⭠", href: root_path) do %>
-          <b>Escape hatch</b>
-          <p class="shortcode">&nbsp; [ EXIT ]</p>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
-</div>
+
+      <div is-="separator"></div>
+
+      <%= render_nav_item backend_identities_path, "Identities", "IDNT" %>
+      <%= render_nav_item backend_audit_logs_path, "Audit logs", "LOGS" %>
+
+      <div is-="separator"></div>
+
+      <a href="#" onclick="window.openKbar && window.openKbar(); return false;" data-navigable-item>
+        <span style="flex: 1;">Go anywhere</span>
+        <span style="color: var(--foreground2);"><kbd>⌘K</kbd></span>
+      </a>
+
+      <div is-="separator"></div>
+
+      <%= render_nav_item root_path, "Escape hatch", "EXIT" %>
+    </column>
+
+    <div is-="separator"></div>
+
+    <row gap-="2" align-="center center" pad-="1 0" style="color: var(--foreground2);">
+      <row gap-="1" align-="center">
+        <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowUp', bubbles: true}))">↑</button>
+        <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true}))">↓</button>
+        navigate
+      </row>
+      <row gap-="1" align-="center">
+        <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}))">↵</button>
+        open
+      </row>
+      <row gap-="1" align-="center">
+        <button size-="small" variant-="background2" onclick="window.openKbar && window.openKbar()">⌘K</button>
+        search
+      </row>
+    </row>
+  </column>
+</column>

@@ -1,0 +1,6 @@
+<% case user %>
+<% when Backend::User %>
+  <%= link_to backend_user_path(user) do %><%= user.username %><%= " ⚡" if user.super_admin? %><% end %>
+<% when Identity %>
+  <%= link_to backend_identity_path(user) do %><%= user.first_name %> <%= user.last_name %><% end %>
+<% end %>

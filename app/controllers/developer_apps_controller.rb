@@ -153,6 +153,10 @@ class DeveloperAppsController < ApplicationController
       permitted << :trust_level
     end
 
+    if policy(@app || Program.new).update_byline?
+      permitted << :byline
+    end
+
     if policy(@app || Program.new).update_onboarding_scenario?
       permitted << :onboarding_scenario
     end

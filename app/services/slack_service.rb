@@ -83,6 +83,18 @@ module SlackService
       failed.empty?
     end
 
+    def guest?(user_id)
+      response = client.users_info(user: user_id)
+      user = response.dig("user")
+      return false unless user
+
+      user["is_restricted"] || user["is_ultra_restricted"] || false
+    rescue => e
+      Rails.logger.warn "Could not check guest status for user #{user_id}: #{e.message}"
+      Sentry.capture_exception(e, tags: { component: "slack" }, extra: { slack_user_id: user_id })
+      false
+    end
+
     def user_workspace_status(user_id:)
       response = client.users_info(user: user_id)
       user = response.dig("user")

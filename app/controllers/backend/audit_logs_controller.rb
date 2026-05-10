@@ -4,6 +4,7 @@ module Backend
 
     hint :back_navigation, on: :index
     def index
+      add_breadcrumb "LOGS"
       set_keyboard_shortcut(:back, backend_root_path)
 
       scope = PublicActivity::Activity.order(created_at: :desc)

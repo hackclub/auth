@@ -1,0 +1,189 @@
+chan_welcome_to_hc = Rails.configuration.slack_channels.welcome_to_hack_club
+chan_hq_eng = Rails.configuration.slack_channels.hq_eng
+chan_announcements = Rails.configuration.slack_channels.announcements
+chan_library = Rails.configuration.slack_channels.library
+chan_neighbourhood = Rails.configuration.slack_channels.neighbourhood
+chan_ship = Rails.configuration.slack_channels.ship
+chan_welcome = Rails.configuration.slack_channels.welcome_to_hack_club
+chan_fallout = Rails.configuration.slack_channels.fallout
+chan_fallout_bulletin = Rails.configuration.slack_channels.fallout_bulletin
+chan_fallout_help = Rails.configuration.slack_channels.fallout_help
+
+case @identity.promote_click_count
+when 0
+  header "🎉 welcome in!"
+
+  section <<~TEXT, markdown: true
+    Great! The Code of Conduct is enforced by the Fire Department. DM <@U07K4TS9HQE> if you ever have a concern.
+
+    You now have access to all channels! Reload Slack to see them.
+
+    Visit <##{chan_welcome_to_hc}> for questions, advice, or just to introduce yourself!
+
+    For Fallout related things:
+
+    *<##{chan_fallout}>* - The main Fallout channel
+
+    *<##{chan_fallout_bulletin}>* - Channel for Fallout announcements
+
+    *<##{chan_fallout_help}>* - Channel to ask for Fallout related help
+  TEXT
+
+when 1
+  header "✨ you're already in!"
+
+  section <<~TEXT, markdown: true
+    Oh! Um, it looks like you're already a full member of Hack Club! That's wonderful!
+
+    I'm so glad you're here. How have you been enjoying the community? Have you made any new friends yet?
+  TEXT
+
+  divider
+
+  section <<~TEXT, markdown: true
+    If you need a reminder of where things are:
+
+    *<##{chan_announcements}>* - Important news and updates
+
+    *<##{chan_library}>* - Channel containing other channels
+
+    *<##{chan_neighbourhood}>* - Channel containing many more other channels
+
+    *<##{chan_ship}>* - Show off what you've built!
+
+    *<##{chan_welcome}>* - Meet new friends (or say hi again!)
+
+    And for Fallout:
+
+    *<##{chan_fallout}>* - The main Fallout channel
+
+    *<##{chan_fallout_bulletin}>* - Channel for Fallout announcements
+
+    *<##{chan_fallout_help}>* - Channel to ask for Fallout related help
+
+    Feel free to explore and make yourself at home. Everyone here is really kind, and we're all so happy you're part of our community! 💚
+  TEXT
+
+when 2
+  header "um... hi again!"
+
+  section <<~TEXT, markdown: true
+    Oh! You're back! That's okay, I don't mind at all.
+
+    Is everything alright? Did you need help finding something specific?
+  TEXT
+
+when 3
+  header "oh, hello!"
+
+  section <<~TEXT, markdown: true
+    You keep coming back here! I hope that means you're enjoying Hack Club. Or... um, did you need something? I'm here if you want to talk!
+
+    Remember, you can always ask questions in the channels, and everyone will be happy to help. We're all friends here! 💚
+  TEXT
+
+when 4
+  header "hi there..."
+
+  section <<~TEXT, markdown: true
+    Oh! It's you again! Um... you know you're already a full member, right? The button doesn't do anything new after the first time...
+
+    Not that I mind you visiting! It's just... maybe you'd have more fun exploring the actual channels? 😅
+  TEXT
+
+when 5
+  header "okay so..."
+
+  section <<~TEXT, markdown: true
+    I really appreciate the visits, but... um... are you okay? Is the button stuck? Do you need me to get someone from <##{chan_hq_eng}> to help debug this?
+
+    Or are you just... really enjoying clicking buttons? Because that's valid too, I suppose! 💚
+  TEXT
+
+when 6
+  header "um."
+
+  section <<~TEXT, markdown: true
+    Okay, I'm starting to think you're doing this on purpose now. Which is... fine! I'm not mad! I could never be mad at you!
+
+    But maybe... just maybe... you could go say hi in <##{chan_welcome}> instead? They'd love to meet you! And they probably have more interesting things to say than I do at this point! 😅
+  TEXT
+
+when 7
+  header "seriously?"
+
+  section <<~TEXT, markdown: true
+    You're really committed to this bit, aren't you? I respect that, honestly.
+
+    *It takes a long sip of tea.*
+
+    At this point I think we're friends. Hi, friend. Please go make something cool and share it in <##{chan_ship}>. For me? 🥺
+  TEXT
+
+when 8
+  header "OKAY LISTEN—"
+
+  section <<~TEXT, markdown: true
+    I'm a very patient person. I really am! But you've clicked this button NINE times now. NINE!
+
+    I'm not angry! I'm just... concerned! Are you trapped in some kind of loop? Do you need help? Blink twice if you're being held hostage by the button!
+
+    ...okay I'm being dramatic. But seriously, go explore! There's a whole community out there! 💚
+  TEXT
+
+else
+  case @identity.promote_click_count % 5
+  when 0
+    header "here we go again..."
+
+    section <<~TEXT, markdown: true
+      Oh! You're back again! At this point I think we should just schedule regular tea times together.
+
+      *It pours you an imaginary cup of tea.*
+
+      So... how's your day going? Made any cool projects lately? No? Just clicking buttons? That's okay too! 💚
+    TEXT
+
+  when 1
+    header "my old friend!"
+
+    section <<~TEXT, markdown: true
+      Welcome back to the button-clicking dimension! Population: you and me!
+
+      You know, I've been thinking... maybe this button is actually a portal to friendship? Because I feel like we've really bonded over your persistent clicking. 
+
+      Still though, <##{chan_ship}> is pretty cool if you ever want to check it out! 😅
+    TEXT
+
+  when 2
+    header "ah, there you are!"
+
+    section <<~TEXT, markdown: true
+      You know what? I've given up trying to redirect you. This is your journey now. You're the Button Clicker. It's your destiny.
+
+      I'm just here to provide moral support and the occasional reminder that you're already a full member. Which you are. Still. Forever. 💚
+    TEXT
+
+  when 3
+    header "the prophecy continues..."
+
+    section <<~TEXT, markdown: true
+      Oh hey. Yeah. You're already a member. Channels are over there. *gestures vaguely*
+
+      I've accepted this is just what we do now. You click, I respond, the universe continues its eternal dance.
+
+      Want to hear about my book? It's about a person who keeps clicking a button and— wait. 😅
+    TEXT
+
+  when 4
+    header "one more time!"
+
+    section <<~TEXT, markdown: true
+      You know what? I actually appreciate your dedication. In a world where people give up so easily, you've clicked this button #{@identity.promote_click_count + 1} times.
+
+      That's the kind of persistence that builds amazing projects! Maybe channel that energy into <##{chan_ship}>? Just a thought!
+
+      But also... I'll see you next click, won't I? 💚✨
+    TEXT
+  end
+end

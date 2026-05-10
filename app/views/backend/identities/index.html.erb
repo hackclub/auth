@@ -1,42 +1,63 @@
-<div class="grid">
-  <%= render Components::Backend::Card.new(title: "identities") do %>
-    <%= form_with url: backend_identities_path, method: :get, local: true do |f| %>
-      <div class="form-row">
-        <%= f.search_field :search, value: params[:search], placeholder: "search by name, email, slack id..." %>
-        <%= render Components::Backend::ActionButton.new(hotkey: "↵") { "search" } %>
-        <% if params[:search].present? %>
-          <%= link_to backend_identities_path do %>
-            <%= render Components::Backend::ActionButton.new { "CLR" } %>
-          <% end %>
-        <% end %>
-      </div>
-    <% end %>
-    <% if params[:search].present? %>
-      <p>found <%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</p>
-    <% end %>
-    <hr>
-    <div class="table-container" data-navigable-list>
-      <table>
-        <thead>
-          <tr>
-            <th>name</th>
-            <th>email</th>
-            <th>status</th>
-            <th>ysws</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @identities.each do |identity| %>
-            <tr data-navigable-item>
-              <td><%= link_to backend_identity_path(identity) do %><%= render identity %><% end %></td>
-              <td><%= identity.primary_email %></td>
-              <td><span class="badge <%= identity.verification_status == 'verified' ? 'success' : 'pending' %>"><%= identity.verification_status %></span></td>
-              <td><%= identity.ysws_eligible.nil? ? "?" : render_checkbox(identity.ysws_eligible) %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
-    <%= paginate @identities, params: { search: params[:search] } %>
+<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
+  <h2>identities</h2>
+
+  <div is-="separator"></div>
+
+  <%= form_with url: backend_identities_path, method: :get, local: true do |f| %>
+    <row gap-="1" align-="center">
+      <span style="color: var(--foreground2);">⌕</span>
+      <%= f.search_field :search, value: params[:search], placeholder: "name, email, slack id...", style: "flex: 1; border: none;" %>
+      <button type="submit" size-="small">search</button>
+      <% if params[:search].present? %>
+        <a href="<%= backend_identities_path %>"><button type="button" size-="small">clear</button></a>
+      <% end %>
+    </row>
   <% end %>
-</div>
+
+  <% if params[:search].present? %>
+    <span style="color: var(--foreground2);"><%= pluralize(@identities.total_count, 'identity') %> matching "<%= params[:search] %>"</span>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <% if @identities.any? %>
+    <column box-="square" data-navigable-list>
+      <% @identities.each do |identity| %>
+        <a href="<%= backend_identity_path(identity) %>" data-navigable-item style="padding: 0 1ch;">
+          <b style="min-width: 20ch;"><%= identity.first_name %> <%= identity.last_name %></b>
+          <span style="flex: 1; color: var(--foreground2);"><%= identity.primary_email %></span>
+          <row gap-="1" align-="center">
+            <% if identity.verification_status == 'verified' %>
+              <span is-="badge" variant-="green">verified</span>
+            <% elsif identity.verification_status == 'pending' %>
+              <span is-="badge" variant-="yellow">pending</span>
+            <% end %>
+            <% if identity.ysws_eligible %><span is-="badge" variant-="green">ysws</span><% end %>
+          </row>
+        </a>
+      <% end %>
+    </column>
+
+    <%= paginate @identities, params: { search: params[:search] } %>
+  <% else %>
+    <span style="color: var(--foreground2);">no identities found</span>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">↑</span>
+      <span is-="badge" variant-="background2">↓</span>
+      navigate
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">↵</span>
+      open
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">/</span>
+      search
+    </row>
+  </row>
+</column>

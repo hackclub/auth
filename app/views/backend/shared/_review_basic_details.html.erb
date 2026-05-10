@@ -1,0 +1,10 @@
+<column>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">name</span> <%= render identity %></row>
+  <% if identity.legal_first_name.present? %>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">legal name</span> <%= identity.legal_first_name %> <%= identity.legal_last_name %></row>
+  <% end %>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">email</span> <%= identity.primary_email %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">birthday</span> <%= identity.birthday.strftime("%B %d, %Y") %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">age</span> <%= identity.age.round(2) %></row>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">country</span> <%= identity.country %></row>
+</column>
