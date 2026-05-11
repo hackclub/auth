@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_24_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_04_17_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -560,6 +560,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_24_000001) do
     t.datetime "updated_at", null: false
     t.index ["slack_group_id"], name: "index_slack_idp_groups_on_slack_group_id", unique: true
     t.index ["slug"], name: "index_slack_idp_groups_on_slug", unique: true
+  end
+
+  create_table "tombstoned_emails", force: :cascade do |t|
+    t.string "email_digest", null: false
+    t.index ["email_digest"], name: "index_tombstoned_emails_on_email_digest", unique: true
   end
 
   create_table "verifications", force: :cascade do |t|
