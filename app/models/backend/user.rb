@@ -49,6 +49,7 @@ module Backend
       roles << "Manual Document Verifier" if manual_document_verifier?
       roles << "Human Endorser" if human_endorser?
       roles << "All Fields Access" if all_fields_access?
+      roles << "Break Glass" if can_break_glass?
       roles.presence&.join(", ") || "None"
     end
 
