@@ -114,7 +114,7 @@ module DeletionService
         legal_first_name: "[REDACTED]", legal_last_name: "[REDACTED]",
         primary_email: tombstone_email,
         birthday: Date.new(1970, 1, 1),
-        phone_number: nil, slack_dm_channel_id: nil,
+        phone_number: nil, slack_id: nil, slack_dm_channel_id: nil,
         aadhaar_number_ciphertext: nil, aadhaar_number_bidx: nil,
         locked_at: identity.locked_at || Time.current,
         permabanned: true,
