@@ -80,6 +80,40 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_17_000003) do
     t.index ["identity_id"], name: "index_addresses_on_identity_id"
   end
 
+  create_table "ahoy_events", force: :cascade do |t|
+    t.bigint "visit_id"
+    t.string "name"
+    t.jsonb "properties"
+    t.datetime "time"
+    t.index ["name", "time"], name: "index_ahoy_events_on_name_and_time"
+    t.index ["name"], name: "index_ahoy_events_on_name"
+    t.index ["properties"], name: "index_ahoy_events_on_properties", using: :gin
+    t.index ["time"], name: "index_ahoy_events_on_time"
+    t.index ["visit_id"], name: "index_ahoy_events_on_visit_id"
+  end
+
+  create_table "ahoy_visits", force: :cascade do |t|
+    t.string "visit_token"
+    t.string "visitor_token"
+    t.string "ip"
+    t.text "user_agent"
+    t.text "referrer"
+    t.string "referring_domain"
+    t.text "landing_page"
+    t.string "browser"
+    t.string "os"
+    t.string "device_type"
+    t.string "utm_source"
+    t.string "utm_medium"
+    t.string "utm_campaign"
+    t.string "utm_term"
+    t.string "utm_content"
+    t.datetime "started_at"
+    t.index ["started_at"], name: "index_ahoy_visits_on_started_at"
+    t.index ["visit_token"], name: "index_ahoy_visits_on_visit_token", unique: true
+    t.index ["visitor_token"], name: "index_ahoy_visits_on_visitor_token"
+  end
+
   create_table "audits1984_audits", force: :cascade do |t|
     t.integer "status", default: 0, null: false
     t.text "notes"
@@ -477,6 +511,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_17_000003) do
     t.datetime "created_at", null: false
     t.datetime "revoked_at"
     t.string "resource_owner_type", null: false
+    t.string "code_challenge"
+    t.string "code_challenge_method"
     t.index ["application_id"], name: "index_oauth_access_grants_on_application_id"
     t.index ["resource_owner_id", "resource_owner_type"], name: "polymorphic_owner_oauth_access_grants"
     t.index ["resource_owner_id"], name: "index_oauth_access_grants_on_resource_owner_id"
@@ -612,6 +648,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_17_000003) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "addresses", "identities"
+  add_foreign_key "ahoy_events", "ahoy_visits", column: "visit_id"
   add_foreign_key "backend_organizer_positions", "backend_users"
   add_foreign_key "backend_organizer_positions", "oauth_applications", column: "program_id"
   add_foreign_key "backend_users", "identities"
