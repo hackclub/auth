@@ -109,6 +109,7 @@ module DeletionService
 
       log.call "step 12: scrubbing identity PII..."
       tombstone_email = "tombstoned+#{identity.id}@identity.invalid"
+      # update_columns intentionally — bypasses PaperTrail so we don't create a version containing the old PII
       identity.update_columns(
         first_name: "[REDACTED]", last_name: "[REDACTED]",
         legal_first_name: "[REDACTED]", legal_last_name: "[REDACTED]",
