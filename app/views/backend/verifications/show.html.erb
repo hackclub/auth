@@ -34,9 +34,10 @@
 
   <% if @verification.identity.tombstone_collisions.any? %>
     <%= render Components::Backend::Banner.new(kind: :error) do %>
-      TOMBSTONE COLLISION — matches <%= pluralize(@verification.identity.tombstone_collisions.size, "deleted record") %>
+      POTENTIAL TOMBSTONE COLLISION — please check in with Nora before you approve this verification.
       <details style="margin-top: 0.5lh;">
         <summary style="cursor: pointer; color: inherit;">show details</summary>
+        <p>This person matches <%= pluralize(@verification.identity.tombstone_collisions.size, "deleted record") %>:</p>
         <% @verification.identity.tombstone_collisions.includes(:deletion).each do |collision| %>
           <div style="padding: 0.25lh 0;">
             <b>deleted identity</b>: <%= collision.deletion.privacy_request_reference.presence || "no reference" %>

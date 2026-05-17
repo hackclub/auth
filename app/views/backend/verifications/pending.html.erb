@@ -27,7 +27,7 @@
             <b><%= verification.document_type %></b>
             · <%= verification.identity.first_name %> <%= verification.identity.last_name %>
             <% if has_tombstone %>
-              <span style="color: var(--red);">☠</span>
+              <span style="color: var(--red);" title="potential tombstone collision">☠</span>
             <% elsif has_dupes %>
               <span style="color: var(--yellow);">⚠</span>
             <% end %>
