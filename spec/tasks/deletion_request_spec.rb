@@ -274,7 +274,7 @@ RSpec.describe "deletion_request rake task" do
     before { run_task(identity.id.to_s) }
 
     it "tombstones the original email" do
-      expect(TombstonedEmail.tombstoned?(original_email)).to be true
+      expect(Deletion.email_tombstoned?(original_email)).to be true
     end
 
     it "blocks new identity creation with that email" do

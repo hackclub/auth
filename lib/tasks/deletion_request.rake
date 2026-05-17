@@ -20,6 +20,11 @@ task :deletion_request, [:identifier] => :environment do |_t, args|
 
   abort "identity not found for: #{identifier}" unless identity
 
+  if identity.primary_email&.end_with?("@identity.invalid")
+    puts "identity #{identity.id} is already tombstoned. nothing to do."
+    exit 0
+  end
+
   puts "=== DELETION REQUEST ==="
   puts "identity ##{identity.id} (#{identity.public_id})"
   puts "name: #{identity.full_name}"

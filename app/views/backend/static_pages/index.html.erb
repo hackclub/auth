@@ -25,6 +25,13 @@
         </ul>
       <% end %>
 
+      <% if current_user&.can_process_deletions? || current_user&.super_admin? %>
+        <span style="color: var(--foreground2); padding: 0 1ch;">Deletions</span>
+        <ul>
+          <%= render_nav_item backend_deletions_path, "Manage deletions", "DEL", variant: "red" %>
+        </ul>
+      <% end %>
+
       <div is-="separator"></div>
 
       <%= render_nav_item backend_identities_path, "Identities", "IDNT" %>

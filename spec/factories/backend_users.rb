@@ -21,5 +21,9 @@ FactoryBot.define do
     trait :mdv do
       manual_document_verifier { true }
     end
+
+    trait :deletion_processor do
+      can_process_deletions { true }
+    end
   end
 end

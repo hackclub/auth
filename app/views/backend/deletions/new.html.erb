@@ -1,0 +1,31 @@
+<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>execute deletion</h2>
+    <a href="<%= backend_deletions_path %>" style="color: var(--foreground2); text-decoration: none;">cancel</a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%= render Components::Backend::Banner.new(kind: :warning) do %>
+    this is irreversible. all PII will be scrubbed and the identity will be permanently tombstoned.
+  <% end %>
+
+  <%= form_with url: backend_deletions_path, method: :post, local: true do |f| %>
+    <column gap-="1">
+      <label>
+        <b>identity</b>
+        <span style="color: var(--foreground2);">(numeric ID, public_id, or email)</span>
+        <%= f.text_field :identifier, placeholder: "ident!abc123 or user@example.com", required: true, autofocus: true %>
+      </label>
+
+      <label>
+        <b>privacy request reference</b>
+        <span style="color: var(--foreground2);">(ticket number, context for reviewers)</span>
+        <%= f.text_field :privacy_request_reference, placeholder: "SCAM-2024-0847 or 'ask nora'", required: true %>
+      </label>
+
+      <div is-="separator"></div>
+      <button type="submit" variant-="red">execute deletion</button>
+    </column>
+  <% end %>
+</column>
