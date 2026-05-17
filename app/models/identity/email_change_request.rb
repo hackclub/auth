@@ -175,7 +175,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
 
   def new_email_not_tombstoned
     return unless new_email.present?
-    return unless TombstonedEmail.tombstoned?(new_email)
+    return unless Deletion.email_tombstoned?(new_email)
 
     errors.add(:new_email, "is not available")
   end

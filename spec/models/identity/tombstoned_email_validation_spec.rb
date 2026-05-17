@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Identity tombstoned email validation" do
-  before { TombstonedEmail.tombstone!("tombstoned@example.com") }
+  before { Deletion.create!(email_hash: Deletion.hash_email("tombstoned@example.com")) }
 
   describe "new identity creation" do
     it "rejects a tombstoned email" do

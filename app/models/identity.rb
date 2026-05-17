@@ -432,7 +432,7 @@ class Identity < ApplicationRecord
 
   def validate_email_not_tombstoned
     return unless primary_email.present?
-    return unless TombstonedEmail.tombstoned?(primary_email)
+    return unless Deletion.email_tombstoned?(primary_email)
 
     errors.add(:primary_email, "is not available")
   end

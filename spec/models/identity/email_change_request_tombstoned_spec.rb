@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe "EmailChangeRequest tombstoned email validation" do
   let(:identity) { create(:identity) }
 
-  before { TombstonedEmail.tombstone!("tombstoned@example.com") }
+  before { Deletion.create!(email_hash: Deletion.hash_email("tombstoned@example.com")) }
 
   it "rejects changing to a tombstoned email" do
     request = build(:email_change_request, identity: identity, new_email: "tombstoned@example.com")
