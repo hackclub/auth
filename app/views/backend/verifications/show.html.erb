@@ -32,6 +32,21 @@
     <%= render Components::Backend::Banner.new(kind: :warning) do %>birthday (<%= @verification.identity.birthday %>) is more than 19 years ago<% end %>
   <% end %>
 
+  <% if @verification.identity.tombstone_collisions.any? %>
+    <%= render Components::Backend::Banner.new(kind: :error) do %>
+      TOMBSTONE COLLISION — matches <%= pluralize(@verification.identity.tombstone_collisions.size, "deleted record") %>
+      <details style="margin-top: 0.5lh;">
+        <summary style="cursor: pointer; color: inherit;">show details</summary>
+        <% @verification.identity.tombstone_collisions.includes(:deletion).each do |collision| %>
+          <div style="padding: 0.25lh 0;">
+            <b>deleted identity</b>: <%= collision.deletion.privacy_request_reference.presence || "no reference" %>
+            <span style="opacity: 0.7;">(tombstoned <%= time_ago_in_words(collision.deletion.created_at) %> ago)</span>
+          </div>
+        <% end %>
+      </details>
+    <% end %>
+  <% end %>
+
   <% if @verification.identity.resemblances.any? %>
     <%= render Components::Backend::Banner.new(kind: :warning) do %>
       POSSIBLE DUPLICATE — <%= pluralize(@verification.identity.resemblances.size, "match") %>

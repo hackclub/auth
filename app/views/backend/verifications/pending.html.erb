@@ -20,12 +20,15 @@
                     elsif wait_seconds > 21600 then "yellow"
                     else nil end
           has_dupes = verification.identity.resemblances.any?
+          has_tombstone = verification.identity.tombstone_collisions.any?
         %>
         <a href="<%= backend_verification_path(verification) %>" data-navigable-item>
           <span style="flex: 1;">
             <b><%= verification.document_type %></b>
             · <%= verification.identity.first_name %> <%= verification.identity.last_name %>
-            <% if has_dupes %>
+            <% if has_tombstone %>
+              <span style="color: var(--red);">☠</span>
+            <% elsif has_dupes %>
               <span style="color: var(--yellow);">⚠</span>
             <% end %>
           </span>

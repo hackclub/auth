@@ -76,6 +76,7 @@ class Identity < ApplicationRecord
   has_many :programs, through: :access_tokens, source: :application
 
   has_many :resemblances, class_name: "Identity::Resemblance", dependent: :destroy
+  has_many :tombstone_collisions, class_name: "Identity::TombstoneCollision", dependent: :destroy
   has_many :break_glass_records, as: :break_glassable, dependent: :destroy
 
   has_many :all_access_tokens, class_name: "Doorkeeper::AccessToken", foreign_key: :resource_owner_id, dependent: :destroy

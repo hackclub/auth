@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_05_17_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_05_17_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -497,6 +497,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000001) do
     t.index ["identity_id"], name: "index_identity_sessions_on_identity_id"
   end
 
+  create_table "identity_tombstone_collisions", force: :cascade do |t|
+    t.bigint "identity_id", null: false
+    t.bigint "deletion_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deletion_id"], name: "index_identity_tombstone_collisions_on_deletion_id"
+    t.index ["identity_id", "deletion_id"], name: "idx_tombstone_collisions_uniqueness", unique: true
+    t.index ["identity_id"], name: "index_identity_tombstone_collisions_on_identity_id"
+  end
+
   create_table "identity_totps", force: :cascade do |t|
     t.string "aasm_state"
     t.datetime "deleted_at"
@@ -715,6 +725,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000001) do
   add_foreign_key "identity_resemblances", "identity_documents", column: "document_id"
   add_foreign_key "identity_resemblances", "identity_documents", column: "past_document_id"
   add_foreign_key "identity_sessions", "identities"
+  add_foreign_key "identity_tombstone_collisions", "deletions"
+  add_foreign_key "identity_tombstone_collisions", "identities"
   add_foreign_key "identity_totps", "identities"
   add_foreign_key "identity_v2_login_codes", "identities"
   add_foreign_key "identity_v2_login_codes", "login_attempts"
