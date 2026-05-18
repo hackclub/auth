@@ -84,6 +84,11 @@ RSpec.describe Deletion do
     it "returns empty array for empty name" do
       expect(described_class.name_combo_hashes("", dob)).to eq([])
     end
+
+    it "deduplicates repeated tokens" do
+      hashes = described_class.name_combo_hashes("Mohamed Mohamed", dob)
+      expect(hashes.size).to eq(1)
+    end
   end
 
   describe ".name_combo_hashes_for_identity" do

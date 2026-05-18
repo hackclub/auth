@@ -49,6 +49,22 @@ RSpec.describe DeletionService do
       results = described_class.check_for_name_combos("Smith John", dob)
       expect(results).to include(deletion)
     end
+
+    it "collides on shared name pairs across different people" do
+      hashes = Deletion.name_combo_hashes("Carlos Miguel Rivera", dob)
+      deletion = Deletion.create!(email_hash: "abc123", name_combos: hashes)
+
+      results = described_class.check_for_name_combos("Miguel Rivera", dob)
+      expect(results).to include(deletion)
+    end
+
+    it "matches through diacritics" do
+      hashes = Deletion.name_combo_hashes("José García", dob)
+      deletion = Deletion.create!(email_hash: "abc123", name_combos: hashes)
+
+      results = described_class.check_for_name_combos("Jose Garcia", dob)
+      expect(results).to include(deletion)
+    end
   end
 
   describe ".check_ip" do
