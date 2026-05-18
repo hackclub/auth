@@ -3,17 +3,9 @@
 class Deletion < ApplicationRecord
   validates :email_hash, presence: true, uniqueness: true
 
-  def self.hmac(value)
-    OpenSSL::HMAC.hexdigest("SHA256", pepper, value.to_s)
-  end
-
-  def self.hash_email(email)
-    hmac(email.to_s.strip.downcase)
-  end
-
-  def self.hash_ip(ip)
-    hmac(ip.to_s.strip)
-  end
+  def self.hmac(value) = OpenSSL::HMAC.hexdigest("SHA256", pepper, value.to_s)
+  def self.hash_email(email) = hmac(email.to_s.strip.downcase)
+  def self.hash_ip(ip) = hmac(ip.to_s.strip)
 
   def self.tokenize_name(name)
     normalized = name.to_s.strip.downcase
@@ -23,10 +15,7 @@ class Deletion < ApplicationRecord
     normalized.split(" ")
   end
 
-  def self.name_combo_hashes(name, dob)
-    tokens = tokenize_name(name).uniq
-    generate_combo_hashes(tokens, dob)
-  end
+  def self.name_combo_hashes(name, dob) = generate_combo_hashes(tokenize_name(name).uniq, dob)
 
   def self.name_combo_hashes_for_identity(identity)
     tokens = []
@@ -53,11 +42,6 @@ class Deletion < ApplicationRecord
     end
   end
 
-  def self.email_tombstoned?(email)
-    exists?(email_hash: hash_email(email))
-  end
-
-  def self.pepper
-    Rails.application.secret_key_base
-  end
+  def self.email_tombstoned?(email) = exists?(email_hash: hash_email(email))
+  def self.pepper = Rails.application.secret_key_base
 end

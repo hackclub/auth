@@ -3,9 +3,7 @@
 module DeletionService
   class Error < StandardError; end
 
-  def self.check_for_email(email)
-    Deletion.find_by(email_hash: Deletion.hash_email(email))
-  end
+  def self.check_for_email(email) = Deletion.find_by(email_hash: Deletion.hash_email(email))
 
   def self.check_for_name_combos(name, dob)
     hashes = Deletion.name_combo_hashes(name, dob)
@@ -14,10 +12,7 @@ module DeletionService
     Deletion.where("name_combos && ARRAY[?]::text[]", hashes)
   end
 
-  def self.check_ip(ip)
-    hash = Deletion.hash_ip(ip)
-    Deletion.where("session_ips @> ARRAY[?]::text[]", [hash])
-  end
+  def self.check_ip(ip) = Deletion.where("session_ips @> ARRAY[?]::text[]", [Deletion.hash_ip(ip)])
 
   def self.add_tombstone(identity, privacy_request_reference:)
     original_email = identity.primary_email
