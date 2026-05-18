@@ -12,7 +12,7 @@ module DeletionService
     Deletion.where("name_combos && ARRAY[?]::text[]", hashes)
   end
 
-  def self.check_ip(ip) = Deletion.where("session_ips @> ARRAY[?]::text[]", [Deletion.hash_ip(ip)])
+  def self.check_ip(ip) = Deletion.where("session_ips @> ARRAY[?]::text[]", [ Deletion.hash_ip(ip) ])
 
   def self.execute_deletion(identity, privacy_request_reference:, performed_by: nil, logger: nil)
     log = logger || method(:puts)
@@ -42,14 +42,14 @@ module DeletionService
         v2_login_codes: identity.v2_login_codes.destroy_all.size,
         login_codes: identity.login_codes.destroy_all.size,
         login_attempts: identity.login_attempts.destroy_all.size,
-        sessions: identity.sessions.destroy_all.size,
+        sessions: identity.sessions.destroy_all.size
       }
       [
         identity.totps,
         identity.backup_codes,
         identity.webauthn_credentials,
         identity.email_change_requests,
-        identity.all_access_tokens,
+        identity.all_access_tokens
       ].each { |assoc| counts[assoc.klass.name.demodulize.underscore.pluralize.to_sym] = assoc.destroy_all.size }
       log.call "  destroyed: #{counts.select { |_, v| v > 0 }.map { |k, v| "#{v} #{k}" }.join(", ").presence || "nothing"}"
 
@@ -152,7 +152,7 @@ module DeletionService
   private_class_method
 
   def self.collect_version_items(identity)
-    items = [["Identity", identity.id]]
+    items = [ [ "Identity", identity.id ] ]
 
     {
       "Address" => identity.addresses.pluck(:id),
@@ -176,16 +176,16 @@ module DeletionService
         Identity::Document.with_deleted.where(identity_id: identity.id).pluck(:id),
         Identity::AadhaarRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
         Verification::VouchVerification.with_deleted.where(identity_id: identity.id).pluck(:id)
-      ).pluck(:id),
+      ).pluck(:id)
     }.each do |type, ids|
-      ids.each { |id| items << [type, id] }
+      ids.each { |id| items << [ type, id ] }
     end
 
     items
   end
 
   def self.collect_activity_trackables(identity)
-    trackables = [["Identity", identity.id]]
+    trackables = [ [ "Identity", identity.id ] ]
 
     {
       "Address" => identity.addresses.pluck(:id),
@@ -193,9 +193,9 @@ module DeletionService
       "Verification" => Verification.with_deleted.where(identity_id: identity.id).pluck(:id),
       "Identity::TOTP" => Identity::TOTP.where(identity_id: identity.id).pluck(:id),
       "Identity::WebauthnCredential" => Identity::WebauthnCredential.where(identity_id: identity.id).pluck(:id),
-      "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id),
+      "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id)
     }.each do |type, ids|
-      ids.each { |id| trackables << [type, id] }
+      ids.each { |id| trackables << [ type, id ] }
     end
 
     trackables

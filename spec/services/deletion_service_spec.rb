@@ -75,7 +75,7 @@ RSpec.describe DeletionService do
     it "finds deletions containing the hashed IP" do
       deletion = Deletion.create!(
         email_hash: "abc123",
-        session_ips: [Deletion.hash_ip("10.0.0.1"), Deletion.hash_ip("10.0.0.2")]
+        session_ips: [ Deletion.hash_ip("10.0.0.1"), Deletion.hash_ip("10.0.0.2") ]
       )
 
       expect(described_class.check_ip("10.0.0.1")).to include(deletion)
@@ -102,7 +102,7 @@ RSpec.describe DeletionService do
     it "scrubs PII and creates tombstone record" do
       original_email = identity.primary_email
 
-      described_class.execute_deletion(identity, privacy_request_reference: "recASDASDASD", logger: ->(_) {})
+      described_class.execute_deletion(identity, privacy_request_reference: "recASDASDASD", logger: ->(_) { })
 
       identity.reload
       expect(identity.first_name).to eq("[REDACTED]")
@@ -113,7 +113,7 @@ RSpec.describe DeletionService do
 
     it "logs a deletion_request activity" do
       expect {
-        described_class.execute_deletion(identity, privacy_request_reference: "recASDASDASD", logger: ->(_) {})
+        described_class.execute_deletion(identity, privacy_request_reference: "recASDASDASD", logger: ->(_) { })
       }.to change { PublicActivity::Activity.where(key: "identity.deletion_request").count }.by(1)
     end
   end

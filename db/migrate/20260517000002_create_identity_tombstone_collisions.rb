@@ -8,6 +8,6 @@ class CreateIdentityTombstoneCollisions < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :identity_tombstone_collisions, [:identity_id, :deletion_id], unique: true, name: "idx_tombstone_collisions_uniqueness"
+    add_index :identity_tombstone_collisions, [ :identity_id, :deletion_id ], unique: true, name: "idx_tombstone_collisions_uniqueness"
   end
 end

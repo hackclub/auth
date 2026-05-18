@@ -39,19 +39,19 @@ RSpec.describe Deletion do
 
   describe ".tokenize_name" do
     it "lowercases and strips diacritics" do
-      expect(described_class.tokenize_name("José García")).to eq(["jose", "garcia"])
+      expect(described_class.tokenize_name("José García")).to eq([ "jose", "garcia" ])
     end
 
     it "splits on hyphens and apostrophes" do
-      expect(described_class.tokenize_name("O'Brien-Smith")).to eq(["o", "brien", "smith"])
+      expect(described_class.tokenize_name("O'Brien-Smith")).to eq([ "o", "brien", "smith" ])
     end
 
     it "handles single-token names" do
-      expect(described_class.tokenize_name("Suharto")).to eq(["suharto"])
+      expect(described_class.tokenize_name("Suharto")).to eq([ "suharto" ])
     end
 
     it "collapses whitespace" do
-      expect(described_class.tokenize_name("  John   Michael   Smith  ")).to eq(["john", "michael", "smith"])
+      expect(described_class.tokenize_name("  John   Michael   Smith  ")).to eq([ "john", "michael", "smith" ])
     end
   end
 
