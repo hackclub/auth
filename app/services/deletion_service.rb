@@ -50,7 +50,6 @@ module DeletionService
     ActiveRecord::Base.transaction do
       log.call "step 1: locking account..."
       identity.lock! unless identity.locked?
-      identity.sessions.destroy_all
 
       log.call "step 2: destroying auth data..."
       [
@@ -63,6 +62,7 @@ module DeletionService
         identity.email_change_requests,
         identity.all_access_tokens,
       ].each(&:destroy_all)
+      identity.sessions.destroy_all
 
       log.call "step 3: purging document files..."
       purge_attachments(identity)
