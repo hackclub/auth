@@ -25,7 +25,19 @@
       </label>
 
       <div is-="separator"></div>
-      <button type="submit" variant-="red">execute deletion</button>
+      <label>
+        <b>type "DELETE" to confirm</b>
+        <input type="text" id="deletion-confirm" required pattern="DELETE" placeholder="DELETE" autocomplete="off" />
+      </label>
+
+      <div is-="separator"></div>
+      <button type="submit" variant-="red" id="deletion-submit" disabled>execute deletion</button>
+
+      <script>
+        document.getElementById('deletion-confirm').addEventListener('input', function(e) {
+          document.getElementById('deletion-submit').disabled = e.target.value !== 'DELETE';
+        });
+      </script>
     </column>
   <% end %>
 </column>
