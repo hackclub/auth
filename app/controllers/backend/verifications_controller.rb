@@ -26,7 +26,7 @@ module Backend
 
       set_keyboard_shortcut(:back, backend_root_path)
 
-      @pending_verifications = Verification.includes(:identity, :identity_document, identity_document: { files_attachments: :blob }, identity: [:resemblances, :tombstone_collisions])
+      @pending_verifications = Verification.includes(:identity, :identity_document, identity_document: { files_attachments: :blob }, identity: [ :resemblances, :tombstone_collisions ])
         .where(status: "pending")
         .order(created_at: :asc)
         .page(params[:page])
