@@ -14,21 +14,6 @@ module DeletionService
 
   def self.check_ip(ip) = Deletion.where("session_ips @> ARRAY[?]::text[]", [Deletion.hash_ip(ip)])
 
-  def self.add_tombstone(identity, privacy_request_reference:)
-    original_email = identity.primary_email
-    name_hashes = Deletion.name_combo_hashes_for_identity(identity)
-    ip_hashes = identity.sessions.where.not(ip: nil).distinct.pluck(:ip).map { |ip| Deletion.hash_ip(ip) }
-    email_hash = Deletion.hash_email(original_email)
-
-    deletion = Deletion.find_or_initialize_by(email_hash:)
-    deletion.update!(
-      name_combos: name_hashes,
-      session_ips: ip_hashes,
-      privacy_request_reference:
-    )
-    deletion
-  end
-
   def self.execute_deletion(identity, privacy_request_reference:, performed_by: nil, logger: nil)
     log = logger || method(:puts)
 
@@ -141,9 +126,8 @@ module DeletionService
       log.call "  => #{tombstone_email}"
 
       log.call "step 13: creating tombstone record..."
-      email_hash = Deletion.hash_email(original_email)
-      deletion = Deletion.find_or_initialize_by(email_hash:)
-      deletion.update!(
+      Deletion.create!(
+        email_hash: Deletion.hash_email(original_email),
         name_combos: name_hashes,
         session_ips: ip_hashes,
         privacy_request_reference:

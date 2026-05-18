@@ -66,33 +66,6 @@ RSpec.describe DeletionService do
     end
   end
 
-  describe ".add_tombstone" do
-    let(:identity) { create(:identity) }
-
-    before do
-      IdentitySession.create!(identity: identity, ip: "1.2.3.4", expires_at: 1.day.from_now, session_token: SecureRandom.hex)
-    end
-
-    it "creates a deletion record with all hashes" do
-      deletion = described_class.add_tombstone(identity, privacy_request_reference: "TEST-001")
-
-      expect(deletion).to be_persisted
-      expect(deletion.email_hash).to eq(Deletion.hash_email(identity.primary_email))
-      expect(deletion.name_combos).to be_present
-      expect(deletion.session_ips).to include(Deletion.hash_ip("1.2.3.4"))
-      expect(deletion.privacy_request_reference).to eq("TEST-001")
-    end
-
-    it "is idempotent — updates existing record on email collision" do
-      described_class.add_tombstone(identity, privacy_request_reference: "first")
-      expect {
-        described_class.add_tombstone(identity, privacy_request_reference: "second")
-      }.not_to change(Deletion, :count)
-
-      expect(Deletion.last.privacy_request_reference).to eq("second")
-    end
-  end
-
   describe ".execute_deletion" do
     let(:identity) { create(:identity) }
 
