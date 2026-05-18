@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_04_17_000003) do
+ActiveRecord::Schema[8.0].define(version: 2026_05_17_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -115,6 +115,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_17_000003) do
     t.boolean "can_break_glass"
     t.bigint "identity_id"
     t.string "seen_hints", default: [], array: true
+    t.boolean "can_process_deletions", default: false, null: false
     t.index ["identity_id"], name: "index_backend_users_on_identity_id"
   end
 
@@ -414,6 +415,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_17_000003) do
     t.index ["identity_id"], name: "index_identity_sessions_on_identity_id"
   end
 
+  create_table "identity_tombstone_collisions", force: :cascade do |t|
+    t.bigint "identity_id", null: false
+    t.bigint "deletion_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deletion_id"], name: "index_identity_tombstone_collisions_on_deletion_id"
+    t.index ["identity_id", "deletion_id"], name: "idx_tombstone_collisions_uniqueness", unique: true
+    t.index ["identity_id"], name: "index_identity_tombstone_collisions_on_identity_id"
+  end
+
   create_table "identity_totps", force: :cascade do |t|
     t.string "aasm_state"
     t.datetime "deleted_at"
@@ -562,9 +573,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_17_000003) do
     t.index ["slug"], name: "index_slack_idp_groups_on_slug", unique: true
   end
 
-  create_table "tombstoned_emails", force: :cascade do |t|
-    t.string "email_digest", null: false
-    t.index ["email_digest"], name: "index_tombstoned_emails_on_email_digest", unique: true
+  create_table "deletions", force: :cascade do |t|
+    t.string "email_hash", null: false
+    t.text "name_combos", default: [], array: true
+    t.text "session_ips", default: [], array: true
+    t.text "privacy_request_reference"
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["email_hash"], name: "index_deletions_on_email_hash", unique: true
+    t.index ["name_combos"], name: "index_deletions_on_name_combos", using: :gin
   end
 
   create_table "verifications", force: :cascade do |t|
@@ -627,6 +644,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_17_000003) do
   add_foreign_key "identity_resemblances", "identity_documents", column: "document_id"
   add_foreign_key "identity_resemblances", "identity_documents", column: "past_document_id"
   add_foreign_key "identity_sessions", "identities"
+  add_foreign_key "identity_tombstone_collisions", "deletions"
+  add_foreign_key "identity_tombstone_collisions", "identities"
   add_foreign_key "identity_totps", "identities"
   add_foreign_key "identity_v2_login_codes", "identities"
   add_foreign_key "identity_v2_login_codes", "login_attempts"

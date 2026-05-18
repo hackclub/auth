@@ -76,6 +76,7 @@ class Identity < ApplicationRecord
   has_many :programs, through: :access_tokens, source: :application
 
   has_many :resemblances, class_name: "Identity::Resemblance", dependent: :destroy
+  has_many :tombstone_collisions, class_name: "Identity::TombstoneCollision", dependent: :destroy
   has_many :break_glass_records, as: :break_glassable, dependent: :destroy
 
   has_many :all_access_tokens, class_name: "Doorkeeper::AccessToken", foreign_key: :resource_owner_id, dependent: :destroy
@@ -312,8 +313,8 @@ class Identity < ApplicationRecord
   def unlock! = update!(locked_at: nil)
 
   def lock!
-    update!(locked_at: Time.now)
-    sessions.destroy_all
+    update!(locked_at: Time.current)
+    sessions.update_all(expires_at: Time.current)
   end
 
   def self.calculate_age(birthday)
@@ -432,7 +433,7 @@ class Identity < ApplicationRecord
 
   def validate_email_not_tombstoned
     return unless primary_email.present?
-    return unless TombstonedEmail.tombstoned?(primary_email)
+    return unless Deletion.email_tombstoned?(primary_email)
 
     errors.add(:primary_email, "is not available")
   end

@@ -1,0 +1,35 @@
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>deletions</h2>
+    <a href="<%= new_backend_deletion_path %>"><button size-="small">+ execute deletion</button></a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>reference</th>
+        <th>name combos</th>
+        <th>session IPs</th>
+        <th>created</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @deletions.each do |deletion| %>
+        <tr>
+          <td><%= link_to deletion.id, backend_deletion_path(deletion) %></td>
+          <td><%= deletion.privacy_request_reference.presence || "—" %></td>
+          <td><%= deletion.name_combos.size %> hashes</td>
+          <td><%= deletion.session_ips.size %> hashes</td>
+          <td style="color: var(--foreground2);"><%= time_ago_in_words(deletion.created_at) %> ago</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <% if @deletions.empty? %>
+    <p style="color: var(--foreground2); text-align: center; padding: 2lh 0;">no deletions yet.</p>
+  <% end %>
+</column>
