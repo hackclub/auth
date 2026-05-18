@@ -273,6 +273,20 @@
     </details>
   <% end %>
 
+  <%# === Deletion === %>
+  <% deletion_tool do %>
+    <div is-="separator"></div>
+    <details>
+      <summary style="color: var(--red); cursor: pointer;">deletion tools</summary>
+      <column pad-="1 0" gap-="1">
+        <span style="color: var(--foreground2);">execute a privacy deletion request for this identity. this is irreversible.</span>
+        <a href="<%= new_backend_deletion_path(identifier: @identity.public_id) %>" style="display: inline-block;">
+          <button variant-="red">begin deletion...</button>
+        </a>
+      </column>
+    </details>
+  <% end %>
+
   <div is-="separator"></div>
 
   <row gap-="2" align-="center" style="color: var(--foreground2);">
