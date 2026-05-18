@@ -13,12 +13,12 @@ RSpec.describe DeletionPolicy do
     it { is_expected.to be_create }
   end
 
-  context "with a super admin" do
+  context "with a super admin (without deletion permission)" do
     let(:user) { create(:backend_user, :super_admin) }
 
-    it { is_expected.to be_index }
-    it { is_expected.to be_show }
-    it { is_expected.to be_create }
+    it { is_expected.not_to be_index }
+    it { is_expected.not_to be_show }
+    it { is_expected.not_to be_create }
   end
 
   context "with a regular user" do

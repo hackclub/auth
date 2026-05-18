@@ -2,7 +2,7 @@
 
 class DeletionPolicy < ApplicationPolicy
   def index?
-    user.present? && (user.can_process_deletions? || user.super_admin?)
+    user.present? && user.can_process_deletions?
   end
 
   def show? = index?
