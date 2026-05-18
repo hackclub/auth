@@ -149,8 +149,6 @@ module DeletionService
     identity
   end
 
-  private_class_method
-
   def self.collect_version_items(identity)
     items = [ [ "Identity", identity.id ] ]
 
@@ -272,4 +270,7 @@ module DeletionService
 
     scope.where.not(parameters: nil).where.not(safe_sql).update_all(parameters: nil)
   end
+
+  private_class_method :collect_version_items, :collect_activity_trackables, :purge_attachments,
+                       :delete_versions, :discard_pending_jobs, :scrub_activities
 end
