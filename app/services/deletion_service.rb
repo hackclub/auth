@@ -202,15 +202,24 @@ module DeletionService
   def self.purge_attachments(identity)
     count = 0
     identity.documents.with_deleted.each do |doc|
-      doc.files.each { |f| f.purge; count += 1 }
+      doc.files.each { |f| purge_or_detach(f); count += 1 }
     end
     identity.vouch_verifications.with_deleted.each do |vv|
       if vv.evidence.attached?
-        vv.evidence.purge
+        purge_or_detach(vv.evidence)
         count += 1
       end
     end
     count
+  end
+
+  # S3 bucket object lock may prevent deletion — detach the blob record so
+  # the file is unreachable even if the object is retained by bucket policy.
+  def self.purge_or_detach(attachment)
+    attachment.purge
+  rescue Aws::S3::Errors::ServiceError
+    attachment.detach
+    attachment.blob&.destroy
   end
 
   def self.delete_versions(version_items)
@@ -272,5 +281,5 @@ module DeletionService
   end
 
   private_class_method :collect_version_items, :collect_activity_trackables, :purge_attachments,
-                       :delete_versions, :discard_pending_jobs, :scrub_activities
+                       :purge_or_detach, :delete_versions, :discard_pending_jobs, :scrub_activities
 end
