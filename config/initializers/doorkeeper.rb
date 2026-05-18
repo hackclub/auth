@@ -23,6 +23,7 @@ Doorkeeper.configure do
       current_identity
     else
       redirect_to "/oauth/welcome?return_to=#{CGI.escape(request.fullpath)}"
+      nil
     end
   end
 
