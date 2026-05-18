@@ -43,5 +43,5 @@ class Deletion < ApplicationRecord
   end
 
   def self.email_tombstoned?(email) = exists?(email_hash: hash_email(email))
-  def self.pepper = Rails.application.key_generator.generate_key("deletion_tombstone_hmac", 32)
+  def self.pepper = @pepper ||= Rails.application.key_generator.generate_key("deletion_tombstone_hmac", 32)
 end
