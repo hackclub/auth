@@ -1,0 +1,97 @@
+<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>confirm deletion</h2>
+    <a href="<%= new_backend_deletion_path %>" style="color: var(--foreground2); text-decoration: none;">← back</a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%= render Components::Backend::Banner.new(kind: :danger) do %>
+    you are about to permanently destroy this identity. this is irreversible.
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <span style="color: var(--foreground2); font-style: italic;">identity to be deleted</span>
+  <table>
+    <tbody>
+      <tr>
+        <th style="text-align: left;">id</th>
+        <td><%= @identity.id %> (<%= @identity.public_id %>)</td>
+      </tr>
+      <tr>
+        <th style="text-align: left;">name</th>
+        <td><%= @identity.first_name %> <%= @identity.last_name %></td>
+      </tr>
+      <% if @identity.legal_first_name.present? || @identity.legal_last_name.present? %>
+        <tr>
+          <th style="text-align: left;">legal name</th>
+          <td><%= @identity.legal_first_name %> <%= @identity.legal_last_name %></td>
+        </tr>
+      <% end %>
+      <tr>
+        <th style="text-align: left;">email</th>
+        <td><%= @identity.primary_email %></td>
+      </tr>
+      <tr>
+        <th style="text-align: left;">birthday</th>
+        <td><%= @identity.birthday&.strftime("%Y-%m-%d") || "—" %></td>
+      </tr>
+      <tr>
+        <th style="text-align: left;">country</th>
+        <td><%= @identity.country.presence || "—" %></td>
+      </tr>
+      <tr>
+        <th style="text-align: left;">created</th>
+        <td><%= @identity.created_at.strftime("%Y-%m-%d %H:%M UTC") %></td>
+      </tr>
+      <tr>
+        <th style="text-align: left;">verification</th>
+        <td><%= @identity.verification_status %></td>
+      </tr>
+      <% if @identity.permabanned %>
+        <tr>
+          <th style="text-align: left;">status</th>
+          <td><span style="color: var(--red);">permabanned</span></td>
+        </tr>
+      <% end %>
+      <% if @identity.backend_user.present? %>
+        <tr>
+          <th style="text-align: left;">backend user</th>
+          <td><span style="color: var(--red);"><%= @identity.backend_user.display_name %> — CANNOT DELETE ADMIN ACCOUNTS</span></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <% if @privacy_request_reference.present? %>
+    <div is-="separator"></div>
+    <row>
+      <span style="color: var(--foreground2);">privacy reference:</span>
+      <b><%= @privacy_request_reference %></b>
+    </row>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <%= form_with url: backend_deletions_path, method: :post, local: true do |f| %>
+    <column gap-="1">
+      <%= f.hidden_field :identifier, value: @identifier %>
+      <%= f.hidden_field :privacy_request_reference, value: @privacy_request_reference %>
+
+      <label>
+        <b>type "DELETE" to confirm</b>
+        <input type="text" id="deletion-confirm" required pattern="DELETE" placeholder="DELETE" autocomplete="off" />
+      </label>
+
+      <div is-="separator"></div>
+      <button type="submit" variant-="red" id="deletion-submit" disabled>execute deletion</button>
+
+      <script>
+        document.getElementById('deletion-confirm').addEventListener('input', function(e) {
+          document.getElementById('deletion-submit').disabled = e.target.value !== 'DELETE';
+        });
+      </script>
+    </column>
+  <% end %>
+</column>

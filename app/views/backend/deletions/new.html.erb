@@ -10,12 +10,12 @@
     this is irreversible. all PII will be scrubbed and the identity will be permanently tombstoned.
   <% end %>
 
-  <%= form_with url: backend_deletions_path, method: :post, local: true do |f| %>
+  <%= form_with url: confirm_backend_deletions_path, method: :get, local: true do |f| %>
     <column gap-="1">
       <label>
         <b>identity</b>
         <span style="color: var(--foreground2);">(numeric ID, public_id, or email)</span>
-        <%= f.text_field :identifier, placeholder: "ident!abc123 or user@example.com", required: true, autofocus: true %>
+        <%= f.text_field :identifier, value: params[:identifier], placeholder: "ident!abc123 or user@example.com", required: true, autofocus: true %>
       </label>
 
       <label>
@@ -25,19 +25,7 @@
       </label>
 
       <div is-="separator"></div>
-      <label>
-        <b>type "DELETE" to confirm</b>
-        <input type="text" id="deletion-confirm" required pattern="DELETE" placeholder="DELETE" autocomplete="off" />
-      </label>
-
-      <div is-="separator"></div>
-      <button type="submit" variant-="red" id="deletion-submit" disabled>execute deletion</button>
-
-      <script>
-        document.getElementById('deletion-confirm').addEventListener('input', function(e) {
-          document.getElementById('deletion-submit').disabled = e.target.value !== 'DELETE';
-        });
-      </script>
+      <button type="submit">look up identity →</button>
     </column>
   <% end %>
 </column>

@@ -24,6 +24,27 @@ module Backend
       add_breadcrumb "execute"
     end
 
+    def confirm
+      authorize Deletion, :create?
+      add_breadcrumb "DELETIONS", backend_deletions_path
+      add_breadcrumb "confirm"
+
+      identifier = params[:identifier].to_s.strip
+      privacy_ref = params[:privacy_request_reference].to_s.strip
+
+      if identifier.blank?
+        return redirect_to new_backend_deletion_path, alert: "Identity identifier is required."
+      end
+
+      @identity = resolve_identity(identifier)
+      unless @identity
+        return redirect_to new_backend_deletion_path, alert: "Identity not found for: #{identifier}"
+      end
+
+      @privacy_request_reference = privacy_ref
+      @identifier = identifier
+    end
+
     def create
       authorize Deletion, :create?
 
@@ -43,9 +64,15 @@ module Backend
         return redirect_to new_backend_deletion_path, alert: "Identity not found for: #{identifier}"
       end
 
-      DeletionService.execute_deletion(identity, privacy_request_reference: privacy_ref)
+      log_lines = []
+      logger = ->(msg) { log_lines << msg }
+      original_email = identity.primary_email
 
-      redirect_to backend_deletions_path, notice: "Deletion executed for #{identity.public_id}."
+      DeletionService.execute_deletion(identity, privacy_request_reference: privacy_ref, logger: logger)
+
+      deletion = Deletion.find_by(email_hash: Deletion.hash_email(original_email))
+      flash[:deletion_log] = log_lines
+      redirect_to backend_deletion_path(deletion), notice: "Deletion executed for #{identity.public_id}."
     rescue DeletionService::Error => e
       redirect_to new_backend_deletion_path, alert: e.message
     end

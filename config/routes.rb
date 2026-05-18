@@ -236,7 +236,11 @@ Rails.application.routes.draw do
     # Programs management moved to DeveloperAppsController (unified UI)
 
 
-    resources :deletions, only: [:index, :show, :new, :create]
+    resources :deletions, only: [:index, :show, :new, :create] do
+      collection do
+        get :confirm
+      end
+    end
 
     post "/break_glass", to: "break_glass#create"
 
