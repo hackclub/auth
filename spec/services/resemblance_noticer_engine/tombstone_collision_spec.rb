@@ -7,14 +7,14 @@ RSpec.describe "ResemblanceNoticerEngine tombstone collision detection" do
 
   it "creates a TombstoneCollision when name combos overlap" do
     hashes = Deletion.name_combo_hashes("John Smith", Date.new(2005, 6, 15))
-    Deletion.create!(email_hash: "deadbeef", name_combos: hashes, privacy_request_reference: "SCAM-001")
+    Deletion.create!(email_hash: "deadbeef", name_combos: hashes, privacy_request_reference: "recASDASDASD")
 
     expect {
       ResemblanceNoticerEngine.run(identity)
     }.to change { identity.tombstone_collisions.count }.by(1)
 
     collision = identity.tombstone_collisions.last
-    expect(collision.deletion.privacy_request_reference).to eq("SCAM-001")
+    expect(collision.deletion.privacy_request_reference).to eq("recASDASDASD")
   end
 
   it "does not create duplicate collisions on re-run" do

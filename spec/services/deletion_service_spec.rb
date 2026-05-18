@@ -99,21 +99,21 @@ RSpec.describe DeletionService do
     it "raises when identity is already tombstoned" do
       identity.update_columns(primary_email: "tombstoned+1@identity.invalid")
       expect {
-        described_class.execute_deletion(identity, privacy_request_reference: "TEST")
+        described_class.execute_deletion(identity, privacy_request_reference: "recASDASDASD")
       }.to raise_error(DeletionService::Error, /already tombstoned/)
     end
 
     it "raises when identity has a backend_user" do
       create(:backend_user, identity: identity)
       expect {
-        described_class.execute_deletion(identity, privacy_request_reference: "TEST")
+        described_class.execute_deletion(identity, privacy_request_reference: "recASDASDASD")
       }.to raise_error(DeletionService::Error, /backend_user/)
     end
 
     it "scrubs PII and creates tombstone record" do
       original_email = identity.primary_email
 
-      described_class.execute_deletion(identity, privacy_request_reference: "SCAM-001", logger: ->(_) {})
+      described_class.execute_deletion(identity, privacy_request_reference: "recASDASDASD", logger: ->(_) {})
 
       identity.reload
       expect(identity.first_name).to eq("[REDACTED]")
@@ -124,7 +124,7 @@ RSpec.describe DeletionService do
 
     it "logs a deletion_request activity" do
       expect {
-        described_class.execute_deletion(identity, privacy_request_reference: "TEST", logger: ->(_) {})
+        described_class.execute_deletion(identity, privacy_request_reference: "recASDASDASD", logger: ->(_) {})
       }.to change { PublicActivity::Activity.where(key: "identity.deletion_request").count }.by(1)
     end
   end
