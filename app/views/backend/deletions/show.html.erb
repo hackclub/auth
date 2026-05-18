@@ -31,11 +31,11 @@
     </tbody>
   </table>
 
-  <% if flash[:deletion_log].present? %>
+  <% if @log_lines.present? %>
     <div is-="separator"></div>
     <span style="color: var(--foreground2); font-style: italic;">execution log</span>
     <column style="background: var(--background1); border-radius: 4px; padding: 1rem; font-family: monospace; font-size: 0.9em;">
-      <% flash[:deletion_log].each do |line| %>
+      <% @log_lines.each do |line| %>
         <span style="color: var(--green);"><%= line %></span>
       <% end %>
     </column>

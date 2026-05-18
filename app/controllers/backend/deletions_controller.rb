@@ -70,9 +70,10 @@ module Backend
 
       DeletionService.execute_deletion(identity, privacy_request_reference: privacy_ref, performed_by: current_user, logger:)
 
-      deletion = Deletion.find_by(email_hash: Deletion.hash_email(original_email))
-      flash[:deletion_log] = log_lines
-      redirect_to backend_deletion_path(deletion), notice: "Deletion executed for #{identity.public_id}."
+      @deletion = Deletion.find_by(email_hash: Deletion.hash_email(original_email))
+      @log_lines = log_lines
+      flash.now[:notice] = "Deletion executed for #{identity.public_id}."
+      render :show
     rescue DeletionService::Error => e
       redirect_to new_backend_deletion_path, alert: e.message
     end
