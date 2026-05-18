@@ -47,27 +47,38 @@ module DeletionService
     version_items = collect_version_items(identity)
     activity_trackables = collect_activity_trackables(identity)
 
+    log.call "identity ##{identity.id} (#{identity.public_id})"
+    log.call "name: #{identity.first_name} #{identity.last_name}"
+    log.call "email: #{original_email}"
+    log.call "created: #{identity.created_at.strftime("%Y-%m-%d")}"
+    log.call ""
+
     ActiveRecord::Base.transaction do
       log.call "step 1: locking account..."
       identity.lock! unless identity.locked?
 
       log.call "step 2: destroying auth data..."
-      identity.v2_login_codes.destroy_all
-      identity.login_codes.destroy_all
-      identity.login_attempts.destroy_all
-      identity.sessions.destroy_all
+      counts = {
+        v2_login_codes: identity.v2_login_codes.destroy_all.size,
+        login_codes: identity.login_codes.destroy_all.size,
+        login_attempts: identity.login_attempts.destroy_all.size,
+        sessions: identity.sessions.destroy_all.size,
+      }
       [
         identity.totps,
         identity.backup_codes,
         identity.webauthn_credentials,
         identity.email_change_requests,
         identity.all_access_tokens,
-      ].each(&:destroy_all)
+      ].each { |assoc| counts[assoc.klass.name.demodulize.underscore.pluralize.to_sym] = assoc.destroy_all.size }
+      log.call "  destroyed: #{counts.select { |_, v| v > 0 }.map { |k, v| "#{v} #{k}" }.join(", ").presence || "nothing"}"
 
       log.call "step 3: purging document files..."
-      purge_attachments(identity)
+      doc_count = purge_attachments(identity)
+      log.call "  purged #{doc_count} #{"attachment".pluralize(doc_count)}" if doc_count > 0
 
       log.call "step 4: scrubbing associated record PII..."
+      addr_count = 0
       identity.addresses.find_each do |address|
         address.update_columns(
           first_name: "[REDACTED]", last_name: "[REDACTED]",
@@ -75,37 +86,45 @@ module DeletionService
           city: "[REDACTED]", state: "[REDACTED]",
           postal_code: "[REDACTED]", phone_number: "[REDACTED]"
         )
+        addr_count += 1
       end
-
+      aadhaar_count = 0
       Identity::AadhaarRecord.with_deleted.where(identity_id: identity.id).find_each do |record|
         record.update_columns(name: "[REDACTED]", date_of_birth: nil, raw_json_response: nil)
+        aadhaar_count += 1
       end
+      log.call "  scrubbed #{addr_count} #{"address".pluralize(addr_count)}, #{aadhaar_count} aadhaar #{"record".pluralize(aadhaar_count)}"
 
       log.call "step 5: destroying resemblances..."
-      Identity::Resemblance.where(identity_id: identity.id).destroy_all
-      Identity::Resemblance.where(past_identity_id: identity.id).destroy_all
+      r_count = Identity::Resemblance.where(identity_id: identity.id).destroy_all.size +
+                Identity::Resemblance.where(past_identity_id: identity.id).destroy_all.size
+      log.call "  destroyed #{r_count}" if r_count > 0
 
       log.call "step 6: cleaning up program associations..."
       ProgramCollaborator.where(invited_email: identity.primary_email).update_all(invited_email: "[REDACTED]")
       identity.program_collaborators.destroy_all
-      Program.where(owner_identity_id: identity.id).update_all(owner_identity_id: nil)
+      orphaned = Program.where(owner_identity_id: identity.id).update_all(owner_identity_id: nil)
+      log.call "  orphaned #{orphaned} #{"program".pluralize(orphaned)}" if orphaned > 0
 
       log.call "step 7: destroying OAuth access grants..."
-      Doorkeeper::AccessGrant.where(resource_owner_id: identity.id).delete_all
+      grants = Doorkeeper::AccessGrant.where(resource_owner_id: identity.id).delete_all
+      log.call "  deleted #{grants}" if grants > 0
 
       log.call "step 8: discarding pending jobs..."
       discard_pending_jobs(identity)
 
       log.call "step 9: deleting PaperTrail versions..."
+      log.call "  #{version_items.size} #{"item".pluralize(version_items.size)} to check"
       delete_versions(version_items)
 
       log.call "step 10: scrubbing activity parameters..."
       scrub_activities(identity, activity_trackables)
 
       log.call "step 11: removing Flipper actor gates..."
-      ActiveRecord::Base.connection.delete(
+      gates = ActiveRecord::Base.connection.delete(
         "DELETE FROM flipper_gates WHERE key = 'actors' AND value = #{ActiveRecord::Base.connection.quote("Identity;#{identity.id}")}"
       )
+      log.call "  removed #{gates}" if gates > 0
 
       log.call "step 12: scrubbing identity PII..."
       tombstone_email = "tombstoned+#{identity.id}@identity.invalid"
@@ -124,6 +143,7 @@ module DeletionService
         use_two_factor_authentication: false,
         onboarding_scenario: nil
       )
+      log.call "  → #{tombstone_email}"
 
       log.call "step 13: creating tombstone record..."
       email_hash = Deletion.hash_email(original_email)
@@ -133,6 +153,7 @@ module DeletionService
         session_ips: ip_hashes,
         privacy_request_reference: privacy_request_reference
       )
+      log.call "  #{name_hashes.size} name combo #{"hash".pluralize(name_hashes.size)}, #{ip_hashes.size} IP #{"hash".pluralize(ip_hashes.size)}"
 
       log.call "step 14: logging deletion activity..."
       PublicActivity::Activity.create!(
@@ -141,6 +162,9 @@ module DeletionService
         parameters: { tombstoned_at: Time.current.iso8601 }
       )
     end
+
+    log.call ""
+    log.call "done. identity #{identity.id} (#{identity.public_id}) has been tombstoned."
 
     identity
   end
@@ -198,13 +222,17 @@ module DeletionService
   end
 
   def self.purge_attachments(identity)
+    count = 0
     identity.documents.with_deleted.each do |doc|
-      doc.files.each(&:purge)
+      doc.files.each { |f| f.purge; count += 1 }
     end
-
     identity.vouch_verifications.with_deleted.each do |vv|
-      vv.evidence.purge if vv.evidence.attached?
+      if vv.evidence.attached?
+        vv.evidence.purge
+        count += 1
+      end
     end
+    count
   end
 
   def self.delete_versions(version_items)
