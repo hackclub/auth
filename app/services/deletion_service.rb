@@ -48,14 +48,14 @@ module DeletionService
     activity_trackables = collect_activity_trackables(identity)
 
     ActiveRecord::Base.transaction do
-      log.call "step 1: destroying auth data..."
+      log.call "step 1: locking account..."
+      identity.lock! unless identity.locked?
+
+      log.call "step 2: destroying auth data..."
       identity.v2_login_codes.destroy_all
       identity.login_codes.destroy_all
       identity.login_attempts.destroy_all
       identity.sessions.destroy_all
-
-      log.call "step 2: locking account..."
-      identity.update!(locked_at: Time.current) unless identity.locked?
       [
         identity.totps,
         identity.backup_codes,

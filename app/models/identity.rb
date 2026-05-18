@@ -313,8 +313,8 @@ class Identity < ApplicationRecord
   def unlock! = update!(locked_at: nil)
 
   def lock!
-    update!(locked_at: Time.now)
-    sessions.destroy_all
+    update!(locked_at: Time.current)
+    sessions.update_all(expires_at: Time.current)
   end
 
   def self.calculate_age(birthday)
