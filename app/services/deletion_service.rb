@@ -29,7 +29,7 @@ module DeletionService
     deletion
   end
 
-  def self.execute_deletion(identity, privacy_request_reference:, logger: nil)
+  def self.execute_deletion(identity, privacy_request_reference:, performed_by: nil, logger: nil)
     log = logger || method(:puts)
 
     raise Error, "identity not found" unless identity
@@ -138,7 +138,7 @@ module DeletionService
         use_two_factor_authentication: false,
         onboarding_scenario: nil
       )
-      log.call "  → #{tombstone_email}"
+      log.call "  => #{tombstone_email}"
 
       log.call "step 13: creating tombstone record..."
       email_hash = Deletion.hash_email(original_email)
@@ -153,6 +153,7 @@ module DeletionService
       log.call "step 14: logging deletion activity..."
       PublicActivity::Activity.create!(
         trackable: identity,
+        owner: performed_by,
         key: "identity.deletion_request",
         parameters: { tombstoned_at: Time.current.iso8601 }
       )

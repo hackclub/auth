@@ -68,7 +68,7 @@ module Backend
       logger = ->(msg) { log_lines << msg }
       original_email = identity.primary_email
 
-      DeletionService.execute_deletion(identity, privacy_request_reference: privacy_ref, logger: logger)
+      DeletionService.execute_deletion(identity, privacy_request_reference: privacy_ref, performed_by: current_user, logger: logger)
 
       deletion = Deletion.find_by(email_hash: Deletion.hash_email(original_email))
       flash[:deletion_log] = log_lines
