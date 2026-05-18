@@ -52,17 +52,17 @@ module DeletionService
       identity.lock! unless identity.locked?
 
       log.call "step 2: destroying auth data..."
+      identity.v2_login_codes.destroy_all
+      identity.login_codes.destroy_all
+      identity.login_attempts.destroy_all
+      identity.sessions.destroy_all
       [
-        identity.login_attempts,
-        identity.login_codes,
-        identity.v2_login_codes,
         identity.totps,
         identity.backup_codes,
         identity.webauthn_credentials,
         identity.email_change_requests,
         identity.all_access_tokens,
       ].each(&:destroy_all)
-      identity.sessions.destroy_all
 
       log.call "step 3: purging document files..."
       purge_attachments(identity)
