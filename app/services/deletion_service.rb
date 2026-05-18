@@ -213,13 +213,14 @@ module DeletionService
     count
   end
 
-  # S3 bucket object lock may prevent deletion — detach the blob record so
+  # S3 bucket object lock may prevent deletion — destroy the DB records so
   # the file is unreachable even if the object is retained by bucket policy.
   def self.purge_or_detach(attachment)
     attachment.purge
   rescue Aws::S3::Errors::ServiceError
-    attachment.detach
-    attachment.blob&.destroy
+    blob = attachment.blob
+    attachment.destroy
+    blob&.destroy
   end
 
   def self.delete_versions(version_items)
