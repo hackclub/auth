@@ -15,6 +15,11 @@ module Backend::ApplicationHelper
     concat content_tag(element, class: "break-glass-tool #{class_name}", **options, &block)
   end
 
+  def deletion_tool(class_name: "", element: "div", **options, &block)
+    return unless current_user&.can_process_deletions?
+    concat content_tag(element, class: "deletion-tool #{class_name}", **options, &block)
+  end
+
   def program_manager_tool(class_name: "", element: "div", **options, &block)
     return unless current_user&.program_manager? || current_user&.super_admin?
     concat content_tag(element, class: "program-manager-tool #{class_name}", **options, &block)
@@ -28,5 +33,44 @@ module Backend::ApplicationHelper
   def dev_tool(class_name: "", element: "div", **options, &block)
     return unless Rails.env.development?
     concat content_tag(element, class: "dev-tool #{class_name}", **options, &block)
+  end
+
+  def glass_broken?(break_glassable, auto_break_glass: nil)
+    return false unless current_user
+
+    existing = BreakGlassRecord.for_user_and_document(current_user, break_glassable).recent.exists?
+    return true if existing
+
+    if auto_break_glass
+      BreakGlassRecord.create!(
+        backend_user: current_user,
+        break_glassable: break_glassable,
+        reason: auto_break_glass,
+        accessed_at: Time.current,
+        automatic: true,
+      )
+      return true
+    end
+
+    false
+  end
+
+  def render_nav_item(path, label, code, variant: "background2", sub: nil)
+    content_tag(:a, href: path, "data-navigable-item": true) do
+      left = content_tag(:span, style: "flex: 1;") do
+        concat label
+        concat " ".html_safe + content_tag(:i, sub, style: "color: var(--foreground2);") if sub
+      end
+      right = content_tag(:span, code, "is-": "badge", "variant-": variant)
+      left + right
+    end
+  end
+
+  def break_glass_document_type(break_glassable)
+    case break_glassable.class.name
+    when "Identity::Document" then "identity document"
+    when "Identity::AadhaarRecord" then "aadhaar record"
+    else "document"
+    end
   end
 end

@@ -14,6 +14,9 @@ module OnboardingScenarios
 
     def should_create_slack? = false
 
+    # No Slack account, so no tutorial needed
+    def slack_onboarding_flow = :external_program
+
     def next_action = :home
   end
 end

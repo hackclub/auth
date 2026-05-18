@@ -1,0 +1,24 @@
+<column gap-="1">
+  <row gap-="2">
+    <column style="flex: 1;"><%= f.label :first_name %><%= f.text_field :first_name %></column>
+    <column style="flex: 1;"><%= f.label :last_name %><%= f.text_field :last_name %></column>
+  </row>
+  <column><%= f.label :line_1, "address line 1" %><%= f.text_field :line_1 %></column>
+  <column><%= f.label :line_2, "address line 2" %><%= f.text_field :line_2 %></column>
+  <row gap-="2">
+    <column style="flex: 2;"><%= f.label :city %><%= f.text_field :city %></column>
+    <column style="flex: 1;"><%= f.label :state %><%= f.text_field :state %></column>
+    <column style="flex: 1;"><%= f.label :postal_code, "postal code" %><%= f.text_field :postal_code %></column>
+  </row>
+  <row gap-="2">
+    <column style="flex: 1;"><%= f.label :country %><%= f.select :country, options_for_select(Address.countries_for_select.map { |code, name| [name, code] }, @address.country), { prompt: "select..." } %></column>
+    <column style="flex: 1;"><%= f.label :phone_number, "phone" %><%= f.telephone_field :phone_number %></column>
+  </row>
+
+  <div is-="separator"></div>
+
+  <row gap-="1">
+    <%= f.submit address.new_record? ? "create address" : "save" %>
+    <a href="<%= backend_identity_path(@identity) %>"><button type="button">cancel</button></a>
+  </row>
+</column>

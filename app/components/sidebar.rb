@@ -50,9 +50,10 @@ class Components::Sidebar < Components::Base
     items << { label: t("sidebar.addresses"), path: addresses_path, icon: "email" }
     items << { label: t("sidebar.security"), path: security_path, icon: "private" }
 
-    # Add developer link if developer mode is enabled
-    if current_identity.present? && current_identity.developer_mode?
-      items << { label: t("sidebar.developer"), path: developer_apps_path, icon: "code" }
+    # Add developer link if developer mode is enabled or user is a program manager/super admin
+    if current_identity.present? && (current_identity.developer_mode? || current_identity.backend_user&.program_manager? || current_identity.backend_user&.super_admin?)
+      pending_count = current_identity.pending_collaboration_invitations.count
+      items << { label: t("sidebar.developer"), path: developer_apps_path, icon: "code", badge: pending_count }
     end
 
     items << { label: t("sidebar.docs"), path: docs_path, icon: "docs" }
@@ -95,12 +96,13 @@ class Components::Sidebar < Components::Base
     end
   end
 
-  def render_nav_item(label:, path:, icon: nil)
+  def render_nav_item(label:, path:, icon: nil, badge: nil)
     is_active = @current_path == path
 
     link_to(path, class: [ "sidebar-nav-item", ("active" if is_active) ].compact.join(" ")) do
       span(class: "nav-icon") { inline_icon(icon, size: 24) } if icon
       span(class: "nav-label") { label }
+      span(class: "nav-badge") { badge.to_s } if badge && badge > 0
     end
   end
 

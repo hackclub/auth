@@ -10,6 +10,7 @@ module Backend
 
     def index
       authorize Identity
+      add_breadcrumb "IDNT"
 
       set_keyboard_shortcut(:back, backend_root_path)
 
@@ -27,6 +28,8 @@ module Backend
 
     def show
       authorize @identity
+      add_breadcrumb "IDNT", backend_identities_path
+      add_breadcrumb "#{@identity.first_name} #{@identity.last_name}"
 
       set_keyboard_shortcut(:back, backend_identities_path)
       set_keyboard_shortcut(:edit, edit_backend_identity_path(@identity))
@@ -53,6 +56,12 @@ module Backend
 
       @all_programs = @identity.all_programs.distinct
 
+      @owned_apps = @identity.owned_developer_apps
+      @collaborated_apps = @identity.collaborated_programs
+
+      @sessions = @identity.sessions.order(created_at: :desc).limit(10)
+      @active_session_count = @identity.sessions.not_expired.count
+
       verification_ids = @identity.verifications.pluck(:id)
       document_ids = @identity.documents.pluck(:id)
       break_glass_record_ids = BreakGlassRecord.where(break_glassable_type: "Identity::Document", break_glassable_id: document_ids).pluck(:id)
@@ -67,6 +76,9 @@ module Backend
 
     def edit
       authorize @identity, :edit?
+      add_breadcrumb "IDNT", backend_identities_path
+      add_breadcrumb @identity.first_name, backend_identity_path(@identity)
+      add_breadcrumb "edit"
     end
 
     def update
@@ -139,6 +151,9 @@ module Backend
 
     def new_vouch
       authorize Verification::VouchVerification, :create?
+      add_breadcrumb "IDNT", backend_identities_path
+      add_breadcrumb @identity.first_name, backend_identity_path(@identity)
+      add_breadcrumb "vouch"
       @vouch = @identity.vouch_verifications.build
     end
 
@@ -151,6 +166,52 @@ module Backend
       else
         render :new_vouch
       end
+    end
+
+    def revoke_sessions
+      authorize @identity, :update?
+
+      count = @identity.sessions.not_expired.count
+      @identity.sessions.not_expired.update_all(signed_out_at: Time.current, expires_at: Time.now)
+
+      if count > 0
+        @identity.create_activity(:revoke_all_sessions, owner: current_user, recipient: @identity, parameters: { count: count })
+        flash[:success] = "Revoked #{count} active #{"session".pluralize(count)}."
+      else
+        flash[:notice] = "No active sessions to revoke."
+      end
+
+      redirect_to backend_identity_path(@identity)
+    end
+
+    def revoke_session
+      authorize @identity, :update?
+      session = @identity.sessions.find(params[:session_id])
+      session.update!(signed_out_at: Time.current, expires_at: Time.now)
+      @identity.create_activity(:revoke_all_sessions, owner: current_user, recipient: @identity, parameters: { count: 1 })
+      flash[:success] = "Session revoked."
+      redirect_to backend_identity_path(@identity)
+    end
+
+    def clear_slack_photo
+      authorize @identity
+
+      unless @identity.slack_id.present?
+        flash[:error] = "Identity has no Slack account"
+        redirect_to backend_identity_path(@identity)
+        return
+      end
+
+      result = SCIMService.clear_profile_photo(slack_id: @identity.slack_id)
+
+      if result[:success]
+        @identity.create_activity(:clear_slack_photo, owner: current_user)
+        flash[:notice] = "Slack profile photo cleared."
+      else
+        flash[:error] = "Failed to clear profile photo: #{result[:error]}"
+      end
+
+      redirect_to backend_identity_path(@identity)
     end
 
     def promote_to_full_user
@@ -182,7 +243,9 @@ module Backend
     end
 
     def identity_params
-      params.require(:identity).permit(:first_name, :last_name, :legal_first_name, :legal_last_name, :primary_email, :phone_number, :birthday, :country, :hq_override, :ysws_eligible, :permabanned)
+      permitted = [ :first_name, :last_name, :legal_first_name, :legal_last_name, :primary_email, :phone_number, :birthday, :country, :hq_override, :ysws_eligible, :permabanned ]
+      permitted << :can_hq_officialize if current_user&.super_admin?
+      params.require(:identity).permit(permitted)
     end
 
     def vouch_params

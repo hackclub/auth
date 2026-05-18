@@ -52,6 +52,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
   validates :new_email, :old_email, :expires_at, presence: true
   validate :validate_new_email
   validate :new_email_not_taken
+  validate :new_email_not_tombstoned
   validate :new_email_different_from_old
 
   scope :pending, -> { where(completed_at: nil, cancelled_at: nil).where("expires_at > ?", Time.current) }
@@ -172,6 +173,13 @@ class Identity::EmailChangeRequest < ApplicationRecord
     self.new_email_token ||= SecureRandom.urlsafe_base64(32)
   end
 
+  def new_email_not_tombstoned
+    return unless new_email.present?
+    return unless Deletion.email_tombstoned?(new_email)
+
+    errors.add(:new_email, "is not available")
+  end
+
   def new_email_not_taken
     return unless new_email.present?
 
@@ -203,6 +211,8 @@ class Identity::EmailChangeRequest < ApplicationRecord
       errors.add(:new_email, I18n.t("errors.attributes.new_email.invalid_format", default: "is invalid"))
       return
     end
+
+    return unless Rails.env.production?
 
     if address.disposable?
       errors.add(:new_email, I18n.t("errors.attributes.new_email.temporary", default: "cannot be a temporary email"))

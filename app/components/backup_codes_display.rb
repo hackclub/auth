@@ -154,7 +154,8 @@ class Components::BackupCodesDisplay < Components::Base
         a(
           download: "backup-codes.txt",
           href: "data:text/plain;charset=utf-8,#{ERB::Util.url_encode(@codes.join("\n"))}",
-          class: "button secondary"
+          role: "button",
+          class: "secondary"
         ) do
           t "identity_backup_codes.download"
         end

@@ -1,68 +1,50 @@
-<div class="grid">
-  <%= render Components::Backend::Card.new(title: "user: #{@user.display_name}") do %>
-    <%= render Components::Backend::Item.new(icon: "⭠", href: backend_users_path) do %>
-      <b>back to users</b>
-    <% end %>
-    <hr>
-    <% if @user.orphaned? %>
-      <div class="banner warning">
-        <h3>⚠ orphaned user</h3>
-        <p>this user is not linked to an identity and cannot log in.</p>
-      </div>
-    <% else %>
-      <div class="section">
-        <div class="section-header"><h3>linked identity</h3></div>
-        <div class="section-content">
-          <div class="detail-row">
-            <span class="detail-label">name</span>
-            <span class="detail-value"><%= @user.first_name %> <%= @user.last_name %></span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">email</span>
-            <span class="detail-value"><%= @user.email %></span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">slack</span>
-            <span class="detail-value"><%= @user.slack_id || "not linked" %></span>
-          </div>
-        </div>
-      </div>
-    <% end %>
-    <div class="section">
-      <div class="section-header"><h3>permissions</h3></div>
-      <div class="section-content">
-        <div class="detail-row">
-          <span class="detail-label">roles</span>
-          <span class="detail-value"><%= @user.pretty_roles %></span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">programs</span>
-          <span class="detail-value">
-            <% if @user.organized_programs.any? %>
-              <%= @user.organized_programs.map(&:name).join(", ") %>
-            <% else %>
-              <i>none</i>
-            <% end %>
-          </span>
-        </div>
-      </div>
-    </div>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2><%= @user.display_name %></h2>
     <% super_admin_tool do %>
-      <hr>
-      <%= render Components::Backend::Item.new(icon: "✎", href: edit_backend_user_path(@user)) do %>
-        <b>edit user</b>
-      <% end %>
-      <% if @user.active? %>
-        <%= button_to backend_user_path(@user, action: :deactivate), method: :patch, class: "item" do %>
-          <figure class="icon">✕</figure>
-          <span class="text"><b>deactivate</b> <i>(stops login)</i></span>
+      <row gap-="2" align-="center">
+        <a href="<%= edit_backend_user_path(@user) %>">edit</a>
+        <% if @user.active? %>
+          <%= button_to "deactivate", deactivate_backend_user_path(@user), method: :post, form: { style: "display:inline" }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+        <% else %>
+          <%= button_to "activate", activate_backend_user_path(@user), method: :post, form: { style: "display:inline" }, style: "all:unset; color:var(--green); text-decoration:underline; cursor:pointer;" %>
         <% end %>
-      <% else %>
-        <%= button_to backend_user_path(@user, action: :activate), method: :patch, class: "item" do %>
-          <figure class="icon">✓</figure>
-          <span class="text"><b>activate</b> <i>(allows login)</i></span>
-        <% end %>
-      <% end %>
+      </row>
     <% end %>
+  </row>
+
+  <% if @user.orphaned? %>
+    <%= render Components::Backend::Banner.new(kind: :warning) do %>orphaned — not linked to an identity, cannot log in<% end %>
   <% end %>
-</div>
+
+  <div is-="separator"></div>
+
+  <% unless @user.orphaned? %>
+    <row gap-="3">
+      <column style="flex: 1;">
+        <span style="color: var(--foreground2);">identity</span>
+        <span><%= @user.first_name %> <%= @user.last_name %></span>
+        <span style="color: var(--foreground2);"><%= @user.email %></span>
+        <% if @user.slack_id %>
+          <span style="color: var(--foreground2);">slack: <%= @user.slack_id %></span>
+        <% end %>
+      </column>
+      <column style="flex: 1;">
+        <span style="color: var(--foreground2);">permissions</span>
+        <span><%= @user.pretty_roles %></span>
+        <% if @user.organized_programs.any? %>
+          <span style="color: var(--foreground2);">programs: <%= @user.organized_programs.map(&:name).join(", ") %></span>
+        <% end %>
+      </column>
+    </row>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span>
+      back
+    </row>
+  </row>
+</column>

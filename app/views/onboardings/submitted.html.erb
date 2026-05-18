@@ -1,8 +1,0 @@
-<%= render "shared/verification_status", identity: @identity %>
-<div>
-  <% if session[:return_to] %>
-    <%= link_to "Continue →", continue_onboarding_path, role: "button" %>
-  <% else %>
-    <%= render Components::HomeButton.new %>
-  <% end %>
-</div>

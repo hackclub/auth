@@ -11,6 +11,7 @@
 #  deleted_at                    :datetime
 #  first_name                    :string
 #  hq_override                   :boolean          default(FALSE)
+#  is_alum                       :boolean          default(FALSE)
 #  last_name                     :string
 #  legal_first_name              :string
 #  legal_last_name               :string
@@ -75,6 +76,7 @@ class Identity < ApplicationRecord
   has_many :programs, through: :access_tokens, source: :application
 
   has_many :resemblances, class_name: "Identity::Resemblance", dependent: :destroy
+  has_many :tombstone_collisions, class_name: "Identity::TombstoneCollision", dependent: :destroy
   has_many :break_glass_records, as: :break_glassable, dependent: :destroy
 
   has_many :all_access_tokens, class_name: "Doorkeeper::AccessToken", foreign_key: :resource_owner_id, dependent: :destroy
@@ -82,9 +84,14 @@ class Identity < ApplicationRecord
 
   has_many :owned_developer_apps, class_name: "Program", foreign_key: :owner_identity_id, dependent: :nullify
 
+  has_many :program_collaborators, dependent: :destroy
+  has_many :collaborated_programs, -> { merge(ProgramCollaborator.accepted) },
+           through: :program_collaborators, source: :program
+
   validates :first_name, :last_name, :country, :primary_email, :birthday, presence: true
   validates :primary_email, uniqueness: { conditions: -> { where(deleted_at: nil) } }
-  validate :validate_primary_email
+  validate :validate_primary_email, if: -> { new_record? || primary_email_changed? }
+  validate :validate_email_not_tombstoned, if: -> { new_record? || primary_email_changed? }
 
   validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, allow_blank: true
   validates :aadhaar_number, uniqueness: true, allow_blank: true
@@ -171,6 +178,18 @@ class Identity < ApplicationRecord
     { success: true, slack_id: slack_id }
   end
 
+  def pending_collaboration_invitations
+    ProgramCollaborator.pending
+      .where(identity_id: id)
+      .or(ProgramCollaborator.pending.where(identity_id: nil, invited_email: primary_email))
+      .includes(:program)
+  end
+
+  def accessible_developer_apps
+    Program.where(id: owned_developer_apps.select(:id))
+           .or(Program.where(id: collaborated_programs.select(:id)))
+  end
+
   def slack_linked? = slack_id.present?
 
   def onboarding_scenario_instance
@@ -215,11 +234,7 @@ class Identity < ApplicationRecord
     return "verified" if verification_statuses.include?("approved")
     return "pending" if verification_statuses.include?("pending")
 
-    rejected_verifications = verfs.where(status: "rejected")
-
-    has_fatal_rejection = rejected_verifications.any?(&:fatal_rejection?)
-
-    has_fatal_rejection ? "ineligible" : "needs_submission"
+    verfs.fatal_rejections.any? ? "ineligible" : "needs_submission"
   end
 
   def verification_status_reason
@@ -291,7 +306,7 @@ class Identity < ApplicationRecord
     needs_resubmission?
   end
 
-  def under_13? = age <= 13
+  def under_13? = age < 13
   def eighteen_or_under? = age <= 18
 
   def locked? = locked_at.present?
@@ -299,8 +314,8 @@ class Identity < ApplicationRecord
   def unlock! = update!(locked_at: nil)
 
   def lock!
-    update!(locked_at: Time.now)
-    sessions.destroy_all
+    update!(locked_at: Time.current)
+    sessions.update_all(expires_at: Time.current)
   end
 
   def self.calculate_age(birthday)
@@ -385,6 +400,8 @@ class Identity < ApplicationRecord
     attrs
   end
 
+  def has_fatal_rejection? = verifications.not_ignored.fatal_rejections.exists?
+
   alias_method :to_param, :public_id
 
   private
@@ -415,6 +432,13 @@ class Identity < ApplicationRecord
     end
   end
 
+  def validate_email_not_tombstoned
+    return unless primary_email.present?
+    return unless Deletion.email_tombstoned?(primary_email)
+
+    errors.add(:primary_email, "is not available")
+  end
+
   def validate_primary_email
     return unless primary_email.present?
 
@@ -424,6 +448,8 @@ class Identity < ApplicationRecord
       errors.add(:primary_email, I18n.t("errors.attributes.primary_email.invalid_format"))
       return
     end
+
+    return unless Rails.env.production?
 
     if address.disposable?
       errors.add(:primary_email, I18n.t("errors.attributes.primary_email.temporary"))

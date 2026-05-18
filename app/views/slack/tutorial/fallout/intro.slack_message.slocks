@@ -1,0 +1,10 @@
+image "https://cdn.hackclub.com/019cf72b-780f-75f6-bce2-cab2908116c2/welcome-to-fallout.gif", "Welcome to Hack Club Fallout!"
+
+section <<~EOFD, markdown: true
+  Right now you can only see a few channels related to Fallout.
+  To access other channels, you must read and agree to our <https://hackclub.com/conduct|Code of Conduct>.
+EOFD
+
+actions [
+          button("I'll follow the CoC!", "tutorial_agree", style: "primary")
+        ]

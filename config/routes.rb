@@ -172,7 +172,9 @@ end
 Rails.application.routes.draw do
   use_doorkeeper_openid_connect
   use_doorkeeper
-  mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
+  if Rails.env.development?
+    mount LetterOpenerWeb::Engine, at: "/letter_opener"
+  end
   mount ActiveStorageEncryption::Engine, at: "/encrypted_blobs"
 
   # Image conversion routes
@@ -192,6 +194,7 @@ Rails.application.routes.draw do
     root "static_pages#index", as: :root
     get "login", to: "static_pages#login", as: :login
     get "session_dump", to: "static_pages#session_dump", as: :session_dump unless Rails.env.production?
+    get "flash_test", to: "static_pages#flash_test", as: :flash_test unless Rails.env.production?
 
 
     get "kbar/search", to: "kbar#search", as: :kbar_search
@@ -222,11 +225,22 @@ Rails.application.routes.draw do
         post :reprovision_slack
         get :new_vouch
         post :create_vouch
+        post :clear_slack_photo
         post :promote_to_full_user
+        post :revoke_sessions
+        post :revoke_session
       end
+      resources :addresses, only: [ :new, :create, :edit, :update, :destroy ], controller: "identity_addresses"
     end
 
-    resources :programs
+    # Programs management moved to DeveloperAppsController (unified UI)
+
+
+    resources :deletions, only: [ :index, :show, :new, :create ] do
+      collection do
+        get :confirm
+      end
+    end
 
     post "/break_glass", to: "break_glass#create"
 
@@ -239,6 +253,7 @@ Rails.application.routes.draw do
   root "static_pages#home"
 
   get "/welcome", to: "static_pages#welcome", as: :welcome
+  get "/slack-id", to: "static_pages#slack_id", as: :slack_id
   get "/oauth/welcome", to: "static_pages#oauth_welcome", as: :oauth_welcome
   get "/security", to: "static_pages#security", as: :security
   get "/activity", to: "audit_logs#index", as: :audit_logs
@@ -355,7 +370,23 @@ Rails.application.routes.draw do
 
   resources :authorized_applications, only: [ :index, :destroy ]
 
-  resources :developer_apps, path: "developer/apps"
+  resources :developer_apps, path: "developer/apps" do
+    member do
+      post :rotate_credentials
+      post :revoke_all_authorizations
+      get :activity_log
+    end
+    resources :collaborators, only: [ :create, :destroy ],
+      controller: "developer_app_collaborators"
+    resources :collaborator_invites, only: [], controller: "developer_app_collaborator_invitations" do
+      member do
+        post :accept
+        post :decline
+        post :cancel
+      end
+    end
+  end
+
 
   namespace :api do
     namespace :v1 do

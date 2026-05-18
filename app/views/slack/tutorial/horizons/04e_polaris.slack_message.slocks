@@ -1,0 +1,9 @@
+chan = Rails.configuration.slack_channels.horizons_polaris
+
+header "❄️ welcome to polaris!"
+
+section <<~TEXT, markdown: true
+  You've just been added to <##{chan}>, the channel for Horizons Polaris in Toronto! For more info, check out [horizons.hackclub.com/polaris](https://horizons.hackclub.com/polaris).
+
+  Head over and introduce yourself!
+TEXT

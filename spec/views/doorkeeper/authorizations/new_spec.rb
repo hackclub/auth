@@ -26,7 +26,6 @@ RSpec.describe "doorkeeper/authorizations/new", type: :view do
   before do
     assign(:pre_auth, pre_auth)
     allow(view).to receive(:current_identity).and_return(identity)
-    allow(view).to receive(:session).and_return({ stashed_data: nil })
     allow(Program).to receive(:find_by).and_return(program)
     allow(view).to receive(:oauth_authorization_path).and_return("/oauth/authorize")
   end
@@ -47,7 +46,7 @@ RSpec.describe "doorkeeper/authorizations/new", type: :view do
     it "shows verification status for verification_status scope" do
       allow(pre_auth).to receive(:scopes).and_return(Doorkeeper::OAuth::Scopes.from_string("verification_status"))
       render
-      expect(rendered).to include(identity.verification_status)
+      expect(rendered).to include(identity.verification_status.humanize)
       expect(rendered).to include("YSWS eligible")
     end
 
@@ -83,6 +82,48 @@ RSpec.describe "doorkeeper/authorizations/new", type: :view do
       allow(pre_auth).to receive(:scope).and_return("some_future_scope")
       render
       expect(rendered).to include("Some future scope")
+    end
+  end
+
+  describe "hq official byline" do
+    it "shows default byline for hq_official apps without a custom byline" do
+      allow(program).to receive(:hq_official?).and_return(true)
+      allow(program).to receive(:byline).and_return(nil)
+      render
+      expect(rendered).to include("official Hack Club program")
+      expect(rendered).to include("Hack Club HQ")
+    end
+
+    it "shows custom byline when set" do
+      allow(program).to receive(:hq_official?).and_return(true)
+      allow(program).to receive(:byline).and_return("@nora, @msw, @zrl")
+      render
+      expect(rendered).to include("@nora, @msw, @zrl")
+    end
+
+    it "does not show byline for community apps" do
+      allow(program).to receive(:hq_official?).and_return(false)
+      allow(program).to receive(:trust_level).and_return("community_untrusted")
+      render
+      expect(rendered).not_to include("official Hack Club program")
+    end
+  end
+
+  describe "permissions display" do
+    it "collapses permissions behind details for hq_official apps" do
+      allow(program).to receive(:hq_official?).and_return(true)
+      allow(program).to receive(:byline).and_return(nil)
+      render
+      expect(rendered).to include("<details")
+      expect(rendered).to include("What account info will be shared?")
+    end
+
+    it "shows permissions directly for non-official apps" do
+      allow(program).to receive(:hq_official?).and_return(false)
+      allow(program).to receive(:trust_level).and_return("community_untrusted")
+      render
+      expect(rendered).not_to include("<details")
+      expect(rendered).to include("oauth-permissions")
     end
   end
 

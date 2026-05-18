@@ -1,0 +1,35 @@
+<style>
+  .slack-id-page {
+    text-align: center;
+    margin-top: 20vh;
+  }
+
+  .slack-id {
+    font-family: monospace;
+    font-size: 2rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    cursor: pointer;
+    user-select: all;
+  }
+  .slack-id:hover { border-color: var(--pico-primary); }
+  .slack-id-hint {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    opacity: 0.5;
+  }
+</style>
+
+<div class="slack-id-page">
+  <h1>Your Slack ID is:</h1>
+
+  <% if current_identity&.slack_id.present? %>
+    <code class="slack-id" onclick="navigator.clipboard.writeText(this.textContent.trim());var c=this.nextElementSibling;c.textContent='Copied!';setTimeout(()=>c.textContent='Click to copy',2000)"><%= current_identity.slack_id %></code>
+    <small class="slack-id-hint usn">Click to copy</small>
+  <% else %>
+    <p>No Slack ID linked to your account.</p>
+  <% end %>
+</div>

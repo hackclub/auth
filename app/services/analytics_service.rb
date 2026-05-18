@@ -134,7 +134,7 @@ class AnalyticsService
     totals.map do |scenario, total|
       prom = promoted[scenario] || 0
       rate = total > 0 ? ((prom.to_f / total) * 100).round(1) : 0
-      [scenario || "default", { total: total, promoted: prom, rate: rate }]
+      [ scenario || "default", { total: total, promoted: prom, rate: rate } ]
     end.sort_by { |_, v| -v[:total] }.to_h
   end
 

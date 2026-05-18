@@ -7,6 +7,10 @@ Rails.application.configure do
     purge_old_analytics: {
       cron: "0 4 * * *", # Run daily at 4am
       class: "Analytics::PurgeOldDataJob"
+    },
+    reap_aged_out_users: {
+      cron: "0 3 * * *", # Run daily at 3am
+      class: "Identity::ReapAgedOutUsersJob"
     }
   }
   config.good_job.enable_cron = true

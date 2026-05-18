@@ -1,0 +1,43 @@
+<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>deletion #<%= @deletion.id %></h2>
+    <a href="<%= backend_deletions_path %>" style="color: var(--foreground2); text-decoration: none;">← all deletions</a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <table>
+    <tbody>
+      <tr>
+        <th style="text-align: left;">reference</th>
+        <td><%= @deletion.privacy_request_reference.presence || "—" %></td>
+      </tr>
+      <tr>
+        <th style="text-align: left;">created</th>
+        <td><%= @deletion.created_at.strftime("%Y-%m-%d %H:%M UTC") %></td>
+      </tr>
+      <tr>
+        <th style="text-align: left;">email hash</th>
+        <td style="color: var(--foreground2);"><code><%= @deletion.email_hash.truncate(16) %></code></td>
+      </tr>
+      <tr>
+        <th style="text-align: left;">name combo hashes</th>
+        <td><%= @deletion.name_combos.size %></td>
+      </tr>
+      <tr>
+        <th style="text-align: left;">session IP hashes</th>
+        <td><%= @deletion.session_ips.size %></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <% if @log_lines.present? %>
+    <div is-="separator"></div>
+    <span style="color: var(--foreground2); font-style: italic;">execution log</span>
+    <column style="background: var(--background1); border-radius: 4px; padding: 1rem; font-family: monospace; font-size: 0.9em;">
+      <% @log_lines.each do |line| %>
+        <span style="color: var(--green);"><%= line %></span>
+      <% end %>
+    </column>
+  <% end %>
+</column>

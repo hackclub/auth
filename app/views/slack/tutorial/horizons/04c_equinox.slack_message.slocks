@@ -1,0 +1,9 @@
+chan = Rails.configuration.slack_channels.horizons_equinox
+
+header "🌗 welcome to equinox!"
+
+section <<~TEXT, markdown: true
+  You've just been added to <##{chan}>, the channel for Horizons Equinox in Africa! For more info, check out [horizons.hackclub.com/equinox](https://horizons.hackclub.com/equinox).
+
+  Head over and introduce yourself!
+TEXT

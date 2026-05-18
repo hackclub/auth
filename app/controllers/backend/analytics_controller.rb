@@ -4,6 +4,7 @@ module Backend
   class AnalyticsController < ApplicationController
     def show
       authorize :analytics, :show?
+      add_breadcrumb "ANLZ"
 
       @time_period = params[:time_period] || "this_month"
       @start_date, @end_date = date_range_for(@time_period)

@@ -5,3 +5,12 @@
 .container { @include container(); }
 .container-md { @include container(1000px); }
 .container-sm { @include container(720px); }
+
+// HTMX loader — hidden by default, shown when a sibling triggers a request
+.hx-loader {
+  display: none;
+  margin-top: $space-3;
+}
+.htmx-request ~ .hx-loader {
+  display: block;
+}

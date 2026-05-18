@@ -1,0 +1,5 @@
+<% if @activities.any? %>
+  <%= render Components::PublicActivity::Container.new(@activities) %>
+<% else %>
+  <p style="color: var(--pico-muted-color);"><%= t("developer_apps.show.no_activity") %></p>
+<% end %>

@@ -13,5 +13,21 @@ module ResemblanceNoticerEngine
         resemblance.save! unless existing
       end
     end
+
+    check_tombstone_collisions(identity)
+  end
+
+  def self.check_tombstone_collisions(identity)
+    return unless identity.birthday.present?
+
+    name = "#{identity.first_name} #{identity.last_name}"
+    if identity.legal_first_name.present? || identity.legal_last_name.present?
+      name = "#{name} #{identity.legal_first_name} #{identity.legal_last_name}"
+    end
+
+    matching_deletions = DeletionService.check_for_name_combos(name, identity.birthday)
+    matching_deletions.each do |deletion|
+      identity.tombstone_collisions.find_or_create_by!(deletion: deletion)
+    end
   end
 end

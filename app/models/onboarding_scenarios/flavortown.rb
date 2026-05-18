@@ -32,7 +32,7 @@ module OnboardingScenarios
 
     def slack_onboarding_flow = :internal_tutorial
 
-    def slack_channels = chans(:flavortown_bulletin, :flavortown_esplanade, :flavortown_help, :identity_help)
+    def slack_channels = chans(:flavortown_bulletin, :flavortown_esplanade, :flavortown_help, :identity_help, :help)
 
     def promotion_channels = chans(:flavortown_construction, :library, :lounge, :welcome, :happenings, :community, :neighbourhood, :pyramid_scheme)
 

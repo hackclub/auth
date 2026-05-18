@@ -9,7 +9,7 @@
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=3.4.4
-FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
+FROM docker.io/library/ruby:3.4.4-slim@sha256:4020c2d289c1266fe4a2ea1d0018c22c17435905c514c66f8437555da57723ad AS base
 
 # Rails app lives here
 WORKDIR /rails
@@ -28,8 +28,23 @@ ENV BUNDLE_DEPLOYMENT="1" \
 FROM base AS build
 
 # Install packages needed to build gems
+ARG LIBHEIF_VERSION=1.21.2
+ARG LIBHEIF_SHA256=79996de959d28ca82ef070c382304683f5cdaf04cbe2953a74587160a3710a36
+# Install packages needed to build gems
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips imagemagick libheif-dev postgresql-client libffi-dev build-essential git libpq-dev libyaml-dev pkg-config && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips imagemagick postgresql-client libffi-dev build-essential git libpq-dev libyaml-dev pkg-config \
+    cmake libjpeg-dev libpng-dev libaom-dev libx265-dev libde265-dev libxmlsec1-dev libxmlsec1 libxmlsec1-openssl && \
+    cd /tmp && \
+     curl -sL "https://github.com/strukturag/libheif/archive/refs/tags/v${LIBHEIF_VERSION}.tar.gz" -o /tmp/libheif.tar.gz && \
+     echo "${LIBHEIF_SHA256} /tmp/libheif.tar.gz" | sha256sum -c - && \
+    tar xz -C /tmp/ -f /tmp/libheif.tar.gz && \
+    cd /tmp/libheif-${LIBHEIF_VERSION} && \
+    mkdir build && cd build && \
+    cmake --preset=release -DWITH_EXAMPLES=ON -DENABLE_PLUGIN_LOADING=NO .. && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig && \
+    cd / && rm -rf /tmp/libheif && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

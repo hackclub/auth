@@ -16,10 +16,15 @@
   </div>
   <div class="auth-card oauth-consent">
     <header>
-      <h1><%= session.dig(:stashed_data, "splash_message") || "Continue to #{@pre_auth.client.name}?" %></h1>
+      <h1>Continue to <%= @pre_auth.client.name %>?</h1>
       <small>
         <%= raw t('.prompt', client_name: content_tag(:strong) { @pre_auth.client.name }) %>
       </small>
+      <% if application&.hq_official? %>
+        <p class="oauth-official-byline">
+          <%= t('.official_byline', byline: application.byline.presence || t('.official_byline_default')) %>
+        </p>
+      <% end %>
     </header>
 
     <% if @pre_auth.scopes.count > 0 %>
@@ -31,7 +36,7 @@
       %>
 
       <% if scope_data.any? || unknown_scopes.any? %>
-        <div class="oauth-permissions">
+        <% permissions_content = capture do %>
           <fieldset>
             <legend><%= t('.able_to') %></legend>
             <ul class="permissions-list">
@@ -60,11 +65,22 @@
               <% end %>
             </ul>
           </fieldset>
-        </div>
+        <% end %>
+
+        <% if application&.hq_official? %>
+          <details class="oauth-permissions">
+            <summary><%= t('.permissions_details') %></summary>
+            <%= permissions_content %>
+          </details>
+        <% else %>
+          <div class="oauth-permissions">
+            <%= permissions_content %>
+          </div>
+        <% end %>
       <% end %>
     <% end %>
 
-    <% auth_label = t('.authorize') %>
+    <% auth_label = application&.hq_official? ? t('.authorize_official') : t('.authorize') %>
     <div class="oauth-actions" x-data="{ countdown: <%= application&.hq_official? ? 0 : 3 %>, ready: <%= application&.hq_official? ? true : false %>, authLabel: '<%= auth_label.gsub("'", "\\'") %>' }" x-init="if (countdown > 0) { let interval = setInterval(() => { countdown--; if (countdown <= 0) { ready = true; clearInterval(interval); } }, 1000); }">
       <%= form_tag oauth_authorization_path, method: :delete do %>
         <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>

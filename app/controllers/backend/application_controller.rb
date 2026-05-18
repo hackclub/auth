@@ -10,7 +10,7 @@ module Backend
 
     after_action :verify_authorized
 
-    helper_method :current_user, :user_signed_in?
+    helper_method :current_user, :user_signed_in?, :breadcrumbs
 
     before_action :authenticate_user!, :set_honeybadger_context
     before_action :require_2fa!
@@ -32,6 +32,13 @@ module Backend
     def info_for_paper_trail = { extra_data: { ip: request.remote_ip, user_agent: request.user_agent, impersonating: !!current_impersonator, pretending_to_be: current_impersonator && current_user }.compact_blank }
 
     def user_signed_in? = !!current_user
+
+    def add_breadcrumb(label, path = nil)
+      @_breadcrumbs ||= []
+      @_breadcrumbs << { label: label, path: path }
+    end
+
+    def breadcrumbs = @_breadcrumbs || []
 
     def authenticate_user!
       unless current_identity
@@ -89,14 +96,14 @@ module Backend
     end
 
     rescue_from Pundit::NotAuthorizedError do |e|
-      event_id = Sentry.capture_exception(e)
+      event_id = Sentry.capture_exception(e)&.event_id
       flash[:error] = "you don't seem to be authorized to do that?"
       flash[:sentry_event_id] = event_id if event_id
       redirect_to backend_root_path unless request.path == "/backend" || request.path == "/backend/"
     end
 
     rescue_from ActiveRecord::RecordNotFound do |e|
-      event_id = Sentry.capture_exception(e)
+      event_id = Sentry.capture_exception(e)&.event_id
       flash[:error] = "sorry, couldn't find that object... (404)"
       flash[:sentry_event_id] = event_id if event_id
       redirect_to backend_root_path unless request.path == "/backend" || request.path == "/backend/"

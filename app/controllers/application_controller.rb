@@ -1,6 +1,5 @@
 class ApplicationController < ActionController::Base
   include PublicActivity::StoreController
-  include IsSneaky
   include SessionsHelper
   include StepUpAuthenticatable
 
@@ -35,10 +34,6 @@ class ApplicationController < ActionController::Base
 
   def authenticate_identity!
     unless identity_signed_in?
-      # JANK ALERT
-      hide_some_data_away
-
-      # EW
       return if controller_name == "onboardings"
 
       if request.xhr?
@@ -98,14 +93,14 @@ class ApplicationController < ActionController::Base
   end
 
   rescue_from ActiveRecord::RecordNotFound do |e|
-    event_id = Sentry.capture_exception(e)
+    event_id = Sentry.capture_exception(e)&.event_id
     flash[:error] = "sorry, couldn't find that object... (404)"
     flash[:sentry_event_id] = event_id if event_id
     redirect_to root_path unless request.path == "/"
   end
 
   rescue_from StandardError do |e|
-    event_id = Sentry.capture_exception(e)
+    event_id = Sentry.capture_exception(e)&.event_id
     flash[:error] = "Something went wrong. Please try again."
     flash[:sentry_event_id] = event_id if event_id
 
