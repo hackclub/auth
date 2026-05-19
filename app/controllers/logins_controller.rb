@@ -361,6 +361,7 @@ class LoginsController < ApplicationController
 
             if Flipper.enabled?(:are_we_enterprise_yet, current_identity) && scenario.slack_onboarding_flow == :internal_tutorial
                 Tutorial::BeginJob.perform_later(@identity)
+                Tutorial::WelcomeMessageJob.set(wait: 30.minutes).perform_later(@identity)
             end
 
             slack_result

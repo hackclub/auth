@@ -1,0 +1,10 @@
+section <<~TEXT, markdown: true
+  Hey, welcome to Hack Club! This is different from other online communities. We have high standards, and expect everyone to follow four principles:
+
+  • Treat everyone with respect and kindness
+  • Don't degrade our shared spaces
+  • Make conflict productive
+  • Be Good, not just Not Bad
+
+  If anyone ever mistreats you, please let us know! Send a message to <@U07K4TS9HQE> to contact our moderators, the Fire Department. And to see the full rules, please read the <https://hackclub.com/conduct|Code of Conduct>.
+TEXT
