@@ -214,6 +214,20 @@ module Backend
       redirect_to backend_identity_path(@identity)
     end
 
+    def simulate_onboarding
+      authorize @identity
+
+      return redirect_to backend_identity_path(@identity), alert: "identity has no slack_id — provision slack first" unless @identity.slack_id.present?
+
+      slug = params[:scenario_slug].presence
+      @identity.update!(onboarding_scenario: slug)
+
+      Tutorial::BeginJob.perform_later(@identity)
+      Tutorial::WelcomeMessageJob.set(wait: 30.minutes).perform_later(@identity)
+
+      redirect_to backend_identity_path(@identity), notice: "onboarding simulation enqueued (scenario: #{slug || 'default'})"
+    end
+
     def promote_to_full_user
       authorize @identity
 

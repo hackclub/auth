@@ -1,0 +1,21 @@
+<% super_admin_tool do %>
+  <details>
+    <summary style="color: var(--foreground2); cursor: pointer;">simulate onboarding</summary>
+    <column pad-="1 0" gap-="1">
+      <% if identity.slack_id.present? %>
+        <%= form_with url: simulate_onboarding_backend_identity_path(identity), method: :post, local: true do |f| %>
+          <row gap-="1" align-="center">
+            <%= f.select :scenario_slug,
+                  options_for_select(
+                    [[ "default", "" ]] + OnboardingScenarios::Base.available_slugs.map { |s| [s, s] },
+                    identity.onboarding_scenario.presence || ""
+                  ) %>
+            <%= f.submit "enqueue" %>
+          </row>
+        <% end %>
+      <% else %>
+        <span style="color: var(--foreground2);">no slack_id — provision slack first</span>
+      <% end %>
+    </column>
+  </details>
+<% end %>

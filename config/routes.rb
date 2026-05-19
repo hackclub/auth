@@ -229,6 +229,7 @@ Rails.application.routes.draw do
         post :promote_to_full_user
         post :revoke_sessions
         post :revoke_session
+        post :simulate_onboarding
       end
       resources :addresses, only: [ :new, :create, :edit, :update, :destroy ], controller: "identity_addresses"
     end

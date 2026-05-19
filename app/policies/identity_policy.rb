@@ -10,6 +10,8 @@ class IdentityPolicy < ApplicationPolicy
   alias_method :promote_to_full_user?, :update?
   alias_method :clear_slack_photo?, :update?
 
+  def simulate_onboarding? = user&.super_admin?
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       if user.super_admin? || user.manual_document_verifier? || user.all_fields_access?

@@ -274,6 +274,9 @@
     </details>
   <% end %>
 
+  <%# === Simulate onboarding === %>
+  <%= render "backend/identities/simulate_onboarding", identity: @identity %>
+
   <%# === Deletion === %>
   <% deletion_tool do %>
     <div is-="separator"></div>
