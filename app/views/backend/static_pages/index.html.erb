@@ -29,7 +29,7 @@
       <% if current_user&.can_process_deletions? %>
         <span style="color: var(--foreground2); padding: 0 1ch;">Deletions</span>
         <ul>
-          <%= render_nav_item backend_deletions_path, "Manage deletions", "DEL", variant: "red" %>
+          <%= render_nav_item backend_deletions_path, "Manage deletions", "DELS", variant: "red" %>
         </ul>
       <% end %>
 
