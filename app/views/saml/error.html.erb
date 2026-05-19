@@ -1,3 +1,4 @@
+<% content_for :title, "SAML Error" %>
 <% if Flipper.enabled?(:are_we_enterprise_yet, current_identity) && !@missing_message %><%= @error %>
   <%= @error %>
 <% else %>

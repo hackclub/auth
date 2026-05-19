@@ -1,4 +1,5 @@
 <% service_name = @program&.name || "the application" %>
+<% content_for :title, "Continue to #{service_name}" %>
 <% scenario_class = @program&.onboarding_scenario_class %>
 <% scenario = scenario_class&.new(nil) %>
 <%= render "shared/scenario_background_style", scenario: %>

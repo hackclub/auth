@@ -4,6 +4,7 @@
   scenario = scenario_class&.new(current_identity)
   custom_logo_path = scenario&.logo_path
 %>
+<% content_for :title, "Authorize #{@pre_auth.client.name}" %>
 <%= render "shared/scenario_background_style", scenario: %>
 <div class="auth-container<%= ' has-background' if scenario&.background_path || scenario&.dark_mode_background_path %>">
   <div class="auth-brand">

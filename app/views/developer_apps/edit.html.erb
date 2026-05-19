@@ -1,3 +1,4 @@
+<% content_for :title, "Edit #{@app.name}" %>
 <div class="page-header">
   <h1><%= t ".title", name: @app.name %></h1>
   <%= link_to t(".back_to_app"), developer_app_path(@app) %>
