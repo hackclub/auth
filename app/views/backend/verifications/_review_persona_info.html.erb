@@ -5,11 +5,26 @@
   <% end %>
   <% if verification.persona_record.present? %>
     <% record = verification.persona_record %>
-    <row><span style="min-width: 12ch; color: var(--foreground2);">name</span> <%= record.name_first %> <%= record.name_last %></row>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">name</span> <%= record.full_name %></row>
+    <% if record.sex.present? %>
+      <row><span style="min-width: 12ch; color: var(--foreground2);">sex</span> <%= record.sex %></row>
+    <% end %>
     <row><span style="min-width: 12ch; color: var(--foreground2);">birthdate</span> <%= record.birthdate&.strftime("%B %d, %Y") %></row>
     <row><span style="min-width: 12ch; color: var(--foreground2);">country</span> <%= record.country_code %></row>
+    <% if record.address_lines.any? %>
+      <row>
+        <span style="min-width: 12ch; color: var(--foreground2);">address</span>
+        <column><% record.address_lines.each do |line| %><span><%= line %></span><% end %></column>
+      </row>
+    <% end %>
     <% if record.id_class.present? %>
       <row><span style="min-width: 12ch; color: var(--foreground2);">ID type</span> <%= record.id_class_label %></row>
+    <% end %>
+    <% if record.document_number.present? %>
+      <row><span style="min-width: 12ch; color: var(--foreground2);">ID number</span> <code><%= record.document_number %></code></row>
+    <% end %>
+    <% if record.issue_date %>
+      <row><span style="min-width: 12ch; color: var(--foreground2);">issued</span> <%= record.issue_date %></row>
     <% end %>
     <% if record.expiration_date %>
       <row>
@@ -20,6 +35,9 @@
           <%= record.expiration_date %>
         <% end %>
       </row>
+    <% end %>
+    <% if record.issuing_authority.present? %>
+      <row><span style="min-width: 12ch; color: var(--foreground2);">issued by</span> <%= record.issuing_authority %></row>
     <% end %>
     <% if record.entity_confidence_score %>
       <row>

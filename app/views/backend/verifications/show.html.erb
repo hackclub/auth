@@ -83,6 +83,91 @@
     <% end %>
   <% end %>
 
+  <%# === Checks + Signals (outside break-glass) === %>
+  <% if @relevant_object.respond_to?(:checks) && @relevant_object&.checks&.any? %>
+    <div is-="separator"></div>
+    <span style="color: var(--foreground2); font-style: italic;">persona checks</span>
+    <table>
+      <thead>
+        <tr><th>check</th><th>status</th><th>requirement</th><th>reasons</th></tr>
+      </thead>
+      <tbody>
+        <% @relevant_object.checks.each do |check| %>
+          <tr>
+            <td><%= check["name"].to_s.tr("_", " ") %></td>
+            <td>
+              <span is-="badge" variant-="<%= check["status"] == "passed" ? "green" : check["status"] == "failed" ? "red" : "" %>"><%= check["status"] %></span>
+            </td>
+            <td style="color: var(--foreground2);"><%= check["requirement"] %></td>
+            <td style="color: var(--foreground2);"><%= check["reasons"]&.compact&.join(", ").presence || "—" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+
+  <% if @relevant_object.respond_to?(:formatted_behaviors) && @relevant_object&.formatted_behaviors&.any? %>
+    <div is-="separator"></div>
+    <row gap-="3" align-="start" style="flex-wrap: wrap;">
+      <column style="flex: 1; min-width: 30ch;">
+        <span style="color: var(--foreground2); font-style: italic;">behavioral signals</span>
+        <table>
+          <thead><tr><th>signal</th><th>value</th></tr></thead>
+          <tbody>
+            <% @relevant_object.formatted_behaviors.each do |b| %>
+              <tr>
+                <td><%= b[:label] %></td>
+                <td>
+                  <% if b[:key] == "behavior_threat_level" %>
+                    <span is-="badge" variant-="<%= b[:value] == "low" ? "green" : b[:value] == "high" ? "red" : "yellow" %>"><%= b[:value] %></span>
+                  <% else %>
+                    <%= b[:value] %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </column>
+
+      <% if @relevant_object.respond_to?(:primary_session) && @relevant_object.session_data.any? %>
+        <column style="flex: 1; min-width: 30ch;">
+          <span style="color: var(--foreground2); font-style: italic;">network & device</span>
+          <table>
+            <thead><tr><th>signal</th><th>value</th></tr></thead>
+            <tbody>
+              <% if @relevant_object.device_summary %>
+                <tr><td>device</td><td><%= @relevant_object.device_summary %></td></tr>
+              <% end %>
+              <% if @relevant_object.ip_location %>
+                <tr><td>IP location</td><td><%= @relevant_object.ip_location %></td></tr>
+              <% end %>
+              <% if @relevant_object.ip_isp %>
+                <tr><td>ISP</td><td><%= @relevant_object.ip_isp %></td></tr>
+              <% end %>
+              <% if @relevant_object.session_threat_level %>
+                <tr>
+                  <td>session threat</td>
+                  <td><span is-="badge" variant-="<%= @relevant_object.session_threat_level == "low" ? "green" : @relevant_object.session_threat_level == "high" ? "red" : "yellow" %>"><%= @relevant_object.session_threat_level %></span></td>
+                </tr>
+              <% end %>
+              <% if @relevant_object.network_flags.any? %>
+                <tr>
+                  <td>flags</td>
+                  <td><% @relevant_object.network_flags.each do |flag| %><span is-="badge" variant-="red"><%= flag %></span> <% end %></td>
+                </tr>
+              <% end %>
+              <% flags = @relevant_object.network_flags %>
+              <% if flags.empty? && @relevant_object.primary_session[:is_tor] == false %>
+                <tr><td>flags</td><td style="color: var(--foreground2);">none detected</td></tr>
+              <% end %>
+            </tbody>
+          </table>
+        </column>
+      <% end %>
+    </row>
+  <% end %>
+
   <div is-="separator"></div>
 
   <%# === Files === %>
