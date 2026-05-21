@@ -398,6 +398,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_17_000003) do
     t.date "expiration_date"
     t.float "entity_confidence_score"
     t.jsonb "checks", default: []
+    t.jsonb "behaviors", default: {}
+    t.jsonb "network_signals", default: {}
     t.index ["deleted_at"], name: "index_identity_persona_records_on_deleted_at"
     t.index ["identity_id"], name: "index_identity_persona_records_on_identity_id"
     t.index ["inquiry_id"], name: "index_identity_persona_records_on_inquiry_id", unique: true
