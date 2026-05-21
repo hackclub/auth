@@ -650,7 +650,7 @@ en:
           description: "Take a photo of your passport, driver's license, or national ID card"
         selfie:
           title: Take a selfie
-          description: "Persona checks that you match the photo on your ID"
+          description: "A quick photo to confirm it's you"
         done:
           title: Done
           description: "Most people are verified automatically within a minute"
@@ -662,7 +662,7 @@ en:
       error_sdk: "Something went wrong with the verification. You can try again, or upload a document manually instead."
       complete_message: "Done! Checking your results…"
       privacy_note_html: "Your photos are encrypted and stored securely. Hack Club staff can view them if there's an issue with your verification, but access is logged. Persona is an independent identity verification company — <a href=\"https://withpersona.com/security\" target=\"_blank\">learn more about how they handle your data</a>."
-      cant_do_this: "Can't do this right now?"
+      cant_do_this: "Don't have your ID on you?"
       fallback_prompt: Upload a document manually instead
     status:
       badges:
