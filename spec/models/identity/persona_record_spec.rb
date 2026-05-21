@@ -34,19 +34,11 @@ RSpec.describe Identity::PersonaRecord, type: :model do
       expect(subject).not_to be_valid
     end
 
-    it "requires name_first" do
+    it "allows nil name/birthdate for incomplete inquiries" do
       subject.name_first = nil
-      expect(subject).not_to be_valid
-    end
-
-    it "requires name_last" do
       subject.name_last = nil
-      expect(subject).not_to be_valid
-    end
-
-    it "requires birthdate" do
       subject.birthdate = nil
-      expect(subject).not_to be_valid
+      expect(subject).to be_valid
     end
 
     it "enforces uniqueness of inquiry_id" do

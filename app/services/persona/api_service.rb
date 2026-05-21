@@ -21,8 +21,16 @@ class Persona::APIService
   end
 
   def retrieve_inquiry(inquiry_id)
-    data, meta = request!(:get, "/api/v1/inquiries/#{inquiry_id}")
-    build_inquiry(data, session_token: meta[:session_token])
+    response = connection.get("/api/v1/inquiries/#{inquiry_id}?include=sessions")
+    raise Persona::APIError, error_message(response) unless response.success?
+
+    body = response.body.deep_symbolize_keys
+    included = body[:included] || []
+    sessions = included
+      .select { |obj| obj[:type] == "inquiry-session" }
+      .map { |obj| obj[:attributes] || {} }
+
+    build_inquiry(body[:data], session_token: body.dig(:meta, :session_token), sessions: sessions)
   end
 
   def resume_inquiry(inquiry_id)
@@ -46,13 +54,14 @@ class Persona::APIService
       name_last:                attrs[:name_last],
       birthdate:                attrs[:birthdate] ? Date.parse(attrs[:birthdate]) : nil,
       country_code:             attrs[:country_code],
-      front_photo:              attrs[:front_photo],
-      back_photo:               attrs[:back_photo],
-      selfie_photo:             attrs[:selfie_photo],
       id_class:                 attrs[:id_class],
       expiration_date:          attrs[:expiration_date] ? Date.parse(attrs[:expiration_date]) : nil,
       entity_confidence_score:  attrs[:entity_confidence_score]&.then { |s| s > 1 ? s / 100.0 : s },
-      checks:                   attrs[:checks] || []
+      checks:                   attrs[:checks] || [],
+      front_photo:              attrs[:front_photo],
+      back_photo:               attrs[:back_photo],
+      selfie_photo:             attrs[:selfie_photo],
+      raw:                      attrs
     )
   end
 
@@ -128,7 +137,7 @@ class Persona::APIService
     end
   end
 
-  def build_inquiry(data, session_token: nil)
+  def build_inquiry(data, session_token: nil, sessions: [])
     verifications = data.dig(:relationships, :verifications, :data) || []
     documents = data.dig(:relationships, :documents, :data) || []
 
@@ -138,7 +147,10 @@ class Persona::APIService
       account_id:       data.dig(:relationships, :account, :data, :id),
       session_token:    session_token,
       verification_ids: verifications,
-      document_ids:     documents
+      document_ids:     documents,
+      behaviors:        data.dig(:attributes, :behaviors) || {},
+      sessions:         sessions,
+      raw:              data[:attributes] || {}
     )
   end
 
