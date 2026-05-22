@@ -79,6 +79,7 @@ COPY . .
 RUN bundle exec bootsnap precompile app/ lib/ && \
     mv config/credentials config/credentials.bak && \
     mkdir config/credentials && \
+    mv config/credentials.yml.enc config/credentials.yml.enc.bak && \
     SECRET_KEY_BASE_DUMMY=1 \
     ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=precompile \
     ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=precompile \
@@ -87,6 +88,7 @@ RUN bundle exec bootsnap precompile app/ lib/ && \
     STATUS=$? && \
     rm -rf config/credentials && \
     mv config/credentials.bak config/credentials && \
+    mv config/credentials.yml.enc.bak config/credentials.yml.enc && \
     rm -rf node_modules && \
     exit $STATUS
 
