@@ -113,3 +113,6 @@ uat:
   primary:
     <<: *default
     database: identity_vault_uat
+  analytics:
+    <<: *default
+    migrations_paths: db/analytics_migrate
