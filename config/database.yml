@@ -108,3 +108,13 @@ staging:
     url: <%= ENV['ANALYTICS_DATABASE_URL'] %>
     database: identity_vault_analytics_staging
     migrations_paths: db/analytics_migrate
+
+uat:
+  primary:
+    <<: *default
+    database: identity_vault_uat
+  analytics:
+    <<: *default
+    url: <%= ENV.fetch('ANALYTICS_DATABASE_URL', ENV['DATABASE_URL']) %>
+    database: identity_vault_analytics_uat
+    migrations_paths: db/analytics_migrate
