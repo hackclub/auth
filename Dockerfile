@@ -77,12 +77,18 @@ COPY . .
 
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/ && \
+    mv config/credentials config/credentials.bak && \
+    mkdir config/credentials && \
     SECRET_KEY_BASE_DUMMY=1 \
     ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=precompile \
     ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=precompile \
     ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=precompile \
-    ./bin/rails assets:precompile && \
-    rm -rf node_modules
+    ./bin/rails assets:precompile ; \
+    STATUS=$? && \
+    rm -rf config/credentials && \
+    mv config/credentials.bak config/credentials && \
+    rm -rf node_modules && \
+    exit $STATUS
 
 # Final stage for app image
 FROM base
