@@ -171,6 +171,8 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
       filename: filename,
       content_type: "image/jpeg"
     )
+  rescue Persona::APIError => e
+    Sentry.capture_exception(e)
   end
 
   def build_network_signals(sessions)

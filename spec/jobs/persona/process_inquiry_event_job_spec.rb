@@ -125,6 +125,30 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
         described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
       }.to have_enqueued_job(Verification::CheckDiscrepanciesJob)
     end
+
+    context "when photo downloads fail" do
+      before do
+        allow(mock_service).to receive(:download_file).and_raise(Persona::APIError, "failed to download file (400)")
+      end
+
+      it "still transitions to pending" do
+        described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
+
+        verification.reload
+        expect(verification).to be_pending
+      end
+
+      it "still saves the PersonaRecord" do
+        expect {
+          described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
+        }.to change(Identity::PersonaRecord, :count).by(1)
+      end
+
+      it "reports to Sentry" do
+        expect(Sentry).to receive(:capture_exception).at_least(:once)
+        described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
+      end
+    end
   end
 
   describe "inquiry.approved" do
