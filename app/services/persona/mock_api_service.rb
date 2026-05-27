@@ -1,11 +1,11 @@
 class Persona::MockAPIService
   MOCK_BEHAVIORS = {
     "behavior_threat_level" => "low",
-    "bot_score" => 8,
+    "bot_score" => 2,
     "request_spoof_attempts" => 0,
     "user_agent_spoof_attempts" => 0,
     "distraction_events" => 3,
-    "hesitation_percentage" => 84.52,
+    "hesitation_percentage" => 45.0,
     "shortcut_copies" => 0,
     "shortcut_pastes" => 0,
     "autofill_starts" => 0,

@@ -8,7 +8,7 @@ require "rails_helper"
 #
 # also: the sad path (declined), resume flow, and idempotency.
 RSpec.describe "Persona verification lifecycle", type: :request do
-  let(:identity) { create(:identity, persona_account_id: nil) }
+  let(:identity) { create(:identity, persona_account_id: nil, legal_first_name: nil, legal_last_name: nil, birthday: Date.parse("2008-06-15")) }
   let(:session) do
     identity.sessions.create!(
       session_token: SecureRandom.hex(32),
@@ -99,10 +99,13 @@ RSpec.describe "Persona verification lifecycle", type: :request do
       expect(verification.identity_document.document_type).to eq("persona_gov_id")
 
       # step 4: persona sends inquiry.approved webhook
+      # webhook handler enqueues ProcessInquiryEventJob, which enqueues VerificationPipelineJob
+      persona_jobs = [Persona::ProcessInquiryEventJob, Persona::VerificationPipelineJob]
       send_webhook("inquiry.approved", inquiry_id)
       expect(response).to have_http_status(:ok)
 
-      perform_enqueued_jobs(only: Persona::ProcessInquiryEventJob)
+      perform_enqueued_jobs(only: persona_jobs)
+      perform_enqueued_jobs(only: persona_jobs)
 
       verification.reload
       expect(verification).to be_approved
@@ -196,12 +199,16 @@ RSpec.describe "Persona verification lifecycle", type: :request do
       send_webhook("inquiry.completed", inquiry_id)
       perform_enqueued_jobs(only: Persona::ProcessInquiryEventJob)
 
+      persona_jobs = [Persona::ProcessInquiryEventJob, Persona::VerificationPipelineJob]
+
       send_webhook("inquiry.approved", inquiry_id)
-      perform_enqueued_jobs(only: Persona::ProcessInquiryEventJob)
+      perform_enqueued_jobs(only: persona_jobs)
+      perform_enqueued_jobs(only: persona_jobs)
 
       # second approval — should be a no-op, not raise
       send_webhook("inquiry.approved", inquiry_id)
-      perform_enqueued_jobs(only: Persona::ProcessInquiryEventJob)
+      perform_enqueued_jobs(only: persona_jobs)
+      perform_enqueued_jobs(only: persona_jobs)
 
       verification.reload
       expect(verification).to be_approved
