@@ -127,7 +127,8 @@
           <% if @identity.is_alum %><span is-="badge" variant-="foreground2">alum</span><% end %>
           <% if @identity.came_in_through_adult_program %><span is-="badge" variant-="foreground2">adult program</span><% end %>
           <% if @identity.developer_mode %><span is-="badge" variant-="foreground2">developer</span><% end %>
-          <% unless @identity.hq_override || @identity.can_hq_officialize || @identity.is_alum || @identity.came_in_through_adult_program || @identity.developer_mode %>
+          <% if @identity.disallow_slack %><span is-="badge" variant-="red">no slack</span><% end %>
+          <% unless @identity.hq_override || @identity.can_hq_officialize || @identity.is_alum || @identity.came_in_through_adult_program || @identity.developer_mode || @identity.disallow_slack %>
             <span style="color: var(--foreground2);">none</span>
           <% end %>
         </row>

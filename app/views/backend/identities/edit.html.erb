@@ -41,6 +41,7 @@
       <span style="color: var(--foreground2);">overrides</span>
       <label><%= f.check_box :hq_override %> hq override <span style="color: var(--foreground2);">— bypass normal eligibility rules</span></label>
       <label><%= f.check_box :ysws_eligible %> ysws eligible</label>
+      <label><%= f.check_box :disallow_slack %> disallow slack <span style="color: var(--foreground2);">— prevent SAML into Slack</span></label>
       <% super_admin_tool do %>
         <label><%= f.check_box :permabanned %> permabanned <span style="color: var(--foreground2);">— permanently ban</span></label>
         <label><%= f.check_box :can_hq_officialize %> can officialize apps</label>

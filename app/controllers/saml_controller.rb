@@ -31,6 +31,11 @@ class SAMLController < ApplicationController
       redirect_to saml_welcome_path(return_to: request.fullpath) and return
     end
 
+    if params[:slug] == "slack" && current_identity.disallow_slack
+      @error = "Unable to log in right now"
+      render :error, status: :forbidden and return
+    end
+
     set_honeybadger_context
 
     # Try to assign to Slack workspace if not yet done
@@ -59,6 +64,11 @@ class SAMLController < ApplicationController
     end
 
     return unless check_allowed_emails!
+
+    if @sp_config[:slug] == "slack" && current_identity.disallow_slack
+      @error = "Unable to log in right now"
+      render :error, status: :forbidden and return
+    end
 
     set_honeybadger_context
 
