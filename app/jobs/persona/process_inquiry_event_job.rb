@@ -91,7 +91,7 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
   end
 
   def handle_marked_for_review
-    @verification.create_activity(:persona_inquiry_marked_for_review, recipient: @identity,
+    @verification.create_activity(:persona_inquiry_marked_for_review,
       parameters: { inquiry_id: @verification.persona_inquiry_id })
   end
 
