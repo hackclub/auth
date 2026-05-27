@@ -133,6 +133,8 @@ class Persona::MockAPIService
 
   def download_file(_url) = StringIO.new("mock image data for testing")
 
+  def redact_account(_account_id) = true
+
   private
 
   def mock_inquiry(id:, status:, account_id: "act_test_mock", session_token: nil,
