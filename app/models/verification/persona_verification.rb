@@ -69,11 +69,6 @@ class Verification::PersonaVerification < Verification
 
     event :mark_pending do
       transitions from: :draft, to: :pending
-
-      after do
-        Identity::NoticeResemblancesJob.perform_later(identity)
-        Verification::CheckDiscrepanciesJob.perform_later(self)
-      end
     end
 
     event :approve do

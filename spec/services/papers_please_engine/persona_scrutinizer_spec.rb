@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe PapersPleaseEngine::PersonaScrutinizer do
+RSpec.describe Internal::Decisioning, "issue generation" do
   let(:identity) do
     create(:identity,
       first_name: "Heidi", last_name: "Trashworth",
@@ -28,11 +28,20 @@ RSpec.describe PapersPleaseEngine::PersonaScrutinizer do
     create(:persona_verification, identity: identity, persona_record: persona_record, status: :pending)
   end
 
-  subject { described_class.new(verification).run }
+  subject { described_class.run(verification) }
+
+  def issues
+    verification.reload.issues
+  end
 
   context "when everything matches" do
-    it "returns no issues" do
-      expect(subject).to be_empty
+    it "produces no issues" do
+      subject
+      expect(issues).to be_blank
+    end
+
+    it "auto-approves" do
+      expect(subject).to eq(:approved)
     end
   end
 
@@ -40,7 +49,8 @@ RSpec.describe PapersPleaseEngine::PersonaScrutinizer do
     before { persona_record.update!(name_first: "HEIDY") }
 
     it "flags minor mismatch" do
-      expect(subject).to include(a_string_matching(/doesn't match exactly/i))
+      subject
+      expect(issues).to include(a_string_matching(/doesn't match exactly/i))
     end
   end
 
@@ -48,7 +58,8 @@ RSpec.describe PapersPleaseEngine::PersonaScrutinizer do
     before { persona_record.update!(name_first: "ZEPHYR", name_last: "MOONBEAM") }
 
     it "flags strong mismatch" do
-      expect(subject).to include(a_string_matching(/name doesn't seem to match/i))
+      subject
+      expect(issues).to include(a_string_matching(/name doesn't seem to match/i))
     end
   end
 
@@ -56,7 +67,8 @@ RSpec.describe PapersPleaseEngine::PersonaScrutinizer do
     before { persona_record.update!(birthdate: Date.parse("2007-01-01")) }
 
     it "flags DOB mismatch" do
-      expect(subject).to include(a_string_matching(/date of birth doesn't match/i))
+      subject
+      expect(issues).to include(a_string_matching(/date of birth doesn't match/i))
     end
   end
 
@@ -64,7 +76,8 @@ RSpec.describe PapersPleaseEngine::PersonaScrutinizer do
     before { persona_record.update!(country_code: "CA") }
 
     it "flags country mismatch" do
-      expect(subject).to include(a_string_matching(/country doesn't match/i))
+      subject
+      expect(issues).to include(a_string_matching(/country doesn't match/i))
     end
   end
 
@@ -72,7 +85,8 @@ RSpec.describe PapersPleaseEngine::PersonaScrutinizer do
     before { persona_record.update!(expiration_date: 1.year.ago.to_date) }
 
     it "flags expiration" do
-      expect(subject).to include(a_string_matching(/expired/i))
+      subject
+      expect(issues).to include(a_string_matching(/expired/i))
     end
   end
 
@@ -80,7 +94,23 @@ RSpec.describe PapersPleaseEngine::PersonaScrutinizer do
     before { persona_record.update!(entity_confidence_score: 0.5) }
 
     it "flags low confidence" do
-      expect(subject).to include(a_string_matching(/low entity confidence/i))
+      subject
+      expect(issues).to include(a_string_matching(/low entity confidence/i))
+    end
+  end
+
+  context "when entity confidence is between thresholds" do
+    before { persona_record.update!(entity_confidence_score: 0.82) }
+
+    it "produces an issue for the reviewer" do
+      subject
+      expect(issues).to include(a_string_matching(/low entity confidence/i))
+    end
+
+    it "does not contribute to the risk score" do
+      instance = described_class.new(verification)
+      instance.call
+      expect(instance.instance_variable_get(:@signals)).not_to include(:low_entity_confidence)
     end
   end
 
@@ -92,11 +122,13 @@ RSpec.describe PapersPleaseEngine::PersonaScrutinizer do
     end
 
     it "flags the failed check" do
-      expect(subject).to include(a_string_matching(/persona check failed.*id expired detection/i))
+      subject
+      expect(issues).to include(a_string_matching(/persona check failed.*id expired detection/i))
     end
 
     it "includes the reason" do
-      expect(subject).to include(a_string_matching(/document is expired/i))
+      subject
+      expect(issues).to include(a_string_matching(/document is expired/i))
     end
   end
 
@@ -108,7 +140,8 @@ RSpec.describe PapersPleaseEngine::PersonaScrutinizer do
     end
 
     it "does not flag non-required failures" do
-      expect(subject).to be_empty
+      subject
+      expect(issues).to be_blank
     end
   end
 
@@ -119,7 +152,8 @@ RSpec.describe PapersPleaseEngine::PersonaScrutinizer do
     end
 
     it "compares against legal name" do
-      expect(subject).to be_empty
+      subject
+      expect(issues).to be_blank
     end
   end
 
@@ -128,8 +162,25 @@ RSpec.describe PapersPleaseEngine::PersonaScrutinizer do
       create(:persona_verification, identity: identity, persona_record: nil)
     end
 
-    it "returns no issues" do
-      expect(subject).to be_empty
+    it "produces no issues" do
+      subject
+      expect(issues).to be_blank
+    end
+  end
+
+  context "when submitter is under 13" do
+    before do
+      identity.update!(birthday: 10.years.ago.to_date)
+      persona_record.update!(birthdate: 10.years.ago.to_date)
+    end
+
+    it "returns denied" do
+      expect(subject).to eq(:denied)
+    end
+
+    it "produces an under-13 issue" do
+      subject
+      expect(issues).to include(a_string_matching(/under 13/i))
     end
   end
 end

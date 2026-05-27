@@ -21,7 +21,7 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     when "inquiry.declined"          then handle_declined(inquiry_id)
     when "inquiry.failed"            then handle_failed
     when "inquiry.expired"           then handle_expired
-    when "inquiry.marked_for_review" then nil # no state change
+    when "inquiry.marked_for_review" then handle_marked_for_review
     end
   rescue AASM::InvalidTransition
     # idempotent: event already processed
@@ -47,9 +47,9 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     return if @verification.approved?
     handle_completed(@verification.persona_inquiry_id) if @verification.draft?
     @verification.reload
-    @verification.approve!
     @verification.create_activity(:persona_inquiry_approved, recipient: @identity,
       parameters: { inquiry_id: @verification.persona_inquiry_id })
+    Persona::VerificationPipelineJob.perform_later(@verification)
   end
 
   def handle_declined(inquiry_id)
@@ -88,6 +88,11 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
 
     @verification.mark_as_rejected!("inquiry_expired", "The verification session expired before the user completed it.")
     @verification.create_activity(:persona_inquiry_expired, recipient: @identity)
+  end
+
+  def handle_marked_for_review
+    @verification.create_activity(:persona_inquiry_marked_for_review, recipient: @identity,
+      parameters: { inquiry_id: @verification.persona_inquiry_id })
   end
 
   # pull documents, photos, and extracted data from the inquiry and persist them.

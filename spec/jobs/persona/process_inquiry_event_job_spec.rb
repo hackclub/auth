@@ -114,16 +114,10 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
       expect(verification).to be_pending
     end
 
-    it "enqueues NoticeResemblancesJob" do
+    it "does not enqueue the pipeline job (that fires on approved)" do
       expect {
         described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
-      }.to have_enqueued_job(Identity::NoticeResemblancesJob)
-    end
-
-    it "enqueues CheckDiscrepanciesJob" do
-      expect {
-        described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
-      }.to have_enqueued_job(Verification::CheckDiscrepanciesJob)
+      }.not_to have_enqueued_job(Persona::VerificationPipelineJob)
     end
 
     context "when photo downloads fail" do
@@ -167,47 +161,28 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
       )
     end
 
-    it "transitions the verification to approved" do
-      described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
-
-      verification.reload
-      expect(verification).to be_approved
-    end
-
-    it "sets ysws_eligible to true when 13 <= age <= 19" do
-      described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
-
-      identity.reload
-      expect(identity.ysws_eligible).to be true
-    end
-
-    it "sets ysws_eligible to false when age > 19" do
-      verification.persona_record.update!(birthdate: Date.parse("2000-01-01"))
-
-      described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
-
-      identity.reload
-      expect(identity.ysws_eligible).to be false
-    end
-
-    it "sends the approved mailer" do
+    it "enqueues the verification pipeline job" do
       expect {
         described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
-      }.to have_enqueued_mail(VerificationMailer, :approved)
+      }.to have_enqueued_job(Persona::VerificationPipelineJob).with(verification)
+    end
+
+    it "creates an activity" do
+      described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
+      expect(PublicActivity::Activity.where(trackable: verification).where("key LIKE ?", "%persona_inquiry_approved%")).to exist
     end
 
     context "when approved arrives before completed finishes (race condition)" do
       before do
-        # revert to draft — simulates approved webhook arriving while
-        # the verification is still draft (completed hasn't run yet)
         verification.update!(status: "draft", persona_record: nil, identity_document: nil)
       end
 
-      it "runs completed first, then approves" do
-        described_class.perform_now(event_name: "inquiry.approved", inquiry_id: inquiry_id)
+      it "runs completed first, then enqueues the pipeline" do
+        expect {
+          described_class.perform_now(event_name: "inquiry.approved", inquiry_id: inquiry_id)
+        }.to have_enqueued_job(Persona::VerificationPipelineJob)
 
         verification.reload
-        expect(verification).to be_approved
         expect(verification.persona_record).to be_present
         expect(verification.identity_document).to be_present
       end
@@ -260,6 +235,11 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
       expect {
         described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
       }.not_to change { verification.reload.status }
+    end
+
+    it "creates an activity" do
+      described_class.perform_now(event_name: event_name, inquiry_id: inquiry_id)
+      expect(PublicActivity::Activity.where(trackable: verification).where("key LIKE ?", "%marked_for_review%")).to exist
     end
   end
 
