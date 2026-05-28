@@ -681,6 +681,9 @@ en:
         title: Your ID is being checked
         subtitle: This usually takes under a minute
         description: "Persona is reviewing your ID automatically. We'll email %{email} as soon as it's done — you don't need to stay on this page."
+        review_title: We're reviewing your submission
+        review_subtitle: We'll get back to you soon
+        review_description: "We're taking a closer look at your submission. We'll email %{email} when we're done — you don't need to stay on this page."
         submitted_ago: Started %{time} ago
       pending_aadhaar:
         title: Verifying your Aadhaar

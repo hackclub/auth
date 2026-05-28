@@ -53,7 +53,7 @@ class Verification::PersonaVerification < Verification
     expired:       { name: "Expired document",                    fatal: false },
     under_13:      { name: "Submitter is under 13 years old",     fatal: false },
     other:         { name: "Other fixable issue",                 fatal: false },
-    too_many_attempts: { name: "Too many failed attempts",        fatal: false },
+    too_many_attempts: { name: "Too many failed attempts",        fatal: true },
     inquiry_expired:   { name: "Verification session expired",    fatal: false },
     info_mismatch: { name: "Information doesn't match profile",   fatal: true },
     altered:       { name: "Document appears altered/fraudulent", fatal: true },

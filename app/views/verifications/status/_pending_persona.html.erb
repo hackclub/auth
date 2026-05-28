@@ -1,12 +1,22 @@
+<% in_review = verification&.issues.present? %>
 <section class="section-card">
   <div class="status-indicator">
     <span class="status-badge pending"><%= t("verifications.status.badges.processing") %></span>
-    <h3><%= t("verifications.status.pending_persona.title") %></h3>
-    <p><%= t("verifications.status.pending_persona.subtitle") %></p>
+    <% if in_review %>
+      <h3><%= t("verifications.status.pending_persona.review_title") %></h3>
+      <p><%= t("verifications.status.pending_persona.review_subtitle") %></p>
+    <% else %>
+      <h3><%= t("verifications.status.pending_persona.title") %></h3>
+      <p><%= t("verifications.status.pending_persona.subtitle") %></p>
+    <% end %>
   </div>
 
   <div class="status-content">
-    <p><%= t("verifications.status.pending_persona.description", email: identity.primary_email) %></p>
+    <% if in_review %>
+      <p><%= t("verifications.status.pending_persona.review_description", email: identity.primary_email) %></p>
+    <% else %>
+      <p><%= t("verifications.status.pending_persona.description", email: identity.primary_email) %></p>
+    <% end %>
 
     <% if verification.present? %>
       <div class="meta">

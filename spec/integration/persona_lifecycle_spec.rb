@@ -144,11 +144,11 @@ RSpec.describe "Persona verification lifecycle", type: :request do
 
       verification.reload
       expect(verification).to be_rejected
-      expect(verification.rejection_reason).to be_present
-      expect(verification.fatal?).to be true # info_mismatch is fatal
+      expect(verification.rejection_reason).to eq("other")
+      expect(verification.fatal?).to be false
 
       identity.reload
-      expect(identity.verification_status).to eq("ineligible")
+      expect(identity.verification_status).to eq("needs_submission")
     end
   end
 

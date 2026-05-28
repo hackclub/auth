@@ -56,7 +56,6 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     return if @verification.rejected?
 
     inquiry = Persona.instance.retrieve_inquiry(inquiry_id)
-    reason = map_decline_reason(inquiry.status)
 
     begin
       save_inquiry_data(inquiry)
@@ -64,7 +63,7 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
       Sentry.capture_exception(e)
     end
 
-    @verification.mark_as_rejected!(reason)
+    @verification.mark_as_rejected!(determine_decline_reason)
     @verification.create_activity(:persona_inquiry_declined, recipient: @identity,
       parameters: { inquiry_id: inquiry_id })
   end
@@ -194,7 +193,19 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     }.compact
   end
 
-  def map_decline_reason(status)
-    "info_mismatch"
+  def determine_decline_reason
+    checks = @verification.persona_record&.checks
+    return "other" if checks.blank?
+
+    failed = checks.select { |c| c["status"] == "failed" && c["requirement"] == "required" }
+    return "other" if failed.empty?
+
+    names = failed.map { |c| c["name"] }
+
+    if names.include?("id_expired_detection")
+      "expired"
+    else
+      "poor_quality"
+    end
   end
 end

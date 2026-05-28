@@ -31,9 +31,9 @@ class Persona::VerificationPipelineJob < ApplicationJob
     when :approved
       @verification.approve!
     when :denied
-      @verification.mark_as_rejected!(@verification.default_rejection_reason || "fraud")
+      @verification.mark_as_rejected!(@verification.default_rejection_reason || "other")
     when :manual_review
-      nil # stay pending, humans take it from here
+      Slack::NotifyReviewQueueJob.perform_later(@verification)
     end
   end
 end
