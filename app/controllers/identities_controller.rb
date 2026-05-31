@@ -83,7 +83,7 @@ class IdentitiesController < ApplicationController
 
             if age >= 19 && !@onboarding_scenario.accepts_adults
               track_event("signup.age_rejected", scenario: analytics_scenario, rejection_type: "too_old")
-              @age_restriction = "Hack Club is a community for teenagers. <br/>Unfortunately, you are not eligible to join.".html_safe
+              @age_restriction = @onboarding_scenario.adult_ineligible_message
               @identity = Identity.new(@prefill_attributes.merge(attrs))
               render :new, status: :unprocessable_entity
               return
