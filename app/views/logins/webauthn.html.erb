@@ -1,5 +1,7 @@
 <% content_for :title, "Passkey" %>
-<div class="auth-container" x-data="webauthnAuth()">
+<%= render "shared/scenario_background_style", scenario: @onboarding_scenario %>
+<div class="auth-container<%= ' has-background' if @onboarding_scenario&.background_path || @onboarding_scenario&.dark_mode_background_path %>" x-data="webauthnAuth()">
+  <%= render "shared/scenario_logo", scenario: @onboarding_scenario %>
   <div class="auth-card passkey-auth" x-show="browserSupported">
     <header>
       <h1><%= t(".title") %></h1>

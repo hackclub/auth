@@ -231,6 +231,7 @@ class LoginsController < ApplicationController
         @attempt = LoginAttempt.incomplete.active.find_by_hashid!(params[:id])
 
         @identity = @attempt.identity
+        @onboarding_scenario = @identity.onboarding_scenario_instance
     rescue ActiveRecord::RecordNotFound
         flash[:error] = "Invalid login attempt, please start again"
         redirect_to login_path
