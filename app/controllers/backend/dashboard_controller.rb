@@ -21,7 +21,7 @@ module Backend
           Time.at(0)
       end
 
-      @verifications = Verification.not_ignored.where("created_at >= ?", @start_date)
+      @verifications = Verification.not_ignored.where("verifications.created_at >= ?", @start_date)
 
       @stats = {
         total: @verifications.count,
@@ -33,6 +33,12 @@ module Backend
 
       # Calculate rejection reason breakdown
       @rejection_breakdown = calculate_rejection_breakdown(@verifications.rejected)
+
+      # Calculate verification type distribution
+      @type_breakdown = calculate_type_breakdown(@verifications)
+
+      # Calculate attempts-to-verified distribution
+      @attempts_distribution = calculate_attempts_distribution(@verifications)
 
       # Calculate rejections by country
       @rejections_by_country = calculate_rejections_by_country(@verifications.rejected)
@@ -60,7 +66,7 @@ module Backend
     private
 
     def calculate_average_hangtime(verifications)
-      return "0 seconds" if verifications.empty?
+      return 0 if verifications.empty?
 
       total_seconds = verifications.sum do |verification|
         start_time = verification.pending_at || verification.created_at
@@ -97,6 +103,60 @@ module Backend
       end
 
       breakdown.sort_by { |_, data| -data[:count] }.to_h
+    end
+
+    def calculate_type_breakdown(verifications)
+      empty_bucket = -> { { approved: 0, rejected_soft: 0, rejected_fatal: 0, pending: 0 } }
+      rows = {}
+
+      doc_verifs = verifications.where(type: "Verification::DocumentVerification")
+        .joins("LEFT JOIN identity_documents ON identity_documents.id = verifications.identity_document_id")
+        .select("verifications.*, identity_documents.document_type AS doc_type")
+
+      govt = empty_bucket.call
+      trans = empty_bucket.call
+      doc_verifs.each do |v|
+        bucket = v["doc_type"] == 1 ? trans : govt
+        bump_bucket(bucket, v)
+      end
+      rows[Identity::Document::FRIENDLY_NAMES[:government_id]] = govt if govt.values.sum > 0
+      rows[Identity::Document::FRIENDLY_NAMES[:transcript]] = trans if trans.values.sum > 0
+
+      vouch = empty_bucket.call
+      verifications.where(type: "Verification::VouchVerification").each { |v| bump_bucket(vouch, v) }
+      rows["Vouch"] = vouch if vouch.values.sum > 0
+
+      aadhaar = empty_bucket.call
+      verifications.where(type: "Verification::AadhaarVerification").each { |v| bump_bucket(aadhaar, v) }
+      rows["Aadhaar"] = aadhaar if aadhaar.values.sum > 0
+
+      rows.each_value { |b| b[:total] = b[:approved] + b[:rejected_soft] + b[:rejected_fatal] + b[:pending] }
+      rows.sort_by { |_, b| [ -b[:approved], -b[:rejected_soft], -b[:rejected_fatal] ] }.to_h
+    end
+
+    def bump_bucket(bucket, verification)
+      if verification.approved?
+        bucket[:approved] += 1
+      elsif verification.rejected?
+        verification.fatal? ? bucket[:rejected_fatal] += 1 : bucket[:rejected_soft] += 1
+      else
+        bucket[:pending] += 1
+      end
+    end
+
+    def calculate_attempts_distribution(verifications)
+      by_identity = verifications.order(:created_at).group_by(&:identity_id)
+      distribution = Hash.new(0)
+
+      by_identity.each_value do |verifs|
+        approved = verifs.find(&:approved?)
+        next unless approved
+
+        attempts = verifs.count { |v| v.created_at <= approved.created_at }
+        distribution[attempts] += 1
+      end
+
+      distribution.sort.to_h
     end
 
     def calculate_rejections_by_country(rejected_verifications)

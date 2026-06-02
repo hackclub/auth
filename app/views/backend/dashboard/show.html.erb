@@ -32,6 +32,69 @@
 
   <div is-="separator"></div>
 
+  <row gap-="3" align-="start">
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">verification types</span>
+      <% if @type_breakdown.any? %>
+        <table>
+          <thead>
+            <tr>
+              <th>type</th>
+              <th style="color: var(--green);">approved</th>
+              <th style="color: var(--yellow);">rejected (soft)</th>
+              <th style="color: var(--red);">rejected (hard)</th>
+              <th>pending</th>
+              <th>total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @type_breakdown.each do |name, b| %>
+              <tr>
+                <td><%= name %></td>
+                <td><b style="color: var(--green);"><%= b[:approved] %></b></td>
+                <td><b style="color: var(--yellow);"><%= b[:rejected_soft] %></b></td>
+                <td><b style="color: var(--red);"><%= b[:rejected_fatal] %></b></td>
+                <td><%= b[:pending] %></td>
+                <td><b><%= b[:total] %></b></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <span style="color: var(--foreground2);">no verifications</span>
+      <% end %>
+    </column>
+
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">attempts to verified</span>
+      <% if @attempts_distribution.any? %>
+        <% total_verified = @attempts_distribution.values.sum %>
+        <table>
+          <thead>
+            <tr>
+              <th>attempts</th>
+              <th>people</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @attempts_distribution.each do |attempts, count| %>
+              <tr>
+                <td><b><%= attempts %></b></td>
+                <td><%= count %></td>
+                <td><%= total_verified > 0 ? "#{(count.to_f / total_verified * 100).round(1)}%" : "0%" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <span style="color: var(--foreground2);">no one verified yet</span>
+      <% end %>
+    </column>
+  </row>
+
+  <div is-="separator"></div>
+
   <%# Two-column: leaderboard + rejection reasons %>
   <row gap-="3" align-="start">
     <column style="flex: 1;">
