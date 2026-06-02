@@ -31,6 +31,7 @@ If you just need to authenticate users and get their identity, check out the <%=
     <br/><br/>
     If you work for Hack Club HQ and are building an official program, you'll be able to select the <code>hq_official</code> trust level.
     This means no warning banner will be shown when your users authorize your app.
+
 </p>
 </div>
 
@@ -45,7 +46,13 @@ Construct an authorization URL with these parameters:
 
 **Example authorization URL:**
 
+<div style="
+  overflow-x: auto;  
+  max-width: 100%;
+  padding-bottom: 8px;
+">
 <%= render Components::APIExample.new(method: "GET", url: oauth_authorization_url(client_id: "client_id", redirect_uri: "redirect_uri", response_type: 'code', scope: "email")) %>
+</div>
 
 <div class="banner info">
 <b>An aside about scopes:</b>
@@ -142,5 +149,95 @@ Authorization: Bearer idntk.mraowj2z72e1x8i2a60o88j3h7d0f1
 
 Your first endpoint will probably be <%= render Components::APIExample.new(method: "GET", url: api_v1_me_url, path_only: true) %>
 This is analogous to `users.info` if you're coming from a Slack API background.
+
+### Proof Key for Code Exchange (PKCE)
+
+If you are running a native app or single page app, or you just want more security, you will want to use PKCE.
+
+To use PKCE, you will want to follow these steps, assuming you have already created the application as above
+
+### Step 1: Redirect users to authorize your app
+
+Construct an authorization URL with these parameters:
+
+- `client_id`: Your Client ID from your application
+- `redirect_uri`: One of the redirect URIs you configured
+- `response_type`: `code`
+- `scope`: Space-separated list of requested scopes
+- `code_challenge`: A cryptographically-random `code_verifier`, that is SHA-256 hashed. Make sure to save the `code_verifier`, it will be used later
+- `code_challenge_method`: `S256`
+
+**Example authorization URL:**
+
+<div style="
+  overflow-x: auto;  
+  max-width: 100%;
+  padding-bottom: 8px;
+">
+<%= render Components::APIExample.new(method: "GET", url: oauth_authorization_url(client_id: "client_id", redirect_uri: "redirect_uri", response_type: 'code', scope: "email", code_challenge: "giNZRXSmfjUgfUJ-kS0VVuBfB6RmF_BIR1lXGk0y8w8", code_challenge_method: "S256")) %>
+</div>
+
+<div class="banner info">
+<b>An aside about scopes:</b>
+<p>
+    The scopes you request will determine what user information your app will be able to access. <br/>
+    If you're a community member, you can request the following scopes: <code><%= Program::COMMUNITY_ALLOWED_SCOPES.join(" ") %></code>. <br/>
+    If you work for Hack Club HQ and are building an official program, you will have access to additional scopes, like <code>basic_info</code> and <code>addresses</code>.
+    <br/>
+    Talk to Nora if you need anything scarier than those.
+</p>
+</div>
+
+### Step 2: Handle the authorization callback
+
+After the user authorizes your app, they'll be redirected to your redirect URI with an authorization code and :
+
+```
+https://yourapp.com/callback?code=abc123def456
+```
+
+### Step 3: Exchange the code for an access token
+
+Make a POST request to exchange the authorization code for an access token:
+
+<%= render Components::APIExample.new(method: "POST", url: oauth_token_url) %>
+
+**Request body:**
+
+```json
+{
+  "client_id": "your_client_id",
+  "client_secret": "your_client_secret",
+  "redirect_uri": "https://yourapp.com/callback",
+  "code": "abc123def456",
+  "grant_type": "authorization_code",
+  "code_verifier": "o.cTy0V6gsOEyI-jeJ46LkWygMmt~9J-8V7nmpi_tC8D9HLA0sdI7upUh~0yufto43Kwe1XNdnVx535JhLSNbdsnsTpJX2gFyd6C1BbTBO6f5zjs1ziAu7lVL_hcWkeP"
+}
+```
+
+**Response:**
+
+If the `code_verifier` is valid
+
+```json
+{
+  "access_token": "idntk.mraowj2z72e1x8i2a60o88j3h7d0f1",
+  "token_type": "Bearer",
+  "expires_in": 15778800,
+  "refresh_token": "idnrf.abc123xyz789...",
+  "scope": "openid profile"
+}
+```
+
+If the `code_verifier` is invalid, a 400 response code will be returned along with this body
+
+```json
+{
+  "error": "invalid_grant",
+  "error_description": "The provided authorization grant is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client."
+}
+```
+
+Store both tokens securely - you'll use the access token to authenticate API requests, and the refresh token to obtain new access tokens.
 
 Happy hacking!
