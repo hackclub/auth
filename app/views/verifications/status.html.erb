@@ -23,6 +23,12 @@
         </div>
       <% end %>
 
+      <% unless @identity.ysws_eligible %>
+        <div class="status-content">
+          <p><%= t(".verified.contact_verified_html") %></p>
+        </div>
+      <% end %>
+
       <div class="status-actions">
         <%= link_to t(".verified.back_to_home"), root_path, class: "secondary", role: "button" %>
       </div>

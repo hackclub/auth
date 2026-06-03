@@ -705,9 +705,10 @@ en:
         submitted_ago: Started %{time} ago
       verified:
         title_ysws: You're all set for YSWS
-        title_verified: You're verified
+        title_verified: "You're verified — but not eligible for YSWS"
         subtitle_ysws: You can now participate in programs and compete for prizes
-        subtitle_verified: Your account is verified and ready to go
+        subtitle_verified: "Your identity has been confirmed, but our records show you're 18 or older. YSWS programs are only open to participants under 18."
+        contact_verified_html: "Think this is wrong? Email us at <a href=\"mailto:identity@hackclub.com\">identity@hackclub.com</a>."
         verified_ago: Verified %{time} ago
         back_to_home: Back to Home
       ineligible:
