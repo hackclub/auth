@@ -639,15 +639,27 @@ en:
         privacy: "Privacy: Documents are encrypted and never shared with third parties. Access is limited to HCB staff during review, then core HQ staff for exceptional cases only."
         purpose: "Purpose: Used only for age verification and preventing duplicate accounts."
       submit_documents: Submit Documents
+    choose:
+      title: Verify your identity
+      subtitle: "To participate in Hack Club programs and receive hardware, we need to confirm you're a real person."
+      instant_title: Instant verification
+      instant_description: "Scan a government-issued ID and take a quick selfie. Usually takes about 30 seconds."
+      instant_cta: Verify with ID →
+      student_id_title: Student ID or transcript
+      student_id_description: "Don't have a government ID? Upload a student ID or school transcript instead. Takes 1–2 business days to review."
+      student_id_cta: Use student ID →
     persona:
       title: Verify your identity
       subtitle: "To participate in Hack Club programs and receive hardware, we need to confirm you're a real person. This is how we keep the community safe."
       hero_title: "Here's how it works"
-      hero_description: "You'll scan a government-issued ID (passport, driver's license, etc.) and take a quick selfie. A company called Persona handles the verification automatically."
+      hero_description_html: "Our age and identity check is handled by <a href=\"https://withpersona.com/legal/terms\" target=\"_blank\">Persona</a>, an independent verification company. It's fast — usually under a minute."
       steps:
         scan:
           title: Scan your ID
-          description: "Take a photo of your passport, driver's license, or national ID card"
+          description: "Take a photo of your %{document_examples}"
+          document_examples:
+            default: "passport, driver's license, or national ID card"
+            IN: "passport or driver's license, or verify with Aadhaar"
         selfie:
           title: Take a selfie
           description: "A quick photo to confirm it's you"
@@ -655,15 +667,16 @@ en:
           title: Done
           description: "Most people are verified automatically within a minute"
       begin_verification: Start verification
-      error_title: Couldn't connect to Persona
+      error_title: Couldn't connect to verification provider
       error_message: "We're having trouble reaching our verification provider right now. Please try again in a few minutes."
       fallback_link: Upload a document manually instead
       cancel_message: "No worries — your progress is saved. Come back anytime to finish."
       error_sdk: "Something went wrong with the verification. You can try again, or upload a document manually instead."
       complete_message: "Done! Checking your results…"
-      privacy_note_html: "Your photos are encrypted and stored securely. Hack Club staff can view them if there's an issue with your verification, but access is logged. Persona is an independent identity verification company — <a href=\"https://withpersona.com/security\" target=\"_blank\">learn more about how they handle your data</a>."
+      privacy_note_html: "Your photos are encrypted and access by staff is logged. <a href=\"https://withpersona.com/security\" target=\"_blank\">About our verification provider</a>."
       cant_do_this: "Don't have your ID on you?"
       fallback_prompt: Upload a document manually instead
+      contact_html: "Having trouble? Email us at <a href=\"mailto:verify@hackclub.com\">verify@hackclub.com</a>."
     status:
       badges:
         under_review: Under review
@@ -680,7 +693,7 @@ en:
       pending_persona:
         title: Your ID is being checked
         subtitle: This usually takes under a minute
-        description: "Persona is reviewing your ID automatically. We'll email %{email} as soon as it's done — you don't need to stay on this page."
+        description: "Your ID is being reviewed automatically. We'll email %{email} as soon as it's done — you don't need to stay on this page."
         review_title: We're reviewing your submission
         review_subtitle: We'll get back to you soon
         review_description: "We're taking a closer look at your submission. We'll email %{email} when we're done — you don't need to stay on this page."

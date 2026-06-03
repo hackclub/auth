@@ -40,35 +40,43 @@
           </svg>
         </div>
         <h3><%= t(".hero_title") %></h3>
-        <p><%= t(".hero_description") %></p>
+        <p><%= t(".hero_description_html") %></p>
       </div>
 
       <div class="persona-steps">
         <div class="persona-step">
-          <span class="persona-step-number">1</span>
+          <span class="persona-step-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8.5" cy="11.5" r="2"/><path d="M14 10h4M14 14h2"/>
+            </svg>
+          </span>
           <div>
             <strong><%= t(".steps.scan.title") %></strong>
-            <span><%= t(".steps.scan.description") %></span>
+            <span><%= t(".steps.scan.description", document_examples: t(".steps.scan.document_examples.#{@identity.country}", default: t(".steps.scan.document_examples.default"))) %></span>
           </div>
         </div>
         <div class="persona-step">
-          <span class="persona-step-number">2</span>
+          <span class="persona-step-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/>
+            </svg>
+          </span>
           <div>
             <strong><%= t(".steps.selfie.title") %></strong>
             <span><%= t(".steps.selfie.description") %></span>
           </div>
         </div>
         <div class="persona-step">
-          <span class="persona-step-number">3</span>
+          <span class="persona-step-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+          </span>
           <div>
             <strong><%= t(".steps.done.title") %></strong>
             <span><%= t(".steps.done.description") %></span>
           </div>
         </div>
-      </div>
-
-      <div class="persona-privacy">
-        <p><%= t(".privacy_note_html").html_safe %></p>
       </div>
 
       <%= render "shared/verifications/persona_name_check" %>
@@ -81,6 +89,8 @@
 
       <div class="persona-footer">
         <p><%= t(".cant_do_this") %> <%= link_to t(".fallback_prompt"), verification_step_path(:document) %></p>
+        <p class="persona-fine-print"><%= t(".contact_html") %></p>
+        <p class="persona-fine-print"><%= t(".privacy_note_html").html_safe %></p>
       </div>
     </section>
   <% end %>
