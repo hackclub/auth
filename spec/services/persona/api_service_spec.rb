@@ -64,7 +64,7 @@ RSpec.describe Persona::APIService do
 
   describe "#retrieve_inquiry" do
     it "returns an Inquiry with verification IDs from relationships" do
-      stub_request(:get, "#{base_url}/api/v1/inquiries/inq_abc123")
+      stub_request(:get, "#{base_url}/api/v1/inquiries/inq_abc123?include=sessions")
         .with(headers: expected_headers)
         .to_return(
           status: 200,
@@ -85,7 +85,7 @@ RSpec.describe Persona::APIService do
     end
 
     it "raises on 404" do
-      stub_request(:get, "#{base_url}/api/v1/inquiries/inq_nope")
+      stub_request(:get, "#{base_url}/api/v1/inquiries/inq_nope?include=sessions")
         .to_return(
           status: 404,
           headers: { "Content-Type" => "application/json" },

@@ -63,7 +63,9 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
       Sentry.capture_exception(e)
     end
 
-    @verification.mark_as_rejected!(determine_decline_reason)
+    reason = determine_decline_reason
+    details = "Declined by Persona with no specific failure reason." if reason == "other"
+    @verification.mark_as_rejected!(reason, details)
     @verification.create_activity(:persona_inquiry_declined, recipient: @identity,
       parameters: { inquiry_id: inquiry_id })
   end

@@ -26,7 +26,7 @@ RSpec.describe "Verifications", type: :request do
 
       get verification_status_path
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("verifying your identity")
+      expect(response.body).to include("Your ID is being checked")
     ensure
       Flipper.disable(:persona_verification_2026_04_09)
     end
