@@ -29,7 +29,12 @@ class Persona::VerificationPipelineJob < ApplicationJob
 
     case verdict
     when :approved
-      @verification.approve!
+      if @verification.auto_approvable?
+        @verification.approve!
+      else
+        @verification.update(issues: @verification.issues + ["Student ID — requires manual review"])
+        Slack::NotifyReviewQueueJob.perform_later(@verification)
+      end
     when :denied
       @verification.mark_as_rejected!(@verification.default_rejection_reason || "other")
     when :manual_review

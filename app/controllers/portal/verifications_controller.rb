@@ -15,7 +15,14 @@ class Portal::VerificationsController < Portal::BaseController
       redirect_to_portal_return(status: :pending)
     else
       case @identity.required_verification_method
-      when :persona  then redirect_to portal_verify_persona_path
+      when :persona
+        if @identity.persona_student_id_eligible?
+          @persona_path = portal_verify_persona_path
+          @student_id_path = portal_verify_student_id_path
+          render "verifications/choose"
+        else
+          redirect_to portal_verify_persona_path
+        end
       when :document then redirect_to portal_verify_document_path
       end
     end
@@ -57,6 +64,28 @@ class Portal::VerificationsController < Portal::BaseController
     end
 
     setup_persona_step
+  end
+
+  def student_id
+    @identity = current_identity
+    status = @identity.verification_status
+
+    case status
+    when "verified"
+      redirect_to_portal_return(status: :verified)
+      return
+    when "pending"
+      redirect_to_portal_return(status: :pending)
+      return
+    end
+
+    unless @identity.persona_student_id_eligible?
+      redirect_to portal_verify_persona_path
+      return
+    end
+
+    setup_student_id_step
+    render "verifications/persona"
   end
 
   def update_legal_name

@@ -61,11 +61,11 @@ RSpec.describe "Persona verification lifecycle", type: :request do
 
   describe "happy path: identity → persona page → completed → approved" do
     it "verifies an identity end to end" do
-      # step 1: routing sends them to persona
+      # step 1: routing shows the verification chooser (US identity is student-ID-eligible)
       get "/verifications/new"
-      expect(response).to redirect_to(persona_verification_path)
+      expect(response).to have_http_status(:ok)
 
-      # step 2: persona page renders, creates draft verification + inquiry
+      # step 2: user picks instant verification — persona page renders, creates draft verification + inquiry
       get "/verifications/persona"
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("data-inquiry-id")

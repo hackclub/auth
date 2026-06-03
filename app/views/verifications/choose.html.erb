@@ -1,0 +1,33 @@
+<div class="page-header-centered">
+  <h1><%= t("verifications.choose.title") %></h1>
+  <p><%= t("verifications.choose.subtitle") %></p>
+</div>
+
+<div class="page-sections">
+  <section class="section-card verification-choice">
+    <div class="verification-choice-icon">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="4" width="20" height="16" rx="2"/>
+        <circle cx="8.5" cy="11.5" r="2.5"/>
+        <path d="M14 10h4M14 14h2"/>
+        <path d="M4 20c0-2 2.5-3 4.5-3s4.5 1 4.5 3"/>
+      </svg>
+    </div>
+    <h3><%= t("verifications.choose.instant_title") %></h3>
+    <p><%= t("verifications.choose.instant_description") %></p>
+    <%= link_to t("verifications.choose.instant_cta"), @persona_path, role: "button" %>
+  </section>
+
+  <section class="section-card verification-choice verification-choice-secondary">
+    <div class="verification-choice-icon">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h16v16H4z"/>
+        <path d="M9 9h6M9 13h4"/>
+        <path d="M7 2v4M17 2v4"/>
+      </svg>
+    </div>
+    <h3><%= t("verifications.choose.student_id_title") %></h3>
+    <p><%= t("verifications.choose.student_id_description") %></p>
+    <%= link_to t("verifications.choose.student_id_cta"), @student_id_path, role: "button", class: "secondary" %>
+  </section>
+</div>

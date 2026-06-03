@@ -102,8 +102,33 @@ module VerificationFlow
   end
 
   def find_or_create_persona_verification
-    @identity.persona_verifications.where(status: :draft).first ||
+    @identity.verifications.where(status: :draft, type: "Verification::PersonaVerification").first ||
       Verification::PersonaVerification.create!(identity: @identity)
+  end
+
+  def setup_student_id_step
+    @verification = find_or_create_student_id_verification
+    @inquiry = @verification.persona_inquiry_id ? reuse_inquiry : create_inquiry
+
+    @inquiry_id = @verification.persona_inquiry_id
+    @session_token = @verification.persona_session_token
+    @environment_id = Rails.application.credentials.dig(:persona, :environment_id)
+    @persona_host = Rails.application.credentials.dig(:persona, :host)
+  rescue Persona::APIError => e
+    Sentry.capture_exception(e,
+      tags: { component: "persona" },
+      extra: {
+        identity_id: @identity.id,
+        identity_public_id: @identity.public_id,
+        verification_id: @verification&.id,
+        inquiry_id: @verification&.persona_inquiry_id
+      })
+    @persona_error = I18n.t("verifications.persona.error_message")
+  end
+
+  def find_or_create_student_id_verification
+    @identity.persona_student_id_verifications.where(status: :draft).first ||
+      Verification::PersonaStudentIdVerification.create!(identity: @identity)
   end
 
   def create_inquiry

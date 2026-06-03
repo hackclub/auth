@@ -15,7 +15,14 @@ class VerificationsController < ApplicationController
     end
 
     case current_identity.required_verification_method
-    when :persona  then redirect_to persona_verification_path
+    when :persona
+      if current_identity.persona_student_id_eligible?
+        @persona_path = persona_verification_path
+        @student_id_path = student_id_verification_path
+        render :choose
+      else
+        redirect_to persona_verification_path
+      end
     when :document then redirect_to verification_step_path(:document)
     end
   end
@@ -42,6 +49,24 @@ class VerificationsController < ApplicationController
     end
 
     setup_persona_step
+    render :persona
+  end
+
+  def student_id
+    @identity = current_identity
+
+    status = @identity.verification_status
+    if verification_should_redirect?(status)
+      redirect_to verification_status_path
+      return
+    end
+
+    unless @identity.persona_student_id_eligible?
+      redirect_to persona_verification_path
+      return
+    end
+
+    setup_student_id_step
     render :persona
   end
 

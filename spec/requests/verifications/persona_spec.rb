@@ -23,7 +23,17 @@ RSpec.describe "Persona verification flow", type: :request do
   end
 
   describe "GET /verifications/new" do
-    it "redirects to persona when flag is enabled" do
+    it "shows verification chooser for student-ID-eligible countries" do
+      get "/verifications/new"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(I18n.t("verifications.choose.instant_title"))
+      expect(response.body).to include(I18n.t("verifications.choose.student_id_title"))
+    end
+
+    it "redirects to persona for non-eligible countries" do
+      identity.update!(country: "GB")
+
       get "/verifications/new"
 
       expect(response).to redirect_to(persona_verification_path)

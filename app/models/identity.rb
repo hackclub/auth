@@ -74,6 +74,7 @@ class Identity < ApplicationRecord
   has_many :aadhaar_verifications, class_name: "Verification::AadhaarVerification", dependent: :destroy
   has_many :vouch_verifications, class_name: "Verification::VouchVerification", dependent: :destroy
   has_many :persona_verifications, class_name: "Verification::PersonaVerification", dependent: :destroy
+  has_many :persona_student_id_verifications, class_name: "Verification::PersonaStudentIdVerification", dependent: :destroy
   has_many :addresses, class_name: "Address", dependent: :destroy
   belongs_to :primary_address, class_name: "Address", optional: true
 
@@ -232,6 +233,11 @@ class Identity < ApplicationRecord
     return false if permabanned
     return false unless required_verification_method == :persona
     !verifications.not_ignored.where(status: %w[approved pending]).any?
+  end
+
+  def persona_student_id_eligible?
+    Verification::PersonaStudentIdVerification::STUDENT_ID_COUNTRIES.include?(country) &&
+      required_verification_method == :persona
   end
 
   def latest_verification = verifications.not_ignored.order(created_at: :desc).first

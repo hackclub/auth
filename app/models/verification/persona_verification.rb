@@ -95,6 +95,7 @@ class Verification::PersonaVerification < Verification
   def needs_break_glass?         = true
   def auto_break_glass_reason    = nil
   def nukeable?                  = draft? || pending?
+  def auto_approvable?                  = true
   def status_pending_partial     = "verifications/status/pending_persona"
 
   def generate_inquiry!
