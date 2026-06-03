@@ -122,7 +122,7 @@ class Verification::PersonaVerification < Verification
   def resolve_template_id
     creds = Rails.application.credentials.persona
     if creds.respond_to?(:templates) && creds.templates
-      creds.templates.send(resolve_template.name)
+      creds.templates[resolve_template.name]
     else
       creds.template_id
     end
