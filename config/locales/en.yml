@@ -645,8 +645,8 @@ en:
       instant_title: Instant verification
       instant_description: "Scan a government-issued ID and take a quick selfie. Usually takes about 30 seconds."
       instant_cta: Verify with ID →
-      student_id_title: Student ID or transcript
-      student_id_description: "Don't have a government ID? Upload a student ID or school transcript instead. Takes 1–2 business days to review."
+      student_id_title: Student ID and transcript
+      student_id_description: "Don't have a government ID? Upload a student ID and school transcript instead. Takes 1–2 business days to review."
       student_id_cta: Use student ID →
     persona:
       title: Verify your identity
