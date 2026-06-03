@@ -321,13 +321,14 @@
   align-items: center;
   justify-content: center;
   margin-bottom: $space-3;
-  background: linear-gradient(135deg, rgba(var(--pico-primary-rgb), 0.08) 0%, rgba(var(--pico-primary-rgb), 0.16) 100%);
-  border: 1px solid rgba(var(--pico-primary-rgb), 0.15);
-  color: var(--pico-primary);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0.16) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  color: #4f46e5;
 
   @include dark-mode {
-    background: linear-gradient(135deg, rgba(var(--pico-primary-rgb), 0.12) 0%, rgba(var(--pico-primary-rgb), 0.22) 100%);
-    border-color: rgba(var(--pico-primary-rgb), 0.25);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(99, 102, 241, 0.22) 100%);
+    border-color: rgba(99, 102, 241, 0.25);
+    color: #818cf8;
   }
 }
 
@@ -337,6 +338,25 @@
     border-color: var(--surface-2-border);
     color: var(--text-muted-strong);
   }
+}
+
+.chooser-cta {
+  @include colored-button(
+    #4f46e5, #4338ca, #3730a3,
+    #6366f1, #4f46e5, #4338ca,
+    #6366f1, #4f46e5,
+    #818cf8, #6366f1
+  );
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: $radius-lg;
+  cursor: pointer;
+  width: auto;
+  margin: 0 auto;
 }
 
 // --- Persona verification page ---
@@ -379,13 +399,14 @@
   align-items: center;
   justify-content: center;
   margin-bottom: $space-4;
-  background: linear-gradient(135deg, rgba(var(--pico-primary-rgb), 0.08) 0%, rgba(var(--pico-primary-rgb), 0.16) 100%);
-  border: 1px solid rgba(var(--pico-primary-rgb), 0.15);
-  color: var(--pico-primary);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0.16) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  color: #4f46e5;
 
   @include dark-mode {
-    background: linear-gradient(135deg, rgba(var(--pico-primary-rgb), 0.12) 0%, rgba(var(--pico-primary-rgb), 0.22) 100%);
-    border-color: rgba(var(--pico-primary-rgb), 0.25);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(99, 102, 241, 0.22) 100%);
+    border-color: rgba(99, 102, 241, 0.25);
+    color: #818cf8;
   }
 
   svg {
