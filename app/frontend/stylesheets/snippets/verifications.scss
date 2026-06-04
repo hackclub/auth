@@ -432,11 +432,6 @@
   gap: $space-3;
   padding: $space-2 $space-3;
   border-radius: $radius-md;
-  transition: background 0.15s ease;
-
-  &:hover {
-    background: var(--surface-2);
-  }
 
   div {
     display: flex;
