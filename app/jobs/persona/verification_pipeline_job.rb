@@ -5,6 +5,8 @@ class Persona::VerificationPipelineJob < ApplicationJob
 
   def perform(verification)
     @verification = verification
+    return if @verification.approved? || @verification.rejected?
+
     @identity = verification.identity
     @record = verification.persona_record
 
@@ -33,7 +35,7 @@ class Persona::VerificationPipelineJob < ApplicationJob
       if !@verification.auto_approvable?
         @verification.update(issues: @verification.issues + [ "Student ID — requires manual review" ])
         Slack::NotifyReviewQueueJob.perform_later(@verification)
-      elsif @identity.under_13?
+      elsif @record&.birthdate && Identity.calculate_age(@record.birthdate) < 13
         @verification.update(issues: @verification.issues + [ "Under 13 — requires manual review" ])
         Slack::NotifyReviewQueueJob.perform_later(@verification)
       elsif @identity.resemblances.any?
