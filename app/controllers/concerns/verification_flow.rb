@@ -111,6 +111,7 @@ module VerificationFlow
 
   def find_or_create_persona_verification
     @identity.with_lock do
+      expire_conflicting_drafts("Verification::PersonaStudentIdVerification")
       @identity.verifications.where(status: :draft, type: "Verification::PersonaVerification").first ||
         Verification::PersonaVerification.create!(identity: @identity)
     end
@@ -118,8 +119,18 @@ module VerificationFlow
 
   def find_or_create_student_id_verification
     @identity.with_lock do
+      expire_conflicting_drafts("Verification::PersonaVerification")
       @identity.persona_student_id_verifications.where(status: :draft).first ||
         Verification::PersonaStudentIdVerification.create!(identity: @identity)
+    end
+  end
+
+  def expire_conflicting_drafts(type)
+    @identity.verifications.where(status: :draft, type: type).find_each do |v|
+      if v.persona_inquiry_id.present?
+        Persona.instance.expire_inquiry(v.persona_inquiry_id) rescue Persona::APIError
+      end
+      v.destroy!
     end
   end
 
