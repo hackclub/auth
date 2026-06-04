@@ -36,7 +36,7 @@ module Verification::Rejectable
 
   def rejection_reason_options
     grouped = self.class::REJECTION_REASONS.group_by { |_, v| v[:fatal] ? :fatal : :retryable }
-    grouped.transform_values { |pairs| pairs.map { |k, v| [v[:name], k.to_s] } }
+    grouped.transform_values { |pairs| pairs.map { |k, v| [ v[:name], k.to_s ] } }
   end
 
   private

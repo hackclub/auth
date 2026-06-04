@@ -50,7 +50,7 @@ module Webhooks
           level: :warning,
           tags: { component: "persona" },
           extra: { timestamp: timestamp, ip: request.remote_ip })
-        return head(:unauthorized)
+        head(:unauthorized)
       end
     end
 

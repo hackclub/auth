@@ -26,12 +26,12 @@ module ResemblanceNoticerEngine
       if identity.legal_first_name.present? || identity.legal_last_name.present?
         name = "#{name} #{identity.legal_first_name} #{identity.legal_last_name}"
       end
-      names_and_dobs << [name, identity.birthday]
+      names_and_dobs << [ name, identity.birthday ]
     end
 
     additional_names.each do |extra|
       next unless extra[:first].present? && extra[:last].present? && extra[:dob].present?
-      names_and_dobs << ["#{extra[:first]} #{extra[:last]}", extra[:dob]]
+      names_and_dobs << [ "#{extra[:first]} #{extra[:last]}", extra[:dob] ]
     end
 
     names_and_dobs.each do |name, dob|

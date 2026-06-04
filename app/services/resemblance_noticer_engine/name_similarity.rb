@@ -6,8 +6,8 @@ module ResemblanceNoticerEngine
     end
 
     def run
-      first_names = [identity.first_name, identity.legal_first_name].compact_blank.map(&:downcase)
-      last_names = [identity.last_name, identity.legal_last_name].compact_blank.map(&:downcase)
+      first_names = [ identity.first_name, identity.legal_first_name ].compact_blank.map(&:downcase)
+      last_names = [ identity.last_name, identity.legal_last_name ].compact_blank.map(&:downcase)
 
       @additional_names.each do |extra|
         first_names << extra[:first].downcase if extra[:first].present?

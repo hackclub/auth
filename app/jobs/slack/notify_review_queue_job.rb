@@ -18,7 +18,7 @@ class Slack::NotifyReviewQueueJob < ApplicationJob
     HTTP.post(ENV["SLACK_REVIEW_WEBHOOK_URL"], body: {
       blocks: [
         { type: "section", text: { type: "mrkdwn", text: message } },
-        { type: "context", elements: [{ type: "mrkdwn", text: "<#{backend_verification_url(verification)}|review in backend>" }] }
+        { type: "context", elements: [ { type: "mrkdwn", text: "<#{backend_verification_url(verification)}|review in backend>" } ] }
       ]
     }.to_json)
   end

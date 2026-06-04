@@ -17,7 +17,7 @@ class Persona::VerificationPipelineJob < ApplicationJob
   def document_names
     return [] unless @record&.name_first.present? && @record&.name_last.present?
 
-    [{ first: @record.name_first, last: @record.name_last, dob: @record.birthdate }]
+    [ { first: @record.name_first, last: @record.name_last, dob: @record.birthdate } ]
   end
 
   def run_resemblances
@@ -32,7 +32,7 @@ class Persona::VerificationPipelineJob < ApplicationJob
       if @verification.auto_approvable?
         @verification.approve!
       else
-        @verification.update(issues: @verification.issues + ["Student ID — requires manual review"])
+        @verification.update(issues: @verification.issues + [ "Student ID — requires manual review" ])
         Slack::NotifyReviewQueueJob.perform_later(@verification)
       end
     when :denied

@@ -100,7 +100,7 @@ RSpec.describe "Persona verification lifecycle", type: :request do
 
       # step 4: persona sends inquiry.approved webhook
       # webhook handler enqueues ProcessInquiryEventJob, which enqueues VerificationPipelineJob
-      persona_jobs = [Persona::ProcessInquiryEventJob, Persona::VerificationPipelineJob]
+      persona_jobs = [ Persona::ProcessInquiryEventJob, Persona::VerificationPipelineJob ]
       send_webhook("inquiry.approved", inquiry_id)
       expect(response).to have_http_status(:ok)
 
@@ -199,7 +199,7 @@ RSpec.describe "Persona verification lifecycle", type: :request do
       send_webhook("inquiry.completed", inquiry_id)
       perform_enqueued_jobs(only: Persona::ProcessInquiryEventJob)
 
-      persona_jobs = [Persona::ProcessInquiryEventJob, Persona::VerificationPipelineJob]
+      persona_jobs = [ Persona::ProcessInquiryEventJob, Persona::VerificationPipelineJob ]
 
       send_webhook("inquiry.approved", inquiry_id)
       perform_enqueued_jobs(only: persona_jobs)

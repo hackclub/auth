@@ -21,7 +21,7 @@ if internal_path.exist? && internal_path.directory?
   end
 
   app_path = internal_path.join("app")
-  
+
   Rails.autoloaders.main.push_dir(app_path, namespace: Internal) if app_path.exist?
 
   Rails.logger.info "[InternalLoader] Loaded internal modules from #{internal_path}" if defined?(Rails.logger) && Rails.logger

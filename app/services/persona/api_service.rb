@@ -70,7 +70,7 @@ class Persona::APIService
     when "document/government-id"
       attrs = fetch_resource("document/government-ids", document_id)
       Persona::PhotoSet.new(
-        document: [attrs[:front_photo], attrs[:back_photo]].filter_map { |p| photo(p) },
+        document: [ attrs[:front_photo], attrs[:back_photo] ].filter_map { |p| photo(p) },
         liveness: []
       )
     else

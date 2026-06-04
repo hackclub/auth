@@ -41,8 +41,8 @@ class Persona::MockAPIService
       status:        "created",
       account_id:    "act_test_#{Digest::SHA256.hexdigest(account_reference_id)[0..11]}",
       session_token: "session_tok_#{SecureRandom.hex(16)}",
-      verification_ids: [{ type: "verification/government-id", id: "ver_gov_test_#{SecureRandom.hex(8)}" }],
-      document_ids:     [{ type: "document/government-id", id: "doc_test_#{SecureRandom.hex(8)}" }]
+      verification_ids: [ { type: "verification/government-id", id: "ver_gov_test_#{SecureRandom.hex(8)}" } ],
+      document_ids:     [ { type: "document/government-id", id: "doc_test_#{SecureRandom.hex(8)}" } ]
     )
   end
 
@@ -50,8 +50,8 @@ class Persona::MockAPIService
     mock_inquiry(
       id:     inquiry_id,
       status: "completed",
-      verification_ids: [{ type: "verification/government-id", id: "ver_gov_#{inquiry_id.delete_prefix('inq_')}" }],
-      document_ids:     [{ type: "document/government-id", id: "doc_#{inquiry_id.delete_prefix('inq_')}" }]
+      verification_ids: [ { type: "verification/government-id", id: "ver_gov_#{inquiry_id.delete_prefix('inq_')}" } ],
+      document_ids:     [ { type: "document/government-id", id: "doc_#{inquiry_id.delete_prefix('inq_')}" } ]
     )
   end
 
@@ -144,7 +144,7 @@ class Persona::MockAPIService
       id: id, status: status, account_id: account_id, session_token: session_token,
       verification_ids: verification_ids, document_ids: document_ids,
       behaviors: active ? MOCK_BEHAVIORS : {},
-      sessions:  active ? [MOCK_SESSION] : [],
+      sessions:  active ? [ MOCK_SESSION ] : [],
       raw:       { status: status, behaviors: active ? MOCK_BEHAVIORS : {} }
     )
   end

@@ -13,7 +13,7 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
       birthdate: Date.parse("2010-06-15"), country_code: "US",
       id_class: "dl", expiration_date: Date.parse("2029-06-15"),
       entity_confidence_score: 0.98,
-      checks: [{ "name" => "id_entity_detection", "status" => "passed", "reasons" => [], "requirement" => "required" }],
+      checks: [ { "name" => "id_entity_detection", "status" => "passed", "reasons" => [], "requirement" => "required" } ],
       front_photo: { url: "https://files.withpersona.com/front.jpg?access_token=tok123", filename: "front.jpg" },
       back_photo: { url: "https://files.withpersona.com/back.jpg?access_token=tok456", filename: "back.jpg" },
       selfie_photo: nil,
@@ -32,9 +32,9 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
         { type: "verification/government-id", id: "ver_gov123" },
         { type: "verification/selfie", id: "ver_selfie456" }
       ],
-      document_ids: [{ type: "document/government-id", id: "doc_gov123" }],
+      document_ids: [ { type: "document/government-id", id: "doc_gov123" } ],
       behaviors: { "behavior_threat_level" => "low", "bot_score" => 8 },
-      sessions: [{ is_tor: false, is_proxy: false, threat_level: "low", country_code: "US" }],
+      sessions: [ { is_tor: false, is_proxy: false, threat_level: "low", country_code: "US" } ],
       raw: { status: "completed", behaviors: { "behavior_threat_level" => "low", "bot_score" => 8 } }
     )
   end

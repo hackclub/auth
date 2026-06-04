@@ -32,7 +32,7 @@ class Identity::PersonaRecord < ApplicationRecord
   def session_data = doc_json[:sessions] || []
 
   def full_name
-    [name_first, gov_id_data[:name_middle], name_last, gov_id_data[:name_suffix]]
+    [ name_first, gov_id_data[:name_middle], name_last, gov_id_data[:name_suffix] ]
       .compact_blank.join(" ")
   end
 
@@ -46,9 +46,9 @@ class Identity::PersonaRecord < ApplicationRecord
   def capture_method      = gov_id_data[:capture_method]
 
   def address_lines
-    street = [gov_id_data[:address_street_1], gov_id_data[:address_street_2]].compact_blank
-    city_state = [gov_id_data[:address_city], gov_id_data[:address_subdivision]].compact_blank.join(", ")
-    city_state_zip = [city_state, gov_id_data[:address_postal_code]].compact_blank.join(" ")
+    street = [ gov_id_data[:address_street_1], gov_id_data[:address_street_2] ].compact_blank
+    city_state = [ gov_id_data[:address_city], gov_id_data[:address_subdivision] ].compact_blank.join(", ")
+    city_state_zip = [ city_state, gov_id_data[:address_postal_code] ].compact_blank.join(" ")
     lines = []
     lines << street.join(", ") if street.any?
     lines << city_state_zip if city_state_zip.present?
@@ -61,7 +61,7 @@ class Identity::PersonaRecord < ApplicationRecord
 
   def device_summary
     s = primary_session
-    parts = [s[:browser_name], s[:os_name], s[:device_type]].compact_blank
+    parts = [ s[:browser_name], s[:os_name], s[:device_type] ].compact_blank
     parts.any? ? parts.join(", ") : nil
   end
 
@@ -74,7 +74,7 @@ class Identity::PersonaRecord < ApplicationRecord
 
   def ip_location
     s = primary_session
-    [s[:region_name], s[:country_name]].compact_blank.join(", ").presence
+    [ s[:region_name], s[:country_name] ].compact_blank.join(", ").presence
   end
 
   def ip_isp = primary_session[:ip_isp]

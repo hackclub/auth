@@ -53,7 +53,7 @@ RSpec.describe Persona::APIService do
         .to_return(
           status: 422,
           headers: { "Content-Type" => "application/json" },
-          body: { errors: [{ title: "Invalid template" }] }.to_json
+          body: { errors: [ { title: "Invalid template" } ] }.to_json
         )
 
       expect {
@@ -89,7 +89,7 @@ RSpec.describe Persona::APIService do
         .to_return(
           status: 404,
           headers: { "Content-Type" => "application/json" },
-          body: { errors: [{ title: "Not found" }] }.to_json
+          body: { errors: [ { title: "Not found" } ] }.to_json
         )
 
       expect {
@@ -167,7 +167,7 @@ RSpec.describe Persona::APIService do
           status: 200,
           headers: { "Content-Type" => "application/json" },
           body: { data: { id: "doc_generic", type: "document", attributes: {
-            files: [{ url: "https://files.withpersona.com/file1.pdf", filename: "file1.pdf" }]
+            files: [ { url: "https://files.withpersona.com/file1.pdf", filename: "file1.pdf" } ]
           } }, meta: {} }.to_json
         )
 
