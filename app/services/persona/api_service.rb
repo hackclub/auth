@@ -108,7 +108,7 @@ class Persona::APIService
       raise Persona::APIError, "refusing to download from untrusted host: #{uri.host}"
     end
 
-    response = Faraday.get(url)
+    response = file_connection(uri.host).get(uri.request_uri)
     raise Persona::APIError, "failed to download file (#{response.status})" unless response.success?
     StringIO.new(response.body)
   end
@@ -121,6 +121,14 @@ class Persona::APIService
 
     body = response.body.deep_symbolize_keys
     [ body[:data], body[:meta] || {} ]
+  end
+
+  def file_connection(host)
+    @file_connections ||= {}
+    @file_connections[host] ||= Faraday.new(
+      url: "https://#{host}",
+      request: { timeout: 30, open_timeout: 10 }
+    ) { |f| f.request :retry, max: 2, retry_statuses: [502, 503, 504] }
   end
 
   def connection
