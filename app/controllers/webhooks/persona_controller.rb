@@ -37,7 +37,8 @@ module Webhooks
       signatures = parts.select { |p| p.start_with?("v1=") }.map { |p| p.delete_prefix("v1=") }
 
       return head(:unauthorized) if timestamp.blank? || signatures.empty?
-      return head(:unauthorized) if Time.at(timestamp.to_i) < TIMESTAMP_TOLERANCE.ago
+      received_at = Time.at(timestamp.to_i)
+      return head(:unauthorized) if received_at < TIMESTAMP_TOLERANCE.ago || received_at > TIMESTAMP_TOLERANCE.from_now
 
       expected = OpenSSL::HMAC.hexdigest(
         "SHA256",
