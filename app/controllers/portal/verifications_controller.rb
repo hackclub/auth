@@ -89,36 +89,10 @@ class Portal::VerificationsController < Portal::BaseController
   end
 
   def update_legal_name
-    @identity = current_identity
-    verf = @identity.persona_verifications.where(status: :draft).first
-
-    unless verf
-      redirect_to portal_verify_persona_path
-      return
-    end
-
-    old_first = @identity.legal_first_name
-    old_last = @identity.legal_last_name
-    new_first = params[:legal_first_name].presence || @identity.first_name
-    new_last = params[:legal_last_name].presence || @identity.last_name
-
-    @identity.update!(legal_first_name: new_first, legal_last_name: new_last)
-
-    @identity.create_activity(:legal_name_updated, owner: @identity, recipient: @identity,
-      parameters: {
-        old_name: "#{old_first} #{old_last}",
-        new_name: "#{new_first} #{new_last}"
-      })
-
-    if verf.persona_inquiry_id.present?
-      begin
-        Persona.instance.expire_inquiry(verf.persona_inquiry_id)
-      rescue Persona::APIError
-      end
-      verf.update!(persona_inquiry_id: nil, persona_session_token: nil)
-    end
-
-    redirect_to portal_verify_persona_path
+    handle_legal_name_update(
+      redirect_path: portal_verify_persona_path,
+      find_verification: -> { current_identity.persona_verifications.where(status: :draft).first }
+    )
   end
 
   def cancel
