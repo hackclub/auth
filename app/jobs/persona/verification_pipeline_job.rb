@@ -9,6 +9,7 @@ class Persona::VerificationPipelineJob < ApplicationJob
     @record = verification.persona_record
 
     run_resemblances
+    @identity.reload
     run_decisioning
   end
 
@@ -29,11 +30,17 @@ class Persona::VerificationPipelineJob < ApplicationJob
 
     case verdict
     when :approved
-      if @verification.auto_approvable?
-        @verification.approve!
-      else
+      if !@verification.auto_approvable?
         @verification.update(issues: @verification.issues + [ "Student ID — requires manual review" ])
         Slack::NotifyReviewQueueJob.perform_later(@verification)
+      elsif @identity.under_13?
+        @verification.update(issues: @verification.issues + [ "Under 13 — requires manual review" ])
+        Slack::NotifyReviewQueueJob.perform_later(@verification)
+      elsif @identity.resemblances.any?
+        @verification.update(issues: @verification.issues + [ "Resemblance detected — requires manual review" ])
+        Slack::NotifyReviewQueueJob.perform_later(@verification)
+      else
+        @verification.approve!
       end
     when :denied
       @verification.mark_as_rejected!(@verification.default_rejection_reason || "other")
