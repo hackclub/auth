@@ -102,8 +102,10 @@ module VerificationFlow
   end
 
   def find_or_create_persona_verification
-    @identity.verifications.where(status: :draft, type: "Verification::PersonaVerification").first ||
-      Verification::PersonaVerification.create!(identity: @identity)
+    @identity.with_lock do
+      @identity.verifications.where(status: :draft, type: "Verification::PersonaVerification").first ||
+        Verification::PersonaVerification.create!(identity: @identity)
+    end
   end
 
   def setup_student_id_step
@@ -127,8 +129,10 @@ module VerificationFlow
   end
 
   def find_or_create_student_id_verification
-    @identity.persona_student_id_verifications.where(status: :draft).first ||
-      Verification::PersonaStudentIdVerification.create!(identity: @identity)
+    @identity.with_lock do
+      @identity.persona_student_id_verifications.where(status: :draft).first ||
+        Verification::PersonaStudentIdVerification.create!(identity: @identity)
+    end
   end
 
   def create_inquiry
@@ -140,6 +144,42 @@ module VerificationFlow
     inquiry = Persona.instance.resume_inquiry(@verification.persona_inquiry_id)
     @verification.update!(persona_session_token: inquiry.session_token)
     inquiry
+  end
+
+  LEGAL_NAME_MAX_LENGTH = 255
+
+  def handle_legal_name_update(redirect_path:, find_verification:)
+    @identity = current_identity
+    verf = find_verification.call
+
+    unless verf
+      redirect_to redirect_path
+      return
+    end
+
+    new_first = params[:legal_first_name].to_s.strip.truncate(LEGAL_NAME_MAX_LENGTH).presence || @identity.first_name
+    new_last = params[:legal_last_name].to_s.strip.truncate(LEGAL_NAME_MAX_LENGTH).presence || @identity.last_name
+
+    old_first = @identity.legal_first_name
+    old_last = @identity.legal_last_name
+
+    @identity.update!(legal_first_name: new_first, legal_last_name: new_last)
+
+    @identity.create_activity(:legal_name_updated, owner: @identity, recipient: @identity,
+      parameters: {
+        old_name: "#{old_first} #{old_last}",
+        new_name: "#{new_first} #{new_last}"
+      })
+
+    if verf.persona_inquiry_id.present?
+      begin
+        Persona.instance.expire_inquiry(verf.persona_inquiry_id)
+      rescue Persona::APIError
+      end
+      verf.update!(persona_inquiry_id: nil, persona_session_token: nil)
+    end
+
+    redirect_to redirect_path
   end
 
   def verification_should_redirect?(status)
