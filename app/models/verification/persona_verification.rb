@@ -76,7 +76,6 @@ class Verification::PersonaVerification < Verification
 
       after do
         set_ysws_eligibility!
-        VerificationMailer.approved(self).deliver_later
       end
     end
 
@@ -84,6 +83,15 @@ class Verification::PersonaVerification < Verification
       transitions from: [ :draft, :pending ], to: :rejected
       before { |reason, details| set_rejection_fields(reason, details) }
       after  { notify_rejection }
+    end
+  end
+
+  def default_rejection_reason
+    doc_under_13 = persona_record&.birthdate && Identity.calculate_age(persona_record.birthdate) < 13
+    if identity.under_13? || doc_under_13
+      "under_13"
+    elsif identity.resemblances.any?
+      "duplicate"
     end
   end
 

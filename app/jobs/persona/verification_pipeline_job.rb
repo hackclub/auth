@@ -43,6 +43,7 @@ class Persona::VerificationPipelineJob < ApplicationJob
         Slack::NotifyReviewQueueJob.perform_later(@verification)
       else
         @verification.approve!
+        VerificationMailer.approved(@verification).deliver_later
       end
     when :denied
       @verification.mark_as_rejected!(@verification.default_rejection_reason || "other")
