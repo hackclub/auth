@@ -13,6 +13,8 @@ module PublicIdentifiable
     "#{self.public_id_prefix}!#{hashid}"
   end
 
+  alias_method :flipper_id, :public_id
+
   module ClassMethods
     def set_public_id_prefix(prefix)
       self.public_id_prefix = prefix.to_s.downcase

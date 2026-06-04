@@ -145,6 +145,49 @@
     </column>
   </row>
 
+  <%# === Feature Flags === %>
+  <div is-="separator"></div>
+  <span style="color: var(--foreground2); font-style: italic;">feature flags</span>
+  <column gap-="0">
+    <% Flipper.features.sort_by(&:name).each do |flag| %>
+      <% global = flag.state == :on %>
+      <% user_enabled = flag.enabled?(@identity) %>
+      <% desc = Rails.configuration.flipper_features[flag.name] %>
+      <row align-="center" gap-="1" style="padding: 0.25em 0;">
+        <% case flag.state %>
+        <% when :on %>
+          <span is-="badge" variant-="green">on</span>
+        <% when :off %>
+          <span is-="badge" variant-="red">off</span>
+        <% when :conditional %>
+          <span is-="badge" variant-="yellow">cond</span>
+        <% end %>
+        <% if current_user&.super_admin? %>
+          <a href="<%= backend_flipper_path %>/features/<%= flag.name %>" target="_blank" style="font-family: monospace;"><%= flag.name %></a>
+        <% else %>
+          <span style="font-family: monospace;"><%= flag.name %></span>
+        <% end %>
+        <% if desc.present? %>
+          <abbr title="<%= desc %>" style="color: var(--foreground2); cursor: help;">(?)</abbr>
+        <% end %>
+        <span style="flex: 1;"></span>
+        <% if global %>
+          <span style="color: var(--foreground2); font-style: italic;">enabled, because it's on for everyone</span>
+        <% elsif user_enabled %>
+          <span is-="badge" variant-="green">enabled</span>
+          <% if current_user&.super_admin? %>
+            <%= button_to "disable", flip_backend_identity_path(@identity, flag: flag.name, state: false), method: :post, form: { style: "display:inline" }, "size-": "small" %>
+          <% end %>
+        <% else %>
+          <span style="color: var(--foreground2);">disabled</span>
+          <% if current_user&.super_admin? %>
+            <%= button_to "enable", flip_backend_identity_path(@identity, flag: flag.name, state: true), method: :post, form: { style: "display:inline" }, "size-": "small" %>
+          <% end %>
+        <% end %>
+      </row>
+    <% end %>
+  </column>
+
   <%# === Recent Sessions === %>
   <% if @sessions.any? %>
     <div is-="separator"></div>

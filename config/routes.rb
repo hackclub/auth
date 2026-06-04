@@ -231,6 +231,7 @@ Rails.application.routes.draw do
         post :revoke_sessions
         post :revoke_session
         post :simulate_onboarding
+        post :flip
       end
       resources :addresses, only: [ :new, :create, :edit, :update, :destroy ], controller: "identity_addresses"
     end

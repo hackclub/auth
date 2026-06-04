@@ -115,7 +115,7 @@ module DeletionService
 
       log.call "step 11: removing Flipper actor gates..."
       gates = ActiveRecord::Base.connection.delete(
-        "DELETE FROM flipper_gates WHERE key = 'actors' AND value = #{ActiveRecord::Base.connection.quote("Identity;#{identity.id}")}"
+        "DELETE FROM flipper_gates WHERE key = 'actors' AND value = #{ActiveRecord::Base.connection.quote(identity.public_id)}"
       )
       log.call "  removed #{gates}" if gates > 0
 

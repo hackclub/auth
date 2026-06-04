@@ -11,6 +11,7 @@ class IdentityPolicy < ApplicationPolicy
   alias_method :clear_slack_photo?, :update?
 
   def simulate_onboarding? = user&.super_admin?
+  def flip? = user&.super_admin?
 
   class Scope < ApplicationPolicy::Scope
     def resolve

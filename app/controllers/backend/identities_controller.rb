@@ -250,6 +250,28 @@ module Backend
       redirect_to backend_identity_path(@identity)
     end
 
+    def flip
+      authorize @identity
+
+      feature = params[:flag]
+      state = params[:state] == "true"
+
+      if state
+        Flipper.enable_actor(feature, @identity)
+      else
+        Flipper.disable_actor(feature, @identity)
+      end
+
+      @identity.create_activity(
+        :flip_feature_flag,
+        owner: current_user,
+        parameters: { flag: feature, enabled: state }
+      )
+
+      flash[:notice] = "#{feature}: #{state ? 'enabled' : 'disabled'} for #{@identity.first_name}"
+      redirect_to backend_identity_path(@identity)
+    end
+
     private
 
     def set_identity

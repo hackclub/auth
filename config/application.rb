@@ -83,6 +83,8 @@ module IdentityVault
 
     config.slack_channels = config_for(:slack_channels)
 
+    config.flipper_features = config_for(:flipper_features)
+
     # Slack E+ stuff (SAML, SCIM, etc.)
 
 

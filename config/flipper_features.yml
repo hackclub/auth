@@ -1,0 +1,15 @@
+shared:
+  persona_verification_2026_04_09: routes new users through Persona identity verification instead of document upload
+  are_we_enterprise_yet: enables Slack Enterprise Grid features (SAML, SCIM provisioning)
+  email_change: allows users to change their primary email address
+  allow_adult_registration: allows users 19+ to register without an adult-accepting program
+  stardance: enables Stardance app card on the welcome page
+  beest_2026_04_10: enables Beest app card on the welcome page
+  flavortown: enables Flavortown app card on the welcome page
+  hctg_2026_04_10: enables HCTG app card on the welcome page
+  blueprint: enables Blueprint app card on the welcome page
+  full_user_open_floodgates_2026_04_06: provisions users as full Slack members instead of multi-channel guests
+  allow_manual_flow: enables the manual document verification flow for an actor
+  disable_slack_invites: suppresses Slack SCIM provisioning for an actor
+  force_manual_review: forces verifications for an actor into manual review
+  force_deny_verification: auto-denies verifications for an actor
