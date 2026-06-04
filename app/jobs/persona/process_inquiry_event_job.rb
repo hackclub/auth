@@ -48,10 +48,13 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
   def handle_approved
     return if @verification.approved?
     ensure_inquiry_data_saved
-    @verification.reload
-    @verification.create_activity(:persona_inquiry_approved, recipient: @identity,
-      parameters: { inquiry_id: @verification.persona_inquiry_id })
-    Persona::VerificationPipelineJob.perform_later(@verification)
+    @verification.with_lock do
+      @verification.reload
+      return if @verification.approved?
+      @verification.create_activity(:persona_inquiry_approved, recipient: @identity,
+        parameters: { inquiry_id: @verification.persona_inquiry_id })
+      Persona::VerificationPipelineJob.perform_later(@verification)
+    end
   end
 
   def handle_declined(inquiry_id)
@@ -128,21 +131,23 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     }
 
     ActiveRecord::Base.transaction do
-      record = Identity::PersonaRecord.find_or_create_by!(inquiry_id: inquiry.id) do |r|
-        r.identity = @identity
-        r.raw_json_response = raw_response.to_json
-        r.name_first = gov_id&.name_first
-        r.name_last = gov_id&.name_last
-        r.birthdate = gov_id&.birthdate
-        r.country_code = gov_id&.country_code || @identity.country
-        r.persona_status = inquiry.status
-        r.id_class = gov_id&.id_class
-        r.expiration_date = gov_id&.expiration_date
-        r.entity_confidence_score = gov_id&.entity_confidence_score
-        r.checks = gov_id&.checks
-        r.behaviors = inquiry.behaviors
-        r.network_signals = build_network_signals(inquiry.sessions)
-      end
+      record = Identity::PersonaRecord.find_or_initialize_by(inquiry_id: inquiry.id)
+      record.assign_attributes(
+        identity: @identity,
+        raw_json_response: raw_response.to_json,
+        name_first: gov_id&.name_first,
+        name_last: gov_id&.name_last,
+        birthdate: gov_id&.birthdate,
+        country_code: gov_id&.country_code || @identity.country,
+        persona_status: inquiry.status,
+        id_class: gov_id&.id_class,
+        expiration_date: gov_id&.expiration_date,
+        entity_confidence_score: gov_id&.entity_confidence_score,
+        checks: gov_id&.checks,
+        behaviors: inquiry.behaviors,
+        network_signals: build_network_signals(inquiry.sessions)
+      )
+      record.save!
 
       unless @verification.identity_document.present?
         all_photos = photos.document + photos.liveness
@@ -201,7 +206,7 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     inquiry_id = @verification.persona_inquiry_id
     if @verification.draft?
       handle_completed(inquiry_id)
-    elsif @verification.persona_record.nil?
+    elsif @verification.persona_record.nil? || !@verification.identity_document.present?
       inquiry = Persona.instance.retrieve_inquiry(inquiry_id)
       save_inquiry_data(inquiry)
     end
