@@ -131,7 +131,7 @@ class Verification::PersonaVerification < Verification
   def set_ysws_eligibility!
     return unless persona_record&.birthdate
     age = Identity.calculate_age(persona_record.birthdate)
-    eligible = age.between?(13, 19)
+    eligible = age.between?(13, 17)
     identity.update!(ysws_eligible: eligible)
     create_activity(:ysws_eligibility_set, recipient: identity,
       parameters: { eligible: eligible, age: age })
