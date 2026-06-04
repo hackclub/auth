@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  automatically marked as YSWS <%= activity.parameters["eligible"] ? "eligible" : "ineligible" %> (age <%= activity.parameters["age"] %>).
+<% end %>
