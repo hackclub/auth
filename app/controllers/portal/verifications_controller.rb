@@ -13,6 +13,8 @@ class Portal::VerificationsController < Portal::BaseController
       redirect_to_portal_return(status: :verified)
     when "pending"
       redirect_to_portal_return(status: :pending)
+    when "ineligible"
+      redirect_to_portal_return(status: :ineligible)
     else
       case @identity.required_verification_method
       when :persona
@@ -38,6 +40,9 @@ class Portal::VerificationsController < Portal::BaseController
       return
     when "pending"
       redirect_to_portal_return(status: :pending)
+      return
+    when "ineligible"
+      redirect_to_portal_return(status: :ineligible)
       return
     end
 
@@ -105,7 +110,7 @@ class Portal::VerificationsController < Portal::BaseController
     @identity = current_identity
 
     status = @identity.verification_status
-    if status == "pending" || status == "verified"
+    if %w[pending verified ineligible].include?(status)
       redirect_to_portal_return(status: status.to_sym)
       return
     end

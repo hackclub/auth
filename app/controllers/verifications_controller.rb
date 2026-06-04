@@ -104,6 +104,12 @@ class VerificationsController < ApplicationController
   def update
     @identity = current_identity
 
+    status = @identity.verification_status
+    if verification_should_redirect?(status)
+      redirect_to verification_status_path
+      return
+    end
+
     if @identity.required_verification_method == :persona
       redirect_to persona_verification_path and return
     end
