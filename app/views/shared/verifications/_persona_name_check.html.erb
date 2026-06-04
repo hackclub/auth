@@ -6,7 +6,7 @@
     <p x-show="!editingName">
       Verifying as <strong><%= first %> <%= last %></strong>
       &middot;
-      <a href="#" @click.prevent="editingName = true">Not your name?</a>
+      <a href="#" @click.prevent="editingName = true">Not your legal name?</a>
     </p>
     <div x-show="editingName" x-cloak>
       <%= form_with url: local_assigns[:form_url] || update_legal_name_path, method: :patch, local: true,
