@@ -2,7 +2,11 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
   queue_as :default
 
   def perform(event_name:, inquiry_id:)
-    @verification = Verification.find_by!(persona_inquiry_id: inquiry_id)
+    @verification = Verification.find_by(persona_inquiry_id: inquiry_id)
+    unless @verification
+      Rails.logger.info("[Persona] No verification found for inquiry #{inquiry_id} — may have been nuked")
+      return
+    end
     @identity = @verification.identity
 
     Sentry.set_tags(component: "persona", event: event_name)
@@ -43,7 +47,7 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
 
   def handle_approved
     return if @verification.approved?
-    handle_completed(@verification.persona_inquiry_id) if @verification.draft?
+    ensure_inquiry_data_saved
     @verification.reload
     @verification.create_activity(:persona_inquiry_approved, recipient: @identity,
       parameters: { inquiry_id: @verification.persona_inquiry_id })
@@ -191,6 +195,16 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
       ip_isp: s[:ip_isp],
       device_type: s[:device_type]
     }.compact
+  end
+
+  def ensure_inquiry_data_saved
+    inquiry_id = @verification.persona_inquiry_id
+    if @verification.draft?
+      handle_completed(inquiry_id)
+    elsif @verification.persona_record.nil?
+      inquiry = Persona.instance.retrieve_inquiry(inquiry_id)
+      save_inquiry_data(inquiry)
+    end
   end
 
   def determine_decline_reason
