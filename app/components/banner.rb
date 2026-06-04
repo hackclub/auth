@@ -25,7 +25,7 @@ class Components::Banner < Components::Base
         code(
           class: "error-id-code cursor-pointer hover:opacity-80",
           data_error_id: @event_id,
-          onclick: "copyErrorId(this)",
+          onclick: safe("copyErrorId(this)"),
           title: "Click to copy"
         ) { @event_id }
         span(class: "copy-feedback ml-1 hidden") { " ✓ Copied!" }
