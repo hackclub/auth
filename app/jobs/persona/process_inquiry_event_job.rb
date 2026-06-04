@@ -130,6 +130,8 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
       sessions: inquiry.sessions
     }
 
+    downloaded_photos = download_photos(photos) unless @verification.identity_document.present?
+
     ActiveRecord::Base.transaction do
       record = Identity::PersonaRecord.find_or_initialize_by(inquiry_id: inquiry.id)
       record.assign_attributes(
@@ -149,43 +151,41 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
       )
       record.save!
 
-      unless @verification.identity_document.present?
-        all_photos = photos.document + photos.liveness
-        doc = create_document(:persona_gov_id, all_photos)
+      if downloaded_photos
+        doc = build_document(:persona_gov_id, downloaded_photos)
         @verification.update!(persona_record: record, identity_document: doc)
+      else
+        @verification.update!(persona_record: record) unless @verification.persona_record
       end
 
       @identity.update!(persona_account_id: inquiry.account_id) if @identity.persona_account_id.blank?
     end
   end
 
-  def create_document(type, photo_array)
-    return nil if photo_array.blank?
+  def download_photos(photo_set)
+    all_photos = photo_set.document + photo_set.liveness
+    return nil if all_photos.blank?
 
+    all_photos.each_with_index.filter_map do |photo, i|
+      next unless photo.is_a?(Hash) && photo[:url]
+      label = photo[:label] || photo[:filename] || "photo_#{i + 1}"
+      raw = Persona.instance.download_file(photo[:url])
+      bytes = raw.respond_to?(:read) ? raw.read : raw
+      { bytes: bytes, filename: photo[:filename] || "#{label}.jpg" }
+    rescue Persona::APIError => e
+      Sentry.capture_exception(e)
+      nil
+    end.presence
+  end
+
+  def build_document(type, downloaded)
     doc = Identity::Document.new(identity: @identity, document_type: type)
-    photo_array.each_with_index do |photo, i|
-      attach_photo(doc, photo, photo[:label] || photo[:filename] || "photo_#{i + 1}")
+    downloaded.each do |dl|
+      doc.files.attach(io: StringIO.new(dl[:bytes]), filename: dl[:filename], content_type: "image/jpeg")
     end
-
     return nil unless doc.files.any?
     doc.save!
     doc
-  end
-
-  def attach_photo(doc, photo_data, label)
-    return unless photo_data.is_a?(Hash) && photo_data[:url]
-
-    raw = Persona.instance.download_file(photo_data[:url])
-    bytes = raw.respond_to?(:read) ? raw.read : raw
-    filename = photo_data[:filename] || "#{label}.jpg"
-
-    doc.files.attach(
-      io: StringIO.new(bytes),
-      filename: filename,
-      content_type: "image/jpeg"
-    )
-  rescue Persona::APIError => e
-    Sentry.capture_exception(e)
   end
 
   def build_network_signals(sessions)
