@@ -368,6 +368,14 @@
   @include up($bp-sm) {
     padding: 3.5rem 3rem !important;
   }
+
+  a {
+    color: #4f46e5;
+
+    @include dark-mode {
+      color: #818cf8;
+    }
+  }
 }
 
 .persona-hero {
