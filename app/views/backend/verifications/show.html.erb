@@ -172,7 +172,7 @@
 
   <%# === Files === %>
   <span style="color: var(--foreground2); font-style: italic;">files</span>
-  <% if @relevant_object.nil? %>
+  <% if @verification.needs_break_glass? && @relevant_object.nil? %>
     <column box-="square" style="color: var(--foreground2);">no files yet — awaiting persona completion</column>
   <% elsif @verification.needs_break_glass? %>
     <%= render "backend/shared/break_the_glass", break_glassable: @relevant_object, auto_break_glass: @verification.auto_break_glass_reason do %>
