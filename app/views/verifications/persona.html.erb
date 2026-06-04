@@ -91,7 +91,6 @@
       </button>
 
       <div class="persona-footer">
-        <p><%= @student_id_flow ? sid.("cant_do_this") : t(".cant_do_this") %> <%= link_to t(".fallback_prompt"), verification_step_path(:document) %></p>
         <p class="persona-fine-print"><%= t(".contact_html") %></p>
         <% unless @student_id_flow %>
           <p class="persona-fine-print"><%= t(".privacy_note_html").html_safe %></p>
