@@ -100,7 +100,7 @@ class Persona::APIService
 
   def redact_account(account_id) = request!(:delete, "/api/v1/accounts/#{account_id}")
 
-  ALLOWED_DOWNLOAD_HOSTS = %w[files.withpersona.com withpersona.com].freeze
+  ALLOWED_DOWNLOAD_HOSTS = %w[files.withpersona.com].freeze
 
   def download_file(url)
     uri = URI.parse(url)

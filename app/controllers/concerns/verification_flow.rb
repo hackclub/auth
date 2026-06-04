@@ -26,8 +26,8 @@ module VerificationFlow
   end
 
   def process_legal_name
-    legal_first = params[:legal_first_name]
-    legal_last = params[:legal_last_name]
+    legal_first = params[:legal_first_name].to_s.strip.truncate(LEGAL_NAME_MAX_LENGTH).presence
+    legal_last = params[:legal_last_name].to_s.strip.truncate(LEGAL_NAME_MAX_LENGTH).presence
 
     return true unless legal_first.present? && legal_last.present?
 
