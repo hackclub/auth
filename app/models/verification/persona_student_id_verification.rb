@@ -9,7 +9,7 @@ class Verification::PersonaStudentIdVerification < Verification::PersonaVerifica
   ].freeze
 
   def document_type_label = "Student ID (Persona)"
-  def auto_approvable? = false
+  def auto_approvable? = true
 
   private
 
