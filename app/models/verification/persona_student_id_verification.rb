@@ -4,9 +4,7 @@ class Verification::PersonaStudentIdVerification < Verification::PersonaVerifica
   TEMPLATES = [
     Template.new(:student_id, STUDENT_ID_COUNTRIES, {
       "name-first":    ->(i) { i.legal_first_name.presence || i.first_name },
-      "name-last":     ->(i) { i.legal_last_name.presence || i.last_name },
-      birthdate:       ->(i) { i.birthday&.iso8601 },
-      "email-address": :primary_email
+      "name-last":     ->(i) { i.legal_last_name.presence || i.last_name }
     })
   ].freeze
 
