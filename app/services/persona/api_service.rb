@@ -128,7 +128,7 @@ class Persona::APIService
     @file_connections[host] ||= Faraday.new(
       url: "https://#{host}",
       request: { timeout: 30, open_timeout: 10 }
-    ) { |f| f.request :retry, max: 2, retry_statuses: [502, 503, 504] }
+    ) { |f| f.request :retry, max: 2, retry_statuses: [ 502, 503, 504 ] }
   end
 
   def connection
