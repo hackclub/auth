@@ -89,9 +89,11 @@ class Portal::VerificationsController < Portal::BaseController
   end
 
   def update_legal_name
+    draft = current_identity.persona_verifications.where(status: :draft).first
+    redirect_path = draft.is_a?(Verification::PersonaStudentIdVerification) ? portal_verify_student_id_path : portal_verify_persona_path
     handle_legal_name_update(
-      redirect_path: portal_verify_persona_path,
-      find_verification: -> { current_identity.persona_verifications.where(status: :draft).first }
+      redirect_path: redirect_path,
+      find_verification: -> { draft }
     )
   end
 

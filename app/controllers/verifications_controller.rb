@@ -71,9 +71,11 @@ class VerificationsController < ApplicationController
   end
 
   def update_legal_name
+    draft = current_identity.persona_verifications.where(status: :draft).first
+    redirect_path = draft.is_a?(Verification::PersonaStudentIdVerification) ? student_id_verification_path : persona_verification_path
     handle_legal_name_update(
-      redirect_path: persona_verification_path,
-      find_verification: -> { current_identity.persona_verifications.where(status: :draft).first }
+      redirect_path: redirect_path,
+      find_verification: -> { draft }
     )
   end
 
