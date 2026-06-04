@@ -10,8 +10,7 @@ class Slack::NotifyReviewQueueJob < ApplicationJob
 
     message = <<~EOM.strip
       new verification held for review:
-      *name*: #{identity.first_name} #{identity.last_name}
-      *email*: #{identity.primary_email}
+      *identity*: #{identity.public_id}
       *flags*: #{issues.any? ? issues.join(", ") : "none listed"}
     EOM
 
