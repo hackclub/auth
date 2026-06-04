@@ -25,7 +25,7 @@ class Identity::PersonaRecord < ApplicationRecord
   # -- hydration from encrypted raw response ---------------------------------
 
   def doc_json
-    @doc_json ||= JSON.parse(raw_json_response.strip, symbolize_names: true)
+    @doc_json ||= raw_json_response ? JSON.parse(raw_json_response.strip, symbolize_names: true) : {}
   end
 
   def gov_id_data  = doc_json[:government_id_verification] || {}
