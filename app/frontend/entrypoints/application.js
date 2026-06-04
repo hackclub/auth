@@ -21,15 +21,11 @@ window.copyErrorId = function(element) {
   const feedback = element.nextElementSibling || element.parentElement.querySelector('.copy-feedback');
 
   navigator.clipboard.writeText(errorId).then(() => {
-    // Show feedback
     if (feedback) {
-      feedback.classList.add('show');
-      feedback.classList.remove('hidden');
+      feedback.hidden = false;
 
-      // Hide after 2 seconds
       setTimeout(() => {
-        feedback.classList.remove('show');
-        feedback.classList.add('hidden');
+        feedback.hidden = true;
       }, 2000);
     }
   }).catch(err => {

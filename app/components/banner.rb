@@ -28,7 +28,7 @@ class Components::Banner < Components::Base
           onclick: safe("copyErrorId(this)"),
           title: "Click to copy"
         ) { @event_id }
-        span(class: "copy-feedback ml-1 hidden") { " ✓ Copied!" }
+        span(class: "copy-feedback ml-1", hidden: true) { " ✓ Copied!" }
       end
     end
   end
