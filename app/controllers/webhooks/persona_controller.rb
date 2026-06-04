@@ -51,14 +51,15 @@ module Webhooks
           level: :warning,
           tags: { component: "persona" },
           extra: { timestamp: timestamp, ip: request.remote_ip })
-        head(:unauthorized)
+        return head(:unauthorized)
       end
     end
 
     def parsed_body
-      @parsed_body ||= JSON.parse(request.raw_post, symbolize_names: true)
+      return @parsed_body if defined?(@parsed_body)
+      @parsed_body = JSON.parse(request.raw_post, symbolize_names: true)
     rescue JSON::ParserError
-      head(:bad_request) and return
+      @parsed_body = nil
     end
 
     def webhook_secret
