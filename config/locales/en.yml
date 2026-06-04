@@ -677,6 +677,16 @@ en:
       cant_do_this: "Don't have your ID on you?"
       fallback_prompt: Upload a document manually instead
       contact_html: "Having trouble? Email us at <a href=\"mailto:identity@hackclub.com\">identity@hackclub.com</a>."
+    student_id:
+      hero_description_html: "Upload your student ID and a recent school transcript. Our team will review them within 1–2 business days."
+      steps:
+        scan:
+          title: Upload your documents
+          description: "Upload a photo of your student ID and a recent school transcript"
+        done:
+          description: "Our team will review your documents within 1–2 business days"
+      cant_do_this: "Don't have a student ID?"
+      begin_verification: Start upload
     status:
       badges:
         under_review: Under review
