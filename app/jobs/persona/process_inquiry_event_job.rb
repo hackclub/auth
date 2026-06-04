@@ -2,7 +2,7 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
   queue_as :default
 
   def perform(event_name:, inquiry_id:)
-    @verification = Verification::PersonaVerification.find_by!(persona_inquiry_id: inquiry_id)
+    @verification = Verification.find_by!(persona_inquiry_id: inquiry_id)
     @identity = @verification.identity
 
     Sentry.set_tags(component: "persona", event: event_name)
@@ -34,8 +34,6 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     return if @verification.pending? || @verification.approved?
 
     inquiry = Persona.instance.retrieve_inquiry(inquiry_id)
-    raise "no government ID verification found for inquiry #{inquiry_id}" unless inquiry.gov_id_verification_id
-
     save_inquiry_data(inquiry)
 
     @verification.mark_pending!
