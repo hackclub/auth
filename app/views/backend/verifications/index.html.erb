@@ -25,17 +25,13 @@
               <%= link_to "#{verification.identity.first_name} #{verification.identity.last_name}", backend_verification_path(verification) %>
             </td>
             <td>
-              <%= verification.document_type %>
+              <%= verification.document_type_label %>
               <% if verification.ignored_at.present? %>
                 <span is-="badge" variant-="yellow">ignored</span>
               <% end %>
             </td>
             <td>
-              <% if verification.approved? %>
-                <span is-="badge" variant-="green">approved</span>
-              <% else %>
-                <span is-="badge" variant-="red">rejected</span>
-              <% end %>
+              <span is-="badge" variant-="<%= verification.approved? ? 'green' : verification.rejected? ? 'red' : 'yellow' %>"><%= verification.status %></span>
             </td>
             <td style="color: var(--foreground2);"><%= verification.updated_at.strftime("%Y-%m-%d") %></td>
             <td style="color: var(--foreground2);">

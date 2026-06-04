@@ -1,0 +1,31 @@
+<column>
+  <row><span style="min-width: 12ch; color: var(--foreground2);">type</span> Government ID (Persona)</row>
+  <% if verification.persona_inquiry_id.present? %>
+    <row><span style="min-width: 12ch; color: var(--foreground2);">inquiry</span> <code><%= verification.persona_inquiry_id %></code></row>
+  <% end %>
+  <row>
+    <span style="min-width: 12ch; color: var(--foreground2);">status</span>
+    <% if verification.pending? %>
+      <span is-="badge" variant-="yellow">pending</span>
+    <% elsif verification.approved? %>
+      <span is-="badge" variant-="green">approved</span>
+    <% else %>
+      <span is-="badge" variant-="red"><%= verification.status %></span>
+    <% end %>
+  </row>
+  <% if verification.persona_record&.entity_confidence_score %>
+    <row>
+      <span style="min-width: 12ch; color: var(--foreground2);">confidence</span>
+      <% raw_score = verification.persona_record.entity_confidence_score %>
+      <% pct = raw_score > 1 ? raw_score.round(1) : (raw_score * 100).round(1) %>
+      <% normalized = raw_score > 1 ? raw_score / 100.0 : raw_score %>
+      <% if normalized < 0.85 %>
+        <span style="color: var(--red);"><%= pct %>%</span>
+      <% elsif normalized < 0.95 %>
+        <span style="color: var(--yellow);"><%= pct %>%</span>
+      <% else %>
+        <span style="color: var(--green);"><%= pct %>%</span>
+      <% end %>
+    </row>
+  <% end %>
+</column>

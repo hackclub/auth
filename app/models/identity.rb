@@ -44,6 +44,9 @@ class Identity < ApplicationRecord
 
   include CountryEnumable
 
+  include HasPersonaUrl
+  has_persona_url "accounts", :persona_account_id
+
   include PublicIdentifiable
   set_public_id_prefix "ident"
 
@@ -65,10 +68,13 @@ class Identity < ApplicationRecord
   end
 
   has_many :documents, class_name: "Identity::Document", dependent: :destroy
+  has_many :persona_records, class_name: "Identity::PersonaRecord", dependent: :destroy
   has_many :verifications, class_name: "Verification", dependent: :destroy
   has_many :document_verifications, class_name: "Verification::DocumentVerification", dependent: :destroy
   has_many :aadhaar_verifications, class_name: "Verification::AadhaarVerification", dependent: :destroy
   has_many :vouch_verifications, class_name: "Verification::VouchVerification", dependent: :destroy
+  has_many :persona_verifications, class_name: "Verification::PersonaVerification", dependent: :destroy
+  has_many :persona_student_id_verifications, class_name: "Verification::PersonaStudentIdVerification", dependent: :destroy
   has_many :addresses, class_name: "Address", dependent: :destroy
   belongs_to :primary_address, class_name: "Address", optional: true
 
@@ -94,6 +100,7 @@ class Identity < ApplicationRecord
   validate :validate_email_not_tombstoned, if: -> { new_record? || primary_email_changed? }
 
   validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, allow_blank: true
+  validates :persona_account_id, uniqueness: true, allow_blank: true
   validates :aadhaar_number, uniqueness: true, allow_blank: true
   validates :aadhaar_number, format: { with: /\A\d{12}\z/, message: "must be 12 digits" }, if: -> { aadhaar_number.present? }
 
@@ -198,15 +205,19 @@ class Identity < ApplicationRecord
     scenario_class.new(self)
   end
 
+  def required_verification_method
+    if Flipper.enabled?(:persona_verification_2026_04_09, self)
+      :persona
+    else
+      :document
+    end
+  end
+
   def onboarding_step
     return :basic_info unless persisted?
 
     unless verifications.where(status: %w[approved pending]).any?
-      if country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self)
-        return :aadhaar
-      else
-        return :document
-      end
+      return required_verification_method
     end
 
     return :address unless primary_address_id.present?
@@ -216,9 +227,18 @@ class Identity < ApplicationRecord
 
   def onboarding_complete? = onboarding_step == :submitted
 
-  def needs_documents? = country != "IN" && onboarding_step == :document
+  def needs_documents? = required_verification_method == :document && onboarding_step == :document
 
-  def needs_aadhaar? = country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self) && onboarding_step == :aadhaar
+  def needs_persona?
+    return false if permabanned
+    return false unless required_verification_method == :persona
+    !verifications.not_ignored.where(status: %w[approved pending]).any?
+  end
+
+  def persona_student_id_eligible?
+    Verification::PersonaStudentIdVerification::STUDENT_ID_COUNTRIES.include?(country) &&
+      required_verification_method == :persona
+  end
 
   def latest_verification = verifications.not_ignored.order(created_at: :desc).first
 
@@ -276,35 +296,22 @@ class Identity < ApplicationRecord
 
   # TODO: this is schnasty
   def onboarding_redirect_path
-    return Rails.application.routes.url_helpers.basic_info_onboarding_path unless persisted?
+    helpers = Rails.application.routes.url_helpers
 
-    if country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self)
-      return Rails.application.routes.url_helpers.aadhaar_onboarding_path if needs_aadhaar_upload?
-      return Rails.application.routes.url_helpers.aadhaar_step_2_onboarding_path unless aadhaar_verifications.pending.any?
-    else
-      return Rails.application.routes.url_helpers.document_onboarding_path if needs_document_upload?
-    end
+    return helpers.basic_info_onboarding_path unless persisted?
+    return helpers.new_verifications_path if needs_persona? || needs_documents?
+    return helpers.address_onboarding_path unless primary_address_id.present?
 
-    return Rails.application.routes.url_helpers.address_onboarding_path unless primary_address_id.present?
-
-    Rails.application.routes.url_helpers.submitted_onboarding_path
+    helpers.submitted_onboarding_path
   end
 
   def needs_document_upload?
-    return false if country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self)
     return false if verification_status == "ineligible"
     return true unless verifications.not_ignored.where(status: %w[approved pending]).any?
     return false if verification_status == "verified"
     needs_resubmission?
   end
 
-  def needs_aadhaar_upload?
-    return false unless country == "IN"
-    return false if verification_status == "ineligible"
-    return true unless verifications.not_ignored.where(status: %w[approved pending draft]).any?
-    return false if verification_status == "verified"
-    needs_resubmission?
-  end
 
   def under_13? = age < 13
 

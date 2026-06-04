@@ -216,6 +216,7 @@ Rails.application.routes.draw do
         patch :approve
         patch :reject
         patch :ignore
+        delete :nuke_inquiry
       end
     end
 
@@ -316,6 +317,9 @@ Rails.application.routes.draw do
 
   get "/verifications/new", to: "verifications#new", as: :new_verifications
   get "/verifications/status", to: "verifications#status", as: :verification_status
+  get "/verifications/persona", to: "verifications#persona", as: :persona_verification
+  get "/verifications/student-id", to: "verifications#student_id", as: :student_id_verification
+  patch "/verifications/persona/legal-name", to: "verifications#update_legal_name", as: :update_legal_name
   get "/verifications/:id", to: "verifications#show", as: :verification_step
   put "/verifications/:id", to: "verifications#update", as: :update_verification_step
 
@@ -332,6 +336,9 @@ Rails.application.routes.draw do
     get "verify", to: "verifications#start"
     get "verify/document", to: "verifications#portal", as: :verify_document
     post "verify/document", to: "verifications#create"
+    get "verify/persona", to: "verifications#persona", as: :verify_persona
+    get "verify/student-id", to: "verifications#student_id", as: :verify_student_id
+    patch "verify/persona/legal-name", to: "verifications#update_legal_name", as: :verify_persona_legal_name
     delete "verify", to: "verifications#cancel"
     get "address", to: "addresses#portal"
     post "address", to: "addresses#create"
@@ -417,6 +424,10 @@ Rails.application.routes.draw do
   # Slack interactivity routes
   namespace :slack do
     post "/interactivity", to: "interactivity#create"
+  end
+
+  namespace :webhooks do
+    post "persona", to: "persona#create"
   end
 
   scope :saml do

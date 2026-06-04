@@ -99,10 +99,12 @@
   }
 
   /* Banner color tokens — matching the main app's _colors.scss (light) */
-  --error-bg: #fbf2f4; --error-border: #eab4bc; --error-fg-strong: #78202e;
-  --warning-bg: #fffcf2; --warning-border: #ffe69b; --warning-fg-strong: #6a311c;
-  --success-bg: #f3f8f5; --success-border: #a1caad; --success-fg-strong: #285a37;
-  --info-bg: #f2f7fb; --info-border: #b2d1ea; --info-fg-strong: #1f5077;
+  :root {
+    --error-bg: #fbf2f4; --error-border: #eab4bc; --error-fg-strong: #78202e;
+    --warning-bg: #fffcf2; --warning-border: #ffe69b; --warning-fg-strong: #6a311c;
+    --success-bg: #f3f8f5; --success-border: #a1caad; --success-fg-strong: #285a37;
+    --info-bg: #f2f7fb; --info-border: #b2d1ea; --info-fg-strong: #1f5077;
+  }
 
   /* Banners — same style as main app */
   .tui-banner-success { color: var(--success-fg-strong); --box-border-color: var(--success-border); }

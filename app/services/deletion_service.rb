@@ -22,6 +22,7 @@ module DeletionService
     raise Error, "cannot tombstone admin accounts — remove backend_user first" if identity.backend_user.present?
 
     original_email = identity.primary_email
+    persona_account_id = identity.persona_account_id
     name_hashes = Deletion.name_combo_hashes_for_identity(identity)
     ip_hashes = identity.sessions.where.not(ip: nil).distinct.pluck(:ip).map { |ip| Deletion.hash_ip(ip) }
     version_items = collect_version_items(identity)
@@ -73,7 +74,19 @@ module DeletionService
         record.update_columns(name: "[REDACTED]", date_of_birth: nil, raw_json_response: nil)
         aadhaar_count += 1
       end
-      log.call "  scrubbed #{addr_count} #{"address".pluralize(addr_count)}, #{aadhaar_count} aadhaar #{"record".pluralize(aadhaar_count)}"
+      persona_count = 0
+      Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).find_each do |record|
+        record.update_columns(
+          name_first: "[REDACTED]", name_last: "[REDACTED]",
+          birthdate: nil, raw_json_response: nil,
+          behaviors: {}, network_signals: {}, checks: []
+        )
+        persona_count += 1
+      end
+      Verification.with_deleted.where(identity_id: identity.id)
+        .where.not(persona_session_token: nil)
+        .update_all(persona_session_token: nil)
+      log.call "  scrubbed #{addr_count} #{"address".pluralize(addr_count)}, #{aadhaar_count} aadhaar, #{persona_count} persona"
 
       log.call "step 5: destroying resemblances..."
       r_count = Identity::Resemblance.where(identity_id: identity.id).destroy_all.size +
@@ -115,7 +128,7 @@ module DeletionService
         primary_email: tombstone_email,
         birthday: Date.new(1970, 1, 1),
         phone_number: nil, slack_id: nil, slack_dm_channel_id: nil,
-        aadhaar_number_ciphertext: nil, aadhaar_number_bidx: nil,
+        aadhaar_number_ciphertext: nil, aadhaar_number_bidx: nil, persona_account_id: nil,
         locked_at: identity.locked_at || Time.current,
         permabanned: true,
         deleted_at: identity.deleted_at || Time.current,
@@ -143,6 +156,17 @@ module DeletionService
       )
     end
 
+    if persona_account_id.present?
+      log.call "step 15: redacting persona account #{persona_account_id}..."
+      begin
+        Persona.instance.redact_account(persona_account_id)
+        log.call "  done"
+      rescue Persona::APIError => e
+        log.call "  failed: #{e.message} — manual redaction required"
+        Sentry.capture_exception(e, tags: { component: "persona_deletion", identity_id: identity.id })
+      end
+    end
+
     log.call ""
     log.call "done. identity #{identity.id} (#{identity.public_id}) has been tombstoned."
 
@@ -163,16 +187,19 @@ module DeletionService
       "Identity::BackupCode" => Identity::BackupCode.where(identity_id: identity.id).pluck(:id),
       "Identity::TOTP" => Identity::TOTP.where(identity_id: identity.id).pluck(:id),
       "Identity::AadhaarRecord" => Identity::AadhaarRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
+      "Identity::PersonaRecord" => Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
       "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id),
       "Verification" => Verification.with_deleted.where(identity_id: identity.id).pluck(:id),
       "BreakGlassRecord" => BreakGlassRecord.where(
         "(break_glassable_type = 'Identity' AND break_glassable_id = ?) OR " \
         "(break_glassable_type = 'Identity::Document' AND break_glassable_id IN (?)) OR " \
         "(break_glassable_type = 'Identity::AadhaarRecord' AND break_glassable_id IN (?)) OR " \
+        "(break_glassable_type = 'Identity::PersonaRecord' AND break_glassable_id IN (?)) OR " \
         "(break_glassable_type = 'Verification::VouchVerification' AND break_glassable_id IN (?))",
         identity.id,
         Identity::Document.with_deleted.where(identity_id: identity.id).pluck(:id),
         Identity::AadhaarRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
+        Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
         Verification::VouchVerification.with_deleted.where(identity_id: identity.id).pluck(:id)
       ).pluck(:id)
     }.each do |type, ids|
@@ -189,6 +216,7 @@ module DeletionService
       "Address" => identity.addresses.pluck(:id),
       "IdentitySession" => IdentitySession.where(identity_id: identity.id).pluck(:id),
       "Verification" => Verification.with_deleted.where(identity_id: identity.id).pluck(:id),
+      "Identity::PersonaRecord" => Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
       "Identity::TOTP" => Identity::TOTP.where(identity_id: identity.id).pluck(:id),
       "Identity::WebauthnCredential" => Identity::WebauthnCredential.where(identity_id: identity.id).pluck(:id),
       "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id)

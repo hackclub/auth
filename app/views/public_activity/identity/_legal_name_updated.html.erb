@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  updated legal name from "<%= activity.parameters[:old_name] %>" to "<%= activity.parameters[:new_name] %>".
+<% end %>

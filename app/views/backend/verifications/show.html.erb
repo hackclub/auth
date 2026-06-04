@@ -2,7 +2,14 @@
 <column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
   <row align-="center between">
     <h2>document review</h2>
-    <a href="<%= pending_backend_verifications_path %>" style="color: var(--foreground2); text-decoration: none;">← back to pending</a>
+    <row gap-="2" align-="center">
+      <% if @verification.respond_to?(:persona_dashboard_url) && @verification.persona_dashboard_url %>
+        <% super_admin_tool(element: "span") do %>
+          <a href="<%= @verification.persona_dashboard_url %>" target="_blank" style="color: var(--foreground2);">persona ↗</a>
+        <% end %>
+      <% end %>
+      <a href="<%= pending_backend_verifications_path %>" style="color: var(--foreground2); text-decoration: none;">← back to pending</a>
+    </row>
   </row>
 
   <div is-="separator"></div>
@@ -19,11 +26,7 @@
     <column style="flex: 1; min-width: 30ch;">
       <span style="color: var(--foreground2); font-style: italic;">document</span>
       <column box-="square">
-        <% if @verification.is_a?(Verification::DocumentVerification) %>
-          <%= render "backend/shared/review_document_info", verification: @verification %>
-        <% elsif @verification.is_a?(Verification::AadhaarVerification) %>
-          <%= render "backend/shared/review_aadhaar_info", verification: @verification %>
-        <% end %>
+        <%= render @verification.review_info_partial, verification: @verification %>
       </column>
     </column>
   </row>
@@ -80,31 +83,116 @@
     <% end %>
   <% end %>
 
+  <%# === Checks + Signals (outside break-glass) === %>
+  <% if @relevant_object.respond_to?(:checks) && @relevant_object&.checks&.any? %>
+    <div is-="separator"></div>
+    <span style="color: var(--foreground2); font-style: italic;">persona checks</span>
+    <table>
+      <thead>
+        <tr><th>check</th><th>status</th><th>requirement</th><th>reasons</th></tr>
+      </thead>
+      <tbody>
+        <% @relevant_object.checks.each do |check| %>
+          <tr>
+            <td><%= check["name"].to_s.tr("_", " ") %></td>
+            <td>
+              <span is-="badge" variant-="<%= check["status"] == "passed" ? "green" : check["status"] == "failed" ? "red" : "" %>"><%= check["status"] %></span>
+            </td>
+            <td style="color: var(--foreground2);"><%= check["requirement"] %></td>
+            <td style="color: var(--foreground2);"><%= check["reasons"]&.compact&.join(", ").presence || "—" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+
+  <% if @relevant_object.respond_to?(:formatted_behaviors) && @relevant_object&.formatted_behaviors&.any? %>
+    <div is-="separator"></div>
+    <row gap-="3" align-="start" style="flex-wrap: wrap;">
+      <column style="flex: 1; min-width: 30ch;">
+        <span style="color: var(--foreground2); font-style: italic;">behavioral signals</span>
+        <table>
+          <thead><tr><th>signal</th><th>value</th></tr></thead>
+          <tbody>
+            <% @relevant_object.formatted_behaviors.each do |b| %>
+              <tr>
+                <td><%= b[:label] %></td>
+                <td>
+                  <% if b[:key] == "behavior_threat_level" %>
+                    <span is-="badge" variant-="<%= b[:value] == "low" ? "green" : b[:value] == "high" ? "red" : "yellow" %>"><%= b[:value] %></span>
+                  <% else %>
+                    <%= b[:value] %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </column>
+
+      <% if @relevant_object.respond_to?(:primary_session) && @relevant_object.session_data.any? %>
+        <column style="flex: 1; min-width: 30ch;">
+          <span style="color: var(--foreground2); font-style: italic;">network & device</span>
+          <table>
+            <thead><tr><th>signal</th><th>value</th></tr></thead>
+            <tbody>
+              <% if @relevant_object.device_summary %>
+                <tr><td>device</td><td><%= @relevant_object.device_summary %></td></tr>
+              <% end %>
+              <% if @relevant_object.ip_location %>
+                <tr><td>IP location</td><td><%= @relevant_object.ip_location %></td></tr>
+              <% end %>
+              <% if @relevant_object.ip_isp %>
+                <tr><td>ISP</td><td><%= @relevant_object.ip_isp %></td></tr>
+              <% end %>
+              <% if @relevant_object.session_threat_level %>
+                <tr>
+                  <td>session threat</td>
+                  <td><span is-="badge" variant-="<%= @relevant_object.session_threat_level == "low" ? "green" : @relevant_object.session_threat_level == "high" ? "red" : "yellow" %>"><%= @relevant_object.session_threat_level %></span></td>
+                </tr>
+              <% end %>
+              <% if @relevant_object.network_flags.any? %>
+                <tr>
+                  <td>flags</td>
+                  <td><% @relevant_object.network_flags.each do |flag| %><span is-="badge" variant-="red"><%= flag %></span> <% end %></td>
+                </tr>
+              <% end %>
+              <% flags = @relevant_object.network_flags %>
+              <% if flags.empty? && @relevant_object.primary_session[:is_tor] == false %>
+                <tr><td>flags</td><td style="color: var(--foreground2);">none detected</td></tr>
+              <% end %>
+            </tbody>
+          </table>
+        </column>
+      <% end %>
+    </row>
+  <% end %>
+
   <div is-="separator"></div>
 
   <%# === Files === %>
   <span style="color: var(--foreground2); font-style: italic;">files</span>
-  <% if @verification.is_a?(Verification::VouchVerification) %>
-    <span style="color: var(--foreground2);">manually vouched on <%= @verification.created_at.strftime("%B %d, %Y at %I:%M %p") %></span>
-    <% if @verification.evidence.attached? %>
-      <img src="<%= url_for(@verification.evidence) %>" alt="vouch evidence" style="max-width: 100%;">
-    <% else %>
-      <span style="color: var(--foreground2);">no evidence attached</span>
+  <% if @verification.needs_break_glass? && @relevant_object.nil? %>
+    <column box-="square" style="color: var(--foreground2);">no files yet — awaiting persona completion</column>
+  <% elsif @verification.needs_break_glass? %>
+    <%= render "backend/shared/break_the_glass", break_glassable: @relevant_object, auto_break_glass: @verification.auto_break_glass_reason do %>
+      <%= render @verification.review_full_partial, record: @relevant_object %>
     <% end %>
   <% else %>
-    <%= render "backend/shared/break_the_glass", break_glassable: @relevant_object, auto_break_glass: (@verification.pending? ? "to review validity" : nil) do %>
-      <% if @relevant_object.is_a?(Identity::Document) %>
-        <%= render "backend/shared/review_document_files", document: @relevant_object %>
-      <% elsif @relevant_object.is_a?(Identity::AadhaarRecord) %>
-        <%= render "backend/shared/review_aadhaar_full", aadhaar_record: @relevant_object %>
-      <% end %>
-    <% end %>
+    <%= render @verification.review_full_partial, verification: @verification %>
   <% end %>
 
   <div is-="separator"></div>
 
   <%# === Decision bar === %>
-  <% if @verification.pending? %>
+  <% if @verification.try :draft? %>
+    <column box-="square">
+      <row gap-="2" align-="center">
+        <span>status: <span is-="badge">draft</span></span>
+        <span style="color: var(--foreground2);">user hasn't completed persona yet</span>
+      </row>
+    </column>
+  <% elsif @verification.pending? %>
     <column gap-="1">
       <row align-="center" gap-="2" style="flex-wrap: wrap;">
         <% mdv_tool(element: "span") do %>
@@ -140,39 +228,13 @@
           <row gap-="2" align-="start" style="flex-wrap: wrap;">
             <column style="min-width: 16ch;">
               <%= form.label :rejection_reason, "[r] reason" %>
-              <% if @verification.is_a?(Verification::AadhaarVerification) %>
-                <%
-                  default_selection = if @verification.identity.under_13?
-                    "under_13"
-                  elsif @verification.identity.resemblances.any?
-                    "duplicate"
-                  else
-                    nil
-                  end
-                %>
-                <%= form.select :rejection_reason,
-                               grouped_options_for_select([
-                                 ["Retryable", Verification::AadhaarVerification::RETRYABLE_REJECTION_REASONS.map { |reason| [Verification::AadhaarVerification::REJECTION_REASON_NAMES[reason], reason] }],
-                                 ["Fatal", Verification::AadhaarVerification::FATAL_REJECTION_REASONS.map { |reason| [Verification::AadhaarVerification::REJECTION_REASON_NAMES[reason], reason] }]
-                               ], default_selection),
-                               { include_blank: "select..." } %>
-              <% elsif @verification.is_a?(Verification::DocumentVerification) %>
-                <%
-                  default_selection = if @verification.identity.under_13?
-                    "under_13"
-                  elsif @verification.identity.resemblances.any?
-                    "duplicate"
-                  else
-                    nil
-                  end
-                %>
-                <%= form.select :rejection_reason,
-                               grouped_options_for_select([
-                                 ["Retryable", Verification::DocumentVerification::RETRYABLE_REJECTION_REASONS.map { |reason| [Verification::DocumentVerification::REJECTION_REASON_NAMES[reason], reason] }],
-                                 ["Fatal", Verification::DocumentVerification::FATAL_REJECTION_REASONS.map { |reason| [Verification::DocumentVerification::REJECTION_REASON_NAMES[reason], reason] }]
-                               ], default_selection),
-                               { include_blank: "select..." } %>
-              <% end %>
+              <% options = @verification.rejection_reason_options %>
+              <%= form.select :rejection_reason,
+                             grouped_options_for_select([
+                               ["Retryable", options[:retryable]],
+                               ["Fatal", options[:fatal]]
+                             ], @verification.default_rejection_reason),
+                             { include_blank: "select..." } %>
             </column>
             <column style="flex: 1; min-width: 16ch;">
               <%= form.label :rejection_reason_details, "details" %>
@@ -235,6 +297,14 @@
           <%= f.text_area :reason, placeholder: "reason for ignoring (logged in audit trail)...", rows: 2 %>
           <%= f.submit "ignore verification", data: { confirm: "ignore this verification? this cannot be undone." } %>
         </column>
+      <% end %>
+      <% if @verification.nukeable? %>
+        <div is-="separator"></div>
+        <%= button_to "nuke inquiry & start fresh",
+              nuke_inquiry_backend_verification_path(@verification),
+              method: :delete,
+              data: { confirm: "destroy this verification and its persona inquiry? the user will get a fresh inquiry on their next visit." },
+              style: "color: var(--red);" %>
       <% end %>
     <% end %>
   <% end %>

@@ -639,23 +639,86 @@ en:
         privacy: "Privacy: Documents are encrypted and never shared with third parties. Access is limited to HCB staff during review, then core HQ staff for exceptional cases only."
         purpose: "Purpose: Used only for age verification and preventing duplicate accounts."
       submit_documents: Submit Documents
+    choose:
+      title: Verify your identity
+      subtitle: "To participate in Hack Club programs and receive hardware, we need to confirm you're a real person."
+      instant_title: Instant verification
+      instant_description: "Scan a government-issued ID and take a quick selfie. Usually takes about 30 seconds."
+      instant_cta: Verify with ID →
+      student_id_title: Student ID and transcript
+      student_id_description: "Don't have a government ID? Upload a student ID and school transcript instead. Takes 1–2 business days to review."
+      student_id_cta: Use student ID →
+    persona:
+      title: Verify your identity
+      subtitle: "To participate in Hack Club programs and receive hardware, we need to confirm you're a real person. This is how we keep the community safe."
+      hero_title: "Here's how it works"
+      hero_description_html: "Our age and identity check is handled by <a href=\"https://withpersona.com/legal/terms\" target=\"_blank\">Persona</a>, an independent verification company. It's fast — usually under a minute."
+      steps:
+        scan:
+          title: Scan your ID
+          description: "Take a photo of your %{document_examples}"
+          document_examples:
+            default: "passport, driver's license, or national ID card"
+            IN: "passport or driver's license, or verify with Aadhaar"
+        selfie:
+          title: Take a selfie
+          description: "A quick photo to confirm it's you"
+        done:
+          title: Done
+          description: "Most people are verified automatically within a minute"
+      begin_verification: Start verification
+      error_title: Couldn't connect to verification provider
+      error_message: "We're having trouble reaching our verification provider right now. Please try again in a few minutes."
+      fallback_link: Upload a document manually instead
+      cancel_message: "No worries — your progress is saved. Come back anytime to finish."
+      error_sdk: "Something went wrong with the verification. You can try again, or upload a document manually instead."
+      complete_message: "Done! Checking your results…"
+      privacy_note_html: "Your photos are encrypted and access by staff is logged. <a href=\"https://withpersona.com/security\" target=\"_blank\">About our verification provider</a>."
+      cant_do_this: "Don't have your ID on you?"
+      fallback_prompt: Upload a document manually instead
+      contact_html: "Having trouble? Email us at <a href=\"mailto:identity@hackclub.com\">identity@hackclub.com</a>."
+    student_id:
+      hero_description_html: "Upload your student ID and a recent school transcript. Our team will review them within 1–2 business days."
+      steps:
+        scan:
+          title: Upload your documents
+          description: "Upload a photo of your student ID and a recent school transcript"
+        done:
+          description: "Our team will review your documents within 1–2 business days"
+      cant_do_this: "Don't have a student ID?"
+      begin_verification: Start upload
     status:
       badges:
         under_review: Under review
+        processing: Processing
         verified: Verified
         not_eligible: Not eligible
         needs_resubmission: Needs resubmission
         not_started: Not started
-      pending:
+      pending_document:
         title: We're checking your documents
         subtitle: You'll hear from us in 1–2 business days
         description: Our team is reviewing your submission. We'll email %{email} when we're done.
         submitted_ago: Submitted %{time} ago
+      pending_persona:
+        title: Your ID is being checked
+        subtitle: This usually takes under a minute
+        description: "Your ID is being reviewed automatically. We'll email %{email} as soon as it's done — you don't need to stay on this page."
+        review_title: We're reviewing your submission
+        review_subtitle: We'll get back to you soon
+        review_description: "We're taking a closer look at your submission. We'll email %{email} when we're done — you don't need to stay on this page."
+        submitted_ago: Started %{time} ago
+      pending_aadhaar:
+        title: Verifying your Aadhaar
+        subtitle: This usually takes just a few minutes
+        description: "Your Aadhaar is being verified automatically. We'll email %{email} when it's done."
+        submitted_ago: Started %{time} ago
       verified:
         title_ysws: You're all set for YSWS
-        title_verified: You're verified
+        title_verified: "You're verified — but not eligible for YSWS"
         subtitle_ysws: You can now participate in programs and compete for prizes
-        subtitle_verified: Your account is verified and ready to go
+        subtitle_verified: "Your identity has been confirmed, but our records show you're 18 or older. YSWS programs are only open to participants under 18."
+        contact_verified_html: "Think this is wrong? Email us at <a href=\"mailto:identity@hackclub.com\">identity@hackclub.com</a>."
         verified_ago: Verified %{time} ago
         back_to_home: Back to Home
       ineligible:
@@ -738,6 +801,9 @@ en:
         message: Your documents are currently being reviewed.
         check_back: We'll email you once the review is complete. You can close this window.
         return_button: Return to app
+      persona:
+        title: One last step
+        subtitle: "Quick ID check so we know you're really you — takes about 2 minutes."
     addresses:
       title: We'll need your address...
       subtitle: Please use a real address — we're going to send you something here!

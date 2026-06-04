@@ -28,6 +28,12 @@
         <%= button_to "clear photo", clear_slack_photo_backend_identity_path(@identity), method: :post, data: { confirm: "clear #{@identity.first_name}'s Slack profile photo?" }, form: { style: "display:inline" } %>
       <% end %>
     <% end %>
+    <% if @identity.persona_dashboard_url %>
+      <% super_admin_tool(element: "span") do %>
+        <span>·</span>
+        <a href="<%= @identity.persona_dashboard_url %>" target="_blank">persona ↗</a>
+      <% end %>
+    <% end %>
   </row>
 
   <% if @identity.permabanned %>
@@ -201,17 +207,11 @@
         <% @verifications.each do |verification| %>
           <tr>
             <td>
-              <% if verification.is_a?(Verification::AadhaarVerification) %>
-                Aadhaar
-              <% elsif verification.is_a?(Verification::DocumentVerification) %>
-                <%= Identity::Document::FRIENDLY_NAMES[verification.identity_document.document_type.to_sym] %>
-              <% elsif verification.is_a?(Verification::VouchVerification) %>
-                Vouch
-              <% end %>
+              <%= verification.document_type_label %>
               <% if verification.ignored_at.present? %> <span is-="badge" variant-="yellow">ignored</span><% end %>
             </td>
             <td>
-              <span is-="badge" variant-="<%= verification.pending? ? 'yellow' : verification.approved? ? 'green' : 'red' %>"><%= verification.status %></span>
+              <span is-="badge" variant-="<%= verification.approved? ? 'green' : verification.rejected? ? 'red' : 'yellow' %>"><%= verification.status %></span>
             </td>
             <td style="color: var(--foreground2);"><%= (verification.respond_to?(:pending_at) && verification.pending_at || verification.created_at).strftime("%b %d, %Y") %></td>
             <td style="color: var(--foreground2);"><%= verification.ignored_at.present? ? verification.ignored_reason : verification.rejection_reason.present? ? verification.rejection_reason_name : "—" %></td>

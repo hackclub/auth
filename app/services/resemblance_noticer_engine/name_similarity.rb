@@ -1,17 +1,24 @@
 module ResemblanceNoticerEngine
   class NameSimilarity < Base
-    def run
-      # for now, just exact matches.
-      # TODO: levenshtein or smth in the future?
+    def initialize(identity, additional_names: [])
+      super(identity)
+      @additional_names = additional_names
+    end
 
-      # Check all combinations of first_name/legal_first_name and last_name/legal_last_name
+    def run
+      first_names = [ identity.first_name, identity.legal_first_name ].compact_blank.map(&:downcase)
+      last_names = [ identity.last_name, identity.legal_last_name ].compact_blank.map(&:downcase)
+
+      @additional_names.each do |extra|
+        first_names << extra[:first].downcase if extra[:first].present?
+        last_names << extra[:last].downcase if extra[:last].present?
+      end
+
+      first_names.uniq!
+      last_names.uniq!
+
       query = Identity.none
 
-      # Collect all possible first name and last name values from the identity (case insensitive)
-      first_names = [ identity.first_name, identity.legal_first_name ].compact_blank.map(&:downcase).uniq
-      last_names = [ identity.last_name, identity.legal_last_name ].compact_blank.map(&:downcase).uniq
-
-      # i feel like this could be better...
       first_names.each do |fname|
         last_names.each do |lname|
           query = query.or(

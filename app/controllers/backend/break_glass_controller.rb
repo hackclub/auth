@@ -29,6 +29,8 @@ class Backend::BreakGlassController < Backend::ApplicationController
       Identity::Document.find(params[:break_glassable_id])
     when "Identity::AadhaarRecord"
       Identity::AadhaarRecord.find(params[:break_glassable_id])
+    when "Identity::PersonaRecord"
+      Identity::PersonaRecord.find(params[:break_glassable_id])
     when "Identity"
       Identity.find_by_public_id!(params[:break_glassable_id])
     else
@@ -43,6 +45,8 @@ class Backend::BreakGlassController < Backend::ApplicationController
       "document"
     when "Identity::AadhaarRecord"
       "aadhaar record"
+    when "Identity::PersonaRecord"
+      "persona record"
     when "Identity"
       "identity"
     else

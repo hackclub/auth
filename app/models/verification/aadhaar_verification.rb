@@ -41,14 +41,21 @@
 #  fk_rails_...  (identity_id => identities.id)
 #
 class Verification::AadhaarVerification < Verification
-  def document_type = "Aadhaar"
+  include Verification::Rejectable
 
   belongs_to :aadhaar_record, class_name: "Identity::AadhaarRecord", foreign_key: "aadhaar_record_id", optional: true
 
   validates_presence_of :aadhaar_hc_transaction_id
   before_validation :generate_local_transaction_id, on: :create
-  validates :rejection_reason, presence: true, if: :rejected?
-  validate :rejection_reason_details_present_when_reason_other
+
+  rejection_reasons(
+    invalid_format:      { name: "Invalid Aadhaar format",                    fatal: false },
+    service_unavailable: { name: "Aadhaar verification service unavailable",  fatal: false },
+    under_13:            { name: "Submitter is under 13 years old",           fatal: false },
+    other:               { name: "Other fixable issue",                       fatal: false },
+    info_mismatch:       { name: "Aadhaar information doesn't match profile", fatal: true },
+    duplicate:           { name: "This Aadhaar number is already registered", fatal: true }
+  )
 
   aasm column: :status, timestamps: true, whiny_transitions: true do
     state :draft, initial: true
@@ -70,22 +77,8 @@ class Verification::AadhaarVerification < Verification
 
     event :mark_as_rejected do
       transitions from: [ :draft, :pending ], to: :rejected
-
-      before do |reason, details = nil|
-        self.rejection_reason = reason
-        self.rejection_reason_details = details
-
-        self.fatal = fatal_rejection_reason?(reason)
-      end
-
-      after do
-        if fatal_rejection?
-          VerificationMailer.rejected_permanently(self).deliver_later
-          Slack::NotifyGuardiansJob.perform_later(@verification.identity)
-        else
-          VerificationMailer.rejected_amicably(self).deliver_later
-        end
-      end
+      before { |reason, details| set_rejection_fields(reason, details) }
+      after  { notify_rejection }
     end
   end
 
@@ -107,51 +100,16 @@ class Verification::AadhaarVerification < Verification
     create_activity("create_link")
   end
 
-  enum :rejection_reason, {
-    # Retry-able issues
-    invalid_format: "invalid_format",
-    service_unavailable: "service_unavailable",
-    under_13: "under_13",
-    other: "other",
-    # Fatal issues
-    info_mismatch: "info_mismatch",
-    duplicate: "duplicate"
-  }
-
-  # Define retry-able vs fatal rejection reasons
-  RETRYABLE_REJECTION_REASONS = %w[invalid_format service_unavailable 13 other].freeze
-  FATAL_REJECTION_REASONS = %w[info_mismatch duplicate].freeze
-
-  # Friendly names for rejection reasons
-  REJECTION_REASON_NAMES = {
-    # Retry-able issues
-    "invalid_format" => "Invalid Aadhaar format",
-    "service_unavailable" => "Aadhaar verification service unavailable",
-    "under_13" => "Submitter is under 13 years old",
-    "other" => "Other fixable issue",
-    # Fatal issues
-    "info_mismatch" => "Aadhaar information doesn't match profile",
-    "duplicate" => "This Aadhaar number is already registered"
-  }.freeze
-
-  def rejection_reason_name = REJECTION_REASON_NAMES[rejection_reason] || rejection_reason
+  # polymorphic interface
+  def document_type_label = "Aadhaar"
+  def review_info_partial = "backend/shared/review_aadhaar_info"
+  def review_full_partial = "backend/shared/review_aadhaar_full"
+  def relevant_record     = aadhaar_record
+  def needs_break_glass?         = true
+  def auto_break_glass_reason    = pending? ? "to review validity" : nil
+  def status_pending_partial     = "verifications/status/pending_aadhaar"
 
   private
-
-  # Override to include Aadhaar-specific fatal rejection reasons
-  def fatal_rejection_reason?(reason)
-    return false if reason.blank?
-
-    reason_str = reason.to_s
-
-    super(reason) || FATAL_REJECTION_REASONS.include?(reason_str)
-  end
-
-  def rejection_reason_details_present_when_reason_other
-    if rejection_reason == "other" && rejection_reason_details.blank?
-      errors.add(:rejection_reason_details, "must be provided when rejection reason is 'other'")
-    end
-  end
 
   def generate_local_transaction_id
     self.aadhaar_hc_transaction_id = "HC!#{SecureRandom.uuid}"

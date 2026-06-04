@@ -34,6 +34,7 @@ group :development, :test do
 
   # Testing framework
   gem "rspec-rails", "~> 7.1"
+  gem "webmock", "~> 3.24"
 
   gem "faker"
 end

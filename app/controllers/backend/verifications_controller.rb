@@ -1,6 +1,6 @@
 module Backend
   class VerificationsController < ApplicationController
-    before_action :set_verification, only: [ :show, :approve, :reject, :ignore ]
+    before_action :set_verification, except: [ :index, :pending ]
 
     hint :list_navigation, on: [ :index, :pending ]
     hint :pagination, on: [ :index, :pending ]
@@ -13,7 +13,7 @@ module Backend
 
       set_keyboard_shortcut(:back, backend_root_path)
 
-      @recent_verifications = Verification.includes(:identity, :identity_document)
+      @recent_verifications = Verification.includes(:identity, :identity_document, :persona_record)
         .where.not(status: "pending")
         .order(updated_at: :desc)
         .page(params[:page])
@@ -26,7 +26,7 @@ module Backend
 
       set_keyboard_shortcut(:back, backend_root_path)
 
-      @pending_verifications = Verification.includes(:identity, :identity_document, identity_document: { files_attachments: :blob }, identity: [ :resemblances, :tombstone_collisions ])
+      @pending_verifications = Verification.includes(:identity, :identity_document, :persona_record, identity_document: { files_attachments: :blob }, identity: [ :resemblances, :tombstone_collisions ])
         .where(status: "pending")
         .order(created_at: :asc)
         .page(params[:page])
@@ -51,9 +51,9 @@ module Backend
 
       # Fetch break glass activities efficiently with a single query
       break_glass_activities = []
-      unless @verification.is_a?(Verification::VouchVerification)
-        @relevant_object = @verification.identity_document || @verification.aadhaar_record
-        break_glass_record_ids = @relevant_object&.break_glass_records&.pluck(:id) || []
+      @relevant_object = @verification.relevant_record
+      if @verification.needs_break_glass? && @relevant_object
+        break_glass_record_ids = @relevant_object.break_glass_records&.pluck(:id) || []
         break_glass_activities = PublicActivity::Activity
           .where(trackable_type: "BreakGlassRecord", trackable_id: break_glass_record_ids)
           .includes(:trackable, :owner)
@@ -137,13 +137,48 @@ module Backend
       redirect_to backend_identity_path(@verification.identity)
     end
 
+    def nuke_inquiry
+      authorize @verification, :nuke_inquiry?
+
+      unless @verification.is_a?(Verification::PersonaVerification)
+        flash[:error] = "Only persona verifications can be nuked"
+        redirect_to backend_verification_path(@verification) and return
+      end
+
+      unless @verification.draft? || @verification.pending?
+        flash[:error] = "Can only nuke draft or pending verifications"
+        redirect_to backend_verification_path(@verification) and return
+      end
+
+      identity = @verification.identity
+      old_inquiry = @verification.persona_inquiry_id
+
+      # expire the inquiry on persona's side so it's not left dangling
+      begin
+        Persona.instance.expire_inquiry(old_inquiry) if old_inquiry.present?
+      rescue Persona::APIError => e
+        Sentry.capture_exception(e, tags: { component: "persona" })
+      end
+
+      @verification.create_activity(
+        :nuke_inquiry,
+        owner: current_user,
+        parameters: { nuked_inquiry_id: old_inquiry }
+      )
+
+      @verification.destroy!
+
+      flash[:success] = "Nuked & expired inquiry #{old_inquiry} — user will get a fresh one on next visit"
+      redirect_to backend_identity_path(identity)
+    end
+
     rescue_from AASM::InvalidTransition, with: :oops
 
     private
 
     def set_verification
       @verification = Verification
-        .includes(:identity, identity_document: :break_glass_records)
+        .includes(:identity, identity_document: :break_glass_records, persona_record: :break_glass_records)
         .find_by_public_id!(params[:id])
 
       ActiveRecord::Associations::Preloader.new(

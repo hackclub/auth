@@ -41,13 +41,10 @@
 #  fk_rails_...  (identity_id => identities.id)
 #
 class Verification::VouchVerification < Verification
-  def document_type = "Vouch"
-
   has_one_attached :evidence
   has_many :break_glass_records, as: :break_glassable, class_name: "BreakGlassRecord", dependent: :destroy
 
   validates :evidence, presence: true
-
 
   aasm column: :status, timestamps: true, whiny_transitions: true do
     state :approved, initial: true
@@ -57,18 +54,17 @@ class Verification::VouchVerification < Verification
     end
   end
 
-  def pending? = false
+  def pending?  = false
   def rejected? = false
 
-  def rejection_reason_name = rejection_reason
-
-  private
-
-  def fatal_rejection_reason?(reason) = false
-
-  def rejection_reason_details_present_when_reason_other
-    if rejection_reason == "other" && rejection_reason_details.blank?
-      errors.add(:rejection_reason_details, "must be provided when rejection reason is 'other'")
-    end
-  end
+  # polymorphic interface
+  def document_type_label    = "Vouch"
+  def review_info_partial    = "backend/verifications/review_vouch_info"
+  def review_full_partial    = "backend/verifications/review_vouch_full"
+  def relevant_record        = nil
+  def needs_break_glass?         = false
+  def auto_break_glass_reason    = nil
+  def status_pending_partial     = "verifications/status/pending_document"
+  def rejection_reason_name  = rejection_reason
+  def rejection_reason_options = { retryable: [], fatal: [] }
 end

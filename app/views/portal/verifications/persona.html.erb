@@ -1,0 +1,90 @@
+<% content_for(:portal_wrapper, true) %>
+<div class="container-sm">
+  <div class="page-header-centered">
+    <h1><%= t("verifications.persona.title") %></h1>
+    <p><%= t("verifications.persona.subtitle") %></p>
+  </div>
+
+  <div class="page-sections">
+    <% if @persona_error %>
+      <section class="section-card">
+        <div class="status-indicator">
+          <span class="status-badge rejected">error</span>
+          <h3><%= t("verifications.persona.error_title") %></h3>
+          <p><%= @persona_error %></p>
+        </div>
+        <div class="status-actions">
+          <%= link_to t("verifications.persona.fallback_link"), portal_verify_document_path, role: "button", class: "secondary" %>
+        </div>
+      </section>
+
+    <% else %>
+      <section class="section-card persona-verify-card"
+               x-data="{ editingName: false }"
+               data-persona-verify
+               data-inquiry-id="<%= @inquiry_id %>"
+               data-session-token="<%= @session_token %>"
+               data-environment-id="<%= @environment_id %>"
+               data-host="<%= @persona_host %>"
+               data-status-url="<%= verification_status_path %>"
+               data-msg-complete="<%= t("verifications.persona.complete_message") %>"
+               data-msg-cancel="<%= t("verifications.persona.cancel_message") %>"
+               data-msg-error="<%= t("verifications.persona.error_sdk") %>"
+               data-fallback-url="<%= portal_verify_document_path %>">
+
+        <div class="persona-hero">
+          <div class="persona-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <circle cx="8.5" cy="11.5" r="2.5" />
+              <path d="M14 10h4M14 14h2" />
+              <path d="M4 20c0-2 2.5-3 4.5-3s4.5 1 4.5 3" />
+            </svg>
+          </div>
+          <h3><%= t("verifications.persona.hero_title") %></h3>
+          <p><%= t("verifications.persona.hero_description") %></p>
+        </div>
+
+        <div class="persona-steps">
+          <div class="persona-step">
+            <span class="persona-step-number">1</span>
+            <div>
+              <strong><%= t("verifications.persona.steps.scan.title") %></strong>
+              <span><%= t("verifications.persona.steps.scan.description") %></span>
+            </div>
+          </div>
+          <div class="persona-step">
+            <span class="persona-step-number">2</span>
+            <div>
+              <strong><%= t("verifications.persona.steps.selfie.title") %></strong>
+              <span><%= t("verifications.persona.steps.selfie.description") %></span>
+            </div>
+          </div>
+          <div class="persona-step">
+            <span class="persona-step-number">3</span>
+            <div>
+              <strong><%= t("verifications.persona.steps.done.title") %></strong>
+              <span><%= t("verifications.persona.steps.done.description") %></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="persona-privacy">
+          <p><%= t("verifications.persona.privacy_note_html").html_safe %></p>
+        </div>
+
+        <%= render "shared/verifications/persona_name_check", form_url: portal_verify_persona_legal_name_path %>
+
+        <p class="persona-message" data-persona-message></p>
+
+        <button data-persona-start type="button" class="persona-begin-button" x-show="!editingName">
+          <%= t("verifications.persona.begin_verification") %> →
+        </button>
+
+        <div class="persona-footer">
+          <p><%= t("verifications.persona.cant_do_this") %> <%= link_to t("verifications.persona.fallback_prompt"), portal_verify_document_path %></p>
+        </div>
+      </section>
+    <% end %>
+  </div>
+</div>

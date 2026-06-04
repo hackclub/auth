@@ -283,3 +283,328 @@
       }
     }
 }
+
+// --- Verification chooser ---
+
+.verification-choice {
+  text-align: center;
+  padding: 2rem !important;
+
+  h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0 0 $space-1;
+    color: var(--text-strong);
+  }
+
+  p {
+    color: var(--text-muted-strong);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0 0 $space-4;
+    max-width: 40ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  a[role="button"] {
+    width: auto;
+    margin: 0 auto;
+  }
+}
+
+.verification-choice-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: $space-3;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0.16) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  color: #4f46e5;
+
+  @include dark-mode {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(99, 102, 241, 0.22) 100%);
+    border-color: rgba(99, 102, 241, 0.25);
+    color: #818cf8;
+  }
+}
+
+.verification-choice-secondary {
+  .verification-choice-icon {
+    background: var(--surface-2);
+    border-color: var(--surface-2-border);
+    color: var(--text-muted-strong);
+  }
+}
+
+.chooser-cta {
+  @include colored-button(
+    #4f46e5, #4338ca, #3730a3,
+    #6366f1, #4f46e5, #4338ca,
+    #6366f1, #4f46e5,
+    #818cf8, #6366f1
+  );
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: $radius-lg;
+  cursor: pointer;
+  width: auto;
+  margin: 0 auto;
+}
+
+// --- Persona verification page ---
+
+.persona-verify-card {
+  text-align: center;
+  padding: 3rem 2rem !important;
+
+  @include up($bp-sm) {
+    padding: 3.5rem 3rem !important;
+  }
+}
+
+.persona-hero {
+  margin-bottom: $space-7;
+
+  h3 {
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 0 0 $space-1;
+    color: var(--text-strong);
+  }
+
+  p {
+    color: var(--text-muted-strong);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 48ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.persona-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: $space-4;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0.16) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  color: #4f46e5;
+
+  @include dark-mode {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(99, 102, 241, 0.22) 100%);
+    border-color: rgba(99, 102, 241, 0.25);
+    color: #818cf8;
+  }
+
+  svg {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.persona-steps {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  margin-bottom: $space-7;
+  text-align: left;
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.persona-step {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--surface-2);
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  strong {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+
+  span {
+    font-size: 0.85rem;
+    color: var(--text-muted-strong);
+    line-height: 1.4;
+  }
+}
+
+.persona-step-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  color: var(--text-muted-strong);
+  border: 1px solid var(--surface-2-border);
+  margin-top: 1px;
+
+  @include dark-mode {
+    background: #2a2e38;
+    border-color: #3a3e48;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.persona-begin-button {
+  @include colored-button(
+    #4f46e5, #4338ca, #3730a3,
+    #6366f1, #4f46e5, #4338ca,
+    #6366f1, #4f46e5,
+    #818cf8, #6366f1
+  );
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-1;
+  padding: 0.875rem 2.5rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  border-radius: $radius-lg;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  width: auto;
+  margin: 0 auto;
+}
+
+.persona-message {
+  min-height: 1.5em;
+  margin: 0 0 $space-3;
+  font-size: 0.95rem;
+  color: var(--text-muted-strong);
+  font-weight: 500;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.persona-name-check {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-muted-strong);
+  margin: $space-2 0;
+
+  strong {
+    color: var(--text);
+  }
+
+  a {
+    color: var(--pico-primary);
+  }
+
+  .persona-name-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  .persona-name-fields {
+    display: flex;
+    gap: $space-2;
+
+    input {
+      width: 10rem !important;
+      min-width: 0;
+      max-width: 10rem;
+      font-size: 0.85rem;
+      padding: 0.35em 0.5em;
+    }
+  }
+
+  .persona-name-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25em;
+    font-size: 0.85rem;
+
+    span {
+      color: var(--text-muted-strong);
+    }
+  }
+}
+
+.persona-fine-print {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: $space-3 0 0;
+
+  a {
+    color: var(--text-muted);
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--pico-primary);
+    }
+  }
+}
+
+.persona-footer {
+  margin-top: $space-7;
+  padding-top: $space-5;
+  border-top: 1px solid var(--surface-2-border);
+
+  p {
+    font-size: 0.85rem;
+    color: var(--text-muted-strong);
+    margin: 0 0 $space-1;
+    line-height: 1.5;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    a {
+      color: var(--pico-primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color $transition-fast;
+
+      &:hover {
+        color: var(--pico-primary-hover);
+        text-decoration: underline;
+      }
+    }
+  }
+}

@@ -6,26 +6,8 @@
 <div class="page-sections">
   <% case @status %>
   <% when "pending" %>
-    <section class="section-card">
-      <div class="status-indicator">
-        <span class="status-badge pending"><%= t(".badges.under_review") %></span>
-        <h3><%= t(".pending.title") %></h3>
-        <p><%= t(".pending.subtitle") %></p>
-      </div>
-
-      <div class="status-content">
-        <p><%= t(".pending.description", email: @identity.primary_email) %></p>
-
-        <% if @latest_verification.present? %>
-          <div class="meta">
-            <%= t(".pending.submitted_ago", time: time_ago_in_words(@latest_verification.created_at)) %>
-            <% if @latest_verification.respond_to?(:document_type) && @latest_verification.document_type.present? %>
-              • <%= @latest_verification.document_type.titleize %>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
-    </section>
+    <%= render @latest_verification.status_pending_partial,
+         verification: @latest_verification, identity: @identity %>
 
   <% when "verified" %>
     <section class="section-card verification-verified">
@@ -38,6 +20,12 @@
       <% if @latest_verification.present? && @latest_verification.approved_at.present? %>
         <div class="status-content">
           <div class="meta"><%= t(".verified.verified_ago", time: time_ago_in_words(@latest_verification.approved_at)) %></div>
+        </div>
+      <% end %>
+
+      <% unless @identity.ysws_eligible %>
+        <div class="status-content">
+          <p><%= t(".verified.contact_verified_html") %></p>
         </div>
       <% end %>
 
@@ -109,7 +97,7 @@
         </div>
 
         <div class="status-actions">
-          <%= link_to t(".needs_submission.resubmission.resubmit_documents"), verification_step_path(:document), role: "button" %>
+          <%= link_to t(".needs_submission.resubmission.resubmit_documents"), new_verifications_path, role: "button" %>
         </div>
       </section>
     <% else %>
@@ -121,7 +109,7 @@
       </div>
 
       <div class="status-actions">
-      <%= link_to t(".needs_submission.initial.start_verification"), verification_step_path(:document), role: "button" %>
+      <%= link_to t(".needs_submission.initial.start_verification"), new_verifications_path, role: "button" %>
       </div>
       </section>
       <% end %>
@@ -135,7 +123,7 @@
       </div>
 
       <div class="status-actions">
-        <%= link_to t(".needs_submission.initial.start_verification"), verification_step_path(:document), role: "button" %>
+        <%= link_to t(".needs_submission.initial.start_verification"), new_verifications_path, role: "button" %>
       </div>
     </section>
   <% end %>
