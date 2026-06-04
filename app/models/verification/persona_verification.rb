@@ -101,7 +101,7 @@ class Verification::PersonaVerification < Verification
   def review_full_partial = "backend/verifications/review_persona_full"
   def relevant_record     = persona_record
   def needs_break_glass?         = true
-  def auto_break_glass_reason    = nil
+  def auto_break_glass_reason    = pending? ? "to review submission" : nil
   def nukeable?                  = draft? || pending?
   def auto_approvable?                  = true
   def status_pending_partial     = "verifications/status/pending_persona"
