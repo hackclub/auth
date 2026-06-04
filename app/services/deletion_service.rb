@@ -36,7 +36,7 @@ module DeletionService
 
     ActiveRecord::Base.transaction do
       log.call "step 1: locking account..."
-      identity.lock! unless identity.locked?
+      identity.lock_account! unless identity.locked?
 
       log.call "step 2: destroying auth data..."
       counts = {

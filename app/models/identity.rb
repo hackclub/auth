@@ -317,9 +317,9 @@ class Identity < ApplicationRecord
 
   def locked? = locked_at.present?
 
-  def unlock! = update!(locked_at: nil)
+  def unlock_account! = update!(locked_at: nil)
 
-  def lock!
+  def lock_account!
     update!(locked_at: Time.current)
     sessions.update_all(expires_at: Time.current)
   end
