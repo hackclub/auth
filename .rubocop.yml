@@ -2,7 +2,7 @@
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
 require:
-  - ./lib/rubocop/cop/custom/flipper_flag_dated.rb
+  - ./.rubocop/cop/custom/flipper_flag_dated.rb
 
 Custom/FlipperFlagDated:
   Enabled: true
