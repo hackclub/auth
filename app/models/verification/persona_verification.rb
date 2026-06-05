@@ -116,7 +116,7 @@ class Verification::PersonaVerification < Verification
     )
 
     update!(persona_inquiry_id: inquiry.id, persona_session_token: inquiry.session_token)
-    identity.update!(persona_account_id: inquiry.account_id) if identity.persona_account_id.blank?
+    link_persona_account!(inquiry.account_id)
 
     inquiry
   end
@@ -134,6 +134,24 @@ class Verification::PersonaVerification < Verification
     else
       creds.template_id
     end
+  end
+
+  def link_persona_account!(account_id)
+    return if account_id.blank? || identity.persona_account_id.present?
+
+    identity.update!(persona_account_id: account_id)
+  rescue ActiveRecord::RecordInvalid => e
+    raise unless e.message.include?("Persona account")
+
+    Sentry.capture_message(
+      "Persona account already linked to another identity",
+      level: :warning,
+      extra: {
+        identity_public_id: identity.public_id,
+        persona_account_id: account_id,
+        existing_identity: Identity.find_by(persona_account_id: account_id)&.public_id
+      }
+    )
   end
 
   def set_ysws_eligibility!

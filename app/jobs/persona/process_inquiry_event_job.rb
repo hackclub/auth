@@ -158,8 +158,9 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
         @verification.update!(persona_record: record) unless @verification.persona_record
       end
 
-      @identity.update!(persona_account_id: inquiry.account_id) if @identity.persona_account_id.blank?
     end
+
+    @verification.link_persona_account!(inquiry.account_id)
   end
 
   def download_photos(photo_set)
