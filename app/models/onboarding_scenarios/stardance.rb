@@ -8,9 +8,13 @@ module OnboardingScenarios
       [ :first_name, :last_name, :primary_email, :birthday, :country ]
     end
 
-    def slack_channels = chans(:stardance_help, :identity_help, :hackatime_help, :help, :stardance_bulletin, :planet, :welcome_to_hack_club, :slack_guide)
+    def slack_user_type = :full_member
+
+    def slack_channels = chans(:stardance_help, :identity_help, :hackatime_help, :help, :stardance_bulletin, :planet, :welcome_to_hack_club, :slack_guide) + promotion_channels
 
     def promotion_channels = chans(:stardance, :library, :lounge, :welcome, :happenings, :community, :announcements)
+
+    def first_step = :welcome
 
     def logo_path = "images/stardance/logo.png"
     def background_path = "images/stardance/hero-bg.png"
