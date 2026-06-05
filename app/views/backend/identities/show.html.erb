@@ -150,7 +150,7 @@
   <details>
     <summary style="color: var(--foreground2); cursor: pointer;">feature flags</summary>
     <column gap-="0">
-      <% Flipper.features.sort_by(&:name).each do |flag| %>
+      <% Flipper.features.sort_by(&:name).reject { |f| Rails.env.production? && f.name.start_with?("dev_") }.each do |flag| %>
         <% global = flag.state == :on %>
         <% user_enabled = flag.enabled?(@identity) %>
         <% desc = Rails.configuration.flipper_features[flag.name] %>
