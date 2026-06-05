@@ -207,7 +207,11 @@ class Identity < ApplicationRecord
 
   def required_verification_method
     if Flipper.enabled?(:persona_verification_2026_04_09, self)
-      :persona
+      if country == "IN" && !Flipper.enabled?(:persona_verification_in_india_2026_06_05, self)
+        :document
+      else
+        :persona
+      end
     else
       :document
     end

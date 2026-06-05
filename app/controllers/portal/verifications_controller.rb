@@ -68,6 +68,11 @@ class Portal::VerificationsController < Portal::BaseController
       return
     end
 
+    unless @identity.required_verification_method == :persona
+      redirect_to portal_verify_document_path
+      return
+    end
+
     setup_persona_step
   end
 
@@ -85,7 +90,7 @@ class Portal::VerificationsController < Portal::BaseController
     end
 
     unless @identity.persona_student_id_eligible?
-      redirect_to portal_verify_persona_path
+      redirect_to portal_verify_path
       return
     end
 

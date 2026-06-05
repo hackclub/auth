@@ -56,6 +56,11 @@ class VerificationsController < ApplicationController
       return
     end
 
+    unless @identity.required_verification_method == :persona
+      redirect_to verification_step_path(:document)
+      return
+    end
+
     setup_persona_step
     render :persona
   end
@@ -70,7 +75,7 @@ class VerificationsController < ApplicationController
     end
 
     unless @identity.persona_student_id_eligible?
-      redirect_to persona_verification_path
+      redirect_to new_verifications_path
       return
     end
 
