@@ -101,7 +101,7 @@ class VerificationsController < ApplicationController
       return
     end
 
-    if @identity.required_verification_method == :persona && step == :document
+    if @identity.required_verification_method == :persona && step == :document && !Internal::Eligibility.manual_flow?(@identity)
       flash[:info] = "We use automated verification now — it's faster!"
       redirect_to persona_verification_path and return
     end
@@ -123,7 +123,7 @@ class VerificationsController < ApplicationController
       return
     end
 
-    if @identity.required_verification_method == :persona
+    if @identity.required_verification_method == :persona && !Internal::Eligibility.manual_flow?(@identity)
       redirect_to persona_verification_path and return
     end
 

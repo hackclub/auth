@@ -46,7 +46,7 @@ class Portal::VerificationsController < Portal::BaseController
       return
     end
 
-    if @identity.required_verification_method == :persona
+    if @identity.required_verification_method == :persona && !Internal::Eligibility.manual_flow?(@identity)
       flash[:info] = "We use automated verification now — it's faster!"
       redirect_to portal_verify_persona_path and return
     end
@@ -120,7 +120,7 @@ class Portal::VerificationsController < Portal::BaseController
       return
     end
 
-    if @identity.required_verification_method == :persona
+    if @identity.required_verification_method == :persona && !Internal::Eligibility.manual_flow?(@identity)
       redirect_to portal_verify_persona_path and return
     end
 
