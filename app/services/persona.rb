@@ -33,6 +33,7 @@ module Persona
   end
 
   APIError = Class.new(StandardError)
+  ConflictError = Class.new(APIError)
 
   class << self
     def instance

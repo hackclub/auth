@@ -117,7 +117,11 @@ class Persona::APIService
 
   def request!(method, path, &block)
     response = connection.send(method, path, &block)
-    raise Persona::APIError, error_message(response) unless response.success?
+    unless response.success?
+      msg = error_message(response)
+      raise Persona::ConflictError, msg if response.status == 409
+      raise Persona::APIError, msg
+    end
 
     body = response.body.deep_symbolize_keys
     [ body[:data], body[:meta] || {} ]

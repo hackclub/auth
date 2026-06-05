@@ -154,10 +154,13 @@ module VerificationFlow
   end
 
   def reuse_inquiry
-    # session token may have expired — refresh it
     inquiry = Persona.instance.resume_inquiry(@verification.persona_inquiry_id)
     @verification.update!(persona_session_token: inquiry.session_token)
     inquiry
+  rescue Persona::ConflictError
+    # inquiry is in a terminal state (completed/expired/failed) — start fresh
+    @verification.update!(persona_inquiry_id: nil, persona_session_token: nil)
+    create_inquiry
   end
 
   LEGAL_NAME_MAX_LENGTH = 255

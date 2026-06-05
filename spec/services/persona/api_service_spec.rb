@@ -116,6 +116,19 @@ RSpec.describe Persona::APIService do
       expect(result).to be_a(Persona::Inquiry)
       expect(result.session_token).to eq("fresh_session_tok")
     end
+
+    it "raises ConflictError on 409" do
+      stub_request(:post, "#{base_url}/api/v1/inquiries/inq_abc123/resume")
+        .to_return(
+          status: 409,
+          headers: { "Content-Type" => "application/json" },
+          body: { errors: [ { title: "Conflict" } ] }.to_json
+        )
+
+      expect {
+        service.resume_inquiry("inq_abc123")
+      }.to raise_error(Persona::ConflictError, /Conflict/)
+    end
   end
 
   describe "#retrieve_government_id_verification" do
