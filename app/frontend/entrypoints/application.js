@@ -29,3 +29,9 @@ window.copyErrorId = function(element) {
     console.error('Failed to copy:', err);
   });
 };
+
+// Delegated listener for Phlex-rendered banners (can't use inline onclick)
+document.addEventListener('click', function(e) {
+  const element = e.target.closest('[data-error-id]');
+  if (element && !element.hasAttribute('onclick')) copyErrorId(element);
+});

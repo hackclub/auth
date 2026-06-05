@@ -1,0 +1,16 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <%
+    verification_text = if defined?(current_user) && current_user.is_a?(Backend::User)
+      link_to "verification", backend_verification_path(activity.trackable)
+    else
+      "verification"
+    end
+
+    is_current = defined?(current_identity) && activity.trackable&.identity == current_identity
+  %>
+  auto-rejected <%= is_current ? "your" : "#{activity.trackable.identity.first_name} #{activity.trackable.identity.last_name}'s" %> Persona student ID <%= verification_text %><%
+  unless activity.parameters[:reason].nil?
+                                                                                                                                                                                  %> for <%= (activity.trackable&.rejection_reason_name || activity.parameters[:reason]).downcase %><%
+  end
+                                                                                                                                                                                                                                                                                    %>.
+<% end %>

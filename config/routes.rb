@@ -190,6 +190,7 @@ Rails.application.routes.draw do
     end
     resources :audit_logs, only: [ :index ]
     get "dashboard", to: "dashboard#show", as: :dashboard
+    get "dashboard/persona", to: "persona_dashboard#show", as: :persona_dashboard
     get "analytics", to: "analytics#show", as: :analytics
     root "static_pages#index", as: :root
     get "login", to: "static_pages#login", as: :login

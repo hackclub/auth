@@ -43,10 +43,13 @@ class Persona::VerificationPipelineJob < ApplicationJob
         Slack::NotifyReviewQueueJob.perform_later(@verification)
       else
         @verification.approve!
+        @verification.create_activity(:auto_approve, recipient: @identity)
         VerificationMailer.approved(@verification).deliver_later
       end
     when :denied
       @verification.mark_as_rejected!(@verification.default_rejection_reason || "other")
+      @verification.create_activity(:auto_reject, recipient: @identity,
+        parameters: { reason: @verification.rejection_reason })
     when :manual_review
       Slack::NotifyReviewQueueJob.perform_later(@verification)
     end
