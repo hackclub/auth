@@ -137,7 +137,7 @@ class EmailChangesController < ApplicationController
   end
 
   def require_email_change_feature_enabled
-    unless Flipper.enabled?(:email_change, current_identity)
+    unless Flipper.enabled?(:email_change_2025_10_09, current_identity)
       redirect_to edit_identity_path, alert: t("errors.feature_not_available")
     end
   end
@@ -147,7 +147,7 @@ class EmailChangesController < ApplicationController
     email_change_request = Identity::EmailChangeRequest.pending.find_by(old_email_token: token) ||
                           Identity::EmailChangeRequest.pending.find_by(new_email_token: token)
 
-    if email_change_request && !Flipper.enabled?(:email_change, email_change_request.identity)
+    if email_change_request && !Flipper.enabled?(:email_change_2025_10_09, email_change_request.identity)
       flash[:error] = t("errors.feature_not_available")
       redirect_to root_path
     end

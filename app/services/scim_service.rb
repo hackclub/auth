@@ -16,7 +16,7 @@ module SCIMService
       email = identity.primary_email
 
       # Check if user exists - use Web API if not enterprise, SCIM API if enterprise
-      existing_slack_id = if Flipper.enabled?(:are_we_enterprise_yet, identity)
+      existing_slack_id = if Flipper.enabled?(:are_we_enterprise_yet_2025_10_21, identity)
         find_existing_user_by_email(email)
       else
         SlackService.find_by_email(email)
@@ -59,7 +59,7 @@ module SCIMService
         }
       end
 
-      unless Flipper.enabled?(:are_we_enterprise_yet, identity)
+      unless Flipper.enabled?(:are_we_enterprise_yet_2025_10_21, identity)
         Rails.logger.info "SCIM user creation disabled (not enterprise yet) for #{email}"
         return {
           success: false,
@@ -74,7 +74,7 @@ module SCIMService
     end
 
     def create_user(identity:, scenario:)
-      if Flipper.enabled?(:disable_slack_invites, identity)
+      if Flipper.enabled?(:disable_slack_invites_2025_12_08, identity)
         Rails.logger.info "Slack invite creation disabled via Flipper for #{identity.primary_email}"
         return {
           success: false,

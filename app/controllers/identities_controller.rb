@@ -81,7 +81,7 @@ class IdentitiesController < ApplicationController
           unless slack_user_id.present?
             age = Identity.calculate_age(birthday)
 
-            if age >= 19 && !@onboarding_scenario.accepts_adults && !Flipper.enabled?(:allow_adult_registration)
+            if age >= 19 && !@onboarding_scenario.accepts_adults && !Flipper.enabled?(:allow_adult_registration_2026_05_28)
               track_event("signup.age_rejected", scenario: analytics_scenario, rejection_type: "too_old")
               @age_restriction = "Hack Club is a community for teenagers. <br/>Unfortunately, you are not eligible to join.".html_safe
               @identity = Identity.new(@prefill_attributes.merge(attrs))

@@ -3,9 +3,9 @@
 module Stubs
   class Decisioning
     def self.run(verification)
-      if Flipper.enabled?(:force_manual_review, verification.identity)
+      if Flipper.enabled?(:dev_force_manual_review_2026_05_27, verification.identity)
         :manual_review
-      elsif Flipper.enabled?(:force_deny_verification, verification.identity)
+      elsif Flipper.enabled?(:dev_force_deny_verification_2026_05_27, verification.identity)
         :denied
       else
         :approved

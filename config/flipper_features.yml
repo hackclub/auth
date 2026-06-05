@@ -1,15 +1,16 @@
 shared:
   persona_verification_2026_04_09: routes new users through Persona identity verification instead of document upload
-  are_we_enterprise_yet: enables Slack Enterprise Grid features (SAML, SCIM provisioning)
-  email_change: allows users to change their primary email address
-  allow_adult_registration: allows users 19+ to register without an adult-accepting program
-  stardance: enables Stardance app card on the welcome page
-  beest_2026_04_10: enables Beest app card on the welcome page
-  flavortown: enables Flavortown app card on the welcome page
-  hctg_2026_04_10: enables HCTG app card on the welcome page
-  blueprint: enables Blueprint app card on the welcome page
+  persona_verification_in_india_2026_06_05: gates Persona verification for users in India, pending Aadhaar support
+  are_we_enterprise_yet_2025_10_21: enables Slack Enterprise Grid features (SAML, SCIM provisioning)
+  email_change_2025_10_09: allows users to change their primary email address
+  allow_adult_registration_2026_05_28: allows users 19+ to register without an adult-accepting program
+  app_card_stardance_2026_05_30: enables Stardance app card on the welcome page
+  app_card_beest_2026_04_03: enables Beest app card on the welcome page
+  app_card_flavortown_2025_12_09: enables Flavortown app card on the welcome page
+  app_card_hctg_2026_03_19: enables HCTG app card on the welcome page
+  app_card_blueprint_2026_01_14: enables Blueprint app card on the welcome page
   full_user_open_floodgates_2026_04_06: provisions users as full Slack members instead of multi-channel guests
-  allow_manual_flow: enables the manual document verification flow for an actor
-  disable_slack_invites: suppresses Slack SCIM provisioning for an actor
-  force_manual_review: forces verifications for an actor into manual review
-  force_deny_verification: auto-denies verifications for an actor
+  dev_allow_manual_flow_2026_05_27: enables the manual document verification flow for an actor
+  disable_slack_invites_2025_12_08: suppresses Slack SCIM provisioning for an actor
+  dev_force_manual_review_2026_05_27: forces verifications for an actor into manual review
+  dev_force_deny_verification_2026_05_27: auto-denies verifications for an actor

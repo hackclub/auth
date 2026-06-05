@@ -3,7 +3,7 @@
 module SpecialAppCards
   class Stardance < Base
     def visible?
-      identity.ysws_eligible != false && Flipper.enabled?(:stardance, identity)
+      identity.ysws_eligible != false && Flipper.enabled?(:app_card_stardance_2026_05_30, identity)
     end
 
     def friendly_name = "Stardance"
