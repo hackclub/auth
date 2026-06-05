@@ -9,6 +9,16 @@
     <%= render @latest_verification.status_pending_partial,
          verification: @latest_verification, identity: @identity %>
 
+    <script>
+      setInterval(async () => {
+        try {
+          const res = await fetch("<%= verification_status_check_path %>")
+          const { status } = await res.json()
+          if (status !== "pending") window.location.reload()
+        } catch {}
+      }, 10000)
+    </script>
+
   <% when "verified" %>
     <section class="section-card verification-verified">
       <div class="status-indicator">

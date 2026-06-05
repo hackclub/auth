@@ -23,10 +23,7 @@ window.copyErrorId = function(element) {
   navigator.clipboard.writeText(errorId).then(() => {
     if (feedback) {
       feedback.hidden = false;
-
-      setTimeout(() => {
-        feedback.hidden = true;
-      }, 2000);
+      setTimeout(() => { feedback.hidden = true; }, 2000);
     }
   }).catch(err => {
     console.error('Failed to copy:', err);

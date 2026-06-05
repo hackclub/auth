@@ -39,6 +39,14 @@ class VerificationsController < ApplicationController
     end
   end
 
+  def status_check
+    status = current_identity.verification_status
+    if status == "needs_submission" && current_identity.verifications.not_ignored.where(status: :draft).any?
+      status = "pending"
+    end
+    render json: { status: }
+  end
+
   def persona
     @identity = current_identity
 

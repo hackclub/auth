@@ -318,6 +318,7 @@ Rails.application.routes.draw do
 
   get "/verifications/new", to: "verifications#new", as: :new_verifications
   get "/verifications/status", to: "verifications#status", as: :verification_status
+  get "/verifications/status/check", to: "verifications#status_check", as: :verification_status_check
   get "/verifications/persona", to: "verifications#persona", as: :persona_verification
   get "/verifications/student-id", to: "verifications#student_id", as: :student_id_verification
   patch "/verifications/persona/legal-name", to: "verifications#update_legal_name", as: :update_legal_name

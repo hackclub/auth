@@ -652,7 +652,7 @@ en:
       title: Verify your identity
       subtitle: "To participate in Hack Club programs and receive hardware, we need to confirm you're a real person. This is how we keep the community safe."
       hero_title: "Here's how it works"
-      hero_description_html: "Our age and identity check is handled by <a href=\"https://withpersona.com/legal/terms\" target=\"_blank\">Persona</a>, an independent verification company. It's fast — usually under a minute."
+      hero_description_html: "Our age and identity check is handled by <a href=\"https://withpersona.com/privacy\" target=\"_blank\">Persona</a>, an independent verification company. It's fast — usually under a minute."
       steps:
         scan:
           title: Scan your ID
