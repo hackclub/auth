@@ -85,7 +85,7 @@ module Backend
       approved_ids = @verifications.approved.pluck(:id)
 
       auto_approved = PublicActivity::Activity
-        .where(key: "verification.auto_approve", trackable_id: approved_ids, trackable_type: "Verification")
+        .where(key: "verification_persona_verification.auto_approve", trackable_id: approved_ids, trackable_type: "Verification")
         .distinct.count(:trackable_id)
 
       manual_approved = approved_ids.size - auto_approved
