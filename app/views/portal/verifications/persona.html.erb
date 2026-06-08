@@ -42,7 +42,7 @@
             </svg>
           </div>
           <h3><%= t("verifications.persona.hero_title") %></h3>
-          <p><%= t("verifications.persona.hero_description") %></p>
+          <p><%= t("verifications.persona.hero_description_html").html_safe %></p>
         </div>
 
         <div class="persona-steps">
@@ -50,7 +50,7 @@
             <span class="persona-step-number">1</span>
             <div>
               <strong><%= t("verifications.persona.steps.scan.title") %></strong>
-              <span><%= t("verifications.persona.steps.scan.description") %></span>
+              <span><%= t("verifications.persona.steps.scan.description", document_examples: t("verifications.persona.steps.scan.document_examples.#{@identity.country}", default: t("verifications.persona.steps.scan.document_examples.default"))) %></span>
             </div>
           </div>
           <div class="persona-step">
