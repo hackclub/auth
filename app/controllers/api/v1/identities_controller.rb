@@ -34,9 +34,7 @@ module API
 
       private
 
-      def ident_scope
-        current_program.identities
-      end
+      def ident_scope = current_program.identities
     end
   end
 end

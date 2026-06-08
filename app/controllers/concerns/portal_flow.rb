@@ -68,9 +68,7 @@ module PortalFlow
     redirect_to uri.to_s, notice: notice, allow_other_host: true
   end
 
-  def cancel_portal_flow
-    redirect_to_portal_return(status: :canceled)
-  end
+  def cancel_portal_flow = redirect_to_portal_return(status: :canceled)
 
   def redirect_to_simple_return
     return_url = portal_return_url

@@ -111,9 +111,7 @@ module OnboardingScenarios
 
     # Card attributes for auth/onboarding card styling
     # Override per-scenario as needed
-    def card_attributes
-      { wide_logo: false }
-    end
+    def card_attributes = { wide_logo: false }
     def dark_mode_background_path = background_path
 
     # Custom dialogue flow hooks - override in subclasses

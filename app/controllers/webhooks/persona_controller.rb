@@ -62,8 +62,6 @@ module Webhooks
       @parsed_body = nil
     end
 
-    def webhook_secret
-      Rails.application.credentials.persona.webhook_secret
-    end
+    def webhook_secret = Rails.application.credentials.persona.webhook_secret
   end
 end

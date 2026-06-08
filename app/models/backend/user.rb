@@ -54,9 +54,7 @@ module Backend
     end
 
     # Returns an array of organized program IDs
-    def organized_program_ids
-      organized_programs.pluck(:id)
-    end
+    def organized_program_ids = organized_programs.pluck(:id)
 
     # Sets the organized programs by IDs
     def organized_program_ids=(ids)

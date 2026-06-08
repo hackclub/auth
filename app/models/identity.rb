@@ -63,9 +63,7 @@ class Identity < ApplicationRecord
 
   has_one :backend_user, class_name: "Backend::User", dependent: :destroy
 
-  def active_for_backend?
-    backend_user&.active?
-  end
+  def active_for_backend? = backend_user&.active?
 
   has_many :documents, class_name: "Identity::Document", dependent: :destroy
   has_many :persona_records, class_name: "Identity::PersonaRecord", dependent: :destroy
@@ -295,9 +293,7 @@ class Identity < ApplicationRecord
       verifications.not_ignored.retryable_rejections.any?
   end
 
-  def rejected_verifications_for_context
-    verifications.not_ignored.retryable_rejections
-  end
+  def rejected_verifications_for_context = verifications.not_ignored.retryable_rejections
 
   # TODO: this is schnasty
   def onboarding_redirect_path
@@ -336,9 +332,7 @@ class Identity < ApplicationRecord
     age
   end
 
-  def age
-    self.class.calculate_age(birthday)
-  end
+  def age = self.class.calculate_age(birthday)
 
   def totp = totps.verified.first
 
@@ -371,13 +365,9 @@ class Identity < ApplicationRecord
     ].flatten.compact
   end
 
-  def has_two_factor_method?
-    two_factor_methods.any?
-  end
+  def has_two_factor_method? = two_factor_methods.any?
 
-  def primary_two_factor_method
-    two_factor_methods.first
-  end
+  def primary_two_factor_method = two_factor_methods.first
 
   def requires_two_factor?
     use_two_factor_authentication? && has_two_factor_method?
@@ -417,9 +407,7 @@ class Identity < ApplicationRecord
 
   private
 
-  def downcase_email
-    self.primary_email = primary_email&.downcase
-  end
+  def downcase_email = self.primary_email = primary_email&.downcase
 
   def copy_legal_name_if_needed
     self.legal_first_name = first_name if legal_first_name.blank?

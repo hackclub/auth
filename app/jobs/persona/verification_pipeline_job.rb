@@ -23,9 +23,7 @@ class Persona::VerificationPipelineJob < ApplicationJob
     [ { first: @record.name_first, last: @record.name_last, dob: @record.birthdate } ]
   end
 
-  def run_resemblances
-    ResemblanceNoticerEngine.run(@identity, additional_names: document_names)
-  end
+  def run_resemblances = ResemblanceNoticerEngine.run(@identity, additional_names: document_names)
 
   def run_decisioning
     verdict = Internal::Decisioning.run(@verification)

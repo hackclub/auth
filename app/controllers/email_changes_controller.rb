@@ -128,13 +128,9 @@ class EmailChangesController < ApplicationController
     @email_change_request = current_identity.email_change_requests.find_by_public_id!(params[:id])
   end
 
-  def email_change_params
-    params.require(:email_change).permit(:new_email)
-  end
+  def email_change_params = params.require(:email_change).permit(:new_email)
 
-  def require_step_up_for_email_change
-    require_step_up("email_change", return_to: new_email_change_path)
-  end
+  def require_step_up_for_email_change = require_step_up("email_change", return_to: new_email_change_path)
 
   def require_email_change_feature_enabled
     unless Flipper.enabled?(:email_change_2025_10_09, current_identity)

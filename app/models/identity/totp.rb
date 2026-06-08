@@ -21,21 +21,13 @@ class Identity::TOTP < ApplicationRecord
     verify_code(code, **options)
   end
 
-  def provisioning_uri
-    instance.provisioning_uri(identity.primary_email)
-  end
+  def provisioning_uri = instance.provisioning_uri(identity.primary_email)
 
-  def method_name
-    "Authenticator App (TOTP)"
-  end
+  def method_name = "Authenticator App (TOTP)"
 
-  def method_icon
-    "message"
-  end
+  def method_icon = "message"
 
   private
 
-  def instance
-    ROTP::TOTP.new(secret, issuer: ISSUER)
-  end
+  def instance = ROTP::TOTP.new(secret, issuer: ISSUER)
 end

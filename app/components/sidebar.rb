@@ -84,9 +84,7 @@ class Components::Sidebar < Components::Base
     end
   end
 
-  def render_overlay
-    div(class: "sidebar-overlay", onclick: safe("toggleSidebar()"))
-  end
+  def render_overlay = div(class: "sidebar-overlay", onclick: safe("toggleSidebar()"))
 
   def render_navigation
     div(class: "sidebar-nav") do

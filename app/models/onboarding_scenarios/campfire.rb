@@ -6,9 +6,7 @@ module OnboardingScenarios
 
     def title = "Welcome to Campfire"
 
-    def form_fields
-      [ :first_name, :last_name, :primary_email, :birthday, :country ]
-    end
+    def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
     def slack_user_type = :multi_channel_guest
 

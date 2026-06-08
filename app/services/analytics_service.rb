@@ -198,9 +198,7 @@ class AnalyticsService
 
   private
 
-  def events_in_range
-    Ahoy::Event.in_range(@start_date, @end_date)
-  end
+  def events_in_range = Ahoy::Event.in_range(@start_date, @end_date)
 
   def scoped_count(event_name)
     scope = events_in_range.by_name(event_name)

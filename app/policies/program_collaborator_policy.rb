@@ -9,13 +9,9 @@ class ProgramCollaboratorPolicy < ApplicationPolicy
     record.pending? && belongs_to_user?
   end
 
-  def cancel?
-    manage_collaborators?
-  end
+  def cancel? = manage_collaborators?
 
-  def remove?
-    manage_collaborators?
-  end
+  def remove? = manage_collaborators?
 
   private
 

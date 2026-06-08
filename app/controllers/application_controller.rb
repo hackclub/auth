@@ -110,7 +110,5 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def touch_session_last_seen_at
-    current_session&.touch_last_seen_at
-  end
+  def touch_session_last_seen_at = current_session&.touch_last_seen_at
 end

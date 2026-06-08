@@ -284,8 +284,6 @@ module Backend
       params.require(:identity).permit(permitted)
     end
 
-    def vouch_params
-      params.require(:verification_vouch_verification).permit(:evidence)
-    end
+    def vouch_params = params.require(:verification_vouch_verification).permit(:evidence)
   end
 end

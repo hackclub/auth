@@ -129,11 +129,7 @@ class Portal::VerificationsController < Portal::BaseController
 
   private
 
-  def on_verification_success
-    redirect_to_portal_return(status: :submitted)
-  end
+  def on_verification_success = redirect_to_portal_return(status: :submitted)
 
-  def on_verification_failure
-    render :document
-  end
+  def on_verification_failure = render :document
 end

@@ -9,9 +9,7 @@ module PublicIdentifiable
     class_attribute :public_id_prefix
   end
 
-  def public_id
-    "#{self.public_id_prefix}!#{hashid}"
-  end
+  def public_id = "#{self.public_id_prefix}!#{hashid}"
 
   alias_method :flipper_id, :public_id
 

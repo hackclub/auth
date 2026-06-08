@@ -126,7 +126,7 @@ class LoginsController < ApplicationController
 
 
     def totp
-        render status: :unprocessable_entity
+      render status: :unprocessable_entity
     end
 
     def verify_totp
@@ -150,7 +150,7 @@ class LoginsController < ApplicationController
     end
 
     def backup_code
-        render status: :unprocessable_entity
+      render status: :unprocessable_entity
     end
 
     def verify_backup_code
@@ -175,7 +175,7 @@ class LoginsController < ApplicationController
     end
 
     def webauthn
-        render status: :unprocessable_entity
+      render status: :unprocessable_entity
     end
 
     def skip_webauthn

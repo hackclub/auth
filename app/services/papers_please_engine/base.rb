@@ -6,8 +6,6 @@ module PapersPleaseEngine
       @verification = verification
     end
 
-    def run
-      raise NotImplementedError, "Subclasses must implement the run method"
-    end
+    def run = raise NotImplementedError, "Subclasses must implement the run method"
   end
 end

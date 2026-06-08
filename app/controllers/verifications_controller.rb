@@ -145,7 +145,5 @@ class VerificationsController < ApplicationController
     redirect_to root_path
   end
 
-  def on_verification_failure
-    render_wizard
-  end
+  def on_verification_failure = render_wizard
 end

@@ -4,15 +4,9 @@ class VerificationFormPolicy < ApplicationPolicy
     user.present?
   end
 
-  def create?
-    new?
-  end
+  def create? = new?
 
-  def show?
-    new?
-  end
+  def show? = new?
 
-  def update?
-    new?
-  end
+  def update? = new?
 end

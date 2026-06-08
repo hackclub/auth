@@ -19,7 +19,5 @@ module StepUpAuthenticatable
     current_identity.has_two_factor_method? && !current_session.recently_stepped_up?(for_action: action_type)
   end
 
-  def consume_step_up!
-    current_session.clear_step_up!
-  end
+  def consume_step_up! = current_session.clear_step_up!
 end
