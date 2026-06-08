@@ -57,25 +57,17 @@ class Identity::Document < ApplicationRecord
     selectable_types_for_country(country).map { |type| [ FRIENDLY_NAMES[type], type ] }
   end
 
-  def current_verification
-    verification
-  end
+  def current_verification = verification
 
   def verification_status
     current_verification&.status || "pending"
   end
 
-  def verified?
-    verification_status == "approved"
-  end
+  def verified? = verification_status == "approved"
 
-  def rejected?
-    verification_status == "rejected"
-  end
+  def rejected? = verification_status == "rejected"
 
-  def pending_verification?
-    verification_status == "pending"
-  end
+  def pending_verification? = verification_status == "pending"
 
   private
 

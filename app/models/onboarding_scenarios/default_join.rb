@@ -1,12 +1,8 @@
 module OnboardingScenarios
     class DefaultJoin < Base
-        def title
-            "Sign up"
-        end
+        def title = "Sign up"
 
-        def form_fields
-            [ :first_name, :last_name, :primary_email, :birthday, :country ]
-        end
+        def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
 
         def slack_user_type

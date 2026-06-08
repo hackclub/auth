@@ -1,16 +1,10 @@
 module Persona
   Inquiry = Data.define(:id, :status, :account_id, :session_token, :verification_ids, :document_ids, :behaviors, :sessions, :raw) do
-    def gov_id_verification_id
-      verification_ids&.find { |v| v[:type] == "verification/government-id" }&.dig(:id)
-    end
+    def gov_id_verification_id = verification_ids&.find { |v| v[:type] == "verification/government-id" }&.dig(:id)
 
-    def gov_id_document_id
-      document_ids&.find { |d| d[:type] == "document/government-id" }&.dig(:id)
-    end
+    def gov_id_document_id = document_ids&.find { |d| d[:type] == "document/government-id" }&.dig(:id)
 
-    def selfie_verification_id
-      verification_ids&.find { |v| v[:type] == "verification/selfie" }&.dig(:id)
-    end
+    def selfie_verification_id = verification_ids&.find { |v| v[:type] == "verification/selfie" }&.dig(:id)
   end
 
   GovernmentIdVerification = Data.define(

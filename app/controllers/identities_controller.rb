@@ -212,9 +212,7 @@ class IdentitiesController < ApplicationController
 
     def portal_onboarding_scenario = @onboarding_scenario
 
-    def identity_params
-        params.require(:identity).permit(:first_name, :last_name, :phone_number, :developer_mode, :saml_debug)
-    end
+    def identity_params = params.require(:identity).permit(:first_name, :last_name, :phone_number, :developer_mode, :saml_debug)
 
     public
 

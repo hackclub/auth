@@ -2,13 +2,9 @@ module OnboardingScenarios
   class Pyramid < Base
     def self.slug = "pyramid"
 
-    def title
-      "Join the Pyramid!"
-    end
+    def title = "Join the Pyramid!"
 
-    def form_fields
-      [ :first_name, :last_name, :primary_email, :birthday, :country ]
-    end
+    def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
     def accepts_adults = true
 

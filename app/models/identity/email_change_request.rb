@@ -67,25 +67,15 @@ class Identity::EmailChangeRequest < ApplicationRecord
     completed_at.nil? && cancelled_at.nil? && !expired?
   end
 
-  def completed?
-    completed_at.present?
-  end
+  def completed? = completed_at.present?
 
-  def cancelled?
-    cancelled_at.present?
-  end
+  def cancelled? = cancelled_at.present?
 
-  def expired?
-    expires_at < Time.current
-  end
+  def expired? = expires_at < Time.current
 
-  def old_email_verified?
-    old_email_verified_at.present?
-  end
+  def old_email_verified? = old_email_verified_at.present?
 
-  def new_email_verified?
-    new_email_verified_at.present?
-  end
+  def new_email_verified? = new_email_verified_at.present?
 
   def both_emails_verified?
     old_email_verified? && new_email_verified?

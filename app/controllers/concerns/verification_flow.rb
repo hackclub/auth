@@ -77,17 +77,11 @@ module VerificationFlow
     )
   end
 
-  def document_params
-    params.require(:identity_document).permit(:document_type, files: [])
-  end
+  def document_params = params.require(:identity_document).permit(:document_type, files: [])
 
-  def setup_persona_step
-    setup_persona_inquiry { find_or_create_persona_verification }
-  end
+  def setup_persona_step = setup_persona_inquiry { find_or_create_persona_verification }
 
-  def setup_student_id_step
-    setup_persona_inquiry { find_or_create_student_id_verification }
-  end
+  def setup_student_id_step = setup_persona_inquiry { find_or_create_student_id_verification }
 
   def setup_persona_inquiry
     @verification = yield
@@ -149,9 +143,7 @@ module VerificationFlow
     end
   end
 
-  def create_inquiry
-    @verification.generate_inquiry!
-  end
+  def create_inquiry = @verification.generate_inquiry!
 
   def reuse_inquiry
     inquiry = Persona.instance.resume_inquiry(@verification.persona_inquiry_id)

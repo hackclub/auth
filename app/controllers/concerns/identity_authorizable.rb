@@ -17,8 +17,6 @@ module IdentityAuthorizable
       redirect_to root_path
     end
 
-    def pundit_user
-      current_identity
-    end
+    def pundit_user = current_identity
   end
 end

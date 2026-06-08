@@ -13,11 +13,7 @@ class Verification::PersonaStudentIdVerification < Verification::PersonaVerifica
 
   private
 
-  def resolve_template
-    TEMPLATES.first
-  end
+  def resolve_template = TEMPLATES.first
 
-  def resolve_template_id
-    Rails.application.credentials.persona.templates.student_id
-  end
+  def resolve_template_id = Rails.application.credentials.persona.templates.student_id
 end

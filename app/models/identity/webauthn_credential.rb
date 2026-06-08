@@ -18,17 +18,13 @@ class Identity::WebauthnCredential < ApplicationRecord
 
   # WebAuthn credential IDs and public keys are binary data that need to be
   # base64url encoded for storage and transmission
-  def webauthn_id
-    Base64.urlsafe_decode64(external_id)
-  end
+  def webauthn_id = Base64.urlsafe_decode64(external_id)
 
   def webauthn_id=(value)
     self.external_id = Base64.urlsafe_encode64(value, padding: false)
   end
 
-  def webauthn_public_key
-    Base64.urlsafe_decode64(public_key)
-  end
+  def webauthn_public_key = Base64.urlsafe_decode64(public_key)
 
   def webauthn_public_key=(value)
     self.public_key = Base64.urlsafe_encode64(value, padding: false)
@@ -36,9 +32,7 @@ class Identity::WebauthnCredential < ApplicationRecord
 
   # Increment the sign count after successful authentication
   # This helps detect credential cloning attacks
-  def increment_sign_count!
-    increment!(:sign_count)
-  end
+  def increment_sign_count! = increment!(:sign_count)
 
   # Mark credential as potentially compromised (e.g., sign count anomaly)
   def mark_as_compromised!
@@ -46,13 +40,9 @@ class Identity::WebauthnCredential < ApplicationRecord
     Rails.logger.warn "WebAuthn credential marked as compromised: id=#{id}, identity_id=#{identity_id}"
   end
 
-  def compromised?
-    compromised_at.present?
-  end
+  def compromised? = compromised_at.present?
 
-  def active?
-    !compromised?
-  end
+  def active? = !compromised?
 
   # Human-readable display for the credential
   def display_name
@@ -61,9 +51,7 @@ class Identity::WebauthnCredential < ApplicationRecord
 
   # Class method to get all decoded credential IDs for a collection
   # Useful for building WebAuthn allow/exclude lists
-  def self.raw_credential_ids
-    pluck(:external_id).map { |id| Base64.urlsafe_decode64(id) }
-  end
+  def self.raw_credential_ids = pluck(:external_id).map { |id| Base64.urlsafe_decode64(id) }
 
   private
 

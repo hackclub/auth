@@ -91,7 +91,5 @@ class Verification::DocumentVerification < Verification
 
   private
 
-  def check_for_resemblances
-    Identity::NoticeResemblancesJob.perform_later(identity)
-  end
+  def check_for_resemblances = Identity::NoticeResemblancesJob.perform_later(identity)
 end

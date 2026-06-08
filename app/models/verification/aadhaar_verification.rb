@@ -111,7 +111,5 @@ class Verification::AadhaarVerification < Verification
 
   private
 
-  def generate_local_transaction_id
-    self.aadhaar_hc_transaction_id = "HC!#{SecureRandom.uuid}"
-  end
+  def generate_local_transaction_id = self.aadhaar_hc_transaction_id = "HC!#{SecureRandom.uuid}"
 end

@@ -100,8 +100,6 @@ module Backend
       @user = User.find(params[:id])
     end
 
-    def user_params
-      params.require(:backend_user).permit(:username, :icon_url, :all_fields_access, :human_endorser, :program_manager, :manual_document_verifier, :super_admin, organized_program_ids: [])
-    end
+    def user_params = params.require(:backend_user).permit(:username, :icon_url, :all_fields_access, :human_endorser, :program_manager, :manual_document_verifier, :super_admin, organized_program_ids: [])
   end
 end

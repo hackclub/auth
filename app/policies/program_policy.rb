@@ -16,17 +16,13 @@ class ProgramPolicy < ApplicationPolicy
     user.developer_mode? || admin?
   end
 
-  def new?
-    create?
-  end
+  def new? = create?
 
   def update?
     owner? || collaborator? || admin?
   end
 
-  def edit?
-    update?
-  end
+  def edit? = update?
 
   def destroy?
     owner? || admin?
@@ -40,9 +36,7 @@ class ProgramPolicy < ApplicationPolicy
     owner? || collaborator? || admin?
   end
 
-  def update_all_scopes?
-    admin?
-  end
+  def update_all_scopes? = admin?
 
   # Returns the list of scope names this user is permitted to add or remove.
   # Scopes outside this list that already exist on the app are "locked" —
@@ -61,21 +55,15 @@ class ProgramPolicy < ApplicationPolicy
     user.can_hq_officialize? || admin?
   end
 
-  def update_onboarding_scenario?
-    super_admin?
-  end
+  def update_onboarding_scenario? = super_admin?
 
-  def update_active?
-    admin?
-  end
+  def update_active? = admin?
 
   def view_secret?
     owner? || admin? || collaborator?
   end
 
-  def view_api_key?
-    admin?
-  end
+  def view_api_key? = admin?
 
   def rotate_credentials?
     owner? || admin? || collaborator?
@@ -85,9 +73,7 @@ class ProgramPolicy < ApplicationPolicy
     owner? || admin?
   end
 
-  def activity_log?
-    show?
-  end
+  def activity_log? = show?
 
   def manage_collaborators?
     owner? || admin?

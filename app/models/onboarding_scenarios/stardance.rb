@@ -4,9 +4,7 @@ module OnboardingScenarios
 
     def title = "get ready for launch!"
 
-    def form_fields
-      [ :first_name, :last_name, :primary_email, :birthday, :country ]
-    end
+    def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
     def slack_user_type = :full_member
 

@@ -103,9 +103,7 @@ class Program < ApplicationRecord
     self.scopes = Doorkeeper::OAuth::Scopes.from_array(Array(array).reject(&:blank?)).to_s
   end
 
-  def redirect_uris
-    redirect_uri.to_s.split
-  end
+  def redirect_uris = redirect_uri.to_s.split
 
   def has_scope?(scope_name) = scopes.include?(scope_name.to_s)
 

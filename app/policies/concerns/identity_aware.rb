@@ -21,11 +21,7 @@ module IdentityAware
     record.respond_to?(:identity) && record.identity == identity
   end
 
-  def super_admin?
-    backend_user&.super_admin?
-  end
+  def super_admin? = backend_user&.super_admin?
 
-  def program_manager?
-    backend_user&.program_manager?
-  end
+  def program_manager? = backend_user&.program_manager?
 end
