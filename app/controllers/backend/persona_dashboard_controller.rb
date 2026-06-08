@@ -230,9 +230,9 @@ module Backend
       by_country.map do |code, data|
         resolved = data[:approved] + data[:rejected]
         name = ISO3166::Country[code]&.common_name || code
-        [name, data.merge(
+        [ name, data.merge(
           approval_rate: resolved > 0 ? (data[:approved].to_f / resolved * 100).round(1) : nil
-        )]
+        ) ]
       end.sort_by { |_, d| -d[:total] }.to_h
     end
 

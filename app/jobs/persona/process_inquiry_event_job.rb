@@ -157,7 +157,6 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
       else
         @verification.update!(persona_record: record) unless @verification.persona_record
       end
-
     end
 
     @verification.link_persona_account!(inquiry.account_id)
