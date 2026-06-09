@@ -15,7 +15,7 @@ class Verification::PersonaVerification < Verification
   encrypts :persona_session_token
 
   validates :persona_inquiry_id, uniqueness: { allow_nil: true, conditions: -> { where(deleted_at: nil) } }
-  validate :persona_record_matches_inquiry, if: -> { persona_record_id.present? && persona_inquiry_id.present? }
+  validate :persona_record_matches_inquiry, if: -> { persona_record_id.present? && persona_inquiry_id.present? && (persona_record_id_changed? || persona_inquiry_id_changed?) }
 
   # -- templates ---------------------------------------------------------
   #
@@ -64,7 +64,7 @@ class Verification::PersonaVerification < Verification
     fraud:         { name: "Fraudulent submission",               fatal: true }
   )
 
-  aasm column: :status, timestamps: true, whiny_transitions: true do
+  aasm column: :status, timestamps: true, whiny_transitions: true, whiny_persistence: true do
     state :draft, initial: true
     state :pending
     state :approved

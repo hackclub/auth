@@ -173,6 +173,7 @@ module Backend
     end
 
     rescue_from AASM::InvalidTransition, with: :oops
+    rescue_from ActiveRecord::RecordInvalid, with: :oops_invalid
 
     private
 
@@ -198,6 +199,11 @@ module Backend
     def oops
       flash[:warning] = "This verification has already been processed?"
       redirect_to pending_backend_verifications_path
+    end
+
+    def oops_invalid(exception)
+      flash[:error] = "Could not save verification: #{exception.record.errors.full_messages.to_sentence}"
+      redirect_to backend_verification_path(@verification)
     end
   end
 end

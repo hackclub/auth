@@ -46,7 +46,7 @@ class Verification::VouchVerification < Verification
 
   validates :evidence, presence: true
 
-  aasm column: :status, timestamps: true, whiny_transitions: true do
+  aasm column: :status, timestamps: true, whiny_transitions: true, whiny_persistence: true do
     state :approved, initial: true
 
     event :approve do

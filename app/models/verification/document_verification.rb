@@ -59,7 +59,7 @@ class Verification::DocumentVerification < Verification
     duplicate:     { name: "This identity is a duplicate of another identity", fatal: true }
   )
 
-  aasm column: :status, timestamps: true, whiny_transitions: true do
+  aasm column: :status, timestamps: true, whiny_transitions: true, whiny_persistence: true do
     state :pending, initial: true
     state :approved
     state :rejected

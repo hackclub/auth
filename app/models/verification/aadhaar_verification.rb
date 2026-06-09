@@ -57,7 +57,7 @@ class Verification::AadhaarVerification < Verification
     duplicate:           { name: "This Aadhaar number is already registered", fatal: true }
   )
 
-  aasm column: :status, timestamps: true, whiny_transitions: true do
+  aasm column: :status, timestamps: true, whiny_transitions: true, whiny_persistence: true do
     state :draft, initial: true
     state :pending
     state :approved
