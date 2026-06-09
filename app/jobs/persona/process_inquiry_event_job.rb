@@ -38,11 +38,19 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     return if @verification.pending? || @verification.approved?
 
     inquiry = Persona.instance.retrieve_inquiry(inquiry_id)
-    save_inquiry_data(inquiry)
 
-    @verification.mark_pending!
-    @verification.create_activity(:persona_inquiry_completed, owner: @identity, recipient: @identity,
-      parameters: { inquiry_id: inquiry_id })
+    # save_inquiry_data and mark_pending! MUST be atomic. if save commits
+    # but mark_pending! never runs (crash, preemption, retry after the
+    # inquiry_id was swapped), we get a verification stuck in draft with
+    # a PersonaRecord from the wrong inquiry glued to it. wrapping both
+    # in one transaction means either all the data + status land together,
+    # or nothing does.
+    ActiveRecord::Base.transaction do
+      save_inquiry_data(inquiry)
+      @verification.mark_pending!
+      @verification.create_activity(:persona_inquiry_completed, owner: @identity, recipient: @identity,
+        parameters: { inquiry_id: inquiry_id })
+    end
   end
 
   def handle_approved
