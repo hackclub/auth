@@ -121,21 +121,6 @@ class Verification::PersonaVerification < Verification
     inquiry
   end
 
-  private
-
-  def resolve_template
-    TEMPLATES.find { |t| t.matches?(identity) } || TEMPLATES.first
-  end
-
-  def resolve_template_id
-    creds = Rails.application.credentials.persona
-    if creds.respond_to?(:templates) && creds.templates
-      creds.templates[resolve_template.name]
-    else
-      creds.template_id
-    end
-  end
-
   def link_persona_account!(account_id)
     return if account_id.blank? || identity.persona_account_id.present?
 
@@ -152,6 +137,21 @@ class Verification::PersonaVerification < Verification
         existing_identity: Identity.find_by(persona_account_id: account_id)&.public_id
       }
     )
+  end
+
+  private
+
+  def resolve_template
+    TEMPLATES.find { |t| t.matches?(identity) } || TEMPLATES.first
+  end
+
+  def resolve_template_id
+    creds = Rails.application.credentials.persona
+    if creds.respond_to?(:templates) && creds.templates
+      creds.templates[resolve_template.name]
+    else
+      creds.template_id
+    end
   end
 
   def set_ysws_eligibility!
