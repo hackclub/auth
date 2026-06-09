@@ -62,6 +62,10 @@ class VerificationsController < ApplicationController
     end
 
     setup_persona_step
+    if @inquiry_already_completed
+      redirect_to verification_status_path
+      return
+    end
     render :persona
   end
 
@@ -80,6 +84,10 @@ class VerificationsController < ApplicationController
     end
 
     setup_student_id_step
+    if @inquiry_already_completed
+      redirect_to verification_status_path
+      return
+    end
     render :persona
   end
 

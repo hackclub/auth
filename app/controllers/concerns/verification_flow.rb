@@ -87,6 +87,8 @@ module VerificationFlow
     @verification = yield
     @inquiry = @verification.persona_inquiry_id ? reuse_inquiry : create_inquiry
 
+    return if @inquiry_already_completed
+
     @inquiry_id = @verification.persona_inquiry_id
     @session_token = @verification.persona_session_token
     @environment_id = Rails.application.credentials.dig(:persona, :environment_id)
@@ -150,9 +152,26 @@ module VerificationFlow
     @verification.update!(persona_session_token: inquiry.session_token)
     inquiry
   rescue Persona::ConflictError
-    # inquiry is in a terminal state (completed/expired/failed) — start fresh
-    @verification.update!(persona_inquiry_id: nil, persona_session_token: nil)
-    create_inquiry
+    # inquiry is in a terminal state (completed/expired/failed/declined).
+    #
+    # DO NOT clear persona_inquiry_id here. the webhook job looks up the
+    # verification by that field — if we wipe it before the job runs,
+    # the completed inquiry data is permanently orphaned.
+    #
+    # instead, signal the caller to redirect to the status page and let
+    # the webhook process naturally.
+    Sentry.capture_message(
+      "User revisited persona page while inquiry is terminal — redirecting to status",
+      level: :warning,
+      tags: { data_integrity: true, component: "persona" },
+      extra: {
+        verification_id: @verification.id,
+        identity_id: @identity.id,
+        persona_inquiry_id: @verification.persona_inquiry_id
+      }
+    )
+    @inquiry_already_completed = true
+    nil
   end
 
   LEGAL_NAME_MAX_LENGTH = 255

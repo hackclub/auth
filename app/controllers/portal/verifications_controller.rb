@@ -74,6 +74,10 @@ class Portal::VerificationsController < Portal::BaseController
     end
 
     setup_persona_step
+    if @inquiry_already_completed
+      redirect_to_portal_return(status: :pending)
+      return
+    end
   end
 
   def student_id
@@ -95,6 +99,10 @@ class Portal::VerificationsController < Portal::BaseController
     end
 
     setup_student_id_step
+    if @inquiry_already_completed
+      redirect_to_portal_return(status: :pending)
+      return
+    end
     render "verifications/persona"
   end
 
