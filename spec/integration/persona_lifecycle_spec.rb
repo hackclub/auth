@@ -253,6 +253,68 @@ RSpec.describe "Persona verification lifecycle", type: :request do
     end
   end
 
+  describe "race condition: user revisits persona page before webhook processes" do
+    it "preserves the inquiry link so the webhook can still find the verification" do
+      # step 1: user visits persona page — creates draft verification + inquiry
+      get "/verifications/persona"
+      expect(response).to have_http_status(:ok)
+
+      verification = identity.persona_verifications.draft.last
+      original_inquiry_id = verification.persona_inquiry_id
+
+      # step 2: user completes the inquiry on persona's side.
+      # the webhook is enqueued but hasn't processed yet.
+      # simulate: resume_inquiry now raises ConflictError because the inquiry is terminal.
+      mock_service = Persona.instance
+      allow(mock_service).to receive(:resume_inquiry)
+        .with(original_inquiry_id)
+        .and_raise(Persona::ConflictError, "inquiry is in a terminal state")
+
+      # step 3: user navigates back to /verifications/persona before the job runs
+      get "/verifications/persona"
+
+      # should redirect to status instead of rendering a new persona widget
+      expect(response).to redirect_to(verification_status_path)
+
+      # inquiry_id must NOT have been cleared — the webhook job needs it
+      verification.reload
+      expect(verification.persona_inquiry_id).to eq(original_inquiry_id)
+      expect(identity.persona_verifications.draft.count).to eq(1)
+
+      # step 4: webhook job finally processes — it can find the verification
+      send_webhook("inquiry.completed", original_inquiry_id)
+      perform_enqueued_jobs(only: Persona::ProcessInquiryEventJob)
+
+      verification.reload
+      expect(verification).to be_pending
+      expect(verification.persona_record).to be_present
+    end
+
+    it "does not create orphaned inquiries on repeated page visits" do
+      # step 1: create verification + inquiry
+      get "/verifications/persona"
+      verification = identity.persona_verifications.draft.last
+      original_inquiry_id = verification.persona_inquiry_id
+
+      # simulate completed inquiry
+      mock_service = Persona.instance
+      allow(mock_service).to receive(:resume_inquiry)
+        .with(original_inquiry_id)
+        .and_raise(Persona::ConflictError, "inquiry is in a terminal state")
+
+      # user hits the page 3 more times (impatient user)
+      3.times do
+        get "/verifications/persona"
+        expect(response).to redirect_to(verification_status_path)
+      end
+
+      # still only one verification, still the same inquiry_id
+      verification.reload
+      expect(verification.persona_inquiry_id).to eq(original_inquiry_id)
+      expect(identity.persona_verifications.count).to eq(1)
+    end
+  end
+
   describe "webhook security" do
     it "rejects webhooks with wrong secret" do
       get "/verifications/persona"
