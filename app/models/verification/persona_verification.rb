@@ -109,6 +109,16 @@ class Verification::PersonaVerification < Verification
   def auto_approvable?                  = true
   def status_pending_partial     = "verifications/status/pending_persona"
 
+  def inquiry_unlinked?
+    return false unless persona_inquiry_id.present? && persona_record_id.present?
+    persona_record&.inquiry_id != persona_inquiry_id
+  end
+
+  def relink!
+    raise "no persona record linked" unless persona_record
+    update_columns(persona_inquiry_id: persona_record.inquiry_id)
+  end
+
   def generate_inquiry!
     raise "this verification already has an inquiry!" if persona_inquiry_id.present?
 

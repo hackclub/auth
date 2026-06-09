@@ -1,7 +1,21 @@
 <column>
   <row><span style="min-width: 12ch; color: var(--foreground2);">type</span> Government ID (Persona)</row>
   <% if verification.persona_inquiry_id.present? %>
-    <row><span style="min-width: 12ch; color: var(--foreground2);">inquiry</span> <code><%= verification.persona_inquiry_id %></code></row>
+    <row align-="center" gap-="1">
+      <span style="min-width: 12ch; color: var(--foreground2);">inquiry</span>
+      <code><%= verification.persona_inquiry_id %></code>
+      <% if verification.inquiry_unlinked? %>
+        <span title="persona record inquiry_id does not match" style="color: var(--red); font-weight: bold;">!</span>
+        <% super_admin_tool(element: "span") do %>
+          <%= button_to "relink",
+                relink_backend_verification_path(verification),
+                method: :patch,
+                data: { confirm: "update inquiry ID to match persona record (#{verification.persona_record.inquiry_id})?" },
+                form: { style: "display:inline" },
+                style: "color: var(--red); font-size: 0.85em;" %>
+        <% end %>
+      <% end %>
+    </row>
   <% end %>
   <row>
     <span style="min-width: 12ch; color: var(--foreground2);">status</span>

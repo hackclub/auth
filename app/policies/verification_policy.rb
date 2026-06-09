@@ -12,4 +12,6 @@ class VerificationPolicy < ApplicationPolicy
   def ignore? = user&.super_admin?
 
   def nuke_inquiry? = user&.super_admin?
+
+  def relink? = user&.super_admin?
 end

@@ -218,6 +218,7 @@ Rails.application.routes.draw do
         patch :reject
         patch :ignore
         delete :nuke_inquiry
+        patch :relink
       end
     end
 

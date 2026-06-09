@@ -172,6 +172,36 @@ module Backend
       redirect_to backend_identity_path(identity)
     end
 
+    def relink
+      authorize @verification, :relink?
+
+      unless @verification.is_a?(Verification::PersonaVerification)
+        flash[:error] = "Only persona verifications can be relinked"
+        redirect_to backend_verification_path(@verification) and return
+      end
+
+      unless @verification.inquiry_unlinked?
+        flash[:warning] = "This verification is already linked correctly"
+        redirect_to backend_verification_path(@verification) and return
+      end
+
+      old_inquiry_id = @verification.persona_inquiry_id
+      @verification.relink!
+
+      @verification.create_activity(
+        :relink,
+        owner: current_user,
+        parameters: {
+          old_persona_inquiry_id: old_inquiry_id,
+          persona_inquiry_id: @verification.persona_inquiry_id,
+          persona_record_id: @verification.persona_record_id
+        }
+      )
+
+      flash[:success] = "Relinked inquiry ID from #{old_inquiry_id} to #{@verification.persona_inquiry_id}"
+      redirect_to backend_verification_path(@verification)
+    end
+
     rescue_from AASM::InvalidTransition, with: :oops
     rescue_from ActiveRecord::RecordInvalid, with: :oops_invalid
 
