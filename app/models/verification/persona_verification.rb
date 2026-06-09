@@ -14,6 +14,9 @@ class Verification::PersonaVerification < Verification
 
   encrypts :persona_session_token
 
+  validates :persona_inquiry_id, uniqueness: { allow_nil: true, conditions: -> { where(deleted_at: nil) } }
+  validate :persona_record_matches_inquiry, if: -> { persona_record_id.present? && persona_inquiry_id.present? }
+
   # -- templates ---------------------------------------------------------
   #
   # declare templates here, map fields to lambdas or symbols.
@@ -152,6 +155,25 @@ class Verification::PersonaVerification < Verification
     else
       creds.template_id
     end
+  end
+
+  def persona_record_matches_inquiry
+    return unless persona_record&.inquiry_id
+    return if persona_record.inquiry_id == persona_inquiry_id
+
+    Sentry.capture_message(
+      "PersonaRecord inquiry_id does not match verification persona_inquiry_id",
+      level: :error,
+      tags: { data_integrity: true, component: "persona" },
+      extra: {
+        verification_id: id,
+        identity_id: identity_id,
+        persona_inquiry_id: persona_inquiry_id,
+        record_inquiry_id: persona_record.inquiry_id,
+        persona_record_id: persona_record_id
+      }
+    )
+    errors.add(:persona_record, "inquiry_id (#{persona_record.inquiry_id}) does not match persona_inquiry_id (#{persona_inquiry_id})")
   end
 
   def set_ysws_eligibility!
