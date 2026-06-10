@@ -27,7 +27,7 @@
     body_style = content_for?(:body_style) ? yield(:body_style) : nil
     portal_scenario = respond_to?(:portal_onboarding_scenario) ? portal_onboarding_scenario : nil
   %>
-  <body class="<%= content_for?(:portal_wrapper) ? '' : (content_for?(:body_class) ? yield(:body_class) : 'auth-layout') %>" hx-headers='{"X-CSRF-Token": "<%= form_authenticity_token %>"}' hx-boost="false"<%= " style=\"#{body_style}\"".html_safe if body_style %>>
+  <body class="<%= [content_for?(:portal_wrapper) ? '' : (content_for?(:body_class) ? yield(:body_class) : 'auth-layout'), portal_scenario ? "scenario-#{portal_scenario.class.slug}" : ""].compact_blank.join(' ') %>" hx-headers='{"X-CSRF-Token": "<%= form_authenticity_token %>"}' hx-boost="false"<%= " style=\"#{body_style}\"".html_safe if body_style %>>
     <%= render "shared/scenario_background_style", scenario: portal_scenario %>
     <% if content_for?(:portal_wrapper) %>
       <main class="container portal-container">
