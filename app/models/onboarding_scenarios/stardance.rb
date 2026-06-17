@@ -10,7 +10,7 @@ module OnboardingScenarios
 
     def slack_channels = chans(:stardance_help, :identity_help, :hackatime_help, :help, :stardance_bulletin, :planet, :welcome_to_hack_club, :slack_guide) + promotion_channels
 
-    def promotion_channels = chans(:stardance, :library, :lounge, :welcome, :happenings, :community, :announcements)
+    def promotion_channels = chans(:stardance, :library, :lounge, :welcome, :happenings, :community_announcements, :announcements, :ysws)
 
     def first_step = :welcome
 
