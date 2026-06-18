@@ -150,7 +150,7 @@ module Backend
     end
 
     def new_vouch
-      authorize Verification::VouchVerification, :create?
+      authorize Verification::VouchVerification, :create?, policy_class: Verification::VouchVerificationPolicy
       add_breadcrumb "IDNT", backend_identities_path
       add_breadcrumb @identity.first_name, backend_identity_path(@identity)
       add_breadcrumb "vouch"
@@ -158,7 +158,7 @@ module Backend
     end
 
     def create_vouch
-      authorize Verification::VouchVerification, :create?
+      authorize Verification::VouchVerification, :create?, policy_class: Verification::VouchVerificationPolicy
       @vouch = @identity.vouch_verifications.build(vouch_params)
       if @vouch.save
         flash[:notice] = "Vouch verification created successfully"
