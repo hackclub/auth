@@ -90,7 +90,7 @@
               <code class="credential-value" x-show="revealed"><%= @app.secret %></code>
               <span class="credential-value credential-masked" x-show="!revealed">[hidden]</span>
             <% end %>
-            <button type="button" class="button-secondary small-btn usn" @click="revealed = !revealed" x-text="revealed ? '<%= t('.hide') %>' : '<%= t('.reveal') %>'"></button>
+            <button type="button" class="button-secondary small-btn usn" <%= t('.hide') %> ' : '<%= t('.reveal') %>'"></button>
           </div>
         </div>
       <% end %>

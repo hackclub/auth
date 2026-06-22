@@ -6,21 +6,16 @@
     <p x-show="!editingName">
       Verifying as <strong><%= first %> <%= last %></strong>
       &middot;
-      <a href="#" @click.prevent="editingName = true">Not your legal name?</a>
-    </p>
-    <div x-show="editingName" x-cloak>
+      <a href="#"
       <%= form_with url: local_assigns[:form_url] || update_legal_name_path, method: :patch, local: true,
-            html: { class: "persona-name-form" } do |f| %>
-        <p>Enter the name as it appears on your ID</p>
+            html: { class: "persona-name-form" } do |f| %>>Enter the name as it appears on your ID</p>
         <div class="persona-name-fields">
           <%= f.text_field :legal_first_name, value: first, required: true, autocomplete: "given-name", placeholder: "First name" %>
           <%= f.text_field :legal_last_name, value: last, required: true, autocomplete: "family-name", placeholder: "Last name" %>
         </div>
         <div class="persona-name-actions">
           <%= f.submit "Save", class: "btn btn-sm btn-primary" %>
-          <a href="#" @click.prevent="editingName = false">Cancel</a>
-        </div>
-      <% end %>
-    </div>
+          <a href="#"
+      <% end %>>
   </div>
 <% end %>

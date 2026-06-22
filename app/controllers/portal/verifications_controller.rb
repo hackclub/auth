@@ -76,7 +76,7 @@ class Portal::VerificationsController < Portal::BaseController
     setup_persona_step
     if @inquiry_already_completed
       redirect_to_portal_return(status: :pending)
-      return
+      nil
     end
   end
 
