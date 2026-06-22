@@ -59,6 +59,8 @@ class ProgramPolicy < ApplicationPolicy
 
   def update_active? = admin?
 
+  def update_whoami? = admin?
+
   def view_secret?
     owner? || admin? || collaborator?
   end

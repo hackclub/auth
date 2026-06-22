@@ -267,6 +267,11 @@ en:
       onboarding_default: "(default)"
       onboarding_scenario_hint: Users signing up through this OAuth app will use this onboarding flow
       active: Active
+      whoami_enabled: Enable silent email prefill (whoami)
+      whoami_enabled_hint: Lets the allowed site below silently read a logged-in visitor's email + first name (via /api/external/whoami) to prefill its forms. Off by default.
+      whoami_allowed_origin: Whoami allowed origin
+      whoami_allowed_origin_placeholder: https://program.hackclub.com
+      whoami_allowed_origin_hint: Exact browser Origin permitted to call whoami - scheme + host, no path or trailing slash. Only this origin receives identity.
       update: Update App
       cancel: Cancel
     create:
