@@ -13,8 +13,6 @@ module RalseiEngine
         template = scenario.template_for(first_step)
         send_ephemeral_message(identity, template, scenario.ephemeral_channel)
       end
-
-      Tutorial::ScrollUpReminderJob.set(wait: 25.seconds).perform_later(identity)
     end
 
     def handle_tutorial_agree(identity)
