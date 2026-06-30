@@ -115,7 +115,7 @@
     </div>
 
     <%# === Card 4: Admin Settings (if applicable) === %>
-    <% if policy(@app).update_byline? || policy(@app).update_onboarding_scenario? || policy(@app).update_active? %>
+    <% if policy(@app).update_byline? || policy(@app).update_onboarding_scenario? || policy(@app).update_active? || policy(@app).update_whoami? %>
       <section class="section-card">
         <h3><%= t(".admin_settings_heading", default: "Admin Settings") %></h3>
         <% if policy(@app).update_byline? %>
@@ -138,6 +138,20 @@
               <%= f.check_box :active %>
               <span><%= t(".active") %></span>
             </label>
+          </div>
+        <% end %>
+        <% if policy(@app).update_whoami? %>
+          <div class="field-group">
+            <label class="checkbox-label">
+              <%= f.check_box :whoami_enabled %>
+              <span><%= t(".whoami_enabled") %></span>
+            </label>
+            <small class="usn"><%= t(".whoami_enabled_hint") %></small>
+          </div>
+          <div class="field-group">
+            <%= f.label :whoami_allowed_origin, t(".whoami_allowed_origin") %>
+            <%= f.text_field :whoami_allowed_origin, placeholder: t(".whoami_allowed_origin_placeholder") %>
+            <small class="usn"><%= t(".whoami_allowed_origin_hint") %></small>
           </div>
         <% end %>
       </section>

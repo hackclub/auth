@@ -35,6 +35,8 @@ class Program < ApplicationRecord
   audit_field :active, type: :boolean
   audit_field :byline
   audit_field :onboarding_scenario, transform: ->(v) { v&.titleize }
+  audit_field :whoami_enabled, type: :boolean
+  audit_field :whoami_allowed_origin
 
   COLLABORATOR_ACTIVITY_KEYS = %w[
     program.collaborator_invited
@@ -51,6 +53,11 @@ class Program < ApplicationRecord
   enum :trust_level, { hq_official: 0, community_untrusted: 1, community_trusted: 2 }, default: :hq_official
 
   scope :official, -> { where(trust_level: :hq_official) }
+
+  scope :whoami_for_origin, ->(origin) {
+    where(whoami_enabled: true)
+      .where("LOWER(whoami_allowed_origin) = LOWER(?)", origin.to_s.strip)
+  }
 
   AVAILABLE_SCOPES = OAuthScope::ALL.map { |s| { name: s.name, description: s.description } }.freeze
   COMMUNITY_ALLOWED_SCOPES = OAuthScope::COMMUNITY_ALLOWED

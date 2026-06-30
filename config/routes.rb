@@ -414,6 +414,8 @@ Rails.application.routes.draw do
     namespace :external do
       get "/check", to: "identities#check"
       options "/check", to: "identities#options"
+      get "/whoami", to: "identities#whoami"
+      options "/whoami", to: "identities#whoami_options"
     end
   end
 
