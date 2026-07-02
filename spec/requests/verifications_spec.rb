@@ -69,4 +69,55 @@ RSpec.describe "Verifications", type: :request do
       end
     end
   end
+
+  describe "persona verification attempt cap" do
+    before do
+      Flipper.enable(:persona_verification_2026_04_09, identity)
+    end
+
+    after do
+      Flipper.disable(:persona_verification_2026_04_09)
+    end
+
+    let(:rejected_attrs) { { status: :rejected, rejection_reason: "info_mismatch" } }
+
+    context "when identity is persona-locked" do
+      before do
+        create_list(:persona_verification, Identity::MAX_PERSONA_ATTEMPTS, identity: identity, **rejected_attrs)
+      end
+
+      it "redirects GET /verifications/new to status" do
+        get new_verifications_path
+        expect(response).to redirect_to(verification_status_path)
+      end
+
+      it "redirects GET /verifications/persona to status" do
+        get persona_verification_path
+        expect(response).to redirect_to(verification_status_path)
+      end
+
+      it "redirects GET /verifications/student_id to status" do
+        get student_id_verification_path
+        expect(response).to redirect_to(verification_status_path)
+      end
+
+      it "shows locked message on status page" do
+        get verification_status_path
+        expect(response.body).to include("Let&#39;s get you verified")
+        expect(response.body).to include("identity@hackclub.com")
+      end
+    end
+
+    context "when identity has attempts remaining" do
+      before do
+        create_list(:persona_verification, 1, identity: identity, **rejected_attrs)
+        allow(Persona).to receive(:instance).and_return(Persona::MockAPIService.new)
+      end
+
+      it "allows access to persona verification" do
+        get persona_verification_path
+        expect(response).to have_http_status(:ok)
+      end
+    end
+  end
 end

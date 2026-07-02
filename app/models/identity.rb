@@ -295,6 +295,23 @@ class Identity < ApplicationRecord
 
   def rejected_verifications_for_context = verifications.not_ignored.retryable_rejections
 
+  # -- persona attempt cap ------------------------------------------------
+  # each persona inquiry costs real money. cap retries so a single user
+  # can't burn through the budget on expired sessions and bad photos.
+  # admin "unlock" = bulk-ignore the old rejections (resets the count).
+  MAX_PERSONA_ATTEMPTS = 3
+
+  def persona_verification_locked?
+    return false unless required_verification_method == :persona
+    consumed_persona_attempts >= MAX_PERSONA_ATTEMPTS
+  end
+
+  def consumed_persona_attempts
+    verifications.not_ignored.rejected
+      .where(type: %w[Verification::PersonaVerification Verification::PersonaStudentIdVerification])
+      .count
+  end
+
   # TODO: this is schnasty
   def onboarding_redirect_path
     helpers = Rails.application.routes.url_helpers

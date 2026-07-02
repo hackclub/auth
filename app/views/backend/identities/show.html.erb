@@ -239,10 +239,27 @@
   <% if @verifications.any? %>
     <div is-="separator"></div>
     <row align-="center between">
-      <span style="color: var(--foreground2); font-style: italic;">verifications</span>
-      <% super_admin_tool(element: "span") do %>
-        <a href="<%= new_vouch_backend_identity_path(@identity) %>">+ vouch</a>
-      <% end %>
+      <row align-="center" gap-="2">
+        <span style="color: var(--foreground2); font-style: italic;">verifications</span>
+        <% if @identity.consumed_persona_attempts > 0 %>
+          <span is-="badge" variant-="<%= @identity.persona_verification_locked? ? 'red' : 'yellow' %>">
+            persona: <%= @identity.consumed_persona_attempts %>/<%= Identity::MAX_PERSONA_ATTEMPTS %> attempts
+          </span>
+        <% end %>
+      </row>
+      <row align-="center" gap-="2">
+        <% super_admin_tool(element: "span") do %>
+          <% if @identity.persona_verification_locked? %>
+            <%= button_to "reset persona attempts",
+                  reset_persona_attempts_backend_identity_path(@identity),
+                  method: :post,
+                  data: { confirm: "Ignore all rejected persona verifications and let #{@identity.first_name} try again?" },
+                  form: { style: "display:inline" },
+                  style: "color: var(--yellow); font-size: 0.85em;" %>
+          <% end %>
+          <a href="<%= new_vouch_backend_identity_path(@identity) %>">+ vouch</a>
+        <% end %>
+      </row>
     </row>
     <table>
       <thead>

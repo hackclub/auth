@@ -94,10 +94,16 @@ class Components::Sidebar < Components::Base
     end
   end
 
-  def render_nav_item(label:, path:, icon: nil, badge: nil)
-    is_active = @current_path == path
+  def active_nav_item?(path)
+    if path == "/"
+      @current_path == "/"
+    else
+      @current_path.start_with?(path.split("/").take(2).join("/"))
+    end
+  end
 
-    link_to(path, class: [ "sidebar-nav-item", ("active" if is_active) ].compact.join(" ")) do
+  def render_nav_item(label:, path:, icon: nil, badge: nil)
+    link_to(path, class: [ "sidebar-nav-item", ("active" if active_nav_item?(path)) ].compact.join(" ")) do
       span(class: "nav-icon") { inline_icon(icon, size: 24) } if icon
       span(class: "nav-label") { label }
       span(class: "nav-badge") { badge.to_s } if badge && badge > 0

@@ -643,7 +643,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.index ["fatal"], name: "index_verifications_on_fatal"
     t.index ["identity_document_id"], name: "index_verifications_on_identity_document_id"
     t.index ["identity_id"], name: "index_verifications_on_identity_id"
-    t.index ["persona_inquiry_id"], name: "index_verifications_on_persona_inquiry_id"
+    t.index ["persona_inquiry_id"], name: "index_verifications_on_persona_inquiry_id", unique: true, where: "(persona_inquiry_id IS NOT NULL)"
     t.index ["persona_record_id"], name: "index_verifications_on_persona_record_id"
     t.index ["type"], name: "index_verifications_on_type"
   end
