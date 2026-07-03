@@ -8,6 +8,7 @@ class LoginsController < ApplicationController
     WEBAUTHN_SESSION_KEY = :webauthn_authentication_challenge
 
     skip_before_action :authenticate_identity!
+    skip_before_action :require_two_factor_enrollment!
     before_action :set_return_to, only: [ :new, :create ]
     before_action :set_attempt, except: [ :new, :create ]
     before_action :validate_browser_token, except: [ :new, :create ]

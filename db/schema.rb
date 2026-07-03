@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_03_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -318,6 +318,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.boolean "can_hq_officialize", default: false, null: false
     t.string "persona_account_id"
     t.boolean "disallow_slack", default: false, null: false
+    t.boolean "two_factor_required", default: false, null: false
     t.index "lower((primary_email)::text)", name: "idx_identities_unique_primary_email", unique: true, where: "(deleted_at IS NULL)"
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"

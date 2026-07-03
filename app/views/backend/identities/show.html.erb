@@ -134,7 +134,8 @@
           <% if @identity.came_in_through_adult_program %><span is-="badge" variant-="foreground2">adult program</span><% end %>
           <% if @identity.developer_mode %><span is-="badge" variant-="foreground2">developer</span><% end %>
           <% if @identity.disallow_slack %><span is-="badge" variant-="red">no slack</span><% end %>
-          <% unless @identity.hq_override || @identity.can_hq_officialize || @identity.is_alum || @identity.came_in_through_adult_program || @identity.developer_mode || @identity.disallow_slack %>
+          <% if @identity.two_factor_required %><span is-="badge" variant-="<%= @identity.has_two_factor_method? ? 'blue' : 'red' %>">2fa required<%= " — not enrolled" unless @identity.has_two_factor_method? %></span><% end %>
+          <% unless @identity.hq_override || @identity.can_hq_officialize || @identity.is_alum || @identity.came_in_through_adult_program || @identity.developer_mode || @identity.disallow_slack || @identity.two_factor_required %>
             <span style="color: var(--foreground2);">none</span>
           <% end %>
         </row>

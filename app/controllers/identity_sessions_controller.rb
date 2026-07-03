@@ -1,4 +1,6 @@
 class IdentitySessionsController < ApplicationController
+  skip_before_action :require_two_factor_enrollment!
+
   def index
     @sessions = current_identity.sessions
       .where(signed_out_at: nil)

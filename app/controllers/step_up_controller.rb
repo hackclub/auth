@@ -1,6 +1,8 @@
 class StepUpController < ApplicationController
   include WebauthnAuthenticatable
 
+  skip_before_action :require_two_factor_enrollment!
+
   helper_method :step_up_cancel_path
 
   WEBAUTHN_SESSION_KEY = :step_up_webauthn_challenge
@@ -147,6 +149,11 @@ class StepUpController < ApplicationController
     case action_type
     when "remove_totp"
       totp = current_identity.totp
+      if current_identity.two_factor_required? && (current_identity.two_factor_methods - [ totp ]).empty?
+        redirect_to security_path, alert: "Two-factor authentication is required for your account. Add another method before removing this one."
+        return
+      end
+
       totp&.destroy
       TwoFactorMailer.authentication_method_disabled(current_identity).deliver_later
 
@@ -159,6 +166,11 @@ class StepUpController < ApplicationController
       redirect_to security_path, notice: "Two-factor authentication disabled"
 
     when "disable_2fa"
+      if current_identity.two_factor_required?
+        redirect_to security_path, alert: "Two-factor authentication is required for your account and can't be disabled."
+        return
+      end
+
       current_identity.update!(use_two_factor_authentication: false)
       TwoFactorMailer.required_authentication_disabled(current_identity).deliver_later
       consume_step_up!
@@ -175,6 +187,10 @@ class StepUpController < ApplicationController
     when "remove_passkey"
       credential_id = session.delete(:pending_destroy_credential_id)
       credential = current_identity.webauthn_credentials.find_by(id: credential_id) if credential_id
+      if credential && current_identity.two_factor_required? && (current_identity.two_factor_methods - [ credential ]).empty?
+        redirect_to security_path, alert: "Two-factor authentication is required for your account. Add another method before removing this one."
+        return
+      end
       if credential
         credential.destroy
         consume_step_up!

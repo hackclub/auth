@@ -10,6 +10,7 @@ class ApplicationController < ActionController::Base
   helper_method :detected_country_alpha2
 
   before_action :invalidate_v1_sessions, :authenticate_identity!, :set_honeybadger_context
+  before_action :require_two_factor_enrollment!
 
   before_action :set_paper_trail_whodunnit
   before_action :touch_session_last_seen_at
@@ -41,6 +42,19 @@ class ApplicationController < ActionController::Base
       else
         redirect_to welcome_path(return_to: request.original_url)
       end
+    end
+  end
+
+  def require_two_factor_enrollment!
+    return unless identity_signed_in?
+    return unless current_identity.two_factor_enrollment_required?
+
+    flash[:error] = "Your account requires two-factor authentication. Set up an authenticator app or passkey to continue."
+    if request.headers["HX-Request"]
+      response.headers["HX-Redirect"] = security_path
+      head :ok
+    else
+      redirect_to security_path
     end
   end
 

@@ -238,6 +238,13 @@ class IdentitiesController < ApplicationController
             return
         end
 
+        # Admin-required 2FA can't be disabled by the user
+        if current_identity.two_factor_required?
+            flash[:error] = "Two-factor authentication is required for your account and can't be disabled."
+            redirect_to security_path
+            return
+        end
+
         # Disabling 2FA requires step-up auth
         redirect_to new_step_up_path(action_type: "disable_2fa")
     end

@@ -18,7 +18,9 @@
           <strong><%= t(".require_2fa_title") %></strong>
           <p class="status-detail"><%= t(".require_2fa_description") %></p>
         </div>
-        <% if current_identity.use_two_factor_authentication? %>
+        <% if current_identity.two_factor_required? %>
+          <span class="status-detail"><%= t(".required_by_hq") %></span>
+        <% elsif current_identity.use_two_factor_authentication? %>
           <%= button_to t(".disable_requirement"),
               toggle_2fa_identity_path,
               method: :post,

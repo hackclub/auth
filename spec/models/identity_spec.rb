@@ -88,4 +88,49 @@ RSpec.describe Identity, type: :model do
       expect(other).not_to be_valid
     end
   end
+
+  describe "#requires_two_factor?" do
+    it "is false by default" do
+      expect(identity.requires_two_factor?).to be false
+    end
+
+    it "is true when the user enabled 2FA and has a method" do
+      identity.update!(use_two_factor_authentication: true)
+      identity.totps.create!.mark_verified!
+
+      expect(identity.requires_two_factor?).to be true
+    end
+
+    it "is true when the admin override is set and a method exists, even without the user flag" do
+      identity.update!(two_factor_required: true)
+      identity.totps.create!.mark_verified!
+
+      expect(identity.requires_two_factor?).to be true
+    end
+
+    it "is false when the admin override is set but no method exists" do
+      identity.update!(two_factor_required: true)
+
+      expect(identity.requires_two_factor?).to be false
+    end
+  end
+
+  describe "#two_factor_enrollment_required?" do
+    it "is true when the override is set and no method is enrolled" do
+      identity.update!(two_factor_required: true)
+
+      expect(identity.two_factor_enrollment_required?).to be true
+    end
+
+    it "is false once a method is enrolled" do
+      identity.update!(two_factor_required: true)
+      identity.totps.create!.mark_verified!
+
+      expect(identity.two_factor_enrollment_required?).to be false
+    end
+
+    it "is false without the override" do
+      expect(identity.two_factor_enrollment_required?).to be false
+    end
+  end
 end

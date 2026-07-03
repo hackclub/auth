@@ -1,5 +1,6 @@
 class StaticPagesController < ApplicationController
   skip_before_action :authenticate_identity!, only: [ :external_api_docs, :welcome, :oauth_welcome ]
+  skip_before_action :require_two_factor_enrollment!, only: [ :security ]
 
   def home
     @sso_apps = SAMLService::Entities.service_providers.values.select do |sp|
