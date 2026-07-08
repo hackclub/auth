@@ -14,7 +14,7 @@ module OnboardingScenarios
 
     def slack_onboarding_flow = :internal_tutorial
 
-    def next_action = :home
+    def next_action = :slack
 
     def logo_path = "images/hackachu/hackachu.png"
     def background_path = "images/hackachu/hackachubanner.png"
