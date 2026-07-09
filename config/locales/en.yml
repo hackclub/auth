@@ -479,6 +479,8 @@ en:
       security_link: Security
     security:
       heading: Security
+      enrollment_required_heading: Two-factor authentication required
+      enrollment_required_description: Your account requires two-factor authentication. Set up an authenticator app or passkey below to continue using Hack Club Auth.
       sessions: Active Sessions
       mfa: Authenticator App
       webauthn: Passkeys
@@ -514,6 +516,7 @@ en:
       require_2fa_description: When enabled, you must use a second factor (authenticator app or backup code) when signing in with an email code.
       disable_requirement: Disable Requirement
       enable_requirement: Enable Requirement
+      required_by_hq: Required by Hack Club HQ — this can't be disabled.
       setup_description: Add an extra layer of security to email sign-ins by requiring a code from an authenticator app.
       setup_authenticator: Set up two-factor authentication
     show:

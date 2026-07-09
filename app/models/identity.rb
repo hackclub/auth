@@ -370,8 +370,12 @@ class Identity < ApplicationRecord
   def primary_two_factor_method = two_factor_methods.first
 
   def requires_two_factor?
-    use_two_factor_authentication? && has_two_factor_method?
+    (use_two_factor_authentication? || two_factor_required?) && has_two_factor_method?
   end
+
+  # Admin-set override without any enrolled method: the user must enroll before
+  # they can use HCA (enforced by ApplicationController#require_two_factor_enrollment!)
+  def two_factor_enrollment_required? = two_factor_required? && !has_two_factor_method?
 
   def legacy_migrated? = legacy_migrated_at.present?
 

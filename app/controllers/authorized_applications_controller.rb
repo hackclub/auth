@@ -1,6 +1,10 @@
 class AuthorizedApplicationsController < ApplicationController
   include AhoyAnalytics
 
+  # Rendered as a panel on the security page, which is the enrollment gate's
+  # destination — and revoking app access is safe for un-enrolled users.
+  skip_before_action :require_two_factor_enrollment!
+
   def index
     @access_tokens = current_identity.access_tokens
       .includes(:application)

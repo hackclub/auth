@@ -1,6 +1,8 @@
 class IdentityWebauthnCredentialsController < ApplicationController
   include WebauthnAuthenticatable
 
+  skip_before_action :require_two_factor_enrollment!
+
   def index
     @webauthn_credentials = current_identity.webauthn_credentials.order(created_at: :desc)
     render layout: request.headers["HX-Request"] ? "htmx" : false

@@ -5,6 +5,13 @@
 
 <div class="page-sections">
 
+  <% if current_identity.two_factor_enrollment_required? %>
+    <section class="section-card" style="border-color: var(--danger, #e5484d);">
+      <h3><%= t ".enrollment_required_heading" %></h3>
+      <p><%= t ".enrollment_required_description" %></p>
+    </section>
+  <% end %>
+
   <section class="section-card">
     <h3><%= t ".sessions" %></h3>
     <%= render Components::BootlegTurbo.new(identity_sessions_path, id: "sessions-container", hx_swap: "innerHTML") %>

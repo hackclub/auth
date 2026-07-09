@@ -1,4 +1,6 @@
 class IdentityTotpsController < ApplicationController
+  skip_before_action :require_two_factor_enrollment!
+
   def index
     @totp = current_identity.totp
 

@@ -1,4 +1,6 @@
 class IdentityBackupCodesController < ApplicationController
+  skip_before_action :require_two_factor_enrollment!
+
   def index
     @backup_codes = current_identity.backup_codes.active.order(created_at: :desc)
 
