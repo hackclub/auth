@@ -28,6 +28,8 @@ module Backend
 
       @pending_verifications = Verification.includes(:identity, :identity_document, :persona_record, identity_document: { files_attachments: :blob }, identity: [ :resemblances, :tombstone_collisions ])
         .where(status: "pending")
+        .where.not(identity_id: nil)
+        .where(identity_id: Identity.select(:id))
         .order(created_at: :asc)
         .page(params[:page])
         .per(20)
