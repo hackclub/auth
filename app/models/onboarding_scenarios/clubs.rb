@@ -8,7 +8,7 @@ module OnboardingScenarios
 
     def slack_user_type = :full_member
 
-    def slack_channels = chans(:leaders, :identity_help, :help, :welcome_to_hack_club, :slack_guide) + promotion_channels
+    def slack_channels = chans(:leaders, :leaders_bulletin, :identity_help, :help, :welcome_to_hack_club, :slack_guide) + promotion_channels
 
     def promotion_channels = chans(:library, :lounge, :welcome, :happenings, :community, :announcements)
 
