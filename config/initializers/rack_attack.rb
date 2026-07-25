@@ -35,6 +35,12 @@ class Rack::Attack
     end
   end
 
+  throttle("account_switch/ip", limit: 20, period: 5.minutes) do |req|
+    if req.post? && req.path.start_with?("/accounts/")
+      req.ip
+    end
+  end
+
   throttle("email_change/ip", limit: 3, period: 1.hour) do |req|
     if req.path == "/email_changes" && req.post?
       req.ip

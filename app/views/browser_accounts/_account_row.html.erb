@@ -1,0 +1,59 @@
+<%#
+  Every field here is load-bearing: two accounts belonging to the same person are
+  the hardest thing to tell apart, and the full email is the only reliable
+  discriminator. Do not truncate it.
+
+  Locals: account, submit_url, hidden_params (hash), removable (bool),
+          field_name (param the chosen account's public id is submitted as)
+%>
+<% identity = account.identity %>
+<% is_active = current_session&.id == account.id %>
+<% is_preselected = local_assigns[:preselect_public_id].present? && local_assigns[:preselect_public_id] == identity.public_id %>
+
+<%= form_tag submit_url, method: :post, class: "account-row-form" do %>
+  <% (local_assigns[:hidden_params] || {}).each do |name, value| %>
+    <%= hidden_field_tag name, value, id: nil %>
+  <% end %>
+  <%= hidden_field_tag local_assigns.fetch(:field_name, :id), identity.public_id, id: nil %>
+
+  <button type="submit"
+          class="account-row<%= ' account-row--preselected' if is_preselected %>"
+          style="display: flex; align-items: center; gap: 0.75rem; width: 100%; text-align: left; cursor: pointer;">
+    <span aria-hidden="true"
+          style="background: <%= account_monogram_color(identity) %>; color: #fff; width: 2.5rem; height: 2.5rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0;">
+      <%= account_monogram_initials(identity) %>
+    </span>
+
+    <span style="flex: 1; min-width: 0;">
+      <span style="display: block; font-weight: 600;">
+        <%= identity.full_name.presence || identity.primary_email %>
+      </span>
+      <span class="account-email" style="display: block; word-break: break-all;">
+        <%= identity.primary_email %>
+      </span>
+      <span style="display: block; margin-top: 0.25rem;">
+        <span class="account-chip <%= hack_club_account?(identity) ? 'account-chip--work' : 'account-chip--personal' %>">
+          <%= account_kind_label(identity) %>
+        </span>
+        <% unless account.multi_factor? %>
+          <span class="account-chip account-chip--warning"><%= t("accounts.single_factor") %></span>
+        <% end %>
+        <% if is_active %>
+          <span class="account-chip account-chip--active"><%= t("accounts.active") %></span>
+        <% end %>
+      </span>
+    </span>
+
+    <span style="flex-shrink: 0; text-align: right;">
+      <small><%= t("accounts.last_used", when: time_ago_in_words(account.last_seen || account.created_at)) %></small>
+    </span>
+  </button>
+<% end %>
+
+<% if local_assigns.fetch(:removable, false) %>
+  <%= button_to t("accounts.remove"),
+        browser_account_path(id: identity.public_id),
+        method: :delete,
+        class: "secondary delete account-row-remove",
+        form: { data: { turbo_confirm: t("accounts.remove_confirm", email: identity.primary_email) } } %>
+<% end %>

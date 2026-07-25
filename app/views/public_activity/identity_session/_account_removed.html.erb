@@ -1,0 +1,4 @@
+<%# Never names the other accounts in the browser — see _account_added. %>
+<%= render Components::PublicActivity::Snippet.new(activity, owner: activity.trackable&.identity) do %>
+  was signed out of a browser session.
+<% end %>

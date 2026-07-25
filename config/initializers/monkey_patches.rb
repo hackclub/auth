@@ -11,6 +11,7 @@ Rails.application.config.to_prepare do
 
   class Doorkeeper::AuthorizationsController
     include AhoyAnalytics
+    include OidcAccountSelection
 
     layout "logged_out"
     after_action :track_oauth_denied, only: :destroy

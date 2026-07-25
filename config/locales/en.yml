@@ -119,6 +119,25 @@ en:
       backend_user:
         slack_id: Slack ID
   brand: Hack Club Auth
+  accounts:
+    title: Choose an account
+    subtitle: Pick which Hack Club account to continue with.
+    signing_in_as: Signing in as
+    switch: Switch account
+    use_another: Use another account
+    sign_out_all: Sign out of all accounts
+    remove: Sign out
+    remove_confirm: "Sign out of %{email} in this browser?"
+    active: Active
+    single_factor: No 2FA
+    last_used: "Used %{when} ago"
+    limit_reached: "You can be signed into %{max} accounts in one browser. Sign one out to add another."
+    saml_title: "Continue to %{service}"
+    saml_subtitle: Pick which Hack Club account to sign in with.
+    saml_eligibility_note: Only accounts this service accepts are listed.
+    kind:
+      hack_club: Hack Club
+      personal: Personal
   home:
     apps:
       heading: Where do you want to go today?

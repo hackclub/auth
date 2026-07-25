@@ -112,7 +112,10 @@ class ApplicationController < ActionController::Base
   private
 
   def set_current_identity_session
-    Current.identity_session = current_session
+    # ||= so an explicit account selection made by an earlier prepended callback
+    # survives — see OidcAccountSelection. That selection, not the browser's
+    # active account, is what auth_time/amr/acr must describe.
+    Current.identity_session ||= current_session
   end
 
   def touch_session_last_seen_at = current_session&.touch_last_seen_at

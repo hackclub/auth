@@ -1,0 +1,17 @@
+<%#
+  Shared by the standalone chooser and the SAML inline chooser.
+  Locals: accounts, submit_url, hidden_params, removable, preselect_public_id
+%>
+<div class="account-list" style="display: flex; flex-direction: column; gap: 0.75rem; margin: 1.5rem 0;">
+  <% accounts.each do |account| %>
+    <div class="account-list-item">
+      <%= render "browser_accounts/account_row",
+            account: account,
+            submit_url: submit_url,
+            hidden_params: local_assigns[:hidden_params] || {},
+            removable: local_assigns.fetch(:removable, false),
+            field_name: local_assigns.fetch(:field_name, :id),
+            preselect_public_id: local_assigns[:preselect_public_id] %>
+    </div>
+  <% end %>
+</div>

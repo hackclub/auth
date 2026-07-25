@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_25_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -132,6 +132,31 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.index ["backend_user_id"], name: "index_break_glass_records_on_backend_user_id"
     t.index ["break_glassable_id", "break_glassable_type"], name: "idx_on_break_glassable_id_break_glassable_type_14e1e3ce71"
     t.index ["break_glassable_id"], name: "index_break_glass_records_on_break_glassable_id"
+  end
+
+  create_table "browser_session_client_selections", force: :cascade do |t|
+    t.bigint "browser_session_id", null: false
+    t.string "client_kind", null: false
+    t.string "client_ref", null: false
+    t.bigint "identity_id", null: false
+    t.datetime "last_used_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["browser_session_id", "client_kind", "client_ref"], name: "index_client_selections_on_browser_session_and_client", unique: true
+    t.index ["identity_id"], name: "index_browser_session_client_selections_on_identity_id"
+  end
+
+  create_table "browser_sessions", force: :cascade do |t|
+    t.string "token_bidx"
+    t.text "token_ciphertext"
+    t.bigint "active_identity_session_id"
+    t.datetime "expires_at", null: false
+    t.datetime "last_seen"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active_identity_session_id"], name: "index_browser_sessions_on_active_identity_session_id"
+    t.index ["expires_at"], name: "index_browser_sessions_on_expires_at"
+    t.index ["token_bidx"], name: "index_browser_sessions_on_token_bidx", unique: true
   end
 
   create_table "console1984_commands", force: :cascade do |t|
@@ -449,7 +474,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.datetime "updated_at", null: false
     t.datetime "last_step_up_at"
     t.string "last_step_up_action"
+    t.bigint "browser_session_id"
+    t.string "revoked_reason"
+    t.index ["browser_session_id"], name: "index_identity_sessions_on_browser_session_id"
+    t.index ["expires_at"], name: "index_identity_sessions_on_expires_at"
     t.index ["identity_id"], name: "index_identity_sessions_on_identity_id"
+    t.index ["session_token_bidx"], name: "index_identity_sessions_on_session_token_bidx"
   end
 
   create_table "identity_tombstone_collisions", force: :cascade do |t|
@@ -580,6 +610,21 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.index ["access_grant_id"], name: "index_oauth_openid_requests_on_access_grant_id"
   end
 
+  create_table "pending_authorizations", force: :cascade do |t|
+    t.bigint "browser_session_id", null: false
+    t.string "token_bidx"
+    t.text "token_ciphertext"
+    t.string "kind", null: false
+    t.text "payload_ciphertext"
+    t.datetime "expires_at", null: false
+    t.datetime "consumed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["browser_session_id"], name: "index_pending_authorizations_on_browser_session_id"
+    t.index ["expires_at"], name: "index_pending_authorizations_on_expires_at"
+    t.index ["token_bidx"], name: "index_pending_authorizations_on_token_bidx", unique: true
+  end
+
   create_table "program_collaborators", force: :cascade do |t|
     t.bigint "program_id", null: false
     t.bigint "identity_id"
@@ -667,6 +712,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
   add_foreign_key "backend_organizer_positions", "oauth_applications", column: "program_id"
   add_foreign_key "backend_users", "identities"
   add_foreign_key "break_glass_records", "backend_users"
+  add_foreign_key "browser_session_client_selections", "browser_sessions", on_delete: :cascade
+  add_foreign_key "browser_session_client_selections", "identities", on_delete: :cascade
+  add_foreign_key "browser_sessions", "identity_sessions", column: "active_identity_session_id", on_delete: :nullify
   add_foreign_key "identities", "addresses", column: "primary_address_id"
   add_foreign_key "identity_aadhaar_records", "identities"
   add_foreign_key "identity_backup_codes", "identities"
@@ -678,6 +726,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
   add_foreign_key "identity_resemblances", "identities", column: "past_identity_id"
   add_foreign_key "identity_resemblances", "identity_documents", column: "document_id"
   add_foreign_key "identity_resemblances", "identity_documents", column: "past_document_id"
+  add_foreign_key "identity_sessions", "browser_sessions", on_delete: :nullify
   add_foreign_key "identity_sessions", "identities"
   add_foreign_key "identity_tombstone_collisions", "deletions"
   add_foreign_key "identity_tombstone_collisions", "identities"
@@ -693,6 +742,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
   add_foreign_key "oauth_access_tokens", "identities", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_openid_requests", "oauth_access_grants", column: "access_grant_id", on_delete: :cascade
+  add_foreign_key "pending_authorizations", "browser_sessions", on_delete: :cascade
   add_foreign_key "program_collaborators", "identities"
   add_foreign_key "program_collaborators", "oauth_applications", column: "program_id"
   add_foreign_key "verifications", "identities"

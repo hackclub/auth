@@ -39,6 +39,19 @@ Doorkeeper::OpenidConnect.configure do
     redirect_to new_step_up_path(action_type: "oidc_reauth", return_to: return_to)
   end
 
+  # The gem's default for this hook raises, which is why prompt=select_account
+  # used to be a hard error. OidcAccountSelection has already decided by the time
+  # we get here, so this only has to handle the case where it chose to proceed
+  # (single account, or the chooser is off) — in which case there is nothing to
+  # ask about.
+  select_account_for_resource_owner do |_resource_owner, return_to|
+    if respond_to?(:current_browser_session, true) &&
+        current_browser_session&.account_count.to_i > 1 &&
+        Flipper.enabled?(BrowserAccountsController::FEATURE_FLAG, current_identity)
+      redirect_to browser_accounts_path(return_to: return_to)
+    end
+  end
+
   subject { |ident, _application| ident.public_id }
 
   claims do

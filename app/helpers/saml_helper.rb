@@ -27,7 +27,10 @@ module SAMLHelper
     saml_response
   end
 
-  def render_saml_response(saml_response:, sp_config:)
+  # `identity` is the account the assertion was built for, which is not always the
+  # browser's active account once several are signed in.
+  def render_saml_response(saml_response:, sp_config:, identity: current_identity)
+    @saml_identity = identity
     signed_xml = SAMLService::Signing.sign_response(saml_response)
     @saml_response = Base64.strict_encode64(signed_xml.to_s)
     @saml_acs_url = sp_config[:entity].service_providers.first.assertion_consumer_services.default.location
@@ -37,8 +40,8 @@ module SAMLHelper
       render :error, status: :bad_request and return
     end
 
-    if current_identity
-      current_identity.create_activity :saml_login, owner: current_identity, recipient: current_identity,
+    if identity
+      identity.create_activity :saml_login, owner: identity, recipient: identity,
         parameters: { service_provider: sp_config[:slug], name: sp_config[:friendly_name] }
     end
 
