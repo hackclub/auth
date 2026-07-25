@@ -35,7 +35,11 @@ class Rack::Attack
     end
   end
 
-  throttle("account_switch/ip", limit: 20, period: 5.minutes) do |req|
+  # Deliberately loose for an IP bucket: switching is bounded by what is already
+  # signed into the browser (BrowserSession::MAX_ACCOUNTS), and our users share
+  # school NATs, so a tight per-IP limit punishes a whole building for one busy
+  # tab. The browser session cookie can't be the key — it rotates on every switch.
+  throttle("account_switch/ip", limit: 60, period: 5.minutes) do |req|
     if req.post? && req.path.start_with?("/accounts/")
       req.ip
     end

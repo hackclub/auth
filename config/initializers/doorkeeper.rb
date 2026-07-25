@@ -509,6 +509,10 @@ Doorkeeper.configure do
   # the same tool doesn't re-prompt. A convenience only — never consulted ahead
   # of prompt=select_account or an explicit hint.
   after_successful_authorization do |controller, _context|
+    # Also fires on the token endpoint, whose controller is a metal controller with
+    # no cookies and no session helpers. Nothing to remember there.
+    next unless controller.respond_to?(:current_browser_session, true)
+
     browser_session = controller.send(:current_browser_session)
     identity = Current.identity_session&.identity
     client_id = controller.params[:client_id]

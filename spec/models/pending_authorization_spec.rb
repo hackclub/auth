@@ -20,6 +20,21 @@ RSpec.describe PendingAuthorization, type: :model do
     end
   end
 
+  describe "reaping" do
+    it "clears this browser session's dead handles when parking a new one" do
+      dead = described_class.park!(browser_session: browser_session, kind: "oidc", payload: {})
+      dead.update!(expires_at: 1.minute.ago)
+      someone_elses = described_class.park!(browser_session: create(:browser_session), kind: "oidc", payload: {})
+      someone_elses.update!(expires_at: 1.minute.ago)
+
+      described_class.park!(browser_session: browser_session, kind: "oidc", payload: {})
+
+      expect(described_class.exists?(dead.id)).to be false
+      expect(described_class.exists?(someone_elses.id)).to be true
+      expect(browser_session.pending_authorizations.reload.count).to eq(1)
+    end
+  end
+
   describe ".consume!" do
     let!(:pending) { described_class.park!(browser_session: browser_session, kind: "oidc", payload: { "params" => {} }) }
 

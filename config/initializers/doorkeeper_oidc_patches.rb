@@ -75,6 +75,11 @@ Rails.application.config.to_prepare do
     def provider_response
       response = super
 
+      # acr_values_supported lists the values we may *return*. A requested
+      # `acr_values` is treated as voluntary (OIDC Core 3.1.2.1): we report the
+      # assurance the session actually has rather than forcing a step-up the user
+      # may have no second factor to satisfy. An RP that needs a guarantee has to
+      # ask for it as an essential claim, which we do not support yet.
       response.merge(
         prompt_values_supported: %w[none login consent select_account],
         acr_values_supported: [

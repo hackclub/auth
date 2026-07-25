@@ -72,6 +72,12 @@ RSpec.describe "OIDC account selection", type: :request do
       expect(pending.payload.dig("params", "prompt")).to eq("login")
     end
 
+    it "asks rather than handing over the only account when login_hint names another" do
+      authorize!(login_hint: "somebody-else@example.com")
+
+      expect(response).to redirect_to(%r{/accounts})
+    end
+
     it "succeeds silently for prompt=none" do
       approve!(prompt: "none")
 
@@ -126,6 +132,39 @@ RSpec.describe "OIDC account selection", type: :request do
       expect(other_pending.reload.consumed_at).to be_nil
     end
 
+    # Authenticating an account through "use another account" is itself the
+    # answer to "which account?". Asking again immediately afterwards is a loop
+    # the user can only escape by picking what they just typed a password for.
+    it "carries on into the flow after a third account signs in, without asking again" do
+      third = create(:identity, primary_email: "third@example.com")
+
+      authorize!(state: "xyz")
+      pending_token = PendingAuthorization.order(:created_at).last.token
+
+      post add_browser_account_path(pending: pending_token)
+      expect(response).to redirect_to(login_path(return_to: resume_browser_account_path(pending: pending_token)))
+
+      sign_in_as(third)
+
+      get resume_browser_account_path(pending: pending_token)
+      expect(response.headers["Location"]).to include("/oauth/authorize")
+
+      follow_redirect!
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(third.primary_email)
+      expect(response.body).not_to include(work.primary_email)
+    end
+
+    it "parks only authorize parameters, never Rails form fields" do
+      approve!(selected_account: personal.public_id, state: "xyz")
+
+      expect(response).to redirect_to(%r{/accounts})
+      parked = PendingAuthorization.order(:created_at).last.payload["params"]
+
+      expect(parked.keys).not_to include("authenticity_token", "commit", "_method", "utf8", "selected_account")
+      expect(parked).to include("client_id" => program.uid, "state" => "xyz", "nonce" => "test-nonce")
+    end
+
     describe "prompt=none" do
       it "returns account_selection_required on the redirect URI, preserving state" do
         authorize!(prompt: "none", state: "keep-me")
@@ -168,6 +207,23 @@ RSpec.describe "OIDC account selection", type: :request do
         expect(response).to redirect_to(%r{/step_up})
         expect(BrowserSession.order(:created_at).last.reload.active_identity).to eq(work)
       end
+
+      # Changing the active account is a change to the browser's state whoever
+      # asked for it, so it rotates the cookie and lands in the audit log just
+      # like a user-initiated switch.
+      it "rotates and audits the RP-driven switch" do
+        browser_session = BrowserSession.order(:created_at).last
+        browser_session.remember_selection!(kind: "oidc", ref: program.uid, identity: work)
+        token_before = browser_session.token
+        work_session = browser_session.live_identity_sessions.find_by(identity_id: work.id)
+
+        authorize!(prompt: "login")
+
+        expect(browser_session.reload.token).not_to eq(token_before)
+        expect(
+          PublicActivity::Activity.where(key: "identity_session.account_switched", trackable_id: work_session.id)
+        ).to exist
+      end
     end
 
     describe "login_hint" do
@@ -182,6 +238,16 @@ RSpec.describe "OIDC account selection", type: :request do
         authorize!(login_hint: "nobody@example.com")
 
         expect(response).to redirect_to(%r{/accounts})
+      end
+
+      it "is not overridden by a sticky selection for a different account" do
+        BrowserSession.order(:created_at).last
+          .remember_selection!(kind: "oidc", ref: program.uid, identity: work)
+
+        authorize!(login_hint: personal.primary_email)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include(personal.primary_email)
       end
     end
 

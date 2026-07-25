@@ -119,5 +119,81 @@ RSpec.describe BrowserSession, type: :model do
 
       expect(browser_session.remembered_identity_session(kind: "saml", ref: "same-ref")).to be_nil
     end
+
+    # Two tabs authorizing the same client race the unique index. The upsert has
+    # to move the pointer in place: a second row is impossible, and an exception
+    # here would poison whatever transaction we were called from.
+    it "moves an existing selection instead of inserting a second row" do
+      first = add_account(browser_session, identity)
+      other_identity = create(:identity)
+      second = add_account(browser_session, other_identity)
+
+      browser_session.remember_selection!(kind: "oidc", ref: "client-abc", identity: identity)
+      created_at = browser_session.client_selections.sole.created_at
+
+      browser_session.remember_selection!(kind: "oidc", ref: "client-abc", identity: other_identity)
+
+      selection = browser_session.client_selections.reload.sole
+      expect(selection.identity_id).to eq(other_identity.id)
+      expect(selection.created_at).to be_within(1.second).of(created_at)
+      expect(browser_session.remembered_identity_session(kind: "oidc", ref: "client-abc")).to eq(second)
+      expect(first.reload).to be_live
+    end
+
+    it "keeps working when called from inside a transaction" do
+      add_account(browser_session, identity)
+
+      expect do
+        ActiveRecord::Base.transaction do
+          browser_session.remember_selection!(kind: "oidc", ref: "client-abc", identity: identity)
+          browser_session.remember_selection!(kind: "oidc", ref: "client-abc", identity: identity)
+        end
+      end.not_to raise_error
+
+      expect(browser_session.client_selections.reload.count).to eq(1)
+    end
+
+    it "refuses a client kind it doesn't know" do
+      add_account(browser_session, identity)
+
+      expect { browser_session.remember_selection!(kind: "ldap", ref: "x", identity: identity) }
+        .to raise_error(ArgumentError)
+    end
+  end
+
+  describe "#touch_last_seen_at" do
+    it "records activity, then holds off until the cooldown passes" do
+      expect(browser_session.last_seen).to be_nil
+
+      browser_session.touch_last_seen_at
+      first_seen = browser_session.reload.last_seen
+      expect(first_seen).to be_present
+
+      browser_session.touch_last_seen_at
+      expect(browser_session.reload.last_seen).to be_within(1.second).of(first_seen)
+
+      travel_to(described_class::LAST_SEEN_AT_COOLDOWN.from_now + 1.minute) do
+        browser_session.touch_last_seen_at
+        expect(browser_session.reload.last_seen).to be > first_seen
+      end
+    end
+  end
+
+  describe "audit trail" do
+    it "never versions the token, its ciphertext, or its blind index" do
+      browser_session.rotate_token!
+
+      versioned = PaperTrail::Version
+        .where(item_type: "BrowserSession", item_id: browser_session.id)
+        .flat_map { |version| (version.object_changes || {}).keys }
+
+      expect(versioned).not_to include("token", "token_ciphertext", "token_bidx")
+    end
+  end
+
+  describe "validations" do
+    it "refuses a browser session with no token" do
+      expect(described_class.new(expires_at: 1.day.from_now)).not_to be_valid
+    end
   end
 end

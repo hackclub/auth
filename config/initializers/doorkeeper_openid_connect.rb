@@ -40,16 +40,17 @@ Doorkeeper::OpenidConnect.configure do
   end
 
   # The gem's default for this hook raises, which is why prompt=select_account
-  # used to be a hard error. OidcAccountSelection has already decided by the time
-  # we get here, so this only has to handle the case where it chose to proceed
-  # (single account, or the chooser is off) — in which case there is nothing to
-  # ask about.
-  select_account_for_resource_owner do |_resource_owner, return_to|
-    if respond_to?(:current_browser_session, true) &&
-        current_browser_session&.account_count.to_i > 1 &&
-        Flipper.enabled?(BrowserAccountsController::FEATURE_FLAG, current_identity)
-      redirect_to browser_accounts_path(return_to: return_to)
-    end
+  # used to be a hard error. OidcAccountSelection has normally decided long before
+  # we get here; this is the backstop for anything it didn't resolve. It parks the
+  # request the same way the concern does, because /accounts speaks pending
+  # handles, not return_to — a return_to would be silently dropped and the
+  # authorization request lost.
+  select_account_for_resource_owner do |_resource_owner, _return_to|
+    next unless respond_to?(:park_oidc_request_and_choose, true)
+    next unless account_chooser_available?
+    next unless current_browser_session&.account_count.to_i > 1
+
+    park_oidc_request_and_choose
   end
 
   subject { |ident, _application| ident.public_id }

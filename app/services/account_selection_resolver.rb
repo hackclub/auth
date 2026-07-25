@@ -41,7 +41,16 @@ class AccountSelectionResolver
 
     return chooser_decision if @force_chooser || @prompt.include?("select_account")
 
-    return decide(:proceed, identity_session: hinted_session) if hinted_session
+    # A login_hint naming an account that isn't signed in here is still a
+    # statement about who the RP expects. Consenting as whoever happens to be
+    # signed in would hand over the wrong account without ever saying so, even
+    # when that's the only account — so ask (or, when we can't ask, say why).
+    if @login_hint.present?
+      return decide(:proceed, identity_session: hinted_session) if hinted_session
+      return account_selection_required if silent?
+
+      return decide(:chooser)
+    end
 
     if silent?
       return decide(:proceed, identity_session: remembered_session) if remembered_session

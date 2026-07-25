@@ -155,6 +155,20 @@ RSpec.describe "Authentication assurance isolation", type: :request do
     end
   end
 
+  # The token endpoint runs on a metal controller with no cookies and no session
+  # helpers. Reaching for them there raised on every single code exchange.
+  describe "the token endpoint" do
+    it "exchanges a code without tripping over browser-session lookups" do
+      sign_in_as(mfa_identity)
+      allow(Rails.logger).to receive(:warn).and_call_original
+
+      claims = authorize_and_exchange!(mfa_identity)
+
+      expect(claims["sub"]).to eq(mfa_identity.public_id)
+      expect(Rails.logger).not_to have_received(:warn).with(/Failed to remember account selection/)
+    end
+  end
+
   describe "grants" do
     it "stamps the selected account's session as the source" do
       sign_in_as(mfa_identity)

@@ -32,7 +32,7 @@ class BrowserAccountsController < ApplicationController
   # itself needs no knowledge of any of this.
   def add
     if current_browser_session.at_account_limit?
-      flash[:error] = "You're signed into the maximum number of accounts in this browser. Sign one out first."
+      flash[:error] = t("accounts.limit_error", max: BrowserSession::MAX_ACCOUNTS)
       return redirect_to browser_accounts_path(pending: params[:pending])
     end
 
@@ -48,6 +48,8 @@ class BrowserAccountsController < ApplicationController
     return account_not_found if target.nil?
 
     result = remove_account!(target)
+    return account_not_found if result.nil?
+
     flash[:info] = "Signed out of #{target.identity.primary_email}."
 
     if result == :signed_out
@@ -69,6 +71,12 @@ class BrowserAccountsController < ApplicationController
     end
 
     session.delete(:adding_account)
+
+    # Authenticating an account through "use another account" *is* the choice.
+    # Without recording it the replayed request resolves as ambiguous again and
+    # bounces the user straight back to the chooser they just came from.
+    remember_selection_for(pending, current_session)
+
     redirect_to rebuilt_request_path(pending), allow_other_host: false
   end
 
@@ -108,6 +116,12 @@ class BrowserAccountsController < ApplicationController
   def remember_pending_selection(identity_session)
     pending = PendingAuthorization.active.find_by(token: params[:pending])
     return if pending.nil? || pending.browser_session_id != current_browser_session.id
+
+    remember_selection_for(pending, identity_session)
+  end
+
+  def remember_selection_for(pending, identity_session)
+    return if identity_session.nil?
 
     kind, ref = client_reference_for(pending)
     return if ref.blank?

@@ -43,6 +43,19 @@ RSpec.describe AccountSelectionResolver, type: :model do
     it "proceeds silently for prompt=none" do
       expect(resolve(prompt: [ "none" ])).to be_proceed
     end
+
+    # Being the only account signed in is not a reason to hand it over when the
+    # RP named somebody else.
+    it "asks when a login_hint names a different account" do
+      expect(resolve(login_hint: "someone@else.com")).to be_chooser
+    end
+
+    it "errors rather than substituting for prompt=none with a login_hint it can't satisfy" do
+      decision = resolve(prompt: [ "none" ], login_hint: "someone@else.com")
+
+      expect(decision).to be_error
+      expect(decision.error).to eq(:account_selection_required)
+    end
   end
 
   context "with two accounts" do
@@ -95,6 +108,12 @@ RSpec.describe AccountSelectionResolver, type: :model do
         expect(decision).to be_chooser
         expect(decision.login_hint).to eq("someone@else.com")
       end
+
+      it "outranks a sticky selection it disagrees with" do
+        browser_session.remember_selection!(kind: "oidc", ref: "client-abc", identity: work)
+
+        expect(resolve(login_hint: "someone@else.com")).to be_chooser
+      end
     end
 
     describe "id_token_hint" do
@@ -138,6 +157,13 @@ RSpec.describe AccountSelectionResolver, type: :model do
       it "resolves via login_hint" do
         expect(resolve(prompt: [ "none" ], login_hint: personal.primary_email).identity_session)
           .to eq(personal_session)
+      end
+
+      it "errors when a login_hint names an account that isn't here" do
+        decision = resolve(prompt: [ "none" ], login_hint: "nobody@example.com")
+
+        expect(decision).to be_error
+        expect(decision.error).to eq(:account_selection_required)
       end
 
       it "errors when an id_token_hint names an account that isn't here" do

@@ -21,6 +21,11 @@ class PendingAuthorization < ApplicationRecord
   def self.generate_token = SecureRandom.urlsafe_base64
 
   def self.park!(browser_session:, kind:, payload:)
+    # Handles live for 15 minutes and are never read again afterwards. Reaping the
+    # browser session's own dead ones here keeps the table bounded without needing
+    # a scheduled job.
+    browser_session.pending_authorizations.where("expires_at <= ?", Time.now).delete_all
+
     create!(
       browser_session: browser_session,
       kind: kind.to_s,

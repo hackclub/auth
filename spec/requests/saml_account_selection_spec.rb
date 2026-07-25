@@ -16,6 +16,10 @@ RSpec.describe "SAML account selection", type: :request do
   before do
     Flipper.enable(BrowserAccountsController::FEATURE_FLAG)
     Flipper.enable(:are_we_enterprise_yet_2025_10_21)
+    # Flipper state is global and other spec files leave this one on. A signed-in
+    # identity would then be bounced into verification before reaching the IdP
+    # endpoint, which made these examples pass alone and fail in a full run.
+    Flipper.disable(:persona_verification_2026_04_09)
     allow_any_instance_of(SAMLController).to receive(:ensure_sp_configured!) do |controller|
       controller.instance_variable_set(:@sp_config, sp_config)
       true
@@ -35,6 +39,9 @@ RSpec.describe "SAML account selection", type: :request do
     post idp_initiated_saml_path(slug: "airtable")
 
     expect(response).to have_http_status(:ok)
+    # An interstitial in a sign-in flow, not a page of the app: the signed-in
+    # chrome does not belong here, and its sidebar raised while rendering it.
+    expect(response.body).not_to include('id="sidebar"')
     offered_emails = Nokogiri::HTML(response.body).css(".account-email").map(&:text).map(&:strip)
     expect(offered_emails).to contain_exactly(allowed.primary_email, also_allowed.primary_email)
   end

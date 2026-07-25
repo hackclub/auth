@@ -74,7 +74,7 @@ module SAMLAccountSelection
 
   # IdP-initiated can't be parked and replayed — there's no GET to come back to —
   # so the chooser is rendered inline and posts straight back to this endpoint.
-  def render_saml_inline_chooser(entity_id:)
+  def render_saml_inline_chooser(entity_id:, accounts: nil)
     decision = AccountSelectionResolver.new(
       browser_session: current_browser_session,
       client_kind: CLIENT_KIND,
@@ -82,11 +82,13 @@ module SAMLAccountSelection
       force_chooser: true
     ).call
 
-    @accounts = eligible_saml_accounts
+    @accounts = accounts || eligible_saml_accounts
     @preselect_public_id = decision.preselect_identity&.public_id
-    @submit_params = request.params.slice("slug").merge("select_account" => nil).compact
 
-    render "saml/choose_account"
+    # Same layout as the standalone chooser: this is an interstitial in a sign-in
+    # flow, not a page of the app. The default layout would wrap it in the
+    # signed-in chrome, whose sidebar has no business rendering here.
+    render "saml/choose_account", layout: "logged_out"
   end
 
   def resolve_saml_account_from_params!(entity_id:)

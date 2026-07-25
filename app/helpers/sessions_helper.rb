@@ -200,6 +200,11 @@ module SessionsHelper
           browser_session.update!(active_identity_session: nil)
         end
         browser_session.rotate_token!
+
+        # The Rails session belongs to the account that just left — fingerprint
+        # info, return_to and the rest must not follow the next account around.
+        # Only the browser session cookie survives, and it is rewritten below.
+        reset_session
         write_browser_session_cookie(browser_session)
 
         @current_browser_session = browser_session

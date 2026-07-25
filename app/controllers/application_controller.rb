@@ -37,6 +37,11 @@ class ApplicationController < ActionController::Base
     unless identity_signed_in?
       return if controller_name == "onboardings"
 
+      # The active account can expire while its siblings are still live. We never
+      # promote one silently, so send the user to pick instead of showing a login
+      # screen that makes it look like the whole browser was signed out.
+      return redirect_to browser_accounts_path if other_live_accounts_in_browser?
+
       if request.xhr?
         redirect_to welcome_path
       else
@@ -118,5 +123,16 @@ class ApplicationController < ActionController::Base
     Current.identity_session ||= current_session
   end
 
-  def touch_session_last_seen_at = current_session&.touch_last_seen_at
+  # Gated on the same flag check /accounts itself uses, so with the flag off both
+  # answer false and there is nothing to bounce between.
+  def other_live_accounts_in_browser?
+    return false unless account_chooser_available?
+
+    current_browser_session&.live_identity_sessions&.exists? || false
+  end
+
+  def touch_session_last_seen_at
+    current_session&.touch_last_seen_at
+    current_browser_session&.touch_last_seen_at
+  end
 end

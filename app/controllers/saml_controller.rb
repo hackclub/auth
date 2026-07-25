@@ -41,7 +41,7 @@ class SAMLController < ApplicationController
       if eligible_accounts.one?
         @saml_selected_identity = eligible_accounts.first.identity
       elsif eligible_accounts.many?
-        render_saml_inline_chooser(entity_id: @sp_config[:entity_id]) and return
+        render_saml_inline_chooser(entity_id: @sp_config[:entity_id], accounts: eligible_accounts) and return
       end
     end
 

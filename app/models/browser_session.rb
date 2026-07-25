@@ -12,7 +12,10 @@ class BrowserSession < ApplicationRecord
 
   LAST_SEEN_AT_COOLDOWN = 5.minutes
 
-  has_paper_trail skip: [ :token ]
+  # Skipping :token alone isn't enough — the columns PaperTrail actually sees are
+  # the ciphertext and the blind index, and the blind index is deterministic, so
+  # versioning it would let anyone with the versions table correlate cookies.
+  has_paper_trail skip: [ :token, :token_ciphertext, :token_bidx ]
   has_encrypted :token
   blind_index :token
 
@@ -20,6 +23,8 @@ class BrowserSession < ApplicationRecord
   belongs_to :active_identity_session, class_name: "IdentitySession", optional: true
   has_many :client_selections, class_name: "BrowserSession::ClientSelection", dependent: :destroy
   has_many :pending_authorizations, dependent: :destroy
+
+  validates :token, presence: true
 
   validate :active_session_belongs_to_this_browser_session
 
@@ -96,15 +101,32 @@ class BrowserSession < ApplicationRecord
     client_selections.find_by(client_kind: kind.to_s, client_ref: ref.to_s)
   end
 
+  # Upsert rather than find-then-save: concurrent tabs authorizing the same client
+  # would otherwise race the unique index, and a constraint violation raised
+  # inside a surrounding transaction poisons it — no rescue can recover there.
   def remember_selection!(kind:, ref:, identity:)
-    selection = client_selections.find_or_initialize_by(client_kind: kind.to_s, client_ref: ref.to_s)
-    selection.identity = identity
-    selection.last_used_at = Time.current
-    selection.save!
-    selection
-  rescue ActiveRecord::RecordNotUnique
-    # Concurrent tabs raced us to the unique index; theirs is as good as ours.
-    retry
+    kind = kind.to_s
+    ref = ref.to_s
+    raise ArgumentError, "unknown client kind #{kind}" unless ClientSelection::KINDS.include?(kind)
+
+    now = Time.current
+    ClientSelection.upsert_all(
+      [ {
+        browser_session_id: id,
+        client_kind: kind,
+        client_ref: ref,
+        identity_id: identity.id,
+        last_used_at: now,
+        created_at: now,
+        updated_at: now
+      } ],
+      unique_by: :index_client_selections_on_browser_session_and_client,
+      # updated_at is appended by Rails; naming it here too is a syntax error.
+      update_only: [ :identity_id, :last_used_at ]
+    )
+
+    client_selections.reset
+    selection_for(kind: kind, ref: ref)
   end
 
   # Sticky selections point at identities, so a remembered account may no longer

@@ -153,6 +153,32 @@ RSpec.describe "Browser accounts", type: :request do
       expect(flash[:error]).to include("maximum number of accounts")
       expect(browser_session.reload.account_count).to eq(BrowserSession::MAX_ACCOUNTS)
     end
+
+    # Two logins started side by side can both pass the cap check and only one can
+    # win the last slot. The loser used to raise AccountLimitError out of sign_in,
+    # mid-transaction, as a 500. Both stubs stand for state that was true a moment
+    # earlier in that race: the flag was set while there was still room, and the
+    # pre-check passed before the other request committed.
+    it "ends a login that loses the race for the last slot with a message, not a 500" do
+      sign_in_as(work)
+      (BrowserSession::MAX_ACCOUNTS - 1).times do |i|
+        add_account(create(:identity, primary_email: "extra#{i}@example.com"))
+      end
+
+      browser_session = BrowserSession.order(:created_at).last
+      expect(browser_session.account_count).to eq(BrowserSession::MAX_ACCOUNTS)
+
+      allow_any_instance_of(LoginsController).to receive(:adding_account?).and_return(true)
+      allow_any_instance_of(LoginsController).to receive(:browser_account_limit_reached?).and_return(false)
+
+      newcomer = create(:identity, primary_email: "one-too-many@example.com")
+      expect { sign_in_as(newcomer) }.not_to change { IdentitySession.count }
+
+      expect(response).to redirect_to(browser_accounts_path)
+      expect(flash[:error]).to include("maximum number of accounts")
+      expect(newcomer.sessions.reload).to be_empty
+      expect(browser_session.reload.account_count).to eq(BrowserSession::MAX_ACCOUNTS)
+    end
   end
 
   describe "with the flag off" do
@@ -169,6 +195,33 @@ RSpec.describe "Browser accounts", type: :request do
     end
   end
 
+  describe "when the active account expires with siblings still signed in" do
+    it "sends the user to the chooser rather than a login screen" do
+      sign_in_as(work)
+      personal_session = add_account(personal)
+      personal_session.update!(expires_at: 1.minute.ago)
+
+      get root_path
+
+      expect(response).to redirect_to(browser_accounts_path)
+
+      follow_redirect!
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(work.primary_email)
+    end
+
+    it "still goes to welcome when the chooser is switched off" do
+      sign_in_as(work)
+      personal_session = add_account(personal)
+      personal_session.update!(expires_at: 1.minute.ago)
+      Flipper.disable(BrowserAccountsController::FEATURE_FLAG)
+
+      get root_path
+
+      expect(response.headers["Location"]).to include(welcome_path)
+    end
+  end
+
   describe "sign-out" do
     it "signs out only the active account by default" do
       sign_in_as(work)
@@ -179,6 +232,19 @@ RSpec.describe "Browser accounts", type: :request do
       expect(personal.sessions.reload.select(&:live?)).to be_empty
       expect(work.sessions.reload.select(&:live?).size).to eq(1)
       expect(response).to redirect_to(browser_accounts_path)
+    end
+
+    # The browser session cookie survives; everything the departing account left
+    # in the Rails session does not.
+    it "discards the signed-out account's session data" do
+      sign_in_as(work)
+      add_account(personal)
+
+      delete logout_path
+
+      leftovers = session.to_hash.except("session_id", "_csrf_token", "flash")
+      expect(leftovers).to be_empty
+      expect(BrowserSession.count).to eq(1)
     end
 
     it "does not promote a sibling into the active slot" do

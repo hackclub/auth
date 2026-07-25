@@ -14,6 +14,15 @@ module OidcAccountSelection
 
   CLIENT_KIND = "oidc"
 
+  # Everything the authorize endpoint (Doorkeeper plus openid_connect)
+  # understands. Parking an allowlist rather than the raw request keeps Rails
+  # form cruft — authenticity_token, commit, _method — out of the replayed URL.
+  PARKED_AUTHORIZE_PARAMS = %w[
+    client_id redirect_uri response_type response_mode scope state nonce
+    prompt max_age login_hint id_token_hint acr_values claims claims_locales
+    display ui_locales code_challenge code_challenge_method
+  ].freeze
+
   included do
     prepend_before_action :resolve_oidc_account_selection, only: [ :new, :create ]
   end
@@ -78,6 +87,12 @@ module OidcAccountSelection
   end
 
   def select_oidc_account(decision)
+    park_oidc_request_and_choose(preselect: decision.preselect_identity)
+  end
+
+  # Also the backstop for doorkeeper-openid_connect's select_account hook, which
+  # is reached only on paths this concern doesn't resolve itself.
+  def park_oidc_request_and_choose(preselect: nil)
     pending = PendingAuthorization.park!(
       browser_session: current_browser_session,
       kind: CLIENT_KIND,
@@ -86,14 +101,14 @@ module OidcAccountSelection
 
     redirect_to browser_accounts_path(
       pending: pending.token,
-      preselect: decision.preselect_identity&.public_id
+      preselect: preselect&.public_id
     )
   end
 
   def oidc_pending_payload
     authorization_params = request.request_parameters
       .merge(request.query_parameters)
-      .except("selected_account")
+      .slice(*PARKED_AUTHORIZE_PARAMS)
 
     prompt_values = authorization_params["prompt"].to_s.split(/ +/).reject { |value| value == "select_account" }
     if prompt_values.empty?
@@ -153,12 +168,13 @@ module OidcAccountSelection
     auth_time.nil? || (Time.zone.now - auth_time) > [ 1, max_age_seconds ].max
   end
 
+  # Goes through switch_account! rather than activate! so an RP-triggered change
+  # of active account rotates the cookie and lands in the audit log exactly like
+  # a user-initiated switch — it is the same observable change.
   def activate_oidc_session_for_reauthentication(identity_session)
     browser_session = current_browser_session
     return if browser_session.nil? || browser_session.active_identity_session_id == identity_session.id
 
-    browser_session.activate!(identity_session)
-    @current_session = identity_session
-    self.current_identity = identity_session.identity
+    switch_account!(identity_session)
   end
 end

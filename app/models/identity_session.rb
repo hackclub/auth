@@ -1,7 +1,9 @@
 class IdentitySession < ApplicationRecord
   LAST_SEEN_AT_COOLDOWN = 5.minutes
 
-  has_paper_trail skip: [ :session_token ]
+  # :session_token alone doesn't match the real columns, and the blind index is
+  # deterministic — see BrowserSession for the same fix.
+  has_paper_trail skip: [ :session_token, :session_token_ciphertext, :session_token_bidx ]
   has_encrypted :session_token
   blind_index :session_token
 
