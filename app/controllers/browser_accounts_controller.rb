@@ -53,7 +53,7 @@ class BrowserAccountsController < ApplicationController
     if result == :signed_out
       redirect_to welcome_path
     else
-      redirect_to browser_accounts_path
+      redirect_to browser_accounts_path(pending: params[:pending])
     end
   end
 

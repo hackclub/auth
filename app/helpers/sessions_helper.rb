@@ -49,9 +49,11 @@ module SessionsHelper
         existing = target.identity_session_for(identity)
 
         if existing
-          # Already signed into this account here — reactivate rather than
-          # stacking a duplicate session.
-          ident_session = existing
+          # This was a real authentication, not an account switch. Replace the
+          # old session so expiry, auth_time and the LoginAttempt assurance
+          # binding all describe the authentication that just completed.
+          existing.revoke!(reason: "reauthenticated")
+          ident_session = identity.sessions.create!(browser_session: target, **session_attributes)
         else
           raise AccountLimitError if target.at_account_limit?
 

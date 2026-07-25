@@ -54,6 +54,7 @@
   <%= button_to t("accounts.remove"),
         browser_account_path(id: identity.public_id),
         method: :delete,
+        params: { pending: (local_assigns[:hidden_params] || {})[:pending] }.compact,
         class: "secondary delete account-row-remove",
         form: { data: { turbo_confirm: t("accounts.remove_confirm", email: identity.primary_email) } } %>
 <% end %>

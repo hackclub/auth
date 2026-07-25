@@ -29,10 +29,16 @@ RSpec.describe "Browser accounts", type: :request do
     end
 
     it "does not create a duplicate session when re-authenticating the same account" do
-      sign_in_as(work)
+      original = sign_in_as(work)
+      original.update!(expires_at: 1.minute.from_now)
+
       add_account(work)
 
-      expect(work.sessions.reload.select(&:live?).size).to eq(1)
+      renewed = work.sessions.reload.select(&:live?).sole
+      expect(renewed.id).not_to eq(original.id)
+      expect(renewed.expires_at).to be_within(5.seconds).of(SessionsHelper::SESSION_DURATION.from_now)
+      expect(original.reload.revoked_reason).to eq("reauthenticated")
+      expect(LoginAttempt.where(identity: work).order(:created_at).last.session).to eq(renewed)
     end
 
     it "records the addition without naming the other account" do
@@ -113,6 +119,21 @@ RSpec.describe "Browser accounts", type: :request do
 
       expect(BrowserSession.count).to eq(0)
       expect(response).to redirect_to(welcome_path)
+    end
+
+    it "keeps a parked authorization attached after removing an account" do
+      sign_in_as(personal)
+      add_account(work)
+      browser_session = BrowserSession.order(:created_at).last
+      pending = create(:pending_authorization, browser_session: browser_session)
+
+      get browser_accounts_path(pending: pending.token)
+      expect(response.body).to include(%(name="pending" value="#{pending.token}"))
+
+      delete browser_account_path(id: work.public_id), params: { pending: pending.token }
+
+      expect(response).to redirect_to(browser_accounts_path(pending: pending.token))
+      expect(pending.reload).not_to be_consumed
     end
   end
 

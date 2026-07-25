@@ -21,7 +21,6 @@ class SAMLController < ApplicationController
     end
 
     return unless ensure_sp_configured!(slug: params[:slug])
-    return unless check_allowed_emails!
 
     unless @sp_config[:allow_idp_initiated]
       @error = "This SP is not configured for IdP-initiated authentication"
@@ -36,9 +35,17 @@ class SAMLController < ApplicationController
     # this browser holds more than one eligible account.
     return unless resolve_saml_account_from_params!(entity_id: @sp_config[:entity_id])
 
-    if @saml_selected_identity.nil? && saml_account_selection_needed?
-      render_saml_inline_chooser(entity_id: @sp_config[:entity_id]) and return
+    if @saml_selected_identity.nil?
+      eligible_accounts = eligible_saml_accounts
+
+      if eligible_accounts.one?
+        @saml_selected_identity = eligible_accounts.first.identity
+      elsif eligible_accounts.many?
+        render_saml_inline_chooser(entity_id: @sp_config[:entity_id]) and return
+      end
     end
+
+    return unless check_allowed_emails!
 
     if params[:slug] == "slack" && saml_identity.disallow_slack
       @error = "Unable to log in right now"

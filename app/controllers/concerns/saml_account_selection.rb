@@ -51,19 +51,25 @@ module SAMLAccountSelection
     end
   end
 
-  # The chooser records the choice and activates the account, so the parked
-  # request can simply be replayed unchanged afterwards.
+  # The chooser records the choice and activates the account. The one-shot
+  # chooser trigger is removed so replay can continue with that selection.
   def park_saml_request_and_choose(entity_id:, decision:)
     pending = PendingAuthorization.park!(
       browser_session: current_browser_session,
       kind: CLIENT_KIND,
-      payload: { "url" => request.fullpath, "entity_id" => entity_id }
+      payload: { "url" => saml_replay_url, "entity_id" => entity_id }
     )
 
     redirect_to browser_accounts_path(
       pending: pending.token,
       preselect: decision.preselect_identity&.public_id
     )
+  end
+
+  def saml_replay_url
+    replay_params = request.query_parameters.except("select_account")
+    query = replay_params.to_query
+    query.present? ? "#{request.path}?#{query}" : request.path
   end
 
   # IdP-initiated can't be parked and replayed — there's no GET to come back to —

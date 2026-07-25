@@ -65,6 +65,13 @@ RSpec.describe "OIDC account selection", type: :request do
       expect(response).to redirect_to(%r{/accounts})
     end
 
+    it "removes select_account before parking the request" do
+      authorize!(prompt: "login select_account")
+
+      pending = PendingAuthorization.order(:created_at).last
+      expect(pending.payload.dig("params", "prompt")).to eq("login")
+    end
+
     it "succeeds silently for prompt=none" do
       approve!(prompt: "none")
 
@@ -151,6 +158,18 @@ RSpec.describe "OIDC account selection", type: :request do
       end
     end
 
+    describe "reauthentication" do
+      it "activates the selected sibling before prompt=login step-up" do
+        BrowserSession.order(:created_at).last
+          .remember_selection!(kind: "oidc", ref: program.uid, identity: work)
+
+        authorize!(prompt: "login")
+
+        expect(response).to redirect_to(%r{/step_up})
+        expect(BrowserSession.order(:created_at).last.reload.active_identity).to eq(work)
+      end
+    end
+
     describe "login_hint" do
       it "selects the matching account without asking" do
         authorize!(login_hint: work.primary_email)
@@ -186,6 +205,14 @@ RSpec.describe "OIDC account selection", type: :request do
         authorize!(id_token_hint: "not.a.jwt")
 
         expect(error_from_redirect).to eq("invalid_request")
+      end
+
+      it "does not redirect an unverifiable token to an unregistered URI" do
+        authorize!(id_token_hint: "not.a.jwt", redirect_uri: "https://attacker.example/callback")
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response).not_to be_redirect
+        expect(JSON.parse(response.body)).to eq("error" => "invalid_request")
       end
     end
 

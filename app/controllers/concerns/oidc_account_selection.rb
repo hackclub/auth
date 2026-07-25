@@ -70,6 +70,11 @@ module OidcAccountSelection
 
     @oidc_selected_identity = identity_session.identity
     Current.identity_session = identity_session
+
+    # Step-up happens on a new request, where request-local selection is gone.
+    # Make the account that actually needs reauthentication active before the
+    # OIDC hook redirects there, otherwise step-up would verify a sibling.
+    activate_oidc_session_for_reauthentication(identity_session) if oidc_reauthentication_required?(identity_session)
   end
 
   def select_oidc_account(decision)
@@ -86,7 +91,18 @@ module OidcAccountSelection
   end
 
   def oidc_pending_payload
-    { "params" => request.request_parameters.merge(request.query_parameters).except("selected_account") }
+    authorization_params = request.request_parameters
+      .merge(request.query_parameters)
+      .except("selected_account")
+
+    prompt_values = authorization_params["prompt"].to_s.split(/ +/).reject { |value| value == "select_account" }
+    if prompt_values.empty?
+      authorization_params.delete("prompt")
+    else
+      authorization_params["prompt"] = prompt_values.join(" ")
+    end
+
+    { "params" => authorization_params }
   end
 
   # OIDC error responses belong on the client's redirect_uri, not on an HTML
@@ -109,10 +125,40 @@ module OidcAccountSelection
 
     response.headers.merge!(error_response.headers)
 
-    if params[:redirect_uri].present?
+    if oidc_error_redirect_uri_valid?
       redirect_to error_response.redirect_uri, allow_other_host: true
     else
       render json: { error: name }, status: :bad_request
     end
+  end
+
+  def oidc_error_redirect_uri_valid?
+    application = Doorkeeper.config.application_model.find_by(uid: params[:client_id])
+    return false if application.nil? || params[:redirect_uri].blank?
+
+    Doorkeeper::OAuth::Helpers::URIChecker.valid_for_authorization?(
+      params[:redirect_uri],
+      application.redirect_uri
+    )
+  end
+
+  def oidc_reauthentication_required?(identity_session)
+    return true if params[:prompt].to_s.split(/ +/).include?("login")
+
+    max_age = params[:max_age].to_s
+    max_age_seconds = max_age.to_i
+    return false unless max_age == "0" || max_age_seconds.positive?
+
+    auth_time = [ identity_session.created_at, identity_session.last_step_up_at ].compact.max
+    auth_time.nil? || (Time.zone.now - auth_time) > [ 1, max_age_seconds ].max
+  end
+
+  def activate_oidc_session_for_reauthentication(identity_session)
+    browser_session = current_browser_session
+    return if browser_session.nil? || browser_session.active_identity_session_id == identity_session.id
+
+    browser_session.activate!(identity_session)
+    @current_session = identity_session
+    self.current_identity = identity_session.identity
   end
 end
