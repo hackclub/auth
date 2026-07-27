@@ -72,8 +72,8 @@
           <input type="hidden" name="alternative_reason" value="<%= params[:alternative_reason] %>">
           <input type="hidden" name="alternative_reason_details" value="<%= params[:alternative_reason_details] %>">
           <div class="grid">
-            <%= link_to "I'll use a government ID", manual_verification_path, role: "button", class: "secondary" %>
-            <button type="submit">Continue without one</button>
+            <%= link_to "I'll use a government ID", manual_verification_path, role: "button" %>
+            <button type="submit" class="secondary">Continue without one</button>
           </div>
         <% end %>
       </section>
