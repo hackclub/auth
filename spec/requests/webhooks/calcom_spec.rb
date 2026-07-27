@@ -74,6 +74,49 @@ RSpec.describe "Cal.com webhooks", type: :request do
     expect(kase.events.where(key: "call_cancelled")).to exist
   end
 
+  it "matches no-show events by stored booking uid (that payload has no metadata)" do
+    kase = create(:verification_case, :call_scheduled)
+    body = {
+      triggerEvent: "BOOKING_NO_SHOW_UPDATED",
+      payload: {
+        bookingUid: kase.booking_uid,
+        attendees: [ { email: "not-the-account-email@example.com", noShow: true } ]
+      }
+    }.to_json
+
+    expect {
+      post "/webhooks/calcom", params: body,
+        headers: { "CONTENT_TYPE" => "application/json", "X-Cal-Signature-256" => signature_for(body) }
+    }.to have_enqueued_job(Calcom::ProcessBookingEventJob).with(
+      event: "BOOKING_NO_SHOW_UPDATED", case_id: kase.id, booking_uid: kase.booking_uid, starts_at: nil, no_show: true
+    )
+  end
+
+  it "reopens booking and logs the no-show when the host marks one" do
+    kase = create(:verification_case, :call_scheduled)
+
+    Calcom::ProcessBookingEventJob.perform_now(
+      event: "BOOKING_NO_SHOW_UPDATED", case_id: kase.id,
+      booking_uid: kase.booking_uid, starts_at: nil, no_show: true
+    )
+
+    expect(kase.reload).to be_docs_submitted
+    expect(kase.booking_uid).to be_nil
+    expect(kase.events.where(key: "call_no_show")).to exist
+  end
+
+  it "ignores a no-show being un-marked" do
+    kase = create(:verification_case, :call_scheduled)
+
+    Calcom::ProcessBookingEventJob.perform_now(
+      event: "BOOKING_NO_SHOW_UPDATED", case_id: kase.id,
+      booking_uid: kase.booking_uid, starts_at: nil, no_show: false
+    )
+
+    expect(kase.reload).to be_call_scheduled
+    expect(kase.events.where(key: "call_no_show")).not_to exist
+  end
+
   it "lets the user book again after a cancellation" do
     kase = create(:verification_case, :call_scheduled)
     Calcom::ProcessBookingEventJob.perform_now(event: "BOOKING_CANCELLED", case_id: kase.id, booking_uid: kase.booking_uid, starts_at: nil)

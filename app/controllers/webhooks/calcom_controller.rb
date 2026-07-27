@@ -4,7 +4,7 @@ module Webhooks
   class CalcomController < Webhooks::ApplicationController
     before_action :verify_signature!
 
-    HANDLED_EVENTS = %w[BOOKING_CREATED BOOKING_RESCHEDULED BOOKING_CANCELLED].freeze
+    HANDLED_EVENTS = %w[BOOKING_CREATED BOOKING_RESCHEDULED BOOKING_CANCELLED BOOKING_NO_SHOW_UPDATED].freeze
 
     def create
       return head(:bad_request) unless parsed_body
@@ -19,8 +19,9 @@ module Webhooks
       Calcom::ProcessBookingEventJob.perform_later(
         event: event,
         case_id: verification_case.id,
-        booking_uid: payload[:uid],
-        starts_at: payload[:startTime]
+        booking_uid: booking_uid(payload),
+        starts_at: payload[:startTime],
+        no_show: Array(payload[:attendees]).any? { |a| a[:noShow] }
       )
 
       head :ok
@@ -28,9 +29,17 @@ module Webhooks
 
     private
 
+    # no-show payloads use bookingUid; booking payloads use uid
+    def booking_uid(payload) = payload[:uid] || payload[:bookingUid]
+
     def find_case(payload)
       case_public_id = payload.dig(:metadata, :casePublicId)
       found = VerificationCase.find_by_public_id(case_public_id) if case_public_id.present?
+      return found if found
+
+      # no-show events carry no metadata — match the stored booking
+      uid = booking_uid(payload)
+      found = VerificationCase.open_cases.find_by(booking_uid: uid) if uid.present?
       return found if found
 
       # fallback: match on attendee email for bookings made without metadata
