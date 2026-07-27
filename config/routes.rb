@@ -330,11 +330,11 @@ Rails.application.routes.draw do
   delete "/logout", to: "sessions#logout", as: :logout
 
   # manual verification call flow (flipper-gated, single-use link entry)
-  get "/verify/manual", to: "manual_verifications#show", as: :manual_verification
-  post "/verify/manual/document_class", to: "manual_verifications#choose_document_class", as: :manual_verification_document_class
-  get "/verify/manual/capture", to: "manual_verifications#start_capture", as: :manual_verification_capture
-  post "/verify/manual/documents", to: "manual_verifications#submit_documents", as: :manual_verification_documents
-  post "/verify/manual/recording_ack", to: "manual_verifications#acknowledge_recording", as: :manual_verification_recording_ack
+  get "/verifications/manual", to: "manual_verifications#show", as: :manual_verification
+  post "/verifications/manual/document_class", to: "manual_verifications#choose_document_class", as: :manual_verification_document_class
+  get "/verifications/manual/capture", to: "manual_verifications#start_capture", as: :manual_verification_capture
+  post "/verifications/manual/documents", to: "manual_verifications#submit_documents", as: :manual_verification_documents
+  post "/verifications/manual/recording_ack", to: "manual_verifications#acknowledge_recording", as: :manual_verification_recording_ack
 
   get "/verifications/new", to: "verifications#new", as: :new_verifications
   get "/verifications/status", to: "verifications#status", as: :verification_status

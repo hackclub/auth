@@ -151,6 +151,14 @@ RSpec.describe "Manual verifications", type: :request do
       expect(kase.reload.persona_inquiry_id).to be_nil
     end
 
+    it "redirects the legacy verification pages to the open case" do
+      get verification_status_path
+      expect(response).to redirect_to(manual_verification_path)
+
+      get portal_verify_document_path
+      expect(response).to redirect_to(manual_verification_path)
+    end
+
     it "gates the booking link behind the recording acknowledgment" do
       kase.update!(document_class: "government_id", status: :docs_submitted)
       allow(ENV).to receive(:[]).and_call_original
