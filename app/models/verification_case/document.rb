@@ -10,6 +10,10 @@ class VerificationCase::Document < ApplicationRecord
   has_one_attached :file
   has_many :break_glass_records, as: :break_glassable, class_name: "BreakGlassRecord", dependent: :destroy
 
+  # BreakGlassRecord's activity tracking resolves its recipient via
+  # break_glassable.identity — ours lives on the case
+  delegate :identity, to: :verification_case
+
   DOCUMENT_KINDS = {
     "primary_doc" => "Primary document",
     "corroborating_doc" => "Corroborating document",

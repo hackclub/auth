@@ -139,6 +139,22 @@ RSpec.describe VerificationCase, type: :model do
     end
   end
 
+  describe "document break-glass" do
+    it "records the activity against the case's identity" do
+      kase = create(:verification_case)
+      doc = create(:verification_case_document, verification_case: kase)
+
+      record = BreakGlassRecord.create!(
+        backend_user: create(:backend_user),
+        break_glassable: doc,
+        reason: "reviewing before the call",
+        accessed_at: Time.current
+      )
+
+      expect(record.activities.last.recipient).to eq(kase.identity)
+    end
+  end
+
   describe "events" do
     it "are append-only" do
       kase = create(:verification_case)
