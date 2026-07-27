@@ -116,7 +116,7 @@ module Backend
 
       VerificationMailer.approved(verification).deliver_later if decision == "approve"
 
-      flash[:success] = "Case #{decision == 'approve' ? 'approved' : 'denied'} — retention clock started on raw documents"
+      flash[:success] = "Case #{decision == 'approve' ? 'approved' : 'denied'}"
       redirect_to backend_verification_case_path(@case)
     end
 

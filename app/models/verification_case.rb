@@ -16,8 +16,6 @@ class VerificationCase < ApplicationRecord
 
   FLIPPER_FLAG = :manual_verification_call_2026_07_03
   ACCESS_TOKEN_TTL = 7.days
-  # raw docs + recordings purged 30-90 days post-decision; 60 until policy is final
-  RETENTION_PERIOD = 60.days
   # alternative-docs approvals expire; gov-id manual approvals don't (same
   # document class as a persona-verified ID — only the extraction path differed)
   ALTERNATIVE_DOCS_EXPIRY = 12.months
@@ -192,10 +190,7 @@ class VerificationCase < ApplicationRecord
 
   private
 
-  # decision time: stamp retention on everything raw, drop the flag.
-  # the ManualVerificationCall itself is created by the decision flow.
-  def close_out!
-    documents.where(retention_delete_at: nil).update_all(retention_delete_at: RETENTION_PERIOD.from_now)
-    revoke_flag!
-  end
+  # decision time: drop the flag. documents are retained (break-glass
+  # gated) — the ManualVerificationCall itself is created by the decision flow.
+  def close_out! = revoke_flag!
 end

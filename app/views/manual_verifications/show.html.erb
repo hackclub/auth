@@ -53,7 +53,7 @@
           <p>Booking isn't set up yet — we'll email you a scheduling link shortly.</p>
         <% end %>
       <% else %>
-        <p><strong>Before you book:</strong> verification calls are recorded. We record so a decision can be re-reviewed later without asking you to repeat this process. Recordings are stored encrypted, access to them is logged, and they're permanently deleted 30&ndash;90 days after your case is decided.</p>
+        <p><strong>Before you book:</strong> verification calls are recorded. We record so a decision can be re-reviewed later without asking you to repeat this process. Recordings are stored encrypted and every access to them is logged.</p>
         <%= form_with url: manual_verification_recording_ack_path, method: :post, local: true do %>
           <button type="submit">I understand — show me the booking link</button>
         <% end %>
@@ -209,7 +209,7 @@
         </label>
         <label>
           <input type="checkbox" name="biometric_consent" value="1" required>
-          I consent to Hack Club collecting a scan of my face geometry from my selfie and comparing it against my document to verify my identity. This biometric data is deleted no later than 90 days after my case is decided.
+          I consent to Hack Club collecting a scan of my face geometry from my selfie and comparing it against my document to verify my identity. This data is stored encrypted and every access to it is logged.
         </label>
 
         <% if @case.skip_persona? %>

@@ -37,19 +37,15 @@
   <span style="color: var(--foreground2); font-style: italic;">documents (raw evidence — access is logged)</span>
   <% if @documents.any? %>
     <table>
-      <thead><tr><th>kind</th><th>source</th><th>retention</th><th></th></tr></thead>
+      <thead><tr><th>kind</th><th>source</th><th>submitted</th><th></th></tr></thead>
       <tbody>
         <% @documents.each do |doc| %>
           <tr>
             <td><%= doc.kind_label %></td>
             <td><%= doc.source %></td>
+            <td style="color: var(--foreground2);"><%= doc.created_at.strftime("%b %-d, %Y") %></td>
             <td>
-              <% if doc.purged? %><span is-="badge" variant-="background2">purged</span>
-              <% elsif doc.retention_delete_at %><span style="color: var(--yellow);">purges <%= doc.retention_delete_at.to_date %></span>
-              <% else %><span style="color: var(--foreground2);">held until decision</span><% end %>
-            </td>
-            <td>
-              <% if !doc.purged? && doc.file.attached? %>
+              <% if doc.file.attached? %>
                 <% recent_bg = BreakGlassRecord.for_user_and_document(current_user, doc).recent.exists? %>
                 <% if recent_bg %>
                   <%= link_to "view", rails_blob_path(doc.file, disposition: "inline"), target: "_blank" %>

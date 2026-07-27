@@ -1,6 +1,6 @@
 # a raw evidence artifact on a case: user-submitted doc, persona capture,
-# or the call recording. all of it lands in encrypted storage and gets a
-# retention_delete_at stamped at decision time — nothing raw lives forever.
+# or the call recording. all of it lands in encrypted storage; access
+# goes through break-glass and is logged.
 class VerificationCase::Document < ApplicationRecord
   self.table_name = "verification_case_documents"
 
@@ -25,24 +25,10 @@ class VerificationCase::Document < ApplicationRecord
   enum :document_kind, DOCUMENT_KINDS.keys.index_by(&:itself)
   enum :source, %w[persona direct_upload call_recording].index_by(&:itself), prefix: :from
 
-  validates :file, presence: true, unless: :purged?
+  validates :file, presence: true
   validate :file_size_and_type
 
-  scope :purgeable, -> { where(purged_at: nil).where(retention_delete_at: ..Time.current) }
-
-  def purged? = purged_at.present?
-
   def kind_label = DOCUMENT_KINDS[document_kind]
-
-  # retention: destroy the blob, keep the row as a tombstone so the
-  # decision record still shows what existed.
-  def purge_file!
-    transaction do
-      file.purge if file.attached?
-      update!(purged_at: Time.current)
-    end
-    verification_case.log_event!(:document_purged, data: { document_id: id, kind: document_kind })
-  end
 
   private
 

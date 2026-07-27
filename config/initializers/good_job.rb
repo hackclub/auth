@@ -11,10 +11,6 @@ Rails.application.configure do
     reap_aged_out_users: {
       cron: "0 3 * * *", # Run daily at 3am
       class: "Identity::ReapAgedOutUsersJob"
-    },
-    purge_expired_case_documents: {
-      cron: "30 4 * * *", # Run daily at 4:30am
-      class: "VerificationCases::PurgeExpiredDocumentsJob"
     }
   }
   config.good_job.enable_cron = true

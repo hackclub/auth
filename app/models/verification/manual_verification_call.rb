@@ -1,6 +1,6 @@
 # the durable outcome of a manual verification call — created at
 # decision time from a VerificationCase. this is the record that
-# survives after raw docs and the recording are purged: reviewer,
+# the durable decision record alongside the raw evidence: reviewer,
 # checklist, signal snapshot pointer, and (for tier B) an expiry.
 class Verification::ManualVerificationCall < Verification
   include Verification::Rejectable

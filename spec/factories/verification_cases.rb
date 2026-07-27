@@ -57,10 +57,6 @@ FactoryBot.define do
       document_kind { "call_recording" }
       source { "call_recording" }
     end
-
-    trait :expired_retention do
-      retention_delete_at { 1.day.ago }
-    end
   end
 
   factory :manual_verification_call, class: "Verification::ManualVerificationCall" do

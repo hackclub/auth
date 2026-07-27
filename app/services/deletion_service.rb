@@ -238,6 +238,14 @@ module DeletionService
         count += 1
       end
     end
+    identity.verification_cases.with_deleted.each do |kase|
+      kase.documents.with_deleted.each do |doc|
+        if doc.file.attached?
+          purge_or_detach(doc.file)
+          count += 1
+        end
+      end
+    end
     count
   end
 

@@ -627,13 +627,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_03_000001) do
     t.bigint "verification_case_id", null: false
     t.string "document_kind", null: false
     t.string "source", null: false
-    t.datetime "retention_delete_at"
-    t.datetime "purged_at"
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["deleted_at"], name: "index_verification_case_documents_on_deleted_at"
-    t.index ["retention_delete_at"], name: "index_verification_case_documents_on_retention_delete_at"
     t.index ["verification_case_id"], name: "index_verification_case_documents_on_verification_case_id"
   end
 

@@ -30,15 +30,15 @@ RSpec.describe VerificationCase, type: :model do
       expect { kase.deny! }.to raise_error(AASM::InvalidTransition)
     end
 
-    it "stamps retention and revokes the flag on decision" do
+    it "revokes the flag on decision and keeps documents" do
       kase = create(:verification_case, :call_held)
       doc = create(:verification_case_document, verification_case: kase)
       Flipper.enable(described_class::FLIPPER_FLAG, kase.identity)
 
       kase.approve!
 
-      expect(doc.reload.retention_delete_at).to be_within(1.hour).of(described_class::RETENTION_PERIOD.from_now)
       expect(Flipper.enabled?(described_class::FLIPPER_FLAG, kase.identity)).to be(false)
+      expect(doc.reload.file).to be_attached
     end
   end
 

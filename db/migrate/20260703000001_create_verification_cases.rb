@@ -50,13 +50,10 @@ class CreateVerificationCases < ActiveRecord::Migration[8.0]
       t.references :verification_case, null: false, foreign_key: true
       t.string :document_kind, null: false
       t.string :source, null: false
-      t.datetime :retention_delete_at
-      t.datetime :purged_at
       t.datetime :deleted_at
       t.timestamps
     end
 
-    add_index :verification_case_documents, :retention_delete_at
     add_index :verification_case_documents, :deleted_at
 
     create_table :verification_case_comments do |t|
