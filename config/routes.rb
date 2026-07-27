@@ -222,6 +222,15 @@ Rails.application.routes.draw do
       end
     end
 
+    resources :verification_cases, only: [ :index, :show, :create ] do
+      member do
+        post :resend_link
+        patch :hold_call
+        patch :escalate
+        patch :decide
+      end
+    end
+
     resources :identities do
       member do
         post :clear_slack_id
@@ -317,6 +326,13 @@ Rails.application.routes.draw do
   post "/login/:id/webauthn/skip", to: "logins#skip_webauthn", as: :skip_webauthn_login_attempt
 
   delete "/logout", to: "sessions#logout", as: :logout
+
+  # manual verification call flow (flipper-gated, single-use link entry)
+  get "/verify/manual", to: "manual_verifications#show", as: :manual_verification
+  post "/verify/manual/document_class", to: "manual_verifications#choose_document_class", as: :manual_verification_document_class
+  get "/verify/manual/capture", to: "manual_verifications#start_capture", as: :manual_verification_capture
+  post "/verify/manual/documents", to: "manual_verifications#submit_documents", as: :manual_verification_documents
+  post "/verify/manual/recording_ack", to: "manual_verifications#acknowledge_recording", as: :manual_verification_recording_ack
 
   get "/verifications/new", to: "verifications#new", as: :new_verifications
   get "/verifications/status", to: "verifications#status", as: :verification_status
@@ -434,6 +450,7 @@ Rails.application.routes.draw do
 
   namespace :webhooks do
     post "persona", to: "persona#create"
+    post "calcom", to: "calcom#create"
   end
 
   scope :saml do

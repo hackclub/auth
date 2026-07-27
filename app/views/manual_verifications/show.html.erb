@@ -1,0 +1,200 @@
+<div class="page-header-centered">
+  <h1>Manual identity verification</h1>
+  <p>A few steps, then a short video call with our team.</p>
+</div>
+
+<div class="page-sections">
+  <% if @case.decided? %>
+    <section class="section-card">
+      <div class="status-indicator">
+        <span class="status-badge <%= @case.approved? ? "approved" : "rejected" %>"><%= @case.approved? ? "approved" : "not approved" %></span>
+        <% if @case.approved? %>
+          <h3>You're verified!</h3>
+          <p>Your identity was confirmed on the call. You're all set — nothing else to do here.</p>
+        <% else %>
+          <h3>We couldn't verify your identity</h3>
+          <p>Check your email for details. If you think this is a mistake, reply to that email.</p>
+        <% end %>
+      </div>
+    </section>
+
+  <% elsif @case.call_held? || @case.escalated? %>
+    <section class="section-card">
+      <div class="status-indicator">
+        <span class="status-badge pending">reviewing</span>
+        <h3>Your call is done</h3>
+        <p>We're finalizing the decision — you'll get an email shortly.</p>
+      </div>
+    </section>
+
+  <% elsif @case.call_scheduled? %>
+    <section class="section-card">
+      <div class="status-indicator">
+        <span class="status-badge pending">call booked</span>
+        <h3>See you on the call</h3>
+        <% if @case.call_starts_at %>
+          <p>Booked for <strong><%= @case.call_starts_at.strftime("%A, %B %-d at %H:%M %Z") %></strong>. Have your document with you.</p>
+        <% else %>
+          <p>Your booking is confirmed. Have your document with you.</p>
+        <% end %>
+        <p><small>Reminder: the call is recorded by default. Details are in your booking confirmation email.</small></p>
+      </div>
+    </section>
+
+  <% elsif @case.booking_available? %>
+    <section class="section-card">
+      <h3>Documents received — book your call</h3>
+      <p>Last step: a short video call with a member of our team to confirm you match your document.</p>
+
+      <% if @case.recording_consent_acknowledged? %>
+        <% if @case.booking_url %>
+          <%= link_to "Book your call", @case.booking_url, role: "button", class: "chooser-cta" %>
+        <% else %>
+          <p>Booking isn't set up yet — we'll email you a scheduling link shortly.</p>
+        <% end %>
+      <% else %>
+        <p><strong>Before you book:</strong> verification calls are recorded by default. We record so a decision can be re-reviewed later without asking you to repeat this process. Recordings are stored encrypted, access to them is logged, and they're permanently deleted 30&ndash;90 days after your case is decided. If you'd rather not be recorded, mention it at the start of the call and a second staff member will join instead.</p>
+        <%= form_with url: manual_verification_recording_ack_path, method: :post, local: true do %>
+          <button type="submit">I understand — show me the booking link</button>
+        <% end %>
+      <% end %>
+    </section>
+
+  <% elsif !@document_class_selected || @show_alternative_nudge %>
+    <% if @show_alternative_nudge %>
+      <section class="section-card">
+        <h3>One more thing before you continue</h3>
+        <p>Almost any government-issued document works — a passport, national ID, driver's license or permit, or residency card, even if Persona rejected it. A government document makes your verification permanent; other documents mean we'll need to re-verify you in a year.</p>
+        <p>Sure you don't have one?</p>
+        <%= form_with url: manual_verification_document_class_path, method: :post, local: true do %>
+          <input type="hidden" name="document_class" value="alternative">
+          <input type="hidden" name="nudge_confirmed" value="true">
+          <input type="hidden" name="alternative_reason" value="<%= params[:alternative_reason] %>">
+          <input type="hidden" name="alternative_reason_details" value="<%= params[:alternative_reason_details] %>">
+          <div class="grid">
+            <%= link_to "I'll use a government ID", manual_verification_path, role: "button", class: "secondary" %>
+            <button type="submit">Continue without one</button>
+          </div>
+        <% end %>
+      </section>
+    <% else %>
+      <section class="section-card">
+        <h3>Which describes you?</h3>
+        <p>Both paths end the same way — a quick document check and a short video call. Pick whichever fits.</p>
+        <%= form_with url: manual_verification_document_class_path, method: :post, local: true do %>
+          <div class="tier-options">
+            <label class="tier-option">
+              <input type="radio" name="document_class" value="government_id" checked>
+              <span class="tier-option-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <circle cx="8.5" cy="11.5" r="2.5" />
+                  <path d="M14 10h4M14 14h2" />
+                  <path d="M4 20c0-2 2.5-3 4.5-3s4.5 1 4.5 3" />
+                </svg>
+              </span>
+              <span class="tier-option-body">
+                <strong>I have a government ID, but it was rejected</strong>
+                <span>Passport, national ID, driver's license, birth certificate, or residency card — even ones that got rejected.</span>
+              </span>
+              <span class="tier-option-radio" aria-hidden="true"></span>
+            </label>
+
+            <label class="tier-option">
+              <input type="radio" name="document_class" value="alternative">
+              <span class="tier-option-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M22 10L12 5 2 10l10 5 10-5z" />
+                  <path d="M6 12v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5" />
+                  <path d="M22 10v6" />
+                </svg>
+              </span>
+              <span class="tier-option-body">
+                <strong>I don't have any government ID</strong>
+                <span>No problem — we'll use other documents instead, like a transcript, report card, or a letter from your school.</span>
+              </span>
+              <span class="tier-option-radio" aria-hidden="true"></span>
+            </label>
+          </div>
+
+          <div class="tier-b-fields">
+            <label for="alternative_reason">Why is a government ID unavailable?</label>
+            <select name="alternative_reason" id="alternative_reason">
+              <% VerificationCase::ALTERNATIVE_REASONS.each do |value, label| %>
+                <option value="<%= value %>"><%= label %></option>
+              <% end %>
+            </select>
+            <label for="alternative_reason_details">Anything else we should know? <small>(optional)</small></label>
+            <input type="text" name="alternative_reason_details" id="alternative_reason_details" placeholder="e.g. my passport is with my school for a trip">
+          </div>
+
+          <button type="submit">Continue</button>
+        <% end %>
+      </section>
+    <% end %>
+
+  <% else %>
+    <section class="section-card">
+      <h3>Submit your document</h3>
+      <% if @case.alternative? %>
+        <p>A transcript, report card, or letter from your school all work.</p>
+      <% end %>
+      <% if @case.capture_template_id.present? %>
+        <p>Scan your document with your camera — this also captures a quick selfie for the call reviewer to compare against.</p>
+        <%= link_to "Scan with your camera", manual_verification_capture_path, role: "button", class: "chooser-cta" %>
+        <p><small>Camera not working? Upload directly below.</small></p>
+      <% elsif @case.government_id? %>
+        <p>Upload a clear photo or scan of your government document. On the call, the reviewer will compare it against you directly.</p>
+      <% end %>
+
+      <%= form_with url: manual_verification_documents_path, method: :post, local: true, multipart: true do %>
+        <label>Your document
+          <input type="file" name="primary_doc" accept="image/jpeg,image/png,image/heic,application/pdf" required>
+        </label>
+
+        <%# prefilled from the account — editable because the document may
+            differ from what we have on file, and that difference is exactly
+            what the reviewer needs to see %>
+        <label>Legal name (exactly as shown on the document)
+          <input type="text" name="legal_name" required
+            value="<%= [ current_identity.legal_first_name.presence || current_identity.first_name, current_identity.legal_last_name.presence || current_identity.last_name ].compact.join(" ") %>">
+          <small>Prefilled from your account — correct it if your document shows something different.</small>
+        </label>
+        <label>Date of birth (as shown on the document)
+          <input type="date" name="date_of_birth" required value="<%= current_identity.birthday&.iso8601 %>">
+        </label>
+        <label>Document type
+          <input type="text" name="document_type" placeholder="e.g. passport, transcript" required>
+        </label>
+        <label>Issuing authority
+          <input type="text" name="issuing_authority" placeholder="e.g. government of X, your school's name" required>
+        </label>
+        <label>Country <small>(only if your document shows one)</small>
+          <input type="text" name="country" value="<%= current_identity.country %>">
+        </label>
+
+        <label>
+          <input type="checkbox" name="attested" value="1" required>
+          The information I've provided is accurate, and this document is mine.
+        </label>
+        <label>
+          <input type="checkbox" name="biometric_consent" value="1" required>
+          I consent to Hack Club collecting a scan of my face geometry from my selfie and comparing it against my document to verify my identity. This biometric data is deleted no later than 90 days after my case is decided.
+        </label>
+
+        <button type="submit">Submit documents</button>
+      <% end %>
+    </section>
+  <% end %>
+
+  <% if @documents.any? %>
+    <section class="section-card">
+      <h3>What you've submitted</h3>
+      <ul>
+        <% @documents.each do |doc| %>
+          <li><%= doc.kind_label %> (<%= doc.created_at.strftime("%B %-d") %>)</li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+</div>

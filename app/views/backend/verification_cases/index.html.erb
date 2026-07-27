@@ -1,0 +1,53 @@
+<% content_for :title, "Manual Verification Cases" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>manual verification cases (<%= @open_cases.total_count %> open)</h2>
+  </row>
+
+  <div is-="separator"></div>
+
+  <% if @open_cases.any? %>
+    <column data-navigable-list>
+      <% @open_cases.each do |kase| %>
+        <a href="<%= backend_verification_case_path(kase) %>" data-navigable-item>
+          <span style="flex: 1;">
+            <b><%= kase.public_id %></b>
+            · <%= kase.identity.first_name %> <%= kase.identity.last_name %>
+            <% if kase.escalated? %><span style="color: var(--red);">⚠ escalated</span><% end %>
+          </span>
+          <row gap-="1" align-="center">
+            <span is-="badge" variant-="<%= kase.call_held? ? 'yellow' : 'background2' %>"><%= kase.status.humanize.downcase %></span>
+            <% if kase.document_class.present? %><span is-="badge" variant-="background2"><%= kase.document_class.humanize.downcase %></span><% end %>
+            <span style="color: var(--foreground2);"><%= time_ago_in_words(kase.created_at) %></span>
+          </row>
+        </a>
+      <% end %>
+    </column>
+    <%= paginate @open_cases %>
+  <% else %>
+    <column align-="center center" pad-="2 2" style="color: var(--foreground2);">
+      no open cases
+    </column>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <span style="color: var(--foreground2); font-style: italic;">recently decided</span>
+  <% if @decided_cases.any? %>
+    <table>
+      <thead><tr><th>case</th><th>identity</th><th>outcome</th><th>decided</th></tr></thead>
+      <tbody>
+        <% @decided_cases.each do |kase| %>
+          <tr>
+            <td><a href="<%= backend_verification_case_path(kase) %>"><%= kase.public_id %></a></td>
+            <td><%= kase.identity.first_name %> <%= kase.identity.last_name %></td>
+            <td><span is-="badge" variant-="<%= kase.approved? ? 'green' : 'red' %>"><%= kase.status %></span></td>
+            <td><%= time_ago_in_words(kase.updated_at) %> ago</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--foreground2);">none yet</span>
+  <% end %>
+</column>

@@ -1,0 +1,198 @@
+<% content_for :title, "Case #{@case.public_id}" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;" gap-="1">
+  <row align-="center between">
+    <h2><%= @case.public_id %></h2>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="<%= @case.approved? ? 'green' : @case.denied? ? 'red' : @case.escalated? ? 'red' : 'yellow' %>"><%= @case.status.humanize.downcase %></span>
+      <% if @case.document_class.present? %><span is-="badge" variant-="background2"><%= @case.document_class.humanize.downcase %></span><% end %>
+    </row>
+  </row>
+
+  <row gap-="2">
+    <span>identity: <a href="<%= backend_identity_path(@case.identity) %>"><%= @case.identity.first_name %> <%= @case.identity.last_name %></a> (<%= @case.identity.public_id %>)</span>
+    <span style="color: var(--foreground2);">opened <%= time_ago_in_words(@case.created_at) %> ago<% if @case.opened_by %> by <%= @case.opened_by.identity&.first_name || "staff" %><% end %></span>
+  </row>
+
+  <% if @case.alternative? && @case.alternative_reason.present? %>
+    <row gap-="1">
+      <span style="color: var(--foreground2);">no-gov-ID reason:</span>
+      <span><%= VerificationCase::ALTERNATIVE_REASONS[@case.alternative_reason] %><% if @case.alternative_reason_details.present? %> — <%= @case.alternative_reason_details %><% end %></span>
+    </row>
+  <% end %>
+
+  <% if @case.submitted_fields.present? %>
+    <div is-="separator"></div>
+    <span style="color: var(--foreground2); font-style: italic;">submitted fields</span>
+    <table>
+      <tbody>
+        <% @case.submitted_fields.each do |field, value| %>
+          <tr><td style="color: var(--foreground2);"><%= field.humanize %></td><td><%= value %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+
+  <% if @auto_escalation_reasons.any? && @case.open? %>
+    <div box-="round" style="border-color: var(--red); padding: 1ch;">
+      <b style="color: var(--red);">hard auto-escalation triggers:</b>
+      <%= @auto_escalation_reasons.join(", ") %> — approval requires a second reviewer.
+    </div>
+  <% end %>
+
+  <div is-="separator"></div>
+  <span style="color: var(--foreground2); font-style: italic;">documents (raw evidence — access is logged)</span>
+  <% if @documents.any? %>
+    <table>
+      <thead><tr><th>kind</th><th>source</th><th>retention</th><th></th></tr></thead>
+      <tbody>
+        <% @documents.each do |doc| %>
+          <tr>
+            <td><%= doc.kind_label %></td>
+            <td><%= doc.source %></td>
+            <td>
+              <% if doc.purged? %><span is-="badge" variant-="background2">purged</span>
+              <% elsif doc.retention_delete_at %><span style="color: var(--yellow);">purges <%= doc.retention_delete_at.to_date %></span>
+              <% else %><span style="color: var(--foreground2);">held until decision</span><% end %>
+            </td>
+            <td>
+              <% if !doc.purged? && doc.file.attached? %>
+                <% recent_bg = BreakGlassRecord.for_user_and_document(current_user, doc).recent.exists? %>
+                <% if recent_bg %>
+                  <%= link_to "view", rails_blob_path(doc.file, disposition: "inline"), target: "_blank" %>
+                <% else %>
+                  <%= form_with url: backend_break_glass_path, method: :post, local: true, style: "display:inline" do %>
+                    <input type="hidden" name="break_glassable_type" value="VerificationCase::Document">
+                    <input type="hidden" name="break_glassable_id" value="<%= doc.id %>">
+                    <input type="text" name="reason" placeholder="reason for access" required style="width: 20ch;">
+                    <button type="submit" is-="button" size-="small">break glass</button>
+                  <% end %>
+                <% end %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--foreground2);">nothing submitted yet</span>
+  <% end %>
+
+  <% if @case.persona_signal_snapshot.present? %>
+    <details>
+      <summary style="color: var(--foreground2);">persona signal snapshot</summary>
+      <pre style="overflow-x: auto;"><%= JSON.pretty_generate(@case.persona_signal_snapshot) %></pre>
+    </details>
+  <% end %>
+
+  <% if @case.call_starts_at.present? %>
+    <div is-="separator"></div>
+    <row gap-="1">
+      <span style="color: var(--foreground2);">call:</span>
+      <span><%= @case.call_starts_at.strftime("%Y-%m-%d %H:%M %Z") %> (booking <%= @case.booking_uid %>)</span>
+    </row>
+  <% end %>
+
+  <%# === actions === %>
+  <% if @case.open? %>
+    <div is-="separator"></div>
+    <row gap-="2" align-="center">
+      <% if @case.link_sent? || @case.requested? %>
+        <%= form_with url: resend_link_backend_verification_case_path(@case), method: :post, local: true do %>
+          <button type="submit" is-="button" size-="small">resend link</button>
+        <% end %>
+      <% end %>
+      <% if @case.call_scheduled? %>
+        <%= form_with url: hold_call_backend_verification_case_path(@case), method: :patch, local: true do %>
+          <button type="submit" is-="button" size-="small">mark call held</button>
+        <% end %>
+      <% end %>
+    </row>
+
+    <% if @case.call_held? || @case.escalated? %>
+      <div is-="separator"></div>
+      <span style="color: var(--foreground2); font-style: italic;">decision<%= " (escalated — second reviewer required)" if @case.escalated? %></span>
+
+      <%= form_with url: decide_backend_verification_case_path(@case), method: :patch, local: true do %>
+        <column gap-="1">
+          <table>
+            <tbody>
+              <% Verification::ManualVerificationCall::CHECKLIST_ITEMS.each do |key, label| %>
+                <tr>
+                  <td><%= label %></td>
+                  <td>
+                    <label><input type="radio" name="checklist[<%= key %>]" value="yes" required> yes</label>
+                    <label><input type="radio" name="checklist[<%= key %>]" value="no"> no</label>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+
+          <row gap-="2" align-="center">
+            <label>confidence:
+              <select name="confidence" required>
+                <% Verification::ManualVerificationCall::CONFIDENCE_LEVELS.each do |level| %>
+                  <option value="<%= level %>"><%= level %></option>
+                <% end %>
+              </select>
+            </label>
+          </row>
+
+          <textarea name="notes" placeholder="free-text notes from the call" rows="3"></textarea>
+
+          <row gap-="2" align-="center">
+            <button type="submit" name="decision" value="approve" is-="button" variant-="green">approve</button>
+            <span style="color: var(--foreground2);">deny with reason:</span>
+            <select name="rejection_reason">
+              <option value="">—</option>
+              <% Verification::ManualVerificationCall::REJECTION_REASON_NAMES.each do |value, name| %>
+                <option value="<%= value %>"><%= name %></option>
+              <% end %>
+            </select>
+            <input type="text" name="rejection_reason_details" placeholder="details">
+            <button type="submit" name="decision" value="deny" is-="button" variant-="red">deny</button>
+          </row>
+        </column>
+      <% end %>
+
+      <% unless @case.escalated? %>
+        <%= form_with url: escalate_backend_verification_case_path(@case), method: :patch, local: true do %>
+          <row gap-="1" align-="center">
+            <input type="text" name="escalation_reason" placeholder="why escalate?" style="width: 40ch;">
+            <button type="submit" is-="button" size-="small" variant-="yellow">escalate instead</button>
+          </row>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <% if @case.verification.present? %>
+    <div is-="separator"></div>
+    <row gap-="1">
+      <span style="color: var(--foreground2);">decision record:</span>
+      <a href="<%= backend_verification_path(@case.verification) %>"><%= @case.verification.public_id %></a>
+      <span is-="badge" variant-="<%= @case.verification.approved? ? 'green' : 'red' %>"><%= @case.verification.status %></span>
+      <% if @case.verification.expires_at.present? %>
+        <span style="color: var(--foreground2);">expires <%= @case.verification.expires_at.to_date %></span>
+      <% end %>
+    </row>
+  <% end %>
+
+  <%# === audit trail === %>
+  <div is-="separator"></div>
+  <span style="color: var(--foreground2); font-style: italic;">audit trail (append-only)</span>
+  <table>
+    <tbody>
+      <% @events.each do |event| %>
+        <tr>
+          <td style="white-space: nowrap; color: var(--foreground2);"><%= event.created_at.strftime("%m-%d %H:%M") %></td>
+          <td><b><%= event.key %></b></td>
+          <td style="color: var(--foreground2);">
+            <%= event.actor.is_a?(Backend::User) ? (event.actor.identity&.first_name || "staff") : event.actor.is_a?(Identity) ? "user" : "system" %>
+          </td>
+          <td style="color: var(--foreground2);"><%= event.data.present? ? event.data.to_json.truncate(120) : "" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</column>

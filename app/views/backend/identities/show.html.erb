@@ -236,19 +236,42 @@
   <% end %>
 
   <%# === Verifications === %>
-  <% if @verifications.any? %>
-    <div is-="separator"></div>
-    <row align-="center between">
-      <span style="color: var(--foreground2); font-style: italic;">verifications</span>
+  <%# always rendered (not gated on @verifications.any?) so staff can
+      vouch or open a manual call case for identities with no
+      verification record yet %>
+  <div is-="separator"></div>
+  <row align-="center between">
+    <span style="color: var(--foreground2); font-style: italic;">verifications</span>
+    <row gap-="1" align-="center">
       <% super_admin_tool(element: "span") do %>
         <a href="<%= new_vouch_backend_identity_path(@identity) %>">+ vouch</a>
       <% end %>
+      <% if policy(VerificationCase).create? && !@identity.verification_cases.open_cases.exists? %>
+        <%= form_with url: backend_verification_cases_path, method: :post, local: true, style: "display:inline" do %>
+          <input type="hidden" name="identity_id" value="<%= @identity.public_id %>">
+          <button type="submit" is-="button" size-="small" onclick="return confirm('Open a manual verification call case and email a single-use link to <%= @identity.primary_email %>?')">+ manual call case</button>
+        <% end %>
+      <% end %>
     </row>
+  </row>
+  <% open_cases = @identity.verification_cases.open_cases.order(created_at: :desc) %>
+  <% if @verifications.none? && open_cases.none? %>
+    <span style="color: var(--foreground2);">no verifications yet</span>
+  <% else %>
     <table>
       <thead>
         <tr><th>type</th><th>status</th><th>submitted</th><th>reason</th><th></th></tr>
       </thead>
       <tbody>
+        <% open_cases.each do |kase| %>
+          <tr>
+            <td>Manual call case</td>
+            <td><span is-="badge" variant-="yellow"><%= kase.status.humanize.downcase %></span></td>
+            <td style="color: var(--foreground2);"><%= kase.created_at.strftime("%b %d, %Y") %></td>
+            <td style="color: var(--foreground2);"><%= kase.document_class.present? ? kase.document_class.humanize.downcase : "—" %></td>
+            <td><%= link_to "view →", backend_verification_case_path(kase) %></td>
+          </tr>
+        <% end %>
         <% @verifications.each do |verification| %>
           <tr>
             <td>

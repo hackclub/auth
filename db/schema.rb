@@ -10,10 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_03_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
-  enable_extension "pg_trgm"
   enable_extension "pgcrypto"
 
   create_table "active_storage_attachments", force: :cascade do |t|
@@ -78,6 +77,40 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.datetime "updated_at", null: false
     t.string "phone_number"
     t.index ["identity_id"], name: "index_addresses_on_identity_id"
+  end
+
+  create_table "ahoy_events", force: :cascade do |t|
+    t.bigint "visit_id"
+    t.string "name"
+    t.jsonb "properties"
+    t.datetime "time"
+    t.index ["name", "time"], name: "index_ahoy_events_on_name_and_time"
+    t.index ["name"], name: "index_ahoy_events_on_name"
+    t.index ["properties"], name: "index_ahoy_events_on_properties", using: :gin
+    t.index ["time"], name: "index_ahoy_events_on_time"
+    t.index ["visit_id"], name: "index_ahoy_events_on_visit_id"
+  end
+
+  create_table "ahoy_visits", force: :cascade do |t|
+    t.string "visit_token"
+    t.string "visitor_token"
+    t.string "ip"
+    t.text "user_agent"
+    t.text "referrer"
+    t.string "referring_domain"
+    t.text "landing_page"
+    t.string "browser"
+    t.string "os"
+    t.string "device_type"
+    t.string "utm_source"
+    t.string "utm_medium"
+    t.string "utm_campaign"
+    t.string "utm_term"
+    t.string "utm_content"
+    t.datetime "started_at"
+    t.index ["started_at"], name: "index_ahoy_visits_on_started_at"
+    t.index ["visit_token"], name: "index_ahoy_visits_on_visit_token", unique: true
+    t.index ["visitor_token"], name: "index_ahoy_visits_on_visitor_token"
   end
 
   create_table "audits1984_audits", force: :cascade do |t|
@@ -316,8 +349,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.string "slack_dm_channel_id"
     t.boolean "is_alum", default: false
     t.boolean "can_hq_officialize", default: false, null: false
-    t.string "persona_account_id"
     t.boolean "disallow_slack", default: false, null: false
+    t.string "persona_account_id"
+    t.boolean "two_factor_required", default: false, null: false
     t.index "lower((primary_email)::text)", name: "idx_identities_unique_primary_email", unique: true, where: "(deleted_at IS NULL)"
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
@@ -410,8 +444,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.date "expiration_date"
     t.float "entity_confidence_score"
     t.jsonb "checks", default: []
-    t.jsonb "behaviors", default: {}
     t.jsonb "network_signals", default: {}
+    t.jsonb "behaviors", default: {}
     t.index ["deleted_at"], name: "index_identity_persona_records_on_deleted_at"
     t.index ["identity_id"], name: "index_identity_persona_records_on_identity_id"
     t.index ["inquiry_id"], name: "index_identity_persona_records_on_inquiry_id", unique: true
@@ -525,7 +559,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.datetime "created_at", null: false
     t.datetime "revoked_at"
     t.string "resource_owner_type", null: false
-    t.bigint "source_session_id"
     t.index ["application_id"], name: "index_oauth_access_grants_on_application_id"
     t.index ["resource_owner_id", "resource_owner_type"], name: "polymorphic_owner_oauth_access_grants"
     t.index ["resource_owner_id"], name: "index_oauth_access_grants_on_resource_owner_id"
@@ -590,7 +623,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.string "invited_email"
     t.index ["identity_id"], name: "index_program_collaborators_on_identity_id"
     t.index ["program_id", "identity_id"], name: "index_program_collaborators_on_program_id_and_identity_id", unique: true
-    t.index ["program_id", "invited_email"], name: "idx_program_collabs_on_program_email_visible", unique: true, where: "((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('accepted'::character varying)::text]))"
+    t.index ["program_id", "invited_email"], name: "idx_program_collabs_on_program_email_visible", unique: true, where: "((status)::text = ANY ((ARRAY['pending'::character varying, 'accepted'::character varying])::text[]))"
     t.index ["program_id"], name: "index_program_collaborators_on_program_id"
   end
 
@@ -602,15 +635,77 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.index ["key"], name: "index_settings_on_key", unique: true
   end
 
-  create_table "slack_idp_groups", force: :cascade do |t|
-    t.string "name", null: false
-    t.string "slack_group_id"
-    t.string "slug", null: false
-    t.datetime "synced_at"
+  create_table "tombstoned_emails", force: :cascade do |t|
+    t.string "email_digest", null: false
+    t.index ["email_digest"], name: "index_tombstoned_emails_on_email_digest", unique: true
+  end
+
+  create_table "verification_case_documents", force: :cascade do |t|
+    t.bigint "verification_case_id", null: false
+    t.string "document_kind", null: false
+    t.string "source", null: false
+    t.datetime "retention_delete_at"
+    t.datetime "purged_at"
+    t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["slack_group_id"], name: "index_slack_idp_groups_on_slack_group_id", unique: true
-    t.index ["slug"], name: "index_slack_idp_groups_on_slug", unique: true
+    t.index ["deleted_at"], name: "index_verification_case_documents_on_deleted_at"
+    t.index ["retention_delete_at"], name: "index_verification_case_documents_on_retention_delete_at"
+    t.index ["verification_case_id"], name: "index_verification_case_documents_on_verification_case_id"
+  end
+
+  create_table "verification_case_events", force: :cascade do |t|
+    t.bigint "verification_case_id", null: false
+    t.string "key", null: false
+    t.string "actor_type"
+    t.bigint "actor_id"
+    t.jsonb "data", default: {}, null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.index ["actor_type", "actor_id"], name: "index_verification_case_events_on_actor"
+    t.index ["verification_case_id"], name: "index_verification_case_events_on_verification_case_id"
+  end
+
+  create_table "verification_cases", force: :cascade do |t|
+    t.bigint "identity_id", null: false
+    t.bigint "opened_by_id"
+    t.bigint "verification_id"
+    t.string "status", null: false
+    t.string "document_class"
+    t.string "alternative_reason"
+    t.text "alternative_reason_details"
+    t.string "persona_inquiry_id"
+    t.text "persona_session_token"
+    t.jsonb "persona_signal_snapshot"
+    t.string "access_token"
+    t.datetime "access_token_expires_at"
+    t.datetime "access_token_used_at"
+    t.string "slack_channel_id"
+    t.string "slack_thread_ts"
+    t.string "booking_uid"
+    t.datetime "call_starts_at"
+    t.jsonb "submitted_fields", default: {}, null: false
+    t.boolean "attested", default: false, null: false
+    t.boolean "biometric_consent", default: false, null: false
+    t.boolean "recording_consent_acknowledged", default: false, null: false
+    t.datetime "link_sent_at"
+    t.datetime "docs_submitted_at"
+    t.datetime "call_scheduled_at"
+    t.datetime "call_held_at"
+    t.datetime "approved_at"
+    t.datetime "denied_at"
+    t.datetime "escalated_at"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["access_token"], name: "index_verification_cases_on_access_token", unique: true, where: "(access_token IS NOT NULL)"
+    t.index ["deleted_at"], name: "index_verification_cases_on_deleted_at"
+    t.index ["identity_id"], name: "index_verification_cases_on_identity_id"
+    t.index ["opened_by_id"], name: "index_verification_cases_on_opened_by_id"
+    t.index ["persona_inquiry_id"], name: "index_verification_cases_on_persona_inquiry_id", unique: true, where: "((persona_inquiry_id IS NOT NULL) AND (deleted_at IS NULL))"
+    t.index ["status"], name: "index_verification_cases_on_status"
+    t.index ["verification_id"], name: "index_verification_cases_on_verification_id"
   end
 
   create_table "verifications", force: :cascade do |t|
@@ -635,17 +730,31 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.datetime "approved_at"
     t.datetime "rejected_at"
     t.text "internal_rejection_comment"
+    t.boolean "auto_approved", default: false, null: false
+    t.string "yoti_session_id"
+    t.string "yoti_status"
+    t.datetime "yoti_completed_at"
+    t.integer "yoti_verified_age"
     t.string "persona_inquiry_id"
     t.text "persona_session_token"
     t.bigint "persona_record_id"
+    t.bigint "reviewer_id"
+    t.jsonb "checklist"
+    t.datetime "expires_at"
+    t.bigint "escalated_to_id"
+    t.text "escalation_reason"
+    t.datetime "sampled_at"
+    t.bigint "sample_reviewer_id"
     t.index ["aadhaar_record_id"], name: "index_verifications_on_aadhaar_record_id"
     t.index ["deleted_at"], name: "index_verifications_on_deleted_at"
     t.index ["fatal"], name: "index_verifications_on_fatal"
     t.index ["identity_document_id"], name: "index_verifications_on_identity_document_id"
     t.index ["identity_id"], name: "index_verifications_on_identity_id"
-    t.index ["persona_inquiry_id"], name: "index_verifications_on_persona_inquiry_id"
+    t.index ["persona_inquiry_id"], name: "index_verifications_on_persona_inquiry_id", unique: true, where: "(persona_inquiry_id IS NOT NULL)"
     t.index ["persona_record_id"], name: "index_verifications_on_persona_record_id"
+    t.index ["reviewer_id"], name: "index_verifications_on_reviewer_id"
     t.index ["type"], name: "index_verifications_on_type"
+    t.index ["yoti_session_id"], name: "index_verifications_on_yoti_session_id", unique: true
   end
 
   create_table "versions", force: :cascade do |t|
@@ -663,6 +772,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "addresses", "identities"
+  add_foreign_key "ahoy_events", "ahoy_visits", column: "visit_id"
   add_foreign_key "backend_organizer_positions", "backend_users"
   add_foreign_key "backend_organizer_positions", "oauth_applications", column: "program_id"
   add_foreign_key "backend_users", "identities"
@@ -688,13 +798,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
   add_foreign_key "login_attempts", "identities"
   add_foreign_key "login_attempts", "identity_sessions", column: "session_id"
   add_foreign_key "oauth_access_grants", "identities", column: "resource_owner_id"
-  add_foreign_key "oauth_access_grants", "identity_sessions", column: "source_session_id", on_delete: :nullify
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "identities", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_openid_requests", "oauth_access_grants", column: "access_grant_id", on_delete: :cascade
   add_foreign_key "program_collaborators", "identities"
   add_foreign_key "program_collaborators", "oauth_applications", column: "program_id"
+  add_foreign_key "verification_case_documents", "verification_cases"
+  add_foreign_key "verification_case_events", "verification_cases"
+  add_foreign_key "verification_cases", "backend_users", column: "opened_by_id"
+  add_foreign_key "verification_cases", "identities"
+  add_foreign_key "verification_cases", "verifications"
+  add_foreign_key "verifications", "backend_users", column: "escalated_to_id"
+  add_foreign_key "verifications", "backend_users", column: "reviewer_id"
+  add_foreign_key "verifications", "backend_users", column: "sample_reviewer_id"
   add_foreign_key "verifications", "identities"
   add_foreign_key "verifications", "identity_aadhaar_records", column: "aadhaar_record_id"
   add_foreign_key "verifications", "identity_documents"

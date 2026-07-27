@@ -1,0 +1,9 @@
+<p class="greeting">Hey <%= @first_name %>,</p>
+
+<p class="body-text">Your identity verification call is booked<% if @starts_at %> for <strong><%= @starts_at.strftime("%A, %B %-d at %H:%M %Z") %></strong><% end %>.</p>
+
+<p class="body-text"><strong>This call is recorded by default.</strong> We record so a decision can be re-reviewed later without asking you to do this again. The recording is stored encrypted, access to it is logged, and it's permanently deleted 30&ndash;90 days after a decision is made on your case. If you'd rather not be recorded, let us know at the start of the call and we'll arrange for a second staff member to join instead.</p>
+
+<p class="secondary-text">Have your document with you on the call — the reviewer will compare it against what you submitted.</p>
+
+<p class="signature">— The Hack Club team</p>
