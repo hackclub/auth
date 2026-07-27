@@ -157,7 +157,7 @@ RSpec.describe "Manual verifications", type: :request do
       allow(ENV).to receive(:[]).with("CALCOM_MANUAL_VERIFICATION_BOOKING_URL").and_return("https://cal.example.com/verify")
 
       get manual_verification_path
-      expect(response.body).to include("recorded by default")
+      expect(response.body).to include("verification calls are recorded")
       expect(response.body).not_to include("https://cal.example.com/verify")
 
       post manual_verification_recording_ack_path
