@@ -38,11 +38,6 @@ FactoryBot.define do
       call_scheduled
       status { :call_held }
     end
-
-    trait :escalated do
-      call_held
-      status { :escalated }
-    end
   end
 
   factory :verification_case_document, class: "VerificationCase::Document" do

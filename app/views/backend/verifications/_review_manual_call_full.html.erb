@@ -15,9 +15,6 @@
         </tr>
       <% end %>
       <tr><td>confidence</td><td><%= verification.confidence || "—" %></td></tr>
-      <% if verification.escalated? %>
-        <tr><td>escalation</td><td><%= verification.escalation_reason.presence || "escalated" %> (resolved by <%= verification.escalated_to&.identity&.first_name || "staff" %>)</td></tr>
-      <% end %>
     </tbody>
   </table>
 

@@ -13,7 +13,6 @@
           <span style="flex: 1;">
             <b><%= kase.public_id %></b>
             · <%= kase.identity.first_name %> <%= kase.identity.last_name %>
-            <% if kase.escalated? %><span style="color: var(--red);">⚠ escalated</span><% end %>
           </span>
           <row gap-="1" align-="center">
             <span is-="badge" variant-="<%= kase.call_held? ? 'yellow' : 'background2' %>"><%= kase.status.humanize.downcase %></span>

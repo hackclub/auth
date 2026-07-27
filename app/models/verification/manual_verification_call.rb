@@ -6,7 +6,6 @@ class Verification::ManualVerificationCall < Verification
   include Verification::Rejectable
 
   belongs_to :reviewer, class_name: "Backend::User", optional: true
-  belongs_to :escalated_to, class_name: "Backend::User", optional: true
   belongs_to :sample_reviewer, class_name: "Backend::User", optional: true
   has_one :verification_case, foreign_key: :verification_id
 
@@ -61,7 +60,6 @@ class Verification::ManualVerificationCall < Verification
   # nullable by design so the policy can change without a migration.
   def expired? = expires_at.present? && expires_at.past?
 
-  def escalated? = escalated_to_id.present?
 
   # polymorphic interface
   def document_type_label = "Manual verification call"

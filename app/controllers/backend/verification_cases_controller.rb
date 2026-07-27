@@ -77,22 +77,6 @@ module Backend
       redirect_to backend_verification_case_path(@case)
     end
 
-    def escalate
-      authorize @case
-
-      if params[:escalation_reason].blank?
-        flash[:error] = "Escalation reason is required"
-        redirect_to backend_verification_case_path(@case) and return
-      end
-
-      @case.escalate!
-      @case.log_event!(:escalated, actor: current_user, request: request,
-        data: { reason: params[:escalation_reason] })
-
-      flash[:success] = "Case escalated for a second reviewer"
-      redirect_to backend_verification_case_path(@case)
-    end
-
     def comment
       authorize @case
 
@@ -175,9 +159,7 @@ module Backend
         identity: @case.identity,
         reviewer: current_user,
         checklist: checklist,
-        expires_at: @case.alternative? ? VerificationCase::ALTERNATIVE_DOCS_EXPIRY.from_now : nil,
-        escalated_to: @case.escalated? ? current_user : nil,
-        escalation_reason: @case.escalated? ? @case.events.where(key: "escalated").last&.data&.dig("reason") : nil
+        expires_at: @case.alternative? ? VerificationCase::ALTERNATIVE_DOCS_EXPIRY.from_now : nil
       )
     end
   end

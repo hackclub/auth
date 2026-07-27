@@ -227,7 +227,6 @@ Rails.application.routes.draw do
         post :resend_link
         post :comment
         patch :hold_call
-        patch :escalate
         patch :decide
       end
     end

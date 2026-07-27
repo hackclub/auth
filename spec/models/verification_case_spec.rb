@@ -25,9 +25,9 @@ RSpec.describe VerificationCase, type: :model do
       expect { kase.approve! }.to raise_error(AASM::InvalidTransition)
     end
 
-    it "allows deciding from escalated" do
-      kase = create(:verification_case, :escalated)
-      expect { kase.deny! }.not_to raise_error
+    it "only allows deciding from call_held" do
+      kase = create(:verification_case, :call_scheduled)
+      expect { kase.deny! }.to raise_error(AASM::InvalidTransition)
     end
 
     it "stamps retention and revokes the flag on decision" do

@@ -677,7 +677,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_03_000001) do
     t.datetime "call_held_at"
     t.datetime "approved_at"
     t.datetime "denied_at"
-    t.datetime "escalated_at"
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -718,8 +717,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_03_000001) do
     t.bigint "reviewer_id"
     t.jsonb "checklist"
     t.datetime "expires_at"
-    t.bigint "escalated_to_id"
-    t.text "escalation_reason"
     t.datetime "sampled_at"
     t.bigint "sample_reviewer_id"
     t.index ["aadhaar_record_id"], name: "index_verifications_on_aadhaar_record_id"
@@ -787,7 +784,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_03_000001) do
   add_foreign_key "verification_cases", "backend_users", column: "opened_by_id"
   add_foreign_key "verification_cases", "identities"
   add_foreign_key "verification_cases", "verifications"
-  add_foreign_key "verifications", "backend_users", column: "escalated_to_id"
   add_foreign_key "verifications", "backend_users", column: "reviewer_id"
   add_foreign_key "verifications", "backend_users", column: "sample_reviewer_id"
   add_foreign_key "verifications", "identities"

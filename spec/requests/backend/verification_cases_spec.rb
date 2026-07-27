@@ -58,7 +58,7 @@ RSpec.describe "Backend verification cases", type: :request do
     it "approves on the first reviewer's judgment, even with risk signals present" do
       kase = create(:verification_case, :call_held, persona_inquiry_id: "inq_test123",
         persona_signal_snapshot: { "network_signals" => { "country_code" => "RO" } })
-      kase.identity.update_column(:created_at, 2.days.ago) # would have auto-escalated before
+      kase.identity.update_column(:created_at, 2.days.ago)
 
       patch decide_backend_verification_case_path(kase),
         params: { decision: "approve", checklist: full_checklist, confidence: "high" }
@@ -104,14 +104,13 @@ RSpec.describe "Backend verification cases", type: :request do
       expect(kase.verification).to be_rejected
     end
 
-    it "blocks the escalating reviewer from resolving their own escalation" do
-      kase = create(:verification_case, :escalated)
-      kase.log_event!(:escalated, actor: verifier)
+    it "rejects deciding before the call is held" do
+      kase = create(:verification_case, :call_scheduled)
 
       patch decide_backend_verification_case_path(kase),
         params: { decision: "approve", checklist: full_checklist, confidence: "high" }
 
-      expect(kase.reload).to be_escalated
+      expect(kase.reload).to be_call_scheduled
       expect(kase.verification).to be_nil
     end
   end

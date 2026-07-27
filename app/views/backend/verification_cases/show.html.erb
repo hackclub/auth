@@ -3,7 +3,7 @@
   <row align-="center between">
     <h2><%= @case.public_id %></h2>
     <row gap-="1" align-="center">
-      <span is-="badge" variant-="<%= @case.approved? ? 'green' : @case.denied? ? 'red' : @case.escalated? ? 'red' : 'yellow' %>"><%= @case.status.humanize.downcase %></span>
+      <span is-="badge" variant-="<%= @case.approved? ? 'green' : @case.denied? ? 'red' : 'yellow' %>"><%= @case.status.humanize.downcase %></span>
       <% if @case.document_class.present? %><span is-="badge" variant-="background2"><%= @case.document_class.humanize.downcase %></span><% end %>
       <% if @case.skip_persona? %><span is-="badge" variant-="background2">no persona</span><% end %>
     </row>
@@ -88,23 +88,26 @@
 
   <%# === actions === %>
   <% if @case.open? %>
-    <div is-="separator"></div>
-    <row gap-="2" align-="center">
-      <% if @case.link_sent? || @case.requested? %>
-        <%= form_with url: resend_link_backend_verification_case_path(@case), method: :post, local: true do %>
-          <button type="submit" is-="button" size-="small">resend link</button>
-        <% end %>
-      <% end %>
-      <% if @case.call_scheduled? %>
-        <%= form_with url: hold_call_backend_verification_case_path(@case), method: :patch, local: true do %>
-          <button type="submit" is-="button" size-="small">mark call held</button>
-        <% end %>
-      <% end %>
-    </row>
-
-    <% if @case.call_held? || @case.escalated? %>
+    <%# the row only renders when a button applies — otherwise it's a stray gap %>
+    <% if @case.link_sent? || @case.requested? || @case.call_scheduled? %>
       <div is-="separator"></div>
-      <span style="color: var(--foreground2); font-style: italic;">decision<%= " (escalated — second reviewer required)" if @case.escalated? %></span>
+      <row gap-="2" align-="center">
+        <% if @case.link_sent? || @case.requested? %>
+          <%= form_with url: resend_link_backend_verification_case_path(@case), method: :post, local: true do %>
+            <button type="submit" is-="button" size-="small">resend link</button>
+          <% end %>
+        <% end %>
+        <% if @case.call_scheduled? %>
+          <%= form_with url: hold_call_backend_verification_case_path(@case), method: :patch, local: true do %>
+            <button type="submit" is-="button" size-="small">mark call held</button>
+          <% end %>
+        <% end %>
+      </row>
+    <% end %>
+
+    <% if @case.call_held? %>
+      <div is-="separator"></div>
+      <span style="color: var(--foreground2); font-style: italic;">decision</span>
 
       <%= form_with url: decide_backend_verification_case_path(@case), method: :patch, local: true do %>
         <column gap-="1">
@@ -151,14 +154,6 @@
         </column>
       <% end %>
 
-      <% unless @case.escalated? %>
-        <%= form_with url: escalate_backend_verification_case_path(@case), method: :patch, local: true do %>
-          <row gap-="1" align-="center">
-            <input type="text" name="escalation_reason" placeholder="why escalate?" style="width: 40ch;">
-            <button type="submit" is-="button" size-="small" variant-="yellow">escalate instead</button>
-          </row>
-        <% end %>
-      <% end %>
     <% end %>
   <% end %>
 

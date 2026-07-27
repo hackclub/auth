@@ -36,7 +36,6 @@ class CreateVerificationCases < ActiveRecord::Migration[8.0]
       t.datetime :call_held_at
       t.datetime :approved_at
       t.datetime :denied_at
-      t.datetime :escalated_at
 
       t.datetime :deleted_at
       t.timestamps
@@ -80,13 +79,10 @@ class CreateVerificationCases < ActiveRecord::Migration[8.0]
     add_column :verifications, :reviewer_id, :bigint
     add_column :verifications, :checklist, :jsonb
     add_column :verifications, :expires_at, :datetime
-    add_column :verifications, :escalated_to_id, :bigint
-    add_column :verifications, :escalation_reason, :text
     add_column :verifications, :sampled_at, :datetime
     add_column :verifications, :sample_reviewer_id, :bigint
 
     add_foreign_key :verifications, :backend_users, column: :reviewer_id
-    add_foreign_key :verifications, :backend_users, column: :escalated_to_id
     add_foreign_key :verifications, :backend_users, column: :sample_reviewer_id
     add_index :verifications, :reviewer_id
   end

@@ -59,7 +59,6 @@ class VerificationCase < ApplicationRecord
     state :call_held
     state :approved
     state :denied
-    state :escalated
 
     event :send_link do
       transitions from: [ :requested, :link_sent ], to: :link_sent
@@ -82,17 +81,13 @@ class VerificationCase < ApplicationRecord
       transitions from: :call_scheduled, to: :call_held
     end
 
-    event :escalate do
-      transitions from: [ :docs_submitted, :call_scheduled, :call_held ], to: :escalated
-    end
-
     event :approve do
-      transitions from: [ :call_held, :escalated ], to: :approved
+      transitions from: :call_held, to: :approved
       after { close_out! }
     end
 
     event :deny do
-      transitions from: [ :call_held, :escalated ], to: :denied
+      transitions from: :call_held, to: :denied
       after { close_out! }
     end
   end

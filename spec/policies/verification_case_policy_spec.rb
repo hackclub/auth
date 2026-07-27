@@ -20,23 +20,12 @@ RSpec.describe VerificationCasePolicy do
     end
   end
 
-  describe "escalated cases" do
-    let(:kase) { create(:verification_case, :escalated) }
+  describe "comments" do
+    let(:kase) { create(:verification_case, :call_held) }
 
-    it "blocks the escalating reviewer from resolving their own escalation" do
-      kase.log_event!(:escalated, actor: verifier)
-      expect(described_class.new(verifier, kase).decide?).to be(false)
-    end
-
-    it "allows a different verifier to resolve" do
-      other = create(:backend_user, manual_document_verifier: true)
-      kase.log_event!(:escalated, actor: other)
-      expect(described_class.new(verifier, kase).decide?).to be(true)
-    end
-
-    it "always allows super admins" do
-      kase.log_event!(:escalated, actor: super_admin)
-      expect(described_class.new(super_admin, kase).decide?).to be(true)
+    it "allows verifiers and denies others" do
+      expect(described_class.new(verifier, kase).comment?).to be(true)
+      expect(described_class.new(pleb, kase).comment?).to be(false)
     end
   end
 end
