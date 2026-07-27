@@ -75,7 +75,7 @@ FactoryBot.define do
     checklist do
       {
         "doc_matches_live_face" => true,
-        "doc_matches_persona_selfie" => true,
+        "doc_matches_selfie" => true,
         "name_dob_consistent" => true,
         "signals_clean" => true,
         "doc_unaltered" => true,

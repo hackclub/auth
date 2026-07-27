@@ -165,9 +165,9 @@ module Backend
       Verification::ManualVerificationCall::CHECKLIST_ITEMS.each_key do |item|
         checklist[item] = params.dig(:checklist, item) == "yes" if params.dig(:checklist, item).present?
       end
-      # no persona capture on this case (skip-persona or direct upload only) —
-      # there is no selfie to compare, so the item is recorded as n/a
-      checklist["doc_matches_persona_selfie"] = nil if @case.persona_inquiry_id.blank?
+      # no selfie on this case (persona-less direct upload) — nothing to
+      # compare the document against, so the item is recorded as n/a
+      checklist["doc_matches_selfie"] = nil unless @case.selfie_available?
       checklist["confidence"] = params[:confidence]
       checklist["notes"] = params[:notes].presence
 

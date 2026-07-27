@@ -111,8 +111,8 @@
           <table>
             <tbody>
               <% Verification::ManualVerificationCall::CHECKLIST_ITEMS.each do |key, label| %>
-                <%# no persona capture → no selfie to compare against %>
-                <% next if key == "doc_matches_persona_selfie" && @case.persona_inquiry_id.blank? %>
+                <%# no selfie on the case → nothing to compare against %>
+                <% next if key == "doc_matches_selfie" && !@case.selfie_available? %>
                 <tr>
                   <td><%= label %></td>
                   <td>

@@ -12,10 +12,11 @@ class Calcom::ProcessBookingEventJob < ApplicationJob
       verification_case.log_event!(:call_booked, data: { event: event, booking_uid: booking_uid, starts_at: starts_at })
       VerificationCaseMailer.call_scheduled(verification_case).deliver_later
     when "BOOKING_CANCELLED"
+      # cal.com emails the attendee about the cancellation (with a rebook
+      # link) — we only put the case back so our status page stays truthful
       verification_case.unschedule_call! if verification_case.call_scheduled?
       verification_case.update!(booking_uid: nil, call_starts_at: nil)
       verification_case.log_event!(:call_cancelled, data: { booking_uid: booking_uid })
-      VerificationCaseMailer.call_cancelled(verification_case).deliver_later
     end
   rescue AASM::InvalidTransition
     Rails.logger.info("[Calcom] Ignoring #{event} for case #{case_id} in state #{verification_case.status}")

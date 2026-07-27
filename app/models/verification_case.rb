@@ -133,6 +133,10 @@ class VerificationCase < ApplicationRecord
   # to use persona" crowd) — those cases go straight to camera upload
   def persona_capture_available? = !skip_persona? && capture_template_id.present?
 
+  # the reviewer can only tick "document matches selfie" if there is a
+  # selfie: either inside the persona capture or taken live on our page
+  def selfie_available? = persona_inquiry_id.present? || documents.where(document_kind: "selfie").exists?
+
   def generate_capture_inquiry!
     raise "this case already has an inquiry!" if persona_inquiry_id.present?
 

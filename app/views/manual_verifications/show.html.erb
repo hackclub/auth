@@ -144,24 +144,38 @@
         <%= link_to "Scan with your camera", manual_verification_capture_path, role: "button", class: "chooser-cta" %>
         <p><small>Camera not working? Upload directly below.</small></p>
       <% elsif @case.skip_persona? %>
-        <p>Take a photo of your document with your camera. On the call, the reviewer will compare it against you directly.</p>
+        <p>Take a photo of your document and a selfie with your camera. On the call, the reviewer will compare them against you directly.</p>
       <% elsif @case.government_id? %>
         <p>Upload a clear photo or scan of your government document. On the call, the reviewer will compare it against you directly.</p>
       <% end %>
 
       <%= form_with url: manual_verification_documents_path, method: :post, local: true, multipart: true do %>
         <% if @case.skip_persona? %>
-          <div data-camera-capture>
+          <fieldset data-camera-capture data-camera-facing="environment" data-camera-filename="document-capture.jpg">
+            <legend>Your document</legend>
             <input type="file" name="primary_doc" accept="image/jpeg,image/png" data-camera-input style="display: none;">
             <video data-camera-video playsinline autoplay muted style="display: none; width: 100%; border-radius: 8px;"></video>
             <canvas data-camera-canvas style="display: none; width: 100%; border-radius: 8px;"></canvas>
-            <p data-camera-message>Your document photo has to come straight from your camera — there's no file upload on this case.</p>
+            <p data-camera-message>Your photos have to come straight from your camera — there's no file upload on this case.</p>
             <div class="grid">
               <button type="button" data-camera-open>Open camera</button>
               <button type="button" data-camera-take style="display: none;">Take photo</button>
               <button type="button" data-camera-retake class="secondary" style="display: none;">Retake</button>
             </div>
-          </div>
+          </fieldset>
+
+          <fieldset data-camera-capture data-camera-facing="user" data-camera-filename="selfie-capture.jpg">
+            <legend>A selfie, right now</legend>
+            <input type="file" name="selfie" accept="image/jpeg,image/png" data-camera-input style="display: none;">
+            <video data-camera-video playsinline autoplay muted style="display: none; width: 100%; border-radius: 8px;"></video>
+            <canvas data-camera-canvas style="display: none; width: 100%; border-radius: 8px;"></canvas>
+            <p data-camera-message>The reviewer compares this against your document on the call.</p>
+            <div class="grid">
+              <button type="button" data-camera-open>Open camera</button>
+              <button type="button" data-camera-take style="display: none;">Take photo</button>
+              <button type="button" data-camera-retake class="secondary" style="display: none;">Retake</button>
+            </div>
+          </fieldset>
         <% else %>
           <label>Your document
             <input type="file" name="primary_doc" accept="image/jpeg,image/png,image/heic,application/pdf" required>

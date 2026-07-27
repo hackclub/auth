@@ -56,7 +56,7 @@ RSpec.describe "Cal.com webhooks", type: :request do
     expect(kase.events.where(key: "call_booked")).to exist
   end
 
-  it "returns a cancelled booking to docs_submitted and emails a rebook nudge" do
+  it "returns a cancelled booking to docs_submitted (cal.com owns the rebook email)" do
     kase = create(:verification_case, :call_scheduled)
 
     expect {
@@ -66,7 +66,7 @@ RSpec.describe "Cal.com webhooks", type: :request do
         booking_uid: kase.booking_uid,
         starts_at: nil
       )
-    }.to have_enqueued_mail(VerificationCaseMailer, :call_cancelled)
+    }.not_to have_enqueued_mail
 
     expect(kase.reload).to be_docs_submitted
     expect(kase.booking_uid).to be_nil

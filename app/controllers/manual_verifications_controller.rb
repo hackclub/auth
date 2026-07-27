@@ -87,11 +87,19 @@ class ManualVerificationsController < ApplicationController
       redirect_to manual_verification_path and return
     end
 
-    # skip-persona cases are camera-capture only — a JPEG/PNG straight from
-    # the camera widget, never an arbitrary uploaded file
-    if @case.skip_persona? && !params[:primary_doc].content_type.to_s.match?(%r{\Aimage/(jpeg|png)\z})
-      flash[:error] = "Your document photo has to come from your camera"
-      redirect_to manual_verification_path and return
+    # skip-persona cases are camera-capture only — the document AND a live
+    # selfie, both JPEG/PNG straight from the camera widget, never an
+    # arbitrary uploaded file
+    if @case.skip_persona?
+      if params[:selfie].blank?
+        flash[:error] = "A selfie is required"
+        redirect_to manual_verification_path and return
+      end
+
+      unless [ params[:primary_doc], params[:selfie] ].all? { |f| f.content_type.to_s.match?(%r{\Aimage/(jpeg|png)\z}) }
+        flash[:error] = "Your photos have to come straight from your camera"
+        redirect_to manual_verification_path and return
+      end
     end
 
     ActiveRecord::Base.transaction do
@@ -104,6 +112,12 @@ class ManualVerificationsController < ApplicationController
       primary = @case.documents.new(document_kind: "primary_doc", source: "direct_upload")
       primary.file.attach(params[:primary_doc])
       primary.save!
+
+      if @case.skip_persona?
+        selfie = @case.documents.new(document_kind: "selfie", source: "direct_upload")
+        selfie.file.attach(params[:selfie])
+        selfie.save!
+      end
 
       @case.submit_docs!
     end

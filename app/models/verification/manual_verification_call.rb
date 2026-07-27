@@ -14,7 +14,7 @@ class Verification::ManualVerificationCall < Verification
   # confidence + notes ride alongside the y/n answers.
   CHECKLIST_ITEMS = {
     "doc_matches_live_face" => "Document photo matches live face",
-    "doc_matches_persona_selfie" => "Document photo matches Persona selfie",
+    "doc_matches_selfie" => "Document photo matches selfie (persona or live capture)",
     "name_dob_consistent" => "Name/DOB consistent with account records",
     "signals_clean" => "Signals clean (no virtual camera, geo plausible)",
     "doc_unaltered" => "Document appears unaltered"

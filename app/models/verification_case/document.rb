@@ -14,6 +14,7 @@ class VerificationCase::Document < ApplicationRecord
     "primary_doc" => "Primary document",
     "corroborating_doc" => "Corroborating document",
     "persona_capture" => "Persona capture",
+    "selfie" => "Selfie",
     "call_recording" => "Call recording"
   }.freeze
 

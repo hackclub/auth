@@ -48,7 +48,7 @@ RSpec.describe "Backend verification cases", type: :request do
     let(:full_checklist) do
       {
         doc_matches_live_face: "yes",
-        doc_matches_persona_selfie: "yes",
+        doc_matches_selfie: "yes",
         name_dob_consistent: "yes",
         signals_clean: "yes",
         doc_unaltered: "yes"
@@ -69,16 +69,28 @@ RSpec.describe "Backend verification cases", type: :request do
       expect(kase.verification.reviewer).to eq(verifier)
     end
 
-    it "decides a no-persona case with the selfie item recorded as n/a" do
-      kase = create(:verification_case, :call_held, skip_persona: true)
+    it "records the selfie item as n/a when the case has no selfie at all" do
+      kase = create(:verification_case, :call_held) # persona-less direct upload, no selfie
 
       patch decide_backend_verification_case_path(kase),
-        params: { decision: "approve", checklist: full_checklist.except(:doc_matches_persona_selfie), confidence: "high" }
+        params: { decision: "approve", checklist: full_checklist.except(:doc_matches_selfie), confidence: "high" }
 
       kase.reload
       expect(kase).to be_approved
-      expect(kase.verification.checklist).to have_key("doc_matches_persona_selfie")
-      expect(kase.verification.checklist_answer("doc_matches_persona_selfie")).to be_nil
+      expect(kase.verification.checklist).to have_key("doc_matches_selfie")
+      expect(kase.verification.checklist_answer("doc_matches_selfie")).to be_nil
+    end
+
+    it "lets the reviewer answer the selfie item on a skip-persona case with a live selfie" do
+      kase = create(:verification_case, :call_held, skip_persona: true)
+      create(:verification_case_document, verification_case: kase, document_kind: "selfie")
+
+      patch decide_backend_verification_case_path(kase),
+        params: { decision: "approve", checklist: full_checklist, confidence: "high" }
+
+      kase.reload
+      expect(kase).to be_approved
+      expect(kase.verification.checklist_answer("doc_matches_selfie")).to be(true)
     end
 
     it "denies with a rejection reason" do

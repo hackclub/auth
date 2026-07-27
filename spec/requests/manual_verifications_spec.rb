@@ -111,24 +111,36 @@ RSpec.describe "Manual verifications", type: :request do
       expect(kase.documents.count).to eq(1)
     end
 
-    it "rejects non-camera uploads on a skip-persona case" do
+    it "requires camera-only document AND selfie on a skip-persona case" do
       kase.update!(document_class: "government_id", skip_persona: true)
+      base_params = {
+        attested: "1", biometric_consent: "1",
+        legal_name: "Heidi Trashworth", date_of_birth: "2008-04-01",
+        document_type: "passport", issuing_authority: "Romania"
+      }
 
-      post manual_verification_documents_path, params: {
+      # pdf blocked — camera JPEG/PNG only
+      post manual_verification_documents_path, params: base_params.merge(
         primary_doc: fixture_file_upload_for("doc.pdf"),
-        attested: "1", biometric_consent: "1",
-        legal_name: "Heidi Trashworth", date_of_birth: "2008-04-01",
-        document_type: "passport", issuing_authority: "Romania"
-      }
-      expect(kase.reload).to be_link_sent # pdf blocked — camera JPEG/PNG only
+        selfie: camera_capture_upload("selfie-capture.jpg")
+      )
+      expect(kase.reload).to be_link_sent
 
-      post manual_verification_documents_path, params: {
-        primary_doc: Rack::Test::UploadedFile.new(StringIO.new("fake jpeg bytes"), "image/jpeg", original_filename: "document-capture.jpg"),
-        attested: "1", biometric_consent: "1",
-        legal_name: "Heidi Trashworth", date_of_birth: "2008-04-01",
-        document_type: "passport", issuing_authority: "Romania"
-      }
-      expect(kase.reload).to be_docs_submitted
+      # selfie missing — blocked
+      post manual_verification_documents_path, params: base_params.merge(
+        primary_doc: camera_capture_upload("document-capture.jpg")
+      )
+      expect(kase.reload).to be_link_sent
+
+      # both camera captures — accepted, selfie stored as its own document
+      post manual_verification_documents_path, params: base_params.merge(
+        primary_doc: camera_capture_upload("document-capture.jpg"),
+        selfie: camera_capture_upload("selfie-capture.jpg")
+      )
+      kase.reload
+      expect(kase).to be_docs_submitted
+      expect(kase.documents.where(document_kind: "selfie").count).to eq(1)
+      expect(kase.selfie_available?).to be(true)
     end
 
     it "keeps skip-persona cases away from the persona capture flow" do
@@ -156,5 +168,9 @@ RSpec.describe "Manual verifications", type: :request do
 
   def fixture_file_upload_for(name)
     Rack::Test::UploadedFile.new(StringIO.new("fake pdf bytes"), "application/pdf", original_filename: name)
+  end
+
+  def camera_capture_upload(name)
+    Rack::Test::UploadedFile.new(StringIO.new("fake jpeg bytes"), "image/jpeg", original_filename: name)
   end
 end
