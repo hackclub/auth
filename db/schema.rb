@@ -613,6 +613,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_03_000001) do
     t.index ["slug"], name: "index_slack_idp_groups_on_slug", unique: true
   end
 
+  create_table "verification_case_comments", force: :cascade do |t|
+    t.bigint "verification_case_id", null: false
+    t.bigint "author_id", null: false
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_verification_case_comments_on_author_id"
+    t.index ["verification_case_id"], name: "index_verification_case_comments_on_verification_case_id"
+  end
+
   create_table "verification_case_documents", force: :cascade do |t|
     t.bigint "verification_case_id", null: false
     t.string "document_kind", null: false
@@ -654,8 +664,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_03_000001) do
     t.string "access_token"
     t.datetime "access_token_expires_at"
     t.datetime "access_token_used_at"
-    t.string "slack_channel_id"
-    t.string "slack_thread_ts"
+    t.boolean "skip_persona", default: false, null: false
     t.string "booking_uid"
     t.datetime "call_starts_at"
     t.jsonb "submitted_fields", default: {}, null: false
@@ -771,6 +780,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_03_000001) do
   add_foreign_key "oauth_openid_requests", "oauth_access_grants", column: "access_grant_id", on_delete: :cascade
   add_foreign_key "program_collaborators", "identities"
   add_foreign_key "program_collaborators", "oauth_applications", column: "program_id"
+  add_foreign_key "verification_case_comments", "backend_users", column: "author_id"
+  add_foreign_key "verification_case_comments", "verification_cases"
   add_foreign_key "verification_case_documents", "verification_cases"
   add_foreign_key "verification_case_events", "verification_cases"
   add_foreign_key "verification_cases", "backend_users", column: "opened_by_id"

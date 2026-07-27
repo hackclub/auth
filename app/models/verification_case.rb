@@ -18,8 +18,6 @@ class VerificationCase < ApplicationRecord
   ACCESS_TOKEN_TTL = 7.days
   # raw docs + recordings purged 30-90 days post-decision; 60 until policy is final
   RETENTION_PERIOD = 60.days
-  # auto-escalation threshold — open item, see doc/manual_verification_calls.md
-  MIN_ACCOUNT_AGE = 30.days
   # alternative-docs approvals expire; gov-id manual approvals don't (same
   # document class as a persona-verified ID — only the extraction path differed)
   ALTERNATIVE_DOCS_EXPIRY = 12.months
@@ -29,6 +27,7 @@ class VerificationCase < ApplicationRecord
   belongs_to :verification, optional: true
   has_many :documents, class_name: "VerificationCase::Document", dependent: :destroy
   has_many :events, class_name: "VerificationCase::Event", dependent: :destroy
+  has_many :comments, class_name: "VerificationCase::Comment", dependent: :destroy
 
   encrypts :persona_session_token
 
@@ -74,6 +73,11 @@ class VerificationCase < ApplicationRecord
       transitions from: [ :docs_submitted, :call_scheduled ], to: :call_scheduled
     end
 
+    # booking cancelled without a rebook — back to "book your call"
+    event :unschedule_call do
+      transitions from: :call_scheduled, to: :docs_submitted
+    end
+
     event :hold_call do
       transitions from: :call_scheduled, to: :call_held
     end
@@ -101,11 +105,6 @@ class VerificationCase < ApplicationRecord
   def enable_flag! = Flipper.enable(FLIPPER_FLAG, identity)
   def revoke_flag! = Flipper.disable(FLIPPER_FLAG, identity)
 
-  def self.active_for(identity)
-    return nil unless Flipper.enabled?(FLIPPER_FLAG, identity)
-    identity.verification_cases.open_cases.order(created_at: :desc).first
-  end
-
   # -- single-use access link (mirrors Identity::V2LoginCode) -------------
 
   def generate_access_token!
@@ -130,14 +129,17 @@ class VerificationCase < ApplicationRecord
 
   # -- persona capture-only inquiry ---------------------------------------
 
+  # staff can open a case that avoids persona entirely (the "i don't want
+  # to use persona" crowd) — those cases go straight to camera upload
+  def persona_capture_available? = !skip_persona? && capture_template_id.present?
+
   def generate_capture_inquiry!
     raise "this case already has an inquiry!" if persona_inquiry_id.present?
 
-    template_id = capture_template_id
-    return nil if template_id.blank? # no capture template configured — direct upload fallback
+    return nil unless persona_capture_available? # skip-persona case or no template — camera upload instead
 
     inquiry = Persona.instance.create_inquiry(
-      template_id: template_id,
+      template_id: capture_template_id,
       account_reference_id: identity.public_id,
       fields: {
         "name-first": identity.legal_first_name.presence || identity.first_name,
@@ -175,35 +177,6 @@ class VerificationCase < ApplicationRecord
     params << [ "email", identity.primary_email ]
     uri.query = URI.encode_www_form(params)
     uri.to_s
-  end
-
-  # -- hard auto-escalation rules ------------------------------------------
-  #
-  # these bypass reviewer discretion entirely. thresholds are still an
-  # open item; geo mismatch is currently country-level.
-  def auto_escalation_reasons
-    reasons = []
-    reasons << "virtual_camera_detected" if virtual_camera_flagged?
-    reasons << "geo_mismatch" if geo_mismatch?
-    reasons << "account_age_under_minimum" if identity.created_at > MIN_ACCOUNT_AGE.ago
-    reasons << "prior_denied_case" if prior_denied_case?
-    reasons
-  end
-
-  def auto_escalation_required? = auto_escalation_reasons.any?
-
-  def virtual_camera_flagged?
-    checks = persona_signal_snapshot&.dig("checks") || []
-    checks.any? { |c| c["name"].to_s.include?("virtual_camera") && c["status"] == "failed" }
-  end
-
-  def geo_mismatch?
-    session_country = persona_signal_snapshot&.dig("network_signals", "country_code")
-    session_country.present? && identity.country.present? && session_country != identity.country
-  end
-
-  def prior_denied_case?
-    identity.verification_cases.where(status: "denied").where.not(id: id).exists?
   end
 
   # -- audit log -------------------------------------------------------------

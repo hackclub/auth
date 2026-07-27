@@ -18,8 +18,7 @@ class CreateVerificationCases < ActiveRecord::Migration[8.0]
       t.datetime :access_token_expires_at
       t.datetime :access_token_used_at
 
-      t.string :slack_channel_id
-      t.string :slack_thread_ts
+      t.boolean :skip_persona, default: false, null: false
 
       t.string :booking_uid
       t.datetime :call_starts_at
@@ -60,6 +59,13 @@ class CreateVerificationCases < ActiveRecord::Migration[8.0]
 
     add_index :verification_case_documents, :retention_delete_at
     add_index :verification_case_documents, :deleted_at
+
+    create_table :verification_case_comments do |t|
+      t.references :verification_case, null: false, foreign_key: true
+      t.references :author, null: false, foreign_key: { to_table: :backend_users }
+      t.text :body, null: false
+      t.timestamps
+    end
 
     create_table :verification_case_events do |t|
       t.references :verification_case, null: false, foreign_key: true

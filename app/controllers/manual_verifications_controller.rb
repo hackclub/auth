@@ -46,7 +46,7 @@ class ManualVerificationsController < ApplicationController
   # launch the embedded persona capture-only inquiry (if a template is
   # configured for this document class — otherwise the direct upload form is shown)
   def start_capture
-    unless @case.link_sent? && @case.document_class.present?
+    unless @case.link_sent? && @case.document_class.present? && !@case.skip_persona?
       redirect_to manual_verification_path and return
     end
 
@@ -87,6 +87,13 @@ class ManualVerificationsController < ApplicationController
       redirect_to manual_verification_path and return
     end
 
+    # skip-persona cases are camera-capture only — a JPEG/PNG straight from
+    # the camera widget, never an arbitrary uploaded file
+    if @case.skip_persona? && !params[:primary_doc].content_type.to_s.match?(%r{\Aimage/(jpeg|png)\z})
+      flash[:error] = "Your document photo has to come from your camera"
+      redirect_to manual_verification_path and return
+    end
+
     ActiveRecord::Base.transaction do
       @case.update!(
         attested: true,
@@ -103,7 +110,6 @@ class ManualVerificationsController < ApplicationController
 
     @case.log_event!(:docs_submitted, actor: current_identity, request: request,
       data: { source: "direct_upload", fields: submitted_fields.keys })
-    Slack::VerificationCaseThreadJob.perform_later(@case, "documents submitted (direct upload, #{@case.document_class})")
 
     flash[:success] = "Documents received — book your call below"
     redirect_to manual_verification_path

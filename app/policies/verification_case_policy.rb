@@ -11,6 +11,8 @@ class VerificationCasePolicy < ApplicationPolicy
 
   def escalate? = user_is_manual_document_verifier?
 
+  def comment? = user_is_manual_document_verifier?
+
   def decide?
     return false unless user_is_manual_document_verifier?
     # escalated cases need a second pair of eyes — the person who

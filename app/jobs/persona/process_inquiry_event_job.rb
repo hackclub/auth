@@ -80,10 +80,8 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
       end
 
       verification_case.log_event!(:docs_submitted, data: { source: "persona", inquiry_id: inquiry_id })
-      Slack::VerificationCaseThreadJob.perform_later(verification_case, "persona capture completed (#{verification_case.document_class})")
     when "inquiry.failed", "inquiry.expired", "inquiry.declined"
       verification_case.log_event!(:capture_inquiry_ended, data: { event: event_name, inquiry_id: inquiry_id })
-      Slack::VerificationCaseThreadJob.perform_later(verification_case, "persona capture #{event_name.delete_prefix('inquiry.')} — user can fall back to direct upload")
     end
   rescue AASM::InvalidTransition
     Rails.logger.info("[Persona] Ignoring duplicate #{event_name} for case inquiry #{inquiry_id}")

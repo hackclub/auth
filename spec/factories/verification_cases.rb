@@ -15,6 +15,10 @@ FactoryBot.define do
       alternative_reason { "no_government_id" }
     end
 
+    trait :skip_persona do
+      skip_persona { true }
+    end
+
     trait :docs_submitted do
       link_sent
       status { :docs_submitted }

@@ -111,6 +111,34 @@ RSpec.describe "Manual verifications", type: :request do
       expect(kase.documents.count).to eq(1)
     end
 
+    it "rejects non-camera uploads on a skip-persona case" do
+      kase.update!(document_class: "government_id", skip_persona: true)
+
+      post manual_verification_documents_path, params: {
+        primary_doc: fixture_file_upload_for("doc.pdf"),
+        attested: "1", biometric_consent: "1",
+        legal_name: "Heidi Trashworth", date_of_birth: "2008-04-01",
+        document_type: "passport", issuing_authority: "Romania"
+      }
+      expect(kase.reload).to be_link_sent # pdf blocked — camera JPEG/PNG only
+
+      post manual_verification_documents_path, params: {
+        primary_doc: Rack::Test::UploadedFile.new(StringIO.new("fake jpeg bytes"), "image/jpeg", original_filename: "document-capture.jpg"),
+        attested: "1", biometric_consent: "1",
+        legal_name: "Heidi Trashworth", date_of_birth: "2008-04-01",
+        document_type: "passport", issuing_authority: "Romania"
+      }
+      expect(kase.reload).to be_docs_submitted
+    end
+
+    it "keeps skip-persona cases away from the persona capture flow" do
+      kase.update!(document_class: "government_id", skip_persona: true)
+
+      get manual_verification_capture_path
+      expect(response).to redirect_to(manual_verification_path)
+      expect(kase.reload.persona_inquiry_id).to be_nil
+    end
+
     it "gates the booking link behind the recording acknowledgment" do
       kase.update!(document_class: "government_id", status: :docs_submitted)
       allow(ENV).to receive(:[]).and_call_original

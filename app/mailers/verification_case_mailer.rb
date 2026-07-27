@@ -29,4 +29,18 @@ class VerificationCaseMailer < ApplicationMailer
       subject: prefixed_subject("Your verification call is booked")
     )
   end
+
+  def call_cancelled(verification_case)
+    @case = verification_case
+    @identity = verification_case.identity
+    @first_name = @identity.first_name
+    @link = manual_verification_url
+    @env_prefix = env_prefix
+    @preview_text = "Your verification call was cancelled — pick a new time"
+
+    mail(
+      to: @identity.primary_email,
+      subject: prefixed_subject("Your verification call was cancelled")
+    )
+  end
 end

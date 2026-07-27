@@ -225,6 +225,7 @@ Rails.application.routes.draw do
     resources :verification_cases, only: [ :index, :show, :create ] do
       member do
         post :resend_link
+        post :comment
         patch :hold_call
         patch :escalate
         patch :decide

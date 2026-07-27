@@ -27,7 +27,7 @@ module Backend
 
       @events = @case.events.recent_first.includes(:actor)
       @documents = @case.documents
-      @auto_escalation_reasons = @case.auto_escalation_reasons
+      @comments = @case.comments.chronological.includes(author: :identity)
     end
 
     # staff entry point: user emailed identity@, staff opens a case.
@@ -42,12 +42,16 @@ module Backend
         redirect_to backend_identity_path(identity) and return
       end
 
-      @case = VerificationCase.create!(identity: identity, opened_by: current_user)
+      @case = VerificationCase.create!(
+        identity: identity,
+        opened_by: current_user,
+        skip_persona: params[:skip_persona] == "1"
+      )
       @case.enable_flag!
       deliver_link!
 
-      @case.log_event!(:case_opened, actor: current_user, request: request)
-      Slack::VerificationCaseThreadJob.perform_later(@case, "case opened by #{current_user.identity&.first_name || 'staff'} for #{identity.public_id}")
+      @case.log_event!(:case_opened, actor: current_user, request: request,
+        data: { skip_persona: @case.skip_persona? })
 
       flash[:success] = "Case opened and link sent to #{identity.primary_email}"
       redirect_to backend_verification_case_path(@case)
@@ -68,7 +72,6 @@ module Backend
 
       @case.hold_call!
       @case.log_event!(:call_held, actor: current_user, request: request)
-      Slack::VerificationCaseThreadJob.perform_later(@case, "call held by #{current_user.identity&.first_name || 'staff'}")
 
       flash[:success] = "Call marked as held — record the decision below"
       redirect_to backend_verification_case_path(@case)
@@ -85,9 +88,16 @@ module Backend
       @case.escalate!
       @case.log_event!(:escalated, actor: current_user, request: request,
         data: { reason: params[:escalation_reason] })
-      Slack::VerificationCaseThreadJob.perform_later(@case, ":rotating_light: escalated — #{params[:escalation_reason]}")
 
       flash[:success] = "Case escalated for a second reviewer"
+      redirect_to backend_verification_case_path(@case)
+    end
+
+    def comment
+      authorize @case
+
+      @case.comments.create!(author: current_user, body: params[:body])
+
       redirect_to backend_verification_case_path(@case)
     end
 
@@ -97,16 +107,6 @@ module Backend
       decision = params[:decision]
       unless %w[approve deny].include?(decision)
         flash[:error] = "Decision must be approve or deny"
-        redirect_to backend_verification_case_path(@case) and return
-      end
-
-      # hard auto-escalation rules bypass reviewer discretion entirely
-      if decision == "approve" && !@case.escalated? && @case.auto_escalation_required?
-        @case.escalate!
-        @case.log_event!(:auto_escalated, actor: current_user, request: request,
-          data: { reasons: @case.auto_escalation_reasons })
-        Slack::VerificationCaseThreadJob.perform_later(@case, ":rotating_light: auto-escalated: #{@case.auto_escalation_reasons.join(', ')}")
-        flash[:warning] = "Approval blocked by auto-escalation rules (#{@case.auto_escalation_reasons.join(', ')}) — a second reviewer must decide"
         redirect_to backend_verification_case_path(@case) and return
       end
 
@@ -129,7 +129,6 @@ module Backend
         data: { verification_id: verification.id, checklist: verification.checklist })
       verification.create_activity(key: "verification.#{decision == 'approve' ? 'approve' : 'reject'}",
         owner: current_user, recipient: @case.identity)
-      Slack::VerificationCaseThreadJob.perform_later(@case, "decision: *#{decision}* by #{current_user.identity&.first_name || 'staff'} (confidence: #{verification.confidence})")
 
       VerificationMailer.approved(verification).deliver_later if decision == "approve"
 
@@ -166,16 +165,19 @@ module Backend
       Verification::ManualVerificationCall::CHECKLIST_ITEMS.each_key do |item|
         checklist[item] = params.dig(:checklist, item) == "yes" if params.dig(:checklist, item).present?
       end
+      # no persona capture on this case (skip-persona or direct upload only) —
+      # there is no selfie to compare, so the item is recorded as n/a
+      checklist["doc_matches_persona_selfie"] = nil if @case.persona_inquiry_id.blank?
       checklist["confidence"] = params[:confidence]
-      checklist["notes"] = params[:notes]
+      checklist["notes"] = params[:notes].presence
 
       Verification::ManualVerificationCall.new(
         identity: @case.identity,
         reviewer: current_user,
-        checklist: checklist.compact,
+        checklist: checklist,
         expires_at: @case.alternative? ? VerificationCase::ALTERNATIVE_DOCS_EXPIRY.from_now : nil,
         escalated_to: @case.escalated? ? current_user : nil,
-        escalation_reason: @case.escalated? ? @case.events.where(key: %w[escalated auto_escalated]).last&.data&.dig("reason") : nil
+        escalation_reason: @case.escalated? ? @case.events.where(key: "escalated").last&.data&.dig("reason") : nil
       )
     end
   end

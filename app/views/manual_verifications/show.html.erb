@@ -139,18 +139,34 @@
       <% if @case.alternative? %>
         <p>A transcript, report card, or letter from your school all work.</p>
       <% end %>
-      <% if @case.capture_template_id.present? %>
+      <% if @case.persona_capture_available? %>
         <p>Scan your document with your camera — this also captures a quick selfie for the call reviewer to compare against.</p>
         <%= link_to "Scan with your camera", manual_verification_capture_path, role: "button", class: "chooser-cta" %>
         <p><small>Camera not working? Upload directly below.</small></p>
+      <% elsif @case.skip_persona? %>
+        <p>Take a photo of your document with your camera. On the call, the reviewer will compare it against you directly.</p>
       <% elsif @case.government_id? %>
         <p>Upload a clear photo or scan of your government document. On the call, the reviewer will compare it against you directly.</p>
       <% end %>
 
       <%= form_with url: manual_verification_documents_path, method: :post, local: true, multipart: true do %>
-        <label>Your document
-          <input type="file" name="primary_doc" accept="image/jpeg,image/png,image/heic,application/pdf" required>
-        </label>
+        <% if @case.skip_persona? %>
+          <div data-camera-capture>
+            <input type="file" name="primary_doc" accept="image/jpeg,image/png" data-camera-input style="display: none;">
+            <video data-camera-video playsinline autoplay muted style="display: none; width: 100%; border-radius: 8px;"></video>
+            <canvas data-camera-canvas style="display: none; width: 100%; border-radius: 8px;"></canvas>
+            <p data-camera-message>Your document photo has to come straight from your camera — there's no file upload on this case.</p>
+            <div class="grid">
+              <button type="button" data-camera-open>Open camera</button>
+              <button type="button" data-camera-take style="display: none;">Take photo</button>
+              <button type="button" data-camera-retake class="secondary" style="display: none;">Retake</button>
+            </div>
+          </div>
+        <% else %>
+          <label>Your document
+            <input type="file" name="primary_doc" accept="image/jpeg,image/png,image/heic,application/pdf" required>
+          </label>
+        <% end %>
 
         <%# prefilled from the account — editable because the document may
             differ from what we have on file, and that difference is exactly
@@ -182,7 +198,11 @@
           I consent to Hack Club collecting a scan of my face geometry from my selfie and comparing it against my document to verify my identity. This biometric data is deleted no later than 90 days after my case is decided.
         </label>
 
-        <button type="submit">Submit documents</button>
+        <% if @case.skip_persona? %>
+          <button type="submit" data-camera-submit disabled>Submit documents</button>
+        <% else %>
+          <button type="submit">Submit documents</button>
+        <% end %>
       <% end %>
     </section>
   <% end %>

@@ -55,4 +55,31 @@ RSpec.describe "Cal.com webhooks", type: :request do
     expect(kase.booking_uid).to eq("bkng_123")
     expect(kase.events.where(key: "call_booked")).to exist
   end
+
+  it "returns a cancelled booking to docs_submitted and emails a rebook nudge" do
+    kase = create(:verification_case, :call_scheduled)
+
+    expect {
+      Calcom::ProcessBookingEventJob.perform_now(
+        event: "BOOKING_CANCELLED",
+        case_id: kase.id,
+        booking_uid: kase.booking_uid,
+        starts_at: nil
+      )
+    }.to have_enqueued_mail(VerificationCaseMailer, :call_cancelled)
+
+    expect(kase.reload).to be_docs_submitted
+    expect(kase.booking_uid).to be_nil
+    expect(kase.call_starts_at).to be_nil
+    expect(kase.events.where(key: "call_cancelled")).to exist
+  end
+
+  it "lets the user book again after a cancellation" do
+    kase = create(:verification_case, :call_scheduled)
+    Calcom::ProcessBookingEventJob.perform_now(event: "BOOKING_CANCELLED", case_id: kase.id, booking_uid: kase.booking_uid, starts_at: nil)
+    Calcom::ProcessBookingEventJob.perform_now(event: "BOOKING_CREATED", case_id: kase.id, booking_uid: "bkng_rebooked", starts_at: 3.days.from_now.iso8601)
+
+    expect(kase.reload).to be_call_scheduled
+    expect(kase.booking_uid).to eq("bkng_rebooked")
+  end
 end

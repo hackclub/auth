@@ -75,27 +75,43 @@ RSpec.describe VerificationCase, type: :model do
     end
   end
 
-  describe "auto-escalation rules" do
-    it "flags young accounts" do
-      kase = create(:verification_case)
-      kase.identity.update_column(:created_at, 2.days.ago)
-      expect(kase.auto_escalation_reasons).to include("account_age_under_minimum")
+  describe "#unschedule_call" do
+    it "returns a cancelled booking to docs_submitted so the user can rebook" do
+      kase = create(:verification_case, :call_scheduled)
+      kase.unschedule_call!
+      expect(kase).to be_docs_submitted
     end
 
-    it "flags prior denied cases" do
-      identity = create(:identity)
-      create(:verification_case, identity: identity, status: :denied)
-      kase = create(:verification_case, identity: identity)
-      identity.update_column(:created_at, 1.year.ago)
-      expect(kase.auto_escalation_reasons).to include("prior_denied_case")
+    it "is not available once the call was held" do
+      kase = create(:verification_case, :call_held)
+      expect { kase.unschedule_call! }.to raise_error(AASM::InvalidTransition)
+    end
+  end
+
+  describe "#persona_capture_available?" do
+    before do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with("PERSONA_MANUAL_CAPTURE_TEMPLATE").and_return("itmpl_test123")
     end
 
-    it "flags geo mismatch from the signal snapshot" do
+    it "is true with a template and no bypass" do
+      expect(build(:verification_case, document_class: "government_id")).to be_persona_capture_available
+    end
+
+    it "is false when the case skips persona" do
+      kase = build(:verification_case, document_class: "government_id", skip_persona: true)
+      expect(kase).not_to be_persona_capture_available
+      expect(kase.generate_capture_inquiry!).to be_nil
+    end
+  end
+
+  describe "comments" do
+    it "belong to a backend author and require a body" do
       kase = create(:verification_case)
-      kase.identity.update_column(:created_at, 1.year.ago)
-      kase.identity.update_column(:country, "US")
-      kase.update!(persona_signal_snapshot: { "network_signals" => { "country_code" => "RO" } })
-      expect(kase.auto_escalation_reasons).to include("geo_mismatch")
+      author = create(:backend_user)
+      comment = kase.comments.create!(author: author, body: "leaning approve, doc looks legit")
+      expect(kase.comments.chronological).to eq([ comment ])
+      expect(kase.comments.build(author: author, body: "")).not_to be_valid
     end
   end
 

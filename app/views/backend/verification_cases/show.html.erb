@@ -5,6 +5,7 @@
     <row gap-="1" align-="center">
       <span is-="badge" variant-="<%= @case.approved? ? 'green' : @case.denied? ? 'red' : @case.escalated? ? 'red' : 'yellow' %>"><%= @case.status.humanize.downcase %></span>
       <% if @case.document_class.present? %><span is-="badge" variant-="background2"><%= @case.document_class.humanize.downcase %></span><% end %>
+      <% if @case.skip_persona? %><span is-="badge" variant-="background2">no persona</span><% end %>
     </row>
   </row>
 
@@ -30,13 +31,6 @@
         <% end %>
       </tbody>
     </table>
-  <% end %>
-
-  <% if @auto_escalation_reasons.any? && @case.open? %>
-    <div box-="round" style="border-color: var(--red); padding: 1ch;">
-      <b style="color: var(--red);">hard auto-escalation triggers:</b>
-      <%= @auto_escalation_reasons.join(", ") %> — approval requires a second reviewer.
-    </div>
   <% end %>
 
   <div is-="separator"></div>
@@ -117,6 +111,8 @@
           <table>
             <tbody>
               <% Verification::ManualVerificationCall::CHECKLIST_ITEMS.each do |key, label| %>
+                <%# no persona capture → no selfie to compare against %>
+                <% next if key == "doc_matches_persona_selfie" && @case.persona_inquiry_id.blank? %>
                 <tr>
                   <td><%= label %></td>
                   <td>
@@ -175,6 +171,31 @@
       <% if @case.verification.expires_at.present? %>
         <span style="color: var(--foreground2);">expires <%= @case.verification.expires_at.to_date %></span>
       <% end %>
+    </row>
+  <% end %>
+
+  <%# === comments === %>
+  <div is-="separator"></div>
+  <span style="color: var(--foreground2); font-style: italic;">comments</span>
+  <% if @comments.any? %>
+    <column gap-="1">
+      <% @comments.each do |comment| %>
+        <column gap-="0">
+          <row gap-="1">
+            <b><%= comment.author.identity&.first_name || "staff" %></b>
+            <span style="color: var(--foreground2);"><%= comment.created_at.strftime("%b %-d, %H:%M") %></span>
+          </row>
+          <span style="white-space: pre-wrap;"><%= comment.body %></span>
+        </column>
+      <% end %>
+    </column>
+  <% else %>
+    <span style="color: var(--foreground2);">no comments yet</span>
+  <% end %>
+  <%= form_with url: comment_backend_verification_case_path(@case), method: :post, local: true do %>
+    <row gap-="1" align-="center">
+      <textarea name="body" rows="2" placeholder="leave a note for other reviewers" required style="flex: 1;"></textarea>
+      <button type="submit" is-="button" size-="small">comment</button>
     </row>
   <% end %>
 

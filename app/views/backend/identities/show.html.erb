@@ -264,6 +264,9 @@
       <% if policy(VerificationCase).create? && !@identity.verification_cases.open_cases.exists? %>
         <%= form_with url: backend_verification_cases_path, method: :post, local: true, style: "display:inline" do %>
           <input type="hidden" name="identity_id" value="<%= @identity.public_id %>">
+          <label style="font-size: 0.85em; color: var(--foreground2);" title="for users who refuse persona — document capture happens via their camera on our page instead">
+            <input type="checkbox" name="skip_persona" value="1"> skip persona
+          </label>
           <button type="submit" is-="button" size-="small" onclick="return confirm('Open a manual verification call case and email a single-use link to <%= @identity.primary_email %>?')">+ manual call case</button>
         <% end %>
       <% end %>
