@@ -86,7 +86,23 @@
     </section>
 
   <% when "needs_submission" %>
-    <% if @identity.needs_resubmission? %>
+    <% if @identity.persona_verification_locked? %>
+      <section class="section-card verification-needs-action">
+        <div class="status-indicator">
+          <span class="status-badge none"><%= t(".badges.locked") %></span>
+          <h3><%= t(".needs_submission.locked.title") %></h3>
+          <p><%= t(".needs_submission.locked.subtitle") %></p>
+        </div>
+
+        <div class="status-content">
+          <p><%= t(".needs_submission.locked.contact_html") %></p>
+        </div>
+
+        <div class="status-actions">
+          <%= link_to t(".ineligible.back_to_home"), root_path, class: "secondary", role: "button" %>
+        </div>
+      </section>
+    <% elsif @identity.needs_resubmission? %>
       <section class="section-card verification-needs-action">
         <div class="status-indicator">
           <span class="status-badge rejected"><%= t(".badges.needs_resubmission") %></span>

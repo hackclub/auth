@@ -272,6 +272,25 @@ module Backend
       redirect_to backend_identity_path(@identity)
     end
 
+    def reset_persona_attempts
+      authorize @identity
+
+      rejected_persona = @identity.verifications.not_ignored.rejected
+        .where(type: %w[Verification::PersonaVerification Verification::PersonaStudentIdVerification])
+
+      count = rejected_persona.count
+      rejected_persona.update_all(ignored_at: Time.current, ignored_reason: "persona attempts reset")
+
+      @identity.create_activity(
+        :reset_persona_attempts,
+        owner: current_user,
+        parameters: { ignored_count: count }
+      )
+
+      flash[:notice] = "Reset persona attempts for #{@identity.first_name} (#{count} #{'verification'.pluralize(count)} ignored)."
+      redirect_to backend_identity_path(@identity)
+    end
+
     private
 
     def set_identity

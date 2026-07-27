@@ -12,20 +12,20 @@ class Rack::Attack
   end
 
   throttle("email_verify/attempt", limit: 10, period: 5.minutes) do |req|
-    if req.path.match?(%r{^/login/(.+)/verify$}) && req.post?
-      $1
+    if req.post? && (m = req.path.match(%r{^/login/(.+)/verify$}))
+      m[1]
     end
   end
 
   throttle("totp_login/attempt", limit: 5, period: 5.minutes) do |req|
-    if req.path.match?(%r{^/login/(.+)/totp$}) && req.post?
-      $1
+    if req.post? && (m = req.path.match(%r{^/login/(.+)/totp$}))
+      m[1]
     end
   end
 
   throttle("backup_code_login/attempt", limit: 5, period: 5.minutes) do |req|
-    if req.path.match?(%r{^/login/(.+)/backup_code$}) && req.post?
-      $1
+    if req.post? && (m = req.path.match(%r{^/login/(.+)/backup_code$}))
+      m[1]
     end
   end
 

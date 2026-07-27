@@ -15,7 +15,12 @@ class Portal::VerificationsController < Portal::BaseController
       redirect_to_portal_return(status: :pending)
     when "ineligible"
       redirect_to_portal_return(status: :ineligible)
-    else
+    when "needs_submission"
+      if @identity.persona_verification_locked?
+        redirect_to_portal_return(status: :locked)
+        return
+      end
+
       case @identity.required_verification_method
       when :persona
         if @identity.persona_student_id_eligible?
@@ -68,6 +73,11 @@ class Portal::VerificationsController < Portal::BaseController
       return
     end
 
+    if @identity.persona_verification_locked?
+      redirect_to_portal_return(status: :locked)
+      return
+    end
+
     unless @identity.required_verification_method == :persona
       redirect_to portal_verify_document_path
       return
@@ -89,6 +99,11 @@ class Portal::VerificationsController < Portal::BaseController
       return
     when "pending"
       redirect_to_portal_return(status: :pending)
+      return
+    end
+
+    if @identity.persona_verification_locked?
+      redirect_to_portal_return(status: :locked)
       return
     end
 

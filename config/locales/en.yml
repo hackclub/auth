@@ -700,6 +700,7 @@ en:
         not_eligible: Not eligible
         needs_resubmission: Needs resubmission
         not_started: Not started
+        locked: Needs assistance
       pending_document:
         title: We're checking your documents
         subtitle: You'll hear from us in 1–2 business days
@@ -738,6 +739,10 @@ en:
         contact: Questions? Email identity@hackclub.com
         back_to_home: Back to Home
       needs_submission:
+        locked:
+          title: Let's get you verified
+          subtitle: "You've used your available verification attempts, but don't worry — we can help"
+          contact_html: "Email us at <a href=\"mailto:identity@hackclub.com\">identity@hackclub.com</a> and we'll get you sorted out."
         resubmission:
           title: Please resubmit your documents
           subtitle: We found some issues with your previous submission that you can fix

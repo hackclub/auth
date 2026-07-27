@@ -14,6 +14,11 @@ class VerificationsController < ApplicationController
       return
     end
 
+    if current_identity.persona_verification_locked?
+      redirect_to verification_status_path
+      return
+    end
+
     case current_identity.required_verification_method
     when :persona
       if current_identity.persona_student_id_eligible?
@@ -56,6 +61,11 @@ class VerificationsController < ApplicationController
       return
     end
 
+    if @identity.persona_verification_locked?
+      redirect_to verification_status_path
+      return
+    end
+
     unless @identity.required_verification_method == :persona
       redirect_to verification_step_path(:document)
       return
@@ -74,6 +84,11 @@ class VerificationsController < ApplicationController
 
     status = @identity.verification_status
     if verification_should_redirect?(status)
+      redirect_to verification_status_path
+      return
+    end
+
+    if @identity.persona_verification_locked?
       redirect_to verification_status_path
       return
     end

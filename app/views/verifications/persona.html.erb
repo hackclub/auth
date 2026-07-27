@@ -1,5 +1,5 @@
 <% @student_id_flow = @verification.is_a?(Verification::PersonaStudentIdVerification) %>
-<% sid = ->(key, **opts) { t("verifications.student_id.#{key}", default: t(".#{key}", **opts), **opts) } %>
+<% sid = ->(key, **opts) { t("verifications.student_id.#{key}", default: :"verifications.persona.#{key}", **opts) } %>
 
 <div class="page-header-centered">
   <h1><%= t(".title") %></h1>

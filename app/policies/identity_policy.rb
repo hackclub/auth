@@ -12,6 +12,7 @@ class IdentityPolicy < ApplicationPolicy
 
   def simulate_onboarding? = user&.super_admin?
   def flip? = user&.super_admin?
+  alias_method :reset_persona_attempts?, :simulate_onboarding?
 
   class Scope < ApplicationPolicy::Scope
     def resolve

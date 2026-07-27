@@ -88,4 +88,50 @@ RSpec.describe Identity, type: :model do
       expect(other).not_to be_valid
     end
   end
+
+  describe "#persona_verification_locked?" do
+    before { Flipper.enable(:persona_verification_2026_04_09, identity) }
+    after { Flipper.disable(:persona_verification_2026_04_09) }
+
+    # Use bare attributes instead of :rejected trait to avoid persona_record
+    # inquiry_id mismatch validation — we only need the status for counting.
+    let(:rejected_attrs) { { status: :rejected, rejection_reason: "info_mismatch" } }
+
+    it "returns false with no rejected verifications" do
+      expect(identity.persona_verification_locked?).to be false
+    end
+
+    it "returns false with fewer rejected than the limit" do
+      create_list(:persona_verification, 2, identity: identity, **rejected_attrs)
+      expect(identity.persona_verification_locked?).to be false
+    end
+
+    it "returns true when rejected count hits the limit" do
+      create_list(:persona_verification, Identity::MAX_PERSONA_ATTEMPTS, identity: identity, **rejected_attrs)
+      expect(identity.persona_verification_locked?).to be true
+    end
+
+    it "counts student ID verifications toward the limit" do
+      create_list(:persona_verification, 2, identity: identity, **rejected_attrs)
+      create(:persona_verification, identity: identity, type: "Verification::PersonaStudentIdVerification", **rejected_attrs)
+      expect(identity.persona_verification_locked?).to be true
+    end
+
+    it "does not count ignored verifications" do
+      create_list(:persona_verification, Identity::MAX_PERSONA_ATTEMPTS, identity: identity,
+        **rejected_attrs, ignored_at: Time.current, ignored_reason: "persona attempts reset")
+      expect(identity.persona_verification_locked?).to be false
+    end
+
+    it "does not count draft or pending verifications" do
+      create_list(:persona_verification, 3, identity: identity, status: :draft)
+      expect(identity.persona_verification_locked?).to be false
+    end
+
+    it "returns false when verification method is not persona" do
+      Flipper.disable(:persona_verification_2026_04_09, identity)
+      create_list(:persona_verification, Identity::MAX_PERSONA_ATTEMPTS, identity: identity, **rejected_attrs)
+      expect(identity.persona_verification_locked?).to be false
+    end
+  end
 end
