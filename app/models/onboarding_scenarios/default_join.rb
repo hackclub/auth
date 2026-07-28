@@ -23,7 +23,7 @@ module OnboardingScenarios
           channels
         end
 
-        def promotion_channels = Rails.configuration.slack_channels.slice(:announcements, :happenings, :community, :hardware, :code, :ship, :neighbourhood, :library, :lounge, :help).values
+        def promotion_channels = Rails.configuration.slack_channels.slice(:announcements, :lounge, :help, :news_wire, :slack_guide).values
 
         def send_ephemeral_in_channel? = true
 
