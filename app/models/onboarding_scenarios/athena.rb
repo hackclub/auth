@@ -7,7 +7,7 @@ module OnboardingScenarios
     def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
     def slack_onboarding_flow = :internal_tutorial
-    def slack_channels = chans(:athena_initative, :welcome_to_athena, :athena_announcements)
+    def slack_channels = chans(:athena_initiative, :welcome_to_athena, :athena_announcements)
 
     def next_action = :slack
 
