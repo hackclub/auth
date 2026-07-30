@@ -1,0 +1,26 @@
+<% content_for :title, t("accounts.saml_title", service: @sp_config[:friendly_name]) %>
+<div class="auth-container">
+  <div class="auth-brand">
+    <%= vite_image_tag "images/hc-square.png", alt: "Hack Club logo", class: "brand-logo" %>
+    <span class="brand-text"><%= t("brand") %></span>
+  </div>
+
+  <div class="auth-card">
+    <header>
+      <h1><%= t("accounts.saml_title", service: @sp_config[:friendly_name]) %></h1>
+      <small><%= t("accounts.saml_subtitle") %></small>
+    </header>
+
+    <%# Posts straight back to this endpoint: an IdP-initiated flow has no GET to
+        park and replay, so the choice travels with the resubmission. %>
+    <%= render "browser_accounts/account_list",
+          accounts: @accounts,
+          submit_url: idp_initiated_saml_path(slug: params[:slug]),
+          field_name: :selected_account,
+          preselect_public_id: @preselect_public_id %>
+
+    <p>
+      <small><%= t("accounts.saml_eligibility_note") %></small>
+    </p>
+  </div>
+</div>

@@ -1,0 +1,4 @@
+<%# Never names the account switched away from — see _account_added. %>
+<%= render Components::PublicActivity::Snippet.new(activity, owner: activity.trackable&.identity) do %>
+  became the active account in this browser.
+<% end %>

@@ -26,17 +26,31 @@ Doorkeeper::OpenidConnect.configure do
   end
 
   auth_time_from_resource_owner do |resource_owner|
-    session = resource_owner.sessions.not_expired.order(created_at: :desc).first
-    return nil unless session
+    session = Current.identity_session
+    next nil unless session
 
     [ session.created_at, session.last_step_up_at ].compact.max
   end
 
   reauthenticate_resource_owner do |resource_owner, return_to|
-    session = resource_owner.sessions.not_expired.order(created_at: :desc).first
-    return if session&.last_step_up_at&.after?(60.seconds.ago)
+    session = Current.identity_session
+    next if session&.last_step_up_at&.after?(60.seconds.ago)
 
     redirect_to new_step_up_path(action_type: "oidc_reauth", return_to: return_to)
+  end
+
+  # The gem's default for this hook raises, which is why prompt=select_account
+  # used to be a hard error. OidcAccountSelection has normally decided long before
+  # we get here; this is the backstop for anything it didn't resolve. It parks the
+  # request the same way the concern does, because /accounts speaks pending
+  # handles, not return_to — a return_to would be silently dropped and the
+  # authorization request lost.
+  select_account_for_resource_owner do |_resource_owner, _return_to|
+    next unless respond_to?(:park_oidc_request_and_choose, true)
+    next unless account_chooser_available?
+    next unless current_browser_session&.account_count.to_i > 1
+
+    park_oidc_request_and_choose
   end
 
   subject { |ident, _application| ident.public_id }

@@ -1,0 +1,36 @@
+<% content_for :title, t("accounts.title") %>
+<div class="auth-container">
+  <div class="auth-brand">
+    <%= vite_image_tag "images/hc-square.png", alt: "Hack Club logo", class: "brand-logo" %>
+    <span class="brand-text"><%= t("brand") %></span>
+  </div>
+
+  <div class="auth-card">
+    <header>
+      <h1><%= t("accounts.title") %></h1>
+      <small><%= t("accounts.subtitle") %></small>
+    </header>
+
+    <%= render "browser_accounts/account_list",
+          accounts: @accounts,
+          submit_url: switch_browser_account_path,
+          hidden_params: { pending: @pending_token }.compact_blank,
+          removable: true,
+          preselect_public_id: @preselect_public_id %>
+
+    <% if @at_account_limit %>
+      <%= render Components::Banner.new(kind: :warning) do %>
+        <%= t("accounts.limit_reached", max: BrowserSession::MAX_ACCOUNTS) %>
+      <% end %>
+    <% else %>
+      <%= button_to t("accounts.use_another"),
+            add_browser_account_path(pending: @pending_token),
+            method: :post,
+            class: "secondary" %>
+    <% end %>
+
+    <div style="margin-top: 1.5rem;">
+      <%= button_to t("accounts.sign_out_all"), logout_all_path, method: :delete, class: "secondary delete" %>
+    </div>
+  </div>
+</div>

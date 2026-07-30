@@ -26,8 +26,35 @@ RSpec.describe "doorkeeper/authorizations/new", type: :view do
   before do
     assign(:pre_auth, pre_auth)
     allow(view).to receive(:current_identity).and_return(identity)
+    # The account being authorized, which OidcAccountSelection supplies in the
+    # real controller. With several accounts in a browser it can differ from
+    # current_identity, and the view must describe this one.
+    allow(view).to receive(:authorizing_identity).and_return(identity)
+    allow(view).to receive(:account_chooser_available?).and_return(false)
     allow(Program).to receive(:find_by).and_return(program)
     allow(view).to receive(:oauth_authorization_path).and_return("/oauth/authorize")
+  end
+
+  # The email in the permissions rows is scope data; the one in the header names
+  # the account being handed over. They're different claims about different things.
+  def permissions_section
+    rendered[/<ul class="permissions-list">.*?<\/ul>/m].to_s
+  end
+
+  describe "the account being authorized" do
+    it "always names the account, even for openid-only scope" do
+      allow(pre_auth).to receive(:scopes).and_return(Doorkeeper::OAuth::Scopes.from_string("openid"))
+      render
+
+      expect(rendered).to include(I18n.t("accounts.signing_in_as"))
+      expect(rendered).to include(identity.primary_email)
+    end
+
+    it "labels a Hack Club address as such" do
+      render
+
+      expect(rendered).to include(I18n.t("accounts.kind.hack_club"))
+    end
   end
 
   describe "scope display" do
@@ -67,14 +94,16 @@ RSpec.describe "doorkeeper/authorizations/new", type: :view do
     it "deduplicates when email and basic_info are both requested" do
       allow(pre_auth).to receive(:scopes).and_return(Doorkeeper::OAuth::Scopes.from_string("email basic_info"))
       render
-      expect(rendered.scan(identity.primary_email).count).to eq(1)
+      # Scoped to the permissions list: the email also appears in the
+      # "signing in as" header, which is deliberate and always shown.
+      expect(permissions_section.scan(identity.primary_email).count).to eq(1)
     end
 
     it "shows nothing for openid-only scope" do
       allow(pre_auth).to receive(:scopes).and_return(Doorkeeper::OAuth::Scopes.from_string("openid"))
       render
-      expect(rendered).not_to include(identity.primary_email)
-      expect(rendered).not_to include(identity.first_name)
+      expect(permissions_section).not_to include(identity.primary_email)
+      expect(permissions_section).not_to include(identity.first_name)
     end
 
     it "falls back to i18n for unknown scopes" do

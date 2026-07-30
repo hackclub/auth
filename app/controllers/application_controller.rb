@@ -9,6 +9,7 @@ class ApplicationController < ActionController::Base
 
   helper_method :detected_country_alpha2
 
+  prepend_before_action :set_current_identity_session
   before_action :invalidate_v1_sessions, :authenticate_identity!, :set_honeybadger_context
 
   before_action :set_paper_trail_whodunnit
@@ -35,6 +36,11 @@ class ApplicationController < ActionController::Base
   def authenticate_identity!
     unless identity_signed_in?
       return if controller_name == "onboardings"
+
+      # The active account can expire while its siblings are still live. We never
+      # promote one silently, so send the user to pick instead of showing a login
+      # screen that makes it look like the whole browser was signed out.
+      return redirect_to browser_accounts_path if other_live_accounts_in_browser?
 
       if request.xhr?
         redirect_to welcome_path
@@ -110,5 +116,23 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def touch_session_last_seen_at = current_session&.touch_last_seen_at
+  def set_current_identity_session
+    # ||= so an explicit account selection made by an earlier prepended callback
+    # survives — see OidcAccountSelection. That selection, not the browser's
+    # active account, is what auth_time/amr/acr must describe.
+    Current.identity_session ||= current_session
+  end
+
+  # Gated on the same flag check /accounts itself uses, so with the flag off both
+  # answer false and there is nothing to bounce between.
+  def other_live_accounts_in_browser?
+    return false unless account_chooser_available?
+
+    current_browser_session&.live_identity_sessions&.exists? || false
+  end
+
+  def touch_session_last_seen_at
+    current_session&.touch_last_seen_at
+    current_browser_session&.touch_last_seen_at
+  end
 end

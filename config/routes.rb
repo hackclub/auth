@@ -162,7 +162,9 @@ class SuperAdminConstraint
     session_token = request.cookie_jar.encrypted[:session_token]
     return false unless session_token
 
-    session = IdentitySession.not_expired.find_by(session_token: session_token)
+    # Read-only: the cookie now names a BrowserSession, and a routing constraint
+    # is no place to adopt legacy sessions.
+    session = SessionResolver.identity_session(session_token)
     return false unless session&.identity
 
     session.identity.backend_user&.super_admin?
@@ -318,6 +320,15 @@ Rails.application.routes.draw do
   post "/login/:id/webauthn/skip", to: "logins#skip_webauthn", as: :skip_webauthn_login_attempt
 
   delete "/logout", to: "sessions#logout", as: :logout
+  delete "/logout/all", to: "sessions#logout_all", as: :logout_all
+
+  # Accounts signed into this browser. The chooser, plus switching, adding and
+  # removing accounts.
+  get "/accounts", to: "browser_accounts#index", as: :browser_accounts
+  post "/accounts/switch", to: "browser_accounts#switch", as: :switch_browser_account
+  post "/accounts/add", to: "browser_accounts#add", as: :add_browser_account
+  delete "/accounts/:id", to: "browser_accounts#destroy", as: :browser_account
+  get "/accounts/resume", to: "browser_accounts#resume", as: :resume_browser_account
 
   get "/verifications/new", to: "verifications#new", as: :new_verifications
   get "/verifications/status", to: "verifications#status", as: :verification_status

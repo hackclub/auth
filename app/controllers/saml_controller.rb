@@ -1,5 +1,6 @@
 class SAMLController < ApplicationController
   include SAMLHelper
+  include SAMLAccountSelection
 
   layout "logged_out", only: [ :welcome ]
 
@@ -20,7 +21,6 @@ class SAMLController < ApplicationController
     end
 
     return unless ensure_sp_configured!(slug: params[:slug])
-    return unless check_allowed_emails!
 
     unless @sp_config[:allow_idp_initiated]
       @error = "This SP is not configured for IdP-initiated authentication"
@@ -31,7 +31,23 @@ class SAMLController < ApplicationController
       redirect_to saml_welcome_path(return_to: request.fullpath) and return
     end
 
-    if params[:slug] == "slack" && current_identity.disallow_slack
+    # IdP-initiated has no SP request to correlate against, so it always asks when
+    # this browser holds more than one eligible account.
+    return unless resolve_saml_account_from_params!(entity_id: @sp_config[:entity_id])
+
+    if @saml_selected_identity.nil?
+      eligible_accounts = eligible_saml_accounts
+
+      if eligible_accounts.one?
+        @saml_selected_identity = eligible_accounts.first.identity
+      elsif eligible_accounts.many?
+        render_saml_inline_chooser(entity_id: @sp_config[:entity_id], accounts: eligible_accounts) and return
+      end
+    end
+
+    return unless check_allowed_emails!
+
+    if params[:slug] == "slack" && saml_identity.disallow_slack
       @error = "Unable to log in right now"
       render :error, status: :forbidden and return
     end
@@ -41,16 +57,16 @@ class SAMLController < ApplicationController
     # Try to assign to Slack workspace if not yet done
     if params[:slug] == "slack"
       provision_slack_via_scim_if_needed
-      try_assign_to_slack_workspace unless current_identity.is_in_workspace
+      try_assign_to_slack_workspace unless saml_identity.is_in_workspace
     end
 
     response = build_saml_response(
-      identity: current_identity,
+      identity: saml_identity,
       sp_config: @sp_config,
       in_response_to: nil
     )
 
-    render_saml_response(saml_response: response, sp_config: @sp_config)
+    render_saml_response(saml_response: response, sp_config: @sp_config, identity: saml_identity)
   end
 
   def sp_initiated_get
@@ -63,9 +79,13 @@ class SAMLController < ApplicationController
       redirect_to saml_welcome_path(return_to: request.fullpath) and return
     end
 
+    # Selection runs before check_replay! — the request may be parked and replayed
+    # after the chooser, and marking it as seen first would break that.
+    return unless resolve_saml_account!(entity_id: @sp_config[:entity_id])
+
     return unless check_allowed_emails!
 
-    if @sp_config[:slug] == "slack" && current_identity.disallow_slack
+    if @sp_config[:slug] == "slack" && saml_identity.disallow_slack
       @error = "Unable to log in right now"
       render :error, status: :forbidden and return
     end
@@ -76,13 +96,19 @@ class SAMLController < ApplicationController
     # back to this same URL after login
     return unless check_replay!
 
+    current_browser_session&.remember_selection!(
+      kind: SAMLAccountSelection::CLIENT_KIND,
+      ref: @sp_config[:entity_id],
+      identity: saml_identity
+    )
+
     response = build_saml_response(
-      identity: current_identity,
+      identity: saml_identity,
       sp_config: @sp_config,
       in_response_to: @authn_request
     )
 
-    render_saml_response(saml_response: response, sp_config: @sp_config)
+    render_saml_response(saml_response: response, sp_config: @sp_config, identity: saml_identity)
 
   rescue SAML2::MissingMessage
     # hotfix for zach email
@@ -116,26 +142,26 @@ class SAMLController < ApplicationController
   private
 
   def provision_slack_via_scim_if_needed
-    return if current_identity.slack_id.present?
+    return if saml_identity.slack_id.present?
 
-    scenario = current_identity.onboarding_scenario_instance
+    scenario = saml_identity.onboarding_scenario_instance
 
     slack_result = SCIMService.find_or_create_user(
-      identity: current_identity,
+      identity: saml_identity,
       scenario: scenario
     )
 
     if slack_result[:success]
-      current_identity.update(slack_id: slack_result[:slack_id])
-      Rails.logger.info "Slack provisioning successful via SCIM for #{current_identity.id}: #{slack_result[:message]}"
+      saml_identity.update(slack_id: slack_result[:slack_id])
+      Rails.logger.info "Slack provisioning successful via SCIM for #{saml_identity.id}: #{slack_result[:message]}"
     else
-      Rails.logger.error "Slack provisioning failed via SCIM for #{current_identity.id}: #{slack_result[:error]}"
+      Rails.logger.error "Slack provisioning failed via SCIM for #{saml_identity.id}: #{slack_result[:error]}"
       Sentry.capture_message(
         "Slack provisioning failed via SCIM",
         level: :error,
         extra: {
-          identity_public_id: current_identity.public_id,
-          identity_email: current_identity.primary_email,
+          identity_public_id: saml_identity.public_id,
+          identity_email: saml_identity.primary_email,
           slack_error: slack_result[:error]
         }
       )
@@ -144,20 +170,20 @@ class SAMLController < ApplicationController
   end
 
   def try_assign_to_slack_workspace
-    return unless current_identity.slack_id.present?
+    return unless saml_identity.slack_id.present?
 
-    case SlackService.user_workspace_status(user_id: current_identity.slack_id)
+    case SlackService.user_workspace_status(user_id: saml_identity.slack_id)
     when :in_workspace
-      current_identity.update(is_in_workspace: true) unless current_identity.is_in_workspace
+      saml_identity.update(is_in_workspace: true) unless saml_identity.is_in_workspace
     when :not_in_workspace
-      scenario = current_identity.onboarding_scenario_instance
+      scenario = saml_identity.onboarding_scenario_instance
       return unless scenario.slack_channels.any?
 
       AssignSlackWorkspaceJob.perform_later(
-        slack_id: current_identity.slack_id,
+        slack_id: saml_identity.slack_id,
         user_type: scenario.slack_user_type,
         channel_ids: scenario.slack_channels,
-        identity_id: current_identity.id
+        identity_id: saml_identity.id
       )
     end
   end
@@ -296,9 +322,9 @@ class SAMLController < ApplicationController
 
   def check_allowed_emails!
     return true unless @sp_config[:allowed_emails].present?
-    return true unless current_identity
+    return true unless saml_identity
 
-    unless @sp_config[:allowed_emails].include?(current_identity.primary_email)
+    unless @sp_config[:allowed_emails].include?(saml_identity.primary_email)
       @error = "You are not authorized to access this service"
       render :error, status: :forbidden and return false
     end

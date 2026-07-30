@@ -1,5 +1,6 @@
 <% content_for :title, t(".title") %>
-<% unless current_identity.saml_debug? %>
+<% saml_debug = (@saml_identity || current_identity)&.saml_debug? %>
+<% unless saml_debug %>
   <% content_for :head do %>
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", () => {
@@ -16,7 +17,7 @@
   message = Base64.encode64(message.to_s) unless message.is_a?(String)
 %>
 
-<% if current_identity.saml_debug? %>
+<% if saml_debug %>
   we're about to assert to <code><%= target %></code> that...<br>
   <% if @saml_request %>
     SAMLRequest: <pre><%= pretty_xml(Base64.decode64(@saml_request)) rescue @saml_request %></pre> <br>

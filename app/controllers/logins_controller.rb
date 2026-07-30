@@ -292,6 +292,12 @@ class LoginsController < ApplicationController
     end
 
     def handle_post_verification_redirect
+        # /accounts/add checks the cap before sending anyone to the login form, but
+        # that check and this one are separate requests. Check again here, and
+        # rescue below for the case where a concurrent login takes the last slot
+        # in between — sign_in raises rather than evicting anyone.
+        return account_limit_reached if browser_account_limit_reached?
+
         # Only create session if authentication requirements are met
         LoginAttempt.transaction do
             @attempt.lock!
@@ -336,6 +342,24 @@ class LoginsController < ApplicationController
           redirect_to root_path
         end
         end
+    rescue SessionsHelper::AccountLimitError
+        # Lost a race with another tab after the pre-check above.
+        account_limit_reached
+    end
+
+    # Reauthenticating an account that is already here replaces its session rather
+    # than adding one, so it is never blocked by the cap.
+    def browser_account_limit_reached?
+        browser_session = current_browser_session
+        return false if browser_session.nil? || browser_session.expired?
+        return false if browser_session.identity_session_for(@identity).present?
+
+        browser_session.at_account_limit?
+    end
+
+    def account_limit_reached
+        flash[:error] = I18n.t("accounts.limit_error", max: BrowserSession::MAX_ACCOUNTS)
+        redirect_to browser_accounts_path
     end
 
     def provision_slack_on_first_login(scenario)

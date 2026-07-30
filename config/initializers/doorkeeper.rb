@@ -19,7 +19,14 @@ Doorkeeper.configure do
 
   # This block will be called to check whether the resource owner is authenticated or not.
   resource_owner_authenticator do
-    if current_identity
+    # OidcAccountSelection resolves which of the browser's accounts this request
+    # is for; without it (or outside the authorize endpoint) fall back to the
+    # active account.
+    selected = respond_to?(:oidc_selected_identity, true) ? oidc_selected_identity : nil
+
+    if selected
+      selected
+    elsif current_identity
       current_identity
     else
       redirect_to "/oauth/welcome?return_to=#{CGI.escape(request.fullpath)}"
@@ -496,6 +503,25 @@ Doorkeeper.configure do
       )
     end
   rescue StandardError => e
+  end
+
+  # Remember which account this browser used for this client, so coming back to
+  # the same tool doesn't re-prompt. A convenience only — never consulted ahead
+  # of prompt=select_account or an explicit hint.
+  after_successful_authorization do |controller, _context|
+    # Also fires on the token endpoint, whose controller is a metal controller with
+    # no cookies and no session helpers. Nothing to remember there.
+    next unless controller.respond_to?(:current_browser_session, true)
+
+    browser_session = controller.send(:current_browser_session)
+    identity = Current.identity_session&.identity
+    client_id = controller.params[:client_id]
+
+    if browser_session && identity && client_id.present?
+      browser_session.remember_selection!(kind: "oidc", ref: client_id, identity: identity)
+    end
+  rescue StandardError => e
+    Rails.logger.warn("Failed to remember account selection: #{e.class}: #{e.message}")
   end
 
   # Under some circumstances you might want to have applications auto-approved,
