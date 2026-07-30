@@ -13,13 +13,12 @@ module OnboardingScenarios
 
     def logo_path = "images/athena/athenaLogo.png"
     def background_path = "images/athena/bg-img.png"
+    def dark_mode_background_path = "images/athena/bg-img.png"
+
     def dialogue_flow
       [
         intro: [ template: "tutorial/athena/intro", next: nil ]
         ]
     end
-    
-    def dark_mode_background_path = "images/athena/bg-img.png"
   end
 end
-      
