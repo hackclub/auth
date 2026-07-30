@@ -104,6 +104,9 @@ COPY --from=build /usr/local/bin/heif-* /usr/local/bin/
 COPY --from=build /usr/local/include/libheif /usr/local/include/libheif
 RUN ldconfig
 
+# Restrictive ImageMagick policy: only allow JPEG, PNG, HEIC, WEBP, PDF
+COPY config/imagemagick-policy.xml /etc/ImageMagick-6/policy.xml
+
 # Run and own only the runtime files as a non-root users for security
 RUN groupadd --system --gid 1000 rails && \
     useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
