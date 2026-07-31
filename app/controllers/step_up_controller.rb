@@ -104,8 +104,7 @@ class StepUpController < ApplicationController
     when :email
       login_code = current_identity.v2_login_codes.active.find_by(code: code.delete("-").strip)
       if login_code
-        login_code.update!(used_at: Time.current)
-        true
+        Identity::V2LoginCode.where(id: login_code.id, used_at: nil).update_all(used_at: Time.current) == 1
       else
         false
       end
@@ -189,7 +188,7 @@ class StepUpController < ApplicationController
   end
 
   def send_step_up_email_code
-    login_code = current_identity.v2_login_codes.create!
+    login_code = Identity::V2LoginCode.generate(current_identity)
     IdentityMailer.v2_login_code(login_code).deliver_later
   end
 

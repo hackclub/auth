@@ -134,7 +134,7 @@ class IdentitiesController < ApplicationController
                 expires: LoginAttempt::EXPIRATION.from_now
             }
 
-            login_code = Identity::V2LoginCode.create!(identity: @identity)
+            login_code = Identity::V2LoginCode.generate(@identity)
             if defined?(IdentityMailer)
                 IdentityMailer.v2_login_code(login_code).deliver_later
             end
