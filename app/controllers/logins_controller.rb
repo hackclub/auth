@@ -73,7 +73,7 @@ class LoginsController < ApplicationController
         flash.clear
 
         code = params[:code].to_s.strip.gsub(/[^0-9]/, "")
-        login_code = Identity::V2LoginCode.active.find_by(identity: @identity, code: code)
+        login_code = Identity::V2LoginCode.active.where(purpose: "login").find_by(identity: @identity, code: code)
 
         unless login_code
             track_event("login.code_failed", reason: "invalid", scenario: analytics_scenario_from_return_to(@attempt.return_to))
