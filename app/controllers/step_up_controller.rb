@@ -4,10 +4,13 @@ class StepUpController < ApplicationController
   helper_method :step_up_cancel_path
 
   WEBAUTHN_SESSION_KEY = :step_up_webauthn_challenge
+  VALID_ACTIONS = %w[remove_totp disable_2fa oidc_reauth email_change remove_passkey].freeze
   ACTIONS_WITHOUT_EMAIL_FALLBACK = %w[email_change disable_2fa remove_passkey].freeze
 
+  before_action :validate_action_type, except: [:webauthn_options]
+
   def new
-    @action = params[:action_type] # e.g., "remove_totp", "disable_2fa", "oidc_reauth", "email_change"
+    @action = params[:action_type]
     @return_to = params[:return_to]
     @available_methods = current_identity.available_step_up_methods
     @available_methods << :email unless @action.in?(ACTIONS_WITHOUT_EMAIL_FALLBACK)
@@ -203,6 +206,13 @@ class StepUpController < ApplicationController
     else
       security_path
     end
+  end
+
+  def validate_action_type
+    return if params[:action_type].in?(VALID_ACTIONS)
+
+    flash[:error] = "Invalid action"
+    redirect_to security_path
   end
 
   def safe_internal_redirect(return_to)
