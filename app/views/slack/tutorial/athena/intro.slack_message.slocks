@@ -1,0 +1,9 @@
+chan_welcome = Rails.configuration.slack_channels[:welcome_to_athena]
+
+section <<~TEXT, markdown: true
+  Welcome to the Athena Initiative! 
+
+  Send a message in <##{chan_welcome}> introducing yourself and why you joined, we'd love to hear from you :)
+
+  We take our <https://hackclub.com/conduct|Code of Conduct> seriously - please give it a read.
+TEXT
