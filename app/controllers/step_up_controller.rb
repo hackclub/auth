@@ -104,7 +104,11 @@ class StepUpController < ApplicationController
     when :email
       login_code = current_identity.v2_login_codes.active.where(purpose: "step_up").find_by(code: code.delete("-").strip)
       if login_code
-        Identity::V2LoginCode.where(id: login_code.id, used_at: nil).update_all(used_at: Time.current) == 1
+        Identity::V2LoginCode.where(id: login_code.id, used_at: nil).update_all(
+          used_at: Time.current,
+          ip_address: request.remote_ip.to_s,
+          user_agent: request.user_agent
+        ) == 1
       else
         false
       end
