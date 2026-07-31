@@ -122,7 +122,7 @@ class StepUpController < ApplicationController
   end
 
   def resend_email
-    if params[:action_type] == "email_change"
+    if params[:action_type].in?(ACTIONS_WITHOUT_EMAIL_FALLBACK)
       flash[:error] = "Email verification is not available for this action"
       redirect_to new_step_up_path(action_type: params[:action_type], return_to: params[:return_to])
       return
