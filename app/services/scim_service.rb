@@ -97,7 +97,7 @@ module SCIMService
       response = nil
 
       loop do
-        Rails.logger.info "Creating Slack user with payload: #{user_payload.inspect}"
+        Rails.logger.info "Creating Slack user for identity #{identity.public_id} with username #{username}"
         response = client.post("Users", user_payload)
 
         if response.success?
