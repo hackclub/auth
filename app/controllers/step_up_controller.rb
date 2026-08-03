@@ -4,8 +4,8 @@ class StepUpController < ApplicationController
   helper_method :step_up_cancel_path
 
   WEBAUTHN_SESSION_KEY = :step_up_webauthn_challenge
-  VALID_ACTIONS = %w[remove_totp disable_2fa oidc_reauth email_change remove_passkey].freeze
-  ACTIONS_WITHOUT_EMAIL_FALLBACK = %w[email_change disable_2fa remove_passkey].freeze
+  VALID_ACTIONS = %w[remove_totp disable_2fa oidc_reauth email_change remove_passkey add_passkey regenerate_backup_codes add_totp].freeze
+  ACTIONS_WITHOUT_EMAIL_FALLBACK = %w[email_change disable_2fa remove_passkey add_passkey regenerate_backup_codes].freeze
 
   before_action :validate_action_type, except: [:webauthn_options]
 
@@ -188,6 +188,10 @@ class StepUpController < ApplicationController
       else
         redirect_to security_path
       end
+
+    when "add_passkey", "regenerate_backup_codes", "add_totp"
+      safe_path = safe_internal_redirect(return_to)
+      redirect_to safe_path || security_path
 
     else
       redirect_to security_path, alert: "Unknown action"

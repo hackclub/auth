@@ -1,6 +1,8 @@
 class IdentityWebauthnCredentialsController < ApplicationController
   include WebauthnAuthenticatable
 
+  before_action -> { require_step_up("add_passkey", return_to: security_path) }, only: [:new, :options, :create]
+
   def index
     @webauthn_credentials = current_identity.webauthn_credentials.order(created_at: :desc)
     render layout: request.headers["HX-Request"] ? "htmx" : false
