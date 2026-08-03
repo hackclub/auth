@@ -35,6 +35,18 @@ class Rack::Attack
     end
   end
 
+  throttle("step_up_generate/ip", limit: 5, period: 15.minutes) do |req|
+    if req.post? && req.path.match?(%r{^/step_up/(send_email_code|resend_email)$})
+      req.ip
+    end
+  end
+
+  throttle("step_up_verify/ip", limit: 10, period: 5.minutes) do |req|
+    if req.post? && req.path.match?(%r{^/step_up/(verify|webauthn/verify)$})
+      req.ip
+    end
+  end
+
   throttle("email_change/ip", limit: 3, period: 1.hour) do |req|
     if req.path == "/email_changes" && req.post?
       req.ip
