@@ -5,7 +5,7 @@ class StepUpController < ApplicationController
 
   WEBAUTHN_SESSION_KEY = :step_up_webauthn_challenge
   VALID_ACTIONS = %w[remove_totp disable_2fa oidc_reauth email_change remove_passkey add_passkey regenerate_backup_codes add_totp].freeze
-  ACTIONS_WITHOUT_EMAIL_FALLBACK = %w[email_change disable_2fa remove_passkey add_passkey regenerate_backup_codes].freeze
+  ACTIONS_WITHOUT_EMAIL_FALLBACK = %w[email_change disable_2fa remove_passkey].freeze
 
   before_action :validate_action_type, except: [:webauthn_options]
 

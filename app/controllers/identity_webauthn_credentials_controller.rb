@@ -55,6 +55,7 @@ class IdentityWebauthnCredentialsController < ApplicationController
         sign_count: webauthn_credential.sign_count
       )
 
+      TwoFactorMailer.authentication_method_enabled(current_identity).deliver_later
       flash[:success] = t(".successfully_added")
       redirect_to security_path
     rescue WebAuthn::Error => e
