@@ -71,6 +71,10 @@ class Rack::Attack
     end
   end
 
+  throttle("global/ip", limit: 1000, period: 1.hour) do |req|
+    req.ip unless req.path.start_with?("/api/", "/oauth/")
+  end
+
   self.throttled_responder = lambda do |env|
     headers = {
       "Content-Type" => "text/html",
