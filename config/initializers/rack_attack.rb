@@ -29,6 +29,12 @@ class Rack::Attack
     end
   end
 
+  throttle("login_email_trigger/attempt", limit: 3, period: 15.minutes) do |req|
+    if req.post? && (m = req.path.match(%r{^/login/(.+)/(resend|webauthn/skip)$}))
+      m[1]
+    end
+  end
+
   throttle("login_verify/ip", limit: 20, period: 5.minutes) do |req|
     if req.path.match?(%r{^/login/.+/(verify|totp|backup_code)$}) && req.post?
       req.ip
