@@ -47,6 +47,12 @@ class Rack::Attack
     end
   end
 
+  throttle("signup/ip", limit: 5, period: 15.minutes) do |req|
+    if req.post? && (req.path == "/signup" || req.path == "/migrate" || req.path == "/slack" || req.path.match?(%r{^/join/}))
+      req.ip
+    end
+  end
+
   throttle("email_change/ip", limit: 3, period: 1.hour) do |req|
     if req.path == "/email_changes" && req.post?
       req.ip
