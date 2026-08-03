@@ -130,7 +130,15 @@ class Identity::EmailChangeRequest < ApplicationRecord
       return unless pending?
       return if completed?
 
+      identity.reload
+      unless identity.primary_email == old_email
+        update!(cancelled_at: Time.current)
+        return
+      end
+
       identity.update!(primary_email: new_email)
+      identity.sessions.not_expired.update_all(signed_out_at: Time.current, expires_at: Time.current)
+      identity.all_access_tokens.where(revoked_at: nil).update_all(revoked_at: Time.current)
       update!(completed_at: Time.current)
       identity.create_activity :email_changed,
         owner: identity,
