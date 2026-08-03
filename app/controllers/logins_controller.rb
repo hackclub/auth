@@ -54,8 +54,12 @@ class LoginsController < ApplicationController
             track_event("login.code_sent", is_signup: attempt.provenance == "signup", scenario: analytics_scenario_from_return_to(@return_to))
             redirect_to login_attempt_path(id: attempt.to_param), status: :see_other
         end
-    rescue => e
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound => e
         flash[:error] = e.message
+        redirect_to login_path(return_to: @return_to)
+    rescue => e
+        Rails.logger.error "Login create error: #{e.class}: #{e.message}"
+        flash[:error] = "Something went wrong, please try again"
         redirect_to login_path(return_to: @return_to)
     end
 
