@@ -36,7 +36,7 @@
 #  fk_rails_...  (primary_address_id => addresses.id)
 #
 class Identity < ApplicationRecord
-  has_paper_trail
+  has_paper_trail skip: %i[aadhaar_number_ciphertext aadhaar_number_bidx]
   acts_as_paranoid
   include PublicActivity::Model
 
@@ -97,7 +97,7 @@ class Identity < ApplicationRecord
   validate :validate_primary_email, if: -> { new_record? || primary_email_changed? }
   validate :validate_email_not_tombstoned, if: -> { new_record? || primary_email_changed? }
 
-  validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, allow_blank: true
+  validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, format: { with: /\AU[A-Z0-9]+\z/ }, allow_blank: true
   validates :persona_account_id, uniqueness: true, allow_blank: true
   validates :aadhaar_number, uniqueness: true, allow_blank: true
   validates :aadhaar_number, format: { with: /\A\d{12}\z/, message: "must be 12 digits" }, if: -> { aadhaar_number.present? }
