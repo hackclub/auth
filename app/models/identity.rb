@@ -355,7 +355,7 @@ class Identity < ApplicationRecord
 
   def backup_codes_enabled? = backup_codes.active.any?
 
-  def webauthn_enabled? = webauthn_credentials.any?
+  def webauthn_enabled? = webauthn_credentials.active.any?
 
   # Encode identity ID as base64url for WebAuthn user.id
   # Uses 64-bit unsigned big-endian binary format
@@ -377,7 +377,7 @@ class Identity < ApplicationRecord
   def two_factor_methods
     [
       totps.verified,
-      webauthn_credentials
+      webauthn_credentials.active
       # Future: sms_two_factors.verified,
     ].flatten.compact
   end
