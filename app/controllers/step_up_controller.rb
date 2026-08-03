@@ -10,6 +10,7 @@ class StepUpController < ApplicationController
   before_action :validate_action_type, except: [:webauthn_options]
 
   def new
+    session[:pending_step_up_action] = params[:action_type]
     @action = params[:action_type]
     @return_to = params[:return_to]
     @available_methods = current_identity.available_step_up_methods
@@ -41,7 +42,7 @@ class StepUpController < ApplicationController
       return
     end
 
-    complete_step_up(params[:action_type], params[:return_to])
+    complete_step_up(params[:return_to])
   rescue WebauthnCredentialCompromisedError => e
     Rails.logger.warn "Step-up blocked: compromised credential detected for identity #{current_identity.id}"
     flash[:error] = "Security issue detected with your passkey. It has been disabled for your protection. Please use another verification method or register a new passkey."
@@ -125,7 +126,7 @@ class StepUpController < ApplicationController
       return
     end
 
-    complete_step_up(action_type, params[:return_to])
+    complete_step_up(params[:return_to])
   end
 
   def resend_email
@@ -147,7 +148,13 @@ class StepUpController < ApplicationController
 
   private
 
-  def complete_step_up(action_type, return_to)
+  def complete_step_up(return_to)
+    action_type = session.delete(:pending_step_up_action)
+    unless action_type&.in?(VALID_ACTIONS)
+      redirect_to security_path, alert: "Invalid action"
+      return
+    end
+
     current_session.record_step_up!(action: action_type)
 
     case action_type
@@ -183,6 +190,13 @@ class StepUpController < ApplicationController
       credential = current_identity.webauthn_credentials.find_by(id: credential_id) if credential_id
       if credential
         credential.destroy
+        TwoFactorMailer.authentication_method_disabled(current_identity).deliver_later
+
+        if current_identity.two_factor_methods.empty?
+          current_identity.update!(use_two_factor_authentication: false)
+          current_identity.backup_codes.active.each(&:mark_discarded!)
+        end
+
         consume_step_up!
         redirect_to security_path, notice: t("identity_webauthn_credentials.successfully_removed")
       else
