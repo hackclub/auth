@@ -27,13 +27,6 @@ module SessionsHelper
       secure: Rails.env.production?,
       same_site: :lax
     }
-    cookies.encrypted[:signed_user] = {
-      value: identity.signed_id(expires_in: 2.months, purpose: :remember_me),
-      expires: 2.months.from_now,
-      httponly: true,
-      secure: Rails.env.production?,
-      same_site: :lax
-    }
     ident_session = identity.sessions.build(
       session_token:,
       fingerprint: fingerprint_info[:fingerprint],
@@ -89,6 +82,7 @@ module SessionsHelper
     end
 
     cookies.delete(:session_token)
+    cookies.delete(:signed_user)
     self.current_identity = nil
 
     reset_session
