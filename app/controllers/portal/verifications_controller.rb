@@ -71,6 +71,9 @@ class Portal::VerificationsController < Portal::BaseController
     when "pending"
       redirect_to_portal_return(status: :pending)
       return
+    when "ineligible"
+      redirect_to_portal_return(status: :ineligible)
+      return
     end
 
     if @identity.persona_verification_locked?
@@ -99,6 +102,9 @@ class Portal::VerificationsController < Portal::BaseController
       return
     when "pending"
       redirect_to_portal_return(status: :pending)
+      return
+    when "ineligible"
+      redirect_to_portal_return(status: :ineligible)
       return
     end
 
