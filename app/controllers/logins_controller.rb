@@ -319,7 +319,7 @@ class LoginsController < ApplicationController
         track_event("login.completed", has_mfa: @identity.use_two_factor_authentication?, next_action: @attempt.next_action, scenario: analytics_scenario_from_return_to(@attempt.return_to))
 
         scenario = scenario_for_identity(@identity)
-        if @identity.slack_id.blank? && (scenario.should_create_slack? || @attempt.next_action == "slack")
+        if @identity.slack_id.blank? && !@identity.disallow_slack && (scenario.should_create_slack? || @attempt.next_action == "slack")
             provision_slack_on_first_login(scenario)
         end
 
