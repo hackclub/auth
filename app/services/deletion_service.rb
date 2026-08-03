@@ -79,13 +79,22 @@ module DeletionService
         record.update_columns(
           name_first: "[REDACTED]", name_last: "[REDACTED]",
           birthdate: nil, raw_json_response: nil,
-          behaviors: {}, network_signals: {}, checks: []
+          behaviors: {}, network_signals: {}, checks: [],
+          inquiry_id: "[REDACTED]", expiration_date: nil,
+          country_code: nil, id_class: nil
         )
         persona_count += 1
       end
       Verification.with_deleted.where(identity_id: identity.id)
-        .where.not(persona_session_token: nil)
-        .update_all(persona_session_token: nil)
+        .update_all(
+          persona_session_token: nil,
+          internal_rejection_comment: nil,
+          rejection_reason_details: nil,
+          aadhaar_hc_transaction_id: nil,
+          aadhaar_external_transaction_id: nil,
+          aadhaar_link: nil,
+          persona_inquiry_id: nil
+        )
       log.call "  scrubbed #{addr_count} #{"address".pluralize(addr_count)}, #{aadhaar_count} aadhaar, #{persona_count} persona"
 
       log.call "step 5: destroying resemblances..."
