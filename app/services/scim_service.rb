@@ -244,6 +244,8 @@ module SCIMService
     end
 
     def find_existing_user_by_email(email)
+      return nil if email.include?('"')
+
       response = client.get("Users") do |req|
         req.params["filter"] = "emails eq \"#{email}\""
       end
