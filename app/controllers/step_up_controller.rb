@@ -199,7 +199,7 @@ class StepUpController < ApplicationController
   end
 
   def send_step_up_email_code
-    login_code = Identity::V2LoginCode.generate(current_identity, purpose: "step_up")
+    login_code = Identity::V2LoginCode.generate(current_identity, purpose: "step_up", ip_address: request.remote_ip, user_agent: request.user_agent)
     IdentityMailer.v2_login_code(login_code).deliver_later
   end
 

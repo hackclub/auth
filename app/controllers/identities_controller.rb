@@ -137,7 +137,7 @@ class IdentitiesController < ApplicationController
                 same_site: :lax
             }
 
-            login_code = Identity::V2LoginCode.generate(@identity)
+            login_code = Identity::V2LoginCode.generate(@identity, ip_address: request.remote_ip, user_agent: request.user_agent)
             if defined?(IdentityMailer)
                 IdentityMailer.v2_login_code(login_code).deliver_later
             end
