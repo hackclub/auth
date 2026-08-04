@@ -168,7 +168,11 @@ class LoginsController < ApplicationController
             return
         end
 
-        backup.mark_used!
+        unless Identity::BackupCode.where(id: backup.id, aasm_state: "active").update_all(aasm_state: "used", updated_at: Time.current) == 1
+            flash.now[:error] = "This backup code has already been used"
+            render :backup_code, status: :unprocessable_entity
+            return
+        end
         track_event("mfa.backup_code_used", scenario: analytics_scenario_from_return_to(@attempt.return_to))
 
         factors = (@attempt.authentication_factors || {}).dup
@@ -192,7 +196,7 @@ class LoginsController < ApplicationController
         options = generate_webauthn_authentication_options(
             @identity,
             session_key: WEBAUTHN_SESSION_KEY,
-            user_verification: "preferred"
+            user_verification: "required"
         )
         render json: options
     end
@@ -219,6 +223,10 @@ class LoginsController < ApplicationController
         @attempt.update!(authentication_factors: factors)
 
         handle_post_verification_redirect
+    rescue WebauthnCredentialCompromisedError => e
+        Rails.logger.warn "Login blocked: compromised credential detected for identity #{@identity.id}"
+        flash.now[:error] = "Security issue detected with your passkey. It has been disabled for your protection. Please use another login method or register a new passkey."
+        render :webauthn, status: :unprocessable_entity
     rescue WebAuthn::Error => e
         Rails.logger.error "WebAuthn authentication error: #{e.message}"
         flash.now[:error] = "Passkey verification failed. Please try again or use email code."
