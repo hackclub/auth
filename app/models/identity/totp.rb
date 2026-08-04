@@ -14,7 +14,9 @@ class Identity::TOTP < ApplicationRecord
   end
 
   def verify_code(code, drift_behind: 30, drift_ahead: 30)
-    instance.verify(code, drift_behind: drift_behind, drift_ahead: drift_ahead)
+    ts = instance.verify(code, drift_behind: drift_behind, drift_ahead: drift_ahead, after: last_used_at&.to_i)
+    update_column(:last_used_at, Time.at(ts)) if ts
+    ts
   end
 
   def verify(code, **options)
