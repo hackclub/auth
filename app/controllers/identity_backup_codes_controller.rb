@@ -8,7 +8,8 @@ class IdentityBackupCodesController < ApplicationController
   end
 
   def create
-    # Generate new backup codes in previewed state
+    current_identity.backup_codes.previewed.each(&:mark_discarded!)
+
     codes_to_save = []
     10.times do
       backup_code = SecureRandom.alphanumeric(10).upcase
