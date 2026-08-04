@@ -8,6 +8,7 @@ class StepUpController < ApplicationController
   ACTIONS_WITHOUT_EMAIL_FALLBACK = %w[email_change disable_2fa remove_passkey].freeze
 
   before_action :validate_action_type, except: [:webauthn_options]
+  before_action :require_pending_step_up, only: [:send_email_code, :verify, :resend_email]
 
   def new
     session[:pending_step_up_action] = params[:action_type]
@@ -99,7 +100,7 @@ class StepUpController < ApplicationController
     when :backup_code
       backup = current_identity.backup_codes.active.find { |bc| bc.authenticate_code(code) }
       if backup
-        Identity::BackupCode.where(id: backup.id, aasm_state: "active").update_all(aasm_state: "used", updated_at: Time.current) == 1
+        backup.consume_atomically!
       else
         false
       end
@@ -235,6 +236,11 @@ class StepUpController < ApplicationController
 
     flash[:error] = "Invalid action"
     redirect_to security_path
+  end
+
+  def require_pending_step_up
+    return if session[:pending_step_up_action].present?
+    redirect_to new_step_up_path(action_type: params[:action_type], return_to: params[:return_to])
   end
 
   def safe_internal_redirect(return_to)
