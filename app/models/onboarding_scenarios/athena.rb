@@ -14,8 +14,8 @@ module OnboardingScenarios
     def next_action = :slack
 
     def logo_path = "images/athena/athenaLogo.png"
-    def background_path = "images/athena/bg-img.png"
-    def dark_mode_background_path = "images/athena/bg-img.png"
+    def background_path = "images/athena/bgLight.png"
+    def dark_mode_background_path = "images/athena/bgDark.png"
 
     def first_step = :welcome
 
