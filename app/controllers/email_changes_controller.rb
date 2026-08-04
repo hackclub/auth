@@ -27,26 +27,25 @@ class EmailChangesController < ApplicationController
       return redirect_to new_email_change_path
     end
 
-    existing_pending = current_identity.email_change_requests.pending.first
-    if existing_pending
-      existing_pending.cancel!
-    end
-
     @email_change_request = current_identity.email_change_requests.build(
       new_email: new_email,
       old_email: current_identity.primary_email,
       requested_from_ip: request.remote_ip
     )
 
-    if @email_change_request.save
-      @email_change_request.send_verification_emails!
-      consume_step_up!
-      flash[:success] = t(".success")
-      redirect_to email_change_path(@email_change_request)
-    else
-      flash[:error] = @email_change_request.errors.full_messages.to_sentence
-      redirect_to new_email_change_path
+    ActiveRecord::Base.transaction do
+      existing_pending = current_identity.email_change_requests.pending.first
+      existing_pending&.cancel!
+      @email_change_request.save!
     end
+
+    @email_change_request.send_verification_emails!
+    consume_step_up!
+    flash[:success] = t(".success")
+    redirect_to email_change_path(@email_change_request)
+  rescue ActiveRecord::RecordInvalid
+    flash[:error] = @email_change_request.errors.full_messages.to_sentence
+    redirect_to new_email_change_path
   end
 
   def verify_old
