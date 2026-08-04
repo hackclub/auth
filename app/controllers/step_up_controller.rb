@@ -99,8 +99,7 @@ class StepUpController < ApplicationController
     when :backup_code
       backup = current_identity.backup_codes.active.find { |bc| bc.authenticate_code(code) }
       if backup
-        backup.mark_used!
-        true
+        Identity::BackupCode.where(id: backup.id, aasm_state: "active").update_all(aasm_state: "used", updated_at: Time.current) == 1
       else
         false
       end
@@ -203,7 +202,12 @@ class StepUpController < ApplicationController
         redirect_to security_path
       end
 
-    when "add_passkey", "regenerate_backup_codes", "add_totp"
+    when "regenerate_backup_codes"
+      consume_step_up!
+      safe_path = safe_internal_redirect(return_to)
+      redirect_to safe_path || security_path
+
+    when "add_passkey", "add_totp"
       safe_path = safe_internal_redirect(return_to)
       redirect_to safe_path || security_path
 
