@@ -168,7 +168,7 @@ class LoginsController < ApplicationController
             return
         end
 
-        unless Identity::BackupCode.where(id: backup.id, aasm_state: "active").update_all(aasm_state: "used", updated_at: Time.current) == 1
+        unless backup.consume_atomically!
             flash.now[:error] = "This backup code has already been used"
             render :backup_code, status: :unprocessable_entity
             return
