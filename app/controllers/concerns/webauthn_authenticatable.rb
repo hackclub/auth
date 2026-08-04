@@ -48,13 +48,14 @@ module WebauthnAuthenticatable
         credential
       rescue WebAuthn::SignCountVerificationError => e
         Rails.logger.warn "WebAuthn sign count anomaly detected: credential_id=#{credential.id}, identity_id=#{identity.id}"
+        credential.update_columns(compromised_at: Time.current)
         compromised_credential = credential
         nil
       end
     end
 
     if compromised_credential
-      compromised_credential.mark_as_compromised!
+      Rails.logger.warn "WebAuthn credential marked as compromised: id=#{compromised_credential.id}, identity_id=#{compromised_credential.identity_id}"
       raise WebauthnCredentialCompromisedError.new(compromised_credential)
     end
 
