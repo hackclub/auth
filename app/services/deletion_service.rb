@@ -34,6 +34,8 @@ module DeletionService
     log.call "created: #{identity.created_at.strftime("%Y-%m-%d")}"
     log.call ""
 
+    deferred_attachments = []
+
     ActiveRecord::Base.transaction do
       log.call "step 1: locking account..."
       identity.lock_account! unless identity.locked?
@@ -55,8 +57,8 @@ module DeletionService
       log.call "  destroyed: #{counts.select { |_, v| v > 0 }.map { |k, v| "#{v} #{k}" }.join(", ").presence || "nothing"}"
 
       log.call "step 3: collecting attachment references (purge deferred until after commit)..."
-      @deferred_attachments = collect_attachments(identity)
-      log.call "  found #{@deferred_attachments.size} #{"attachment".pluralize(@deferred_attachments.size)}" if @deferred_attachments.any?
+      deferred_attachments = collect_attachments(identity)
+      log.call "  found #{deferred_attachments.size} #{"attachment".pluralize(deferred_attachments.size)}" if deferred_attachments.any?
       detach_attachments(identity)
 
       log.call "step 4: scrubbing associated record PII..."
@@ -166,9 +168,14 @@ module DeletionService
       )
     end
 
-    if @deferred_attachments&.any?
-      log.call "step 14b: purging #{@deferred_attachments.size} collected attachments from storage..."
-      @deferred_attachments.each { |blob| blob.purge rescue nil }
+    if deferred_attachments.any?
+      log.call "step 14b: purging #{deferred_attachments.size} collected attachments from storage..."
+      deferred_attachments.each do |blob|
+        blob.purge
+      rescue Aws::S3::Errors::ServiceError => e
+        Rails.logger.warn "DeletionService: failed to purge blob #{blob.id}: #{e.message}"
+        blob.destroy
+      end
       log.call "  done"
     end
 
@@ -347,5 +354,6 @@ module DeletionService
   end
 
   private_class_method :collect_version_items, :collect_activity_trackables, :purge_attachments,
-                       :purge_or_detach, :delete_versions, :discard_pending_jobs, :scrub_activities
+                       :purge_or_detach, :delete_versions, :discard_pending_jobs, :scrub_activities,
+                       :collect_attachments, :detach_attachments
 end
