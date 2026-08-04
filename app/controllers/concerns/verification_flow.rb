@@ -191,6 +191,13 @@ module VerificationFlow
     old_first = @identity.legal_first_name
     old_last = @identity.legal_last_name
 
+    name_changed = new_first != old_first || new_last != old_last
+
+    unless name_changed
+      redirect_to redirect_path
+      return
+    end
+
     @identity.update!(legal_first_name: new_first, legal_last_name: new_last)
 
     @identity.create_activity(:legal_name_updated, owner: @identity, recipient: @identity,
