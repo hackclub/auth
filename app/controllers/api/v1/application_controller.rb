@@ -26,7 +26,7 @@ module API
         if current_identity
           @current_token.scopes.include?(scope)
         else
-          identity.access_tokens.to_a.any? { |t| t.application_id == current_program.id && t.scopes.include?(scope) }
+          identity.access_tokens.to_a.any? { |t| t.active? && t.application_id == current_program.id && t.scopes.include?(scope) }
         end
       end
 
