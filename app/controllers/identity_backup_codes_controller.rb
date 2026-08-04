@@ -1,4 +1,6 @@
 class IdentityBackupCodesController < ApplicationController
+  before_action -> { require_step_up("regenerate_backup_codes", return_to: identity_backup_codes_path) }, only: [:create, :confirm]
+
   def index
     @backup_codes = current_identity.backup_codes.active.order(created_at: :desc)
 
@@ -6,7 +8,8 @@ class IdentityBackupCodesController < ApplicationController
   end
 
   def create
-    # Generate new backup codes in previewed state
+    current_identity.backup_codes.previewed.each(&:mark_discarded!)
+
     codes_to_save = []
     10.times do
       backup_code = SecureRandom.alphanumeric(10).upcase

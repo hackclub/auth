@@ -67,8 +67,12 @@ class ProgramPolicy < ApplicationPolicy
 
   def view_api_key? = admin?
 
+  def update_redirect_uri?
+    owner? || admin?
+  end
+
   def rotate_credentials?
-    owner? || admin? || collaborator?
+    owner? || admin?
   end
 
   def revoke_all_authorizations?

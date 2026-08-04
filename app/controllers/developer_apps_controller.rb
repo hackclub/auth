@@ -147,7 +147,11 @@ class DeveloperAppsController < ApplicationController
   end
 
   def app_params_for_identity
-    permitted = [ :name, :redirect_uri, scopes_array: [] ]
+    permitted = [ :name, scopes_array: [] ]
+
+    if @app.nil? || policy(@app).update_redirect_uri?
+      permitted << :redirect_uri
+    end
 
     if policy(@app || Program.new).update_trust_level?
       permitted << :trust_level

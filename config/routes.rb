@@ -165,7 +165,8 @@ class SuperAdminConstraint
     session = IdentitySession.not_expired.find_by(session_token: session_token)
     return false unless session&.identity
 
-    session.identity.backend_user&.super_admin?
+    backend_user = session.identity.backend_user
+    backend_user&.super_admin? && backend_user&.active?
   end
 end
 

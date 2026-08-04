@@ -146,6 +146,7 @@
   </row>
 
   <%# === Feature Flags === %>
+  <% if current_user&.super_admin? || current_user&.manual_document_verifier? %>
   <div is-="separator"></div>
   <details>
     <summary style="color: var(--foreground2); cursor: pointer;">feature flags</summary>
@@ -189,9 +190,10 @@
       <% end %>
     </column>
   </details>
+  <% end %>
 
   <%# === Recent Sessions === %>
-  <% if @sessions.any? %>
+  <% if @sessions.any? && (current_user&.super_admin? || current_user&.manual_document_verifier?) %>
     <div is-="separator"></div>
     <details>
       <summary style="color: var(--foreground2); cursor: pointer;">recent sessions (<%= @active_session_count %> active)
@@ -327,7 +329,7 @@
   <% end %>
 
   <%# === Audit log === %>
-  <% if @activities.any? %>
+  <% if @activities.any? && (current_user&.super_admin? || current_user&.manual_document_verifier?) %>
     <div is-="separator"></div>
     <details>
       <summary style="color: var(--foreground2); cursor: pointer;">audit log (<%= @activities.size %>)</summary>

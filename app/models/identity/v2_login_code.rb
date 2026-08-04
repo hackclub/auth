@@ -8,9 +8,9 @@ class Identity::V2LoginCode < ApplicationRecord
   after_initialize :generate_code
   validates :code, presence: true, uniqueness: { conditions: -> { active } }
 
-  def self.generate(identity, **attrs)
-    identity.v2_login_codes.active.update_all(invalidated_at: Time.current)
-    create!(identity: identity, **attrs)
+  def self.generate(identity, purpose: "login", **attrs)
+    identity.v2_login_codes.active.where(purpose:).update_all(invalidated_at: Time.current)
+    create!(identity:, purpose:, **attrs)
   end
 
   def pretty = code&.scan(/.../)&.join("-")

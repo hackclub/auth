@@ -17,26 +17,29 @@ module WebauthnAuthenticatable
   end
 
   def verify_webauthn_credential(identity, credential_data:, session_key:)
-    webauthn_credential = WebAuthn::Credential.from_get(credential_data)
-
-    # Delete challenge immediately to prevent replay attacks (single-use)
+    # Delete challenge before parsing to prevent reuse on parse failure
     stored_challenge = session.delete(session_key)
     Rails.logger.info "WebAuthn verify: session_key=#{session_key}, challenge_present=#{stored_challenge.present?}"
 
     return nil unless stored_challenge.present?
 
-    Identity::WebauthnCredential.transaction do
+    webauthn_credential = WebAuthn::Credential.from_get(credential_data)
+
+    compromised_credential = nil
+
+    result = Identity::WebauthnCredential.transaction do
       credential = identity.webauthn_credentials.active.lock.find_by(
         external_id: Base64.urlsafe_encode64(webauthn_credential.id, padding: false)
       )
 
-      return nil unless credential
+      next nil unless credential
 
       begin
         webauthn_credential.verify(
           stored_challenge,
           public_key: credential.webauthn_public_key,
-          sign_count: credential.sign_count
+          sign_count: credential.sign_count,
+          user_verification: true
         )
 
         credential.update!(sign_count: webauthn_credential.sign_count)
@@ -45,10 +48,18 @@ module WebauthnAuthenticatable
         credential
       rescue WebAuthn::SignCountVerificationError => e
         Rails.logger.warn "WebAuthn sign count anomaly detected: credential_id=#{credential.id}, identity_id=#{identity.id}"
-        credential.mark_as_compromised!
-        raise WebauthnCredentialCompromisedError.new(credential)
+        credential.update_columns(compromised_at: Time.current)
+        compromised_credential = credential
+        nil
       end
     end
+
+    if compromised_credential
+      Rails.logger.warn "WebAuthn credential marked as compromised: id=#{compromised_credential.id}, identity_id=#{compromised_credential.identity_id}"
+      raise WebauthnCredentialCompromisedError.new(compromised_credential)
+    end
+
+    result
   end
 end
 
