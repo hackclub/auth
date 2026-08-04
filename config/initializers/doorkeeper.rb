@@ -303,7 +303,7 @@ Doorkeeper.configure do
   # #call can be used in order to allow conditional checks (to allow non-SSL
   # redirects to localhost for example).
   #
-  force_ssl_in_redirect_uri { |uri| !%w[localhost 127.0.0.1].include?(uri.host) }
+  force_ssl_in_redirect_uri false
 
   forbid_redirect_uri { |uri| %w[javascript data].include?(uri.scheme.to_s.downcase) }
 
