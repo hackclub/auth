@@ -43,8 +43,9 @@ class EmailChangesController < ApplicationController
     consume_step_up!
     flash[:success] = t(".success")
     redirect_to email_change_path(@email_change_request)
-  rescue ActiveRecord::RecordInvalid
-    flash[:error] = @email_change_request.errors.full_messages.to_sentence
+  rescue ActiveRecord::RecordInvalid => e
+    errors = e.record == @email_change_request ? e.record.errors.full_messages.to_sentence : e.message
+    flash[:error] = errors
     redirect_to new_email_change_path
   end
 
