@@ -71,6 +71,10 @@ class Rack::Attack
     end
   end
 
+  throttle("oauth_token/ip", limit: 20, period: 1.minute) do |req|
+    req.ip if req.path == "/oauth/token" && req.post?
+  end
+
   throttle("global/ip", limit: 1000, period: 1.hour) do |req|
     req.ip unless req.path.start_with?("/api/", "/oauth/")
   end
