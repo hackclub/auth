@@ -9,7 +9,7 @@ module CountryEnumable
 
   included do
     def self.countries_for_select
-      sanctioned = Rails.configuration.sanctioned_countries rescue []
+      sanctioned = Rails.configuration.try(:sanctioned_countries) || []
       countries = self.countries.keys.reject { |c| c.to_s.in?(sanctioned) }.map do |alpha2|
         [ alpha2, ISO3166::Country[alpha2].common_name ]
       end.sort_by { |c| I18n.transliterate(c.last) }
