@@ -54,9 +54,10 @@ module DeletionService
       ].each { |assoc| counts[assoc.klass.name.demodulize.underscore.pluralize.to_sym] = assoc.destroy_all.size }
       log.call "  destroyed: #{counts.select { |_, v| v > 0 }.map { |k, v| "#{v} #{k}" }.join(", ").presence || "nothing"}"
 
-      log.call "step 3: purging document files..."
-      doc_count = purge_attachments(identity)
-      log.call "  purged #{doc_count} #{"attachment".pluralize(doc_count)}" if doc_count > 0
+      log.call "step 3: collecting attachment references (purge deferred until after commit)..."
+      @deferred_attachments = collect_attachments(identity)
+      log.call "  found #{@deferred_attachments.size} #{"attachment".pluralize(@deferred_attachments.size)}" if @deferred_attachments.any?
+      detach_attachments(identity)
 
       log.call "step 4: scrubbing associated record PII..."
       addr_count = 0
@@ -165,6 +166,12 @@ module DeletionService
       )
     end
 
+    if @deferred_attachments&.any?
+      log.call "step 14b: purging #{@deferred_attachments.size} collected attachments from storage..."
+      @deferred_attachments.each { |blob| blob.purge rescue nil }
+      log.call "  done"
+    end
+
     if persona_account_id.present?
       log.call "step 15: redacting persona account #{persona_account_id}..."
       begin
@@ -236,6 +243,26 @@ module DeletionService
     trackables
   end
 
+  def self.collect_attachments(identity)
+    blobs = []
+    identity.documents.with_deleted.each do |doc|
+      doc.files.each { |f| blobs << f.blob if f.attached? }
+    end
+    identity.vouch_verifications.with_deleted.each do |vv|
+      blobs << vv.evidence.blob if vv.evidence.attached?
+    end
+    blobs.compact
+  end
+
+  def self.detach_attachments(identity)
+    identity.documents.with_deleted.each do |doc|
+      doc.files.each { |f| f.detach if f.attached? }
+    end
+    identity.vouch_verifications.with_deleted.each do |vv|
+      vv.evidence.detach if vv.evidence.attached?
+    end
+  end
+
   def self.purge_attachments(identity)
     count = 0
     identity.documents.with_deleted.each do |doc|
@@ -276,8 +303,9 @@ module DeletionService
     return unless defined?(GoodJob::Job)
 
     GoodJob::Job.where(finished_at: nil).where(
-      "serialized_params::text LIKE ? OR serialized_params::text LIKE ?",
-      "%\"identity_id\":#{identity.id}%",
+      "serialized_params::text LIKE ? OR serialized_params::text LIKE ? OR serialized_params::text LIKE ?",
+      "%\"identity_id\": #{identity.id},%",
+      "%\"identity_id\": #{identity.id}}%",
       "%Identity/#{identity.id}\"%"
     ).find_each do |job|
       job.update_columns(finished_at: Time.current, error: "discarded by deletion_request")
