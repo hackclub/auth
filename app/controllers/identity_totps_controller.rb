@@ -1,5 +1,5 @@
 class IdentityTotpsController < ApplicationController
-  before_action -> { require_step_up("add_totp", return_to: security_path) }, only: [:new, :verify]
+  before_action -> { require_step_up("add_totp", return_to: security_path) }, only: [ :new, :verify ]
 
   def index
     @totp = current_identity.totp
