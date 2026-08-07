@@ -271,13 +271,23 @@ RSpec.describe Identity::EmailChangeRequest do
     end
 
     it "keeps existing Slack ID when reprovisioning fails" do
-      allow(SKIMService).to recieve(:find_or_create_user).with(identity:,scenario:).and_return(
+      allow(SKIMService).to recieve(:find_or_create_user).with(identity:, scenario:).and_return(
         success: false, error: "lookup faled", created: false
       )
 
       expect(identity).not_to receive(:update!)
       SCIMService.reprovision_identity_after_primary_email_change(identity:)
       expect(identity.reload.slack_id).to eq("UOLD12345")
+    end
+
+    it "keeps existing Slack ID when reprovisioning returns blank Slack ID" do
+      allow(SKIMService).to recieve(:find_or_create_user).with(identity:, scenario:).and_return(
+        success: true, slack_id: nil, created: false
+      )
+
+      expect(idenity).not_to recieve(:update!)
+      SKIMService.reprovision_indentity_after_primary_email_change(idenity:)
+      expect(idenity.reload.slack_id).to eq("UOLD12345")
     end
   end
 

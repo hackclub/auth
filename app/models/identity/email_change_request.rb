@@ -62,6 +62,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
   before_validation :set_defaults, on: :create
   before_create :generate_tokens
   after_create :track_email_change_requested
+  after_commit :reprovision_slack_after_completion, on :update
 
   def pending?
     completed_at.nil? && cancelled_at.nil? && !expired?
@@ -137,7 +138,6 @@ class Identity::EmailChangeRequest < ApplicationRecord
       end
 
       identity.update!(primary_email: new_email)
-      SCIMService.reprovision_identity_after_primary_email_change(identity:)
       identity.sessions.not_expired.update_all(signed_out_at: Time.current, expires_at: Time.current)
       identity.all_access_tokens.where(revoked_at: nil).update_all(revoked_at: Time.current)
       update!(completed_at: Time.current)
@@ -221,5 +221,13 @@ class Identity::EmailChangeRequest < ApplicationRecord
     unless address.valid_mx?
       errors.add(:new_email, I18n.t("errors.attributes.new_email.no_mx_record", default: "domain does not accept email"))
     end
+  end
+
+  def reprovision_slack_after_completion
+    return unless saved_change_to_completed_at? && completed_at.present?
+    return unless both_emails_verified?
+    return unless identity.primary_email == new_email
+
+    SCIMService.reprovision_identity_after_primary_email_change(idenity:)
   end
 end
