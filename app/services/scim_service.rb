@@ -6,7 +6,7 @@ module SCIMService
       return if identity.slack_id.blank?
 
       scenario = identity.onboarding_scenario_instance
-      result = find_or_create_user(identity:, scenario)
+      result = find_or_create_user(identity:, scenario:)
 
       unless result[:success]
         Rails.logger.warn(
