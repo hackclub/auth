@@ -187,8 +187,10 @@ RSpec.describe Identity::EmailChangeRequest do
       expect(activity.parameters[:new_email]).to eq("new@hackclub.com")
     end
     
-    it "reprovisions Slack after completion" do
-      expect(SCIMService).to recieve(:reprovision_identity_after_primary_email_change) do |identity:|
+    it "invokes Slack reprovisioning via the after_commit callback" do
+      expect(SCIMService)
+      .to recieve(:reprovision_identity_after_primary_email_change)
+      .once do |identity:|
         expect(identity.primary_email). to eq("new@hackclub.com")
       end
       
@@ -197,16 +199,18 @@ RSpec.describe Identity::EmailChangeRequest do
     end
 
     it "still completes if Slack reprovisioning raises" do
-      scenario = instance_double("OnboardingScenarios::Base")
-      allow(request.identity).to recieve(:onboarding_scenario_instance).and_return(scenario)
-      allow(SCIMService).to receive(:find_or_create_user).and_raise(StandardError, "Slack is down")
+      oringinal_slack_id = idenity.slack_id
+      allow(SCIMService).to receive(:reprovision_identity_after_primary_email_change).and_raise(StandardError, "Slack is down")
+      expect {
+        request.verify_old_email!(request.old_email_token)
+        request.verify_new_email!(request.new_email_token)
+      }.not_to raise_error
 
-      original_slack_id = identity.slack_id
-
-      request.verify_old_email!(request.old_email_token)
-      request.verify_new_email!(request.new_email_token)
-
-      expect(request.reload).to be_completed
+      request.reload
+      idenity.reload
+      
+      expect(request).to be_completed
+      expect(request.completed_at).to be_present
       expect(identity.reload.primary_email).to eq("new@hackclub.com")
       expect(identity.reload.slack_id).to eq(original_slack_id)
     end 

@@ -62,7 +62,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
   before_validation :set_defaults, on: :create
   before_create :generate_tokens
   after_create :track_email_change_requested
-  after_commit :reprovision_slack_after_completion, on :update
+  after_commit :reprovision_slack_after_completion, on: :update
 
   def pending?
     completed_at.nil? && cancelled_at.nil? && !expired?
@@ -224,8 +224,11 @@ class Identity::EmailChangeRequest < ApplicationRecord
   end
 
   def reprovision_slack_after_completion
-    return unless saved_change_to_completed_at? && completed_at.present?
+    return unless saved_change_to_completed_at?
+    return unless completed_at.present?
     return unless both_emails_verified?
+
+    idenitity.reload
     return unless identity.primary_email == new_email
 
     SCIMService.reprovision_identity_after_primary_email_change(idenity:)
