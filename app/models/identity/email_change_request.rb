@@ -137,6 +137,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
       end
 
       identity.update!(primary_email: new_email)
+      SCIMService.reprovision_identity_after_primary_email_change(identity:)
       identity.sessions.not_expired.update_all(signed_out_at: Time.current, expires_at: Time.current)
       identity.all_access_tokens.where(revoked_at: nil).update_all(revoked_at: Time.current)
       update!(completed_at: Time.current)
