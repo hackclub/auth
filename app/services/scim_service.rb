@@ -2,6 +2,51 @@ module SCIMService
   class << self
     SCIM_BASE_URL = "https://api.slack.com/scim/v2"
 
+    def reprovision_identityafter_primary_email_change(identity:)
+      return if identity.slack_id.blank?
+
+      scenario = identity.onboarding_scenario_instance
+      result = find_or_create_user(identity:, scenario)
+
+      unless result[:success]
+        Rails.logger.warn(
+          "Slack reprovision after email change failed for identity 
+          #{indentity.public_id}: #{result[:error]}"
+        )
+        return
+      end
+
+      new_slack_id = result[:slack_id]
+      current_slack_id = indentity.slack_id
+
+      if new_slack_id == current_slack_id
+        Rails.logger.info(
+          "Slack reprovision after email change kept existing Slack ID for identity
+          #{indentity.public_id}: #{current_slack_id}"
+        )
+        return
+      end
+
+      indentity.update!(slack_id: new_slack_id)
+      Rails.logger.info(
+        "Slack Reprovision after email change updated Slack ID for indentity
+        #{indentity.public_id}: #{current_slack_id} -> #{new_slack_id}"
+      )
+      identity.create_activity :slack_account_linked,
+        owner: identity,
+        recipient: identity,
+        parameters: { slack_id: new_slack_id}
+    rescue => e
+      Rails.logger.error("Error reprovisoning Slack ID after email change: #{e.message}")
+      Sentry.capture_exeption(e,
+      tags: {component: "slack", operation: "scim_reprovision_after_email_change"},
+      extra: {
+        identity_public_id: identity.public_id,
+        identity_email: identity.primary_email,
+        current_slack_id: identity.slack_id
+      })
+    end
+
     def find_or_create_user(identity:, scenario:)
       if Rails.env.staging?
         Rails.logger.info "Skipping Slack provisioning in staging for #{identity.primary_email}"
