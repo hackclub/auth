@@ -44,7 +44,7 @@ module SCIMService
     rescue => e
       Rails.logger.error("Error reprovisioning Slack ID after email change: #{e.message}")
       Sentry.capture_exception(e,
-      tags: { component: "slack", operation: "scim_reprovision_after_email_change"},
+      tags: { component: "slack", operation: "scim_reprovision_after_email_change" },
       extra: {
         identity_public_id: identity.public_id,
         identity_email: identity.primary_email,
