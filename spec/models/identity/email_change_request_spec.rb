@@ -189,7 +189,7 @@ RSpec.describe Identity::EmailChangeRequest do
     
     it "invokes Slack reprovisioning via the after_commit callback" do
       expect(SCIMService)
-      .to recieve(:reprovision_identity_after_primary_email_change)
+      .to receive(:reprovision_identity_after_primary_email_change)
       .once do |identity:|
         expect(identity.primary_email). to eq("new@hackclub.com")
       end
@@ -199,7 +199,7 @@ RSpec.describe Identity::EmailChangeRequest do
     end
 
     it "still completes if Slack reprovisioning raises" do
-      oringinal_slack_id = idenity.slack_id
+      original_slack_id = identity.slack_id
       allow(SCIMService).to receive(:reprovision_identity_after_primary_email_change).and_raise(StandardError, "Slack is down")
       expect {
         request.verify_old_email!(request.old_email_token)
@@ -207,8 +207,8 @@ RSpec.describe Identity::EmailChangeRequest do
       }.not_to raise_error
 
       request.reload
-      idenity.reload
-      
+      identity.reload
+
       expect(request).to be_completed
       expect(request.completed_at).to be_present
       expect(identity.reload.primary_email).to eq("new@hackclub.com")
@@ -221,29 +221,29 @@ RSpec.describe Identity::EmailChangeRequest do
     let(:identity) {create(:identity, primary_email: "old@hackclub.com", slack_id: "UOLD12345") }
 
     before do
-      allow(identity).to recieve(:onboarding_scenario_instance).and_return(scenario)
+      allow(identity).to receive(:onboarding_scenario_instance).and_return(scenario)
     end
 
     it "keeps existing Slack account when resolved Slack account is the same" do 
-      allow(SCIMService).to recieve(:find_or_create_user).with(identity:, scenario:).and_return(
+      allow(SCIMService).to receive(:find_or_create_user).with(identity:, scenario:).and_return(
         success: true, slack_id: "UOLD12345", created: false
       )
 
-      expect(identity).not_to recieve(:update!)
+      expect(identity).not_to receive(:update!)
       expect {
-        SCIMService.reprovision_identity_after_primary_email_change(idenity:)
+        SCIMService.reprovision_identity_after_primary_email_change(identity:)
       }.not_to change {identity.activities.count}
       expect(identity.reload.slack_id).to eq("UOLD12345")
     end
 
     it "updates to a different existing Slack account when found" do
-      allow(SCIMService).to recieve(:find_or_create_user).with(identity:, scenario:).and_return(
-        sucess: true, slack_id: "UEXISTING9", created: false
+      allow(SCIMService).to receive(:find_or_create_user).with(identity:, scenario:).and_return(
+        success: true, slack_id: "UEXISTING9", created: false
       )
 
       expect {
         SCIMService.reprovision_identity_after_primary_email_change(identity:)
-      }.to change { indentity.reload.slack_id }.from("UOLD12345").to("UXISTING9")
+      }.to change { identity.reload.slack_id }.from("UOLD12345").to("UEXISTING9")
 
       activity = identity.activities.find_by(key: "identity.slack_account_linked")
       expect(activity).to be_present
@@ -251,7 +251,7 @@ RSpec.describe Identity::EmailChangeRequest do
     end
 
     it "updates to a new Slack account when created" do
-      allow(SCIMService).to recieve(:find_or_create_user).with(identity:, scenario:).and_return(
+      allow(SCIMService).to receive(:find_or_create_user).with(identity:, scenario:).and_return(
         success: true, slack_id: "UNEW123456", created: true
       )
 
@@ -259,7 +259,7 @@ RSpec.describe Identity::EmailChangeRequest do
         SCIMService.reprovision_identity_after_primary_email_change(identity:)
       }.to change { identity.reload.slack_id}.from("UOLD12345").to("UNEW123456")
       
-      activity = identity.activate.find_by(key: "identity.slack_account_linked")
+      activity = identity.activities.find_by(key: "identity.slack_account_linked")
       expect(activity).to be_present
       expect(activity.parameters[:slack_id]).to eq("UNEW123456")
     end
@@ -275,7 +275,7 @@ RSpec.describe Identity::EmailChangeRequest do
     end
 
     it "keeps existing Slack ID when reprovisioning fails" do
-      allow(SKIMService).to recieve(:find_or_create_user).with(identity:, scenario:).and_return(
+      allow(SCIMService).to receive(:find_or_create_user).with(identity:, scenario:).and_return(
         success: false, error: "lookup faled", created: false
       )
 
@@ -285,13 +285,13 @@ RSpec.describe Identity::EmailChangeRequest do
     end
 
     it "keeps existing Slack ID when reprovisioning returns blank Slack ID" do
-      allow(SKIMService).to recieve(:find_or_create_user).with(identity:, scenario:).and_return(
+      allow(SCIMService).to receive(:find_or_create_user).with(identity:, scenario:).and_return(
         success: true, slack_id: nil, created: false
       )
 
-      expect(idenity).not_to recieve(:update!)
-      SKIMService.reprovision_indentity_after_primary_email_change(idenity:)
-      expect(idenity.reload.slack_id).to eq("UOLD12345")
+      expect(identity).not_to receive(:update!)
+      SCIMService.reprovision_identity_after_primary_email_change(identity:)
+      expect(identity.reload.slack_id).to eq("UOLD12345")
     end
   end
 

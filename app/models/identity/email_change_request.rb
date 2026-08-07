@@ -228,9 +228,9 @@ class Identity::EmailChangeRequest < ApplicationRecord
     return unless completed_at.present?
     return unless both_emails_verified?
 
-    idenitity.reload
+    identity.reload
     return unless identity.primary_email == new_email
 
-    SCIMService.reprovision_identity_after_primary_email_change(idenity:)
+    SCIMService.reprovision_identity_after_primary_email_change(identity:)
   end
 end

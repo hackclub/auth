@@ -2,7 +2,7 @@ module SCIMService
   class << self
     SCIM_BASE_URL = "https://api.slack.com/scim/v2"
 
-    def reprovision_identityafter_primary_email_change(identity:)
+    def reprovision_identity_after_primary_email_change(identity:)
       return if identity.slack_id.blank?
 
       scenario = identity.onboarding_scenario_instance
@@ -11,16 +11,16 @@ module SCIMService
       unless result[:success]
         Rails.logger.warn(
           "Slack reprovision after email change failed for identity 
-          #{indentity.public_id}: #{result[:error]}"
+          #{identity.public_id}: #{result[:error]}"
         )
         return
       end
 
       new_slack_id = result[:slack_id]
-      current_slack_id = indentity.slack_id
+      current_slack_id = identity.slack_id
       if new_slack_id.blank?
         Rails.logger.warn(
-          "Slack reprovision after email change returned blank ID for identity #{idenitity.public_id}"
+          "Slack reprovision after email change returned blank ID for identity #{identity.public_id}"
         )
         return
       end
@@ -28,23 +28,23 @@ module SCIMService
       if new_slack_id == current_slack_id
         Rails.logger.info(
           "Slack reprovision after email change kept existing Slack ID for identity
-          #{indentity.public_id}: #{current_slack_id}"
+          #{identity.public_id}: #{current_slack_id}"
         )
         return
       end
 
-      indentity.update!(slack_id: new_slack_id)
+      identity.update!(slack_id: new_slack_id)
       Rails.logger.info(
-        "Slack Reprovision after email change updated Slack ID for indentity
-        #{indentity.public_id}: #{current_slack_id} -> #{new_slack_id}"
+        "Slack Reprovision after email change updated Slack ID for identity
+        #{identity.public_id}: #{current_slack_id} -> #{new_slack_id}"
       )
       identity.create_activity :slack_account_linked,
         owner: identity,
         recipient: identity,
         parameters: { slack_id: new_slack_id}
     rescue => e
-      Rails.logger.error("Error reprovisoning Slack ID after email change: #{e.message}")
-      Sentry.capture_exeption(e,
+      Rails.logger.error("Error reprovisioning Slack ID after email change: #{e.message}")
+      Sentry.capture_exception(e,
       tags: {component: "slack", operation: "scim_reprovision_after_email_change"},
       extra: {
         identity_public_id: identity.public_id,
