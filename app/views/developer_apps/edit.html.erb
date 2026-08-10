@@ -33,11 +33,13 @@
         <%= f.label :name, t(".app_name") %>
         <%= f.text_field :name, required: true %>
       </div>
-      <div class="field-group">
-        <%= f.label :redirect_uri, t(".redirect_uri") %>
-        <%= f.text_area :redirect_uri, rows: 3, required: true %>
-        <small class="usn"><%= t ".redirect_uri_hint" %></small>
-      </div>
+      <% if policy(@app).update_redirect_uri? %>
+        <div class="field-group">
+          <%= f.label :redirect_uri, t(".redirect_uri") %>
+          <%= f.text_area :redirect_uri, rows: 3, required: true %>
+          <small class="usn"><%= t ".redirect_uri_hint" %></small>
+        </div>
+      <% end %>
     </section>
 
     <%# === Cards 2+3 wrapped in Alpine === %>
