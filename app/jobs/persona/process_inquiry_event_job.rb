@@ -242,7 +242,10 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
   def build_document(type, downloaded)
     doc = Identity::Document.new(identity: @identity, document_type: type)
     downloaded.each do |dl|
-      doc.files.attach(io: StringIO.new(dl[:bytes]), filename: dl[:filename], content_type: "image/jpeg")
+      io = StringIO.new(dl[:bytes])
+      content_type = Marcel::MimeType.for(io, name: dl[:filename])
+      io.rewind
+      doc.files.attach(io: io, filename: dl[:filename], content_type: content_type)
     end
     return nil unless doc.files.any?
     doc.save!

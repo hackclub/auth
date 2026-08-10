@@ -30,4 +30,13 @@ class Identity::BackupCode < ApplicationRecord
       transitions from: :active, to: :discarded
     end
   end
+
+  def consume_atomically!
+    return false unless Identity::BackupCode.where(id: id, aasm_state: "active")
+      .update_all(aasm_state: "used", updated_at: Time.current) == 1
+    reload
+    identity.create_activity :use_backup_code, owner: identity, recipient: identity
+    IdentityBackupCodeMailer.code_used(identity).deliver_later
+    true
+  end
 end

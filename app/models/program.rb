@@ -46,7 +46,7 @@ class Program < ApplicationRecord
     program.collaborator_cancelled
   ].freeze
 
-  has_paper_trail
+  has_paper_trail skip: %i[secret program_key_ciphertext program_key_bidx]
 
   include ::Doorkeeper::Orm::ActiveRecord::Mixins::Application
 

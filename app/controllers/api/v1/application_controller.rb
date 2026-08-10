@@ -26,7 +26,7 @@ module API
         if current_identity
           @current_token.scopes.include?(scope)
         else
-          identity.access_tokens.to_a.any? { |t| t.application_id == current_program.id && t.scopes.include?(scope) }
+          identity.access_tokens.to_a.any? { |t| t.active? && t.application_id == current_program.id && t.scopes.include?(scope) }
         end
       end
 
@@ -44,7 +44,7 @@ module API
           @current_program = @current_token.application
           @current_scopes = @current_token.scopes
           unless @current_program&.active?
-            render json: { error: "invalid_auth" }, status: :unauthorized
+            return render json: { error: "invalid_auth" }, status: :unauthorized
           end
         else
           unless @current_token.hq_official?
