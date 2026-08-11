@@ -1,9 +1,7 @@
 class AddressPolicy < ApplicationPolicy
   include IdentityAware
 
-  def index?
-    true
-  end
+  def index? = true
 
   def show?
     owns? || super_admin?

@@ -69,8 +69,8 @@ RSpec.describe OAuthScope do
     it "returns fields for verification_status scope" do
       fields = described_class.consent_fields_for(%w[verification_status], identity)
       expect(fields).to contain_exactly(
-        a_hash_including(key: :verification_status, value: identity.verification_status),
-        a_hash_including(key: :ysws_eligible, value: "Yes")
+        a_hash_including(key: :verification_status, value: identity.verification_status.humanize),
+        a_hash_including(key: :ysws_eligible, value: "?")
       )
     end
 

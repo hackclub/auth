@@ -21,7 +21,11 @@ module Backend
           # Shortcodes.public_id_prefixes which contains only whitelisted model names
           model_name = prefix_info[:model]
           klass = Object.const_get(model_name)
-          record = klass.find_by_public_id(query)
+          record = if klass == Identity
+            policy_scope(Identity).find_by_public_id(query)
+          else
+            klass.find_by_public_id(query)
+          end
           if record
             results << build_result_for(record, prefix_info)
           end

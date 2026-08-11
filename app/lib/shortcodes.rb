@@ -44,6 +44,11 @@ module Shortcodes
         shortcuts << Shortcode.new(code: "APPS", label: "OAuth2 apps", controller: "developer_apps", action: "index", icon: "⭢", role: :program_manager, path_override: "/developer/apps")
       end
 
+      # Deletions
+      if user&.can_process_deletions?
+        shortcuts << Shortcode.new(code: "DELS", label: "Deletions", controller: "backend/deletions", action: "index", icon: "⭢", role: :super_admin, path_override: nil)
+      end
+
       # Super admin (less frequent)
       if user&.super_admin?
         shortcuts += [

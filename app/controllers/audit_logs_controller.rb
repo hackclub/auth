@@ -3,6 +3,7 @@ class AuditLogsController < ApplicationController
     @activities = PublicActivity::Activity
       .where("(recipient_id = ? AND recipient_type = ?) OR (owner_id = ? AND owner_type = ?)",
              current_identity.id, "Identity", current_identity.id, "Identity")
+      .where.not(key: "identity.flip_feature_flag")
       .order(created_at: :desc)
       .page(params[:page])
       .per(50)

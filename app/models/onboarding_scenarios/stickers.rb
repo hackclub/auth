@@ -4,9 +4,7 @@ module OnboardingScenarios
 
     def title = "Welcome to Stickers"
 
-    def form_fields
-      [ :first_name, :last_name, :primary_email, :birthday, :country ]
-    end
+    def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
     def slack_channels = chans(:stickers, :stickers_bulletin, :stickers_help, :welcome_to_hack_club, :help)
 

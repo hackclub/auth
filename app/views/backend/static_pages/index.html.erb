@@ -1,3 +1,4 @@
+<% content_for :title, "Home" %>
 <column self-="grow" align-="center center">
   <column box-="round" style="width: min(64ch, 100vw - 2ch); --box-border-color: var(--foreground2);">
     <column data-navigable-list>
@@ -22,6 +23,14 @@
         <span style="color: var(--foreground2); padding: 0 1ch;">Document verifier</span>
         <ul>
           <%= render_nav_item pending_backend_verifications_path, "Review pending", "PEND", variant: "yellow" %>
+          <%= render_nav_item backend_persona_dashboard_path, "Persona rollout", "PRSA" %>
+        </ul>
+      <% end %>
+
+      <% if current_user&.can_process_deletions? %>
+        <span style="color: var(--foreground2); padding: 0 1ch;">Deletions</span>
+        <ul>
+          <%= render_nav_item backend_deletions_path, "Manage deletions", "DELS", variant: "red" %>
         </ul>
       <% end %>
 

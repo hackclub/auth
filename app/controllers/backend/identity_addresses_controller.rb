@@ -73,8 +73,6 @@ module Backend
       @address = @identity.addresses.find_by_public_id!(params[:id])
     end
 
-    def address_params
-      params.require(:address).permit(:first_name, :last_name, :line_1, :line_2, :city, :state, :postal_code, :country, :phone_number)
-    end
+    def address_params = params.require(:address).permit(:first_name, :last_name, :line_1, :line_2, :city, :state, :postal_code, :country, :phone_number)
   end
 end

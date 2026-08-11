@@ -13,8 +13,6 @@ module RalseiEngine
         template = scenario.template_for(first_step)
         send_ephemeral_message(identity, template, scenario.ephemeral_channel)
       end
-
-      Tutorial::ScrollUpReminderJob.set(wait: 25.seconds).perform_later(identity)
     end
 
     def handle_tutorial_agree(identity)
@@ -95,7 +93,7 @@ module RalseiEngine
       Rails.logger.info "RalseiEngine: promoted #{identity.public_id}"
     end
 
-    def send_message(identity, template_name)
+    def send_message(identity, template_name, bot_name: nil, bot_icon_url: nil)
       return unless identity.slack_id.present?
 
       channel_id = resolve_channel(identity)
@@ -106,8 +104,8 @@ module RalseiEngine
 
       client.chat_postMessage(
         channel: channel_id,
-        username: scenario&.bot_name || "The Flaming Skull of Welcome",
-        icon_url: scenario&.bot_icon_url || RALSEI_PFP,
+        username: bot_name || scenario&.bot_name || "The Flaming Skull of Welcome",
+        icon_url: bot_icon_url || scenario&.bot_icon_url || RALSEI_PFP,
         **JSON.parse(payload, symbolize_names: true),
         unfurl_links: false,
       )

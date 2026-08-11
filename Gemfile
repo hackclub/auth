@@ -34,6 +34,7 @@ group :development, :test do
 
   # Testing framework
   gem "rspec-rails", "~> 7.1"
+  gem "webmock", "~> 3.24"
 
   gem "faker"
 end
@@ -118,6 +119,7 @@ gem "propshaft", "~> 1.3"
 gem "mini-levenshtein", "~> 0.1.2"
 
 gem "faraday", "~> 2.14"
+gem "faraday-retry", "~> 2.2"
 
 gem "ruby-vips", "~> 2.3"
 

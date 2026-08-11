@@ -1,9 +1,8 @@
 module Backend
   class AuditLogsController < ApplicationController
-    skip_after_action :verify_authorized
-
     hint :back_navigation, on: :index
     def index
+      authorize :audit_log, :index?
       add_breadcrumb "LOGS"
       set_keyboard_shortcut(:back, backend_root_path)
 

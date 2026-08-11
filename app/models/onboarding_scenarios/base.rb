@@ -48,7 +48,7 @@ module OnboardingScenarios
     def slack_channels = []
 
     # Returns array of channel names/IDs to add when promoting guest to full member
-    def promotion_channels = []
+    def promotion_channels = chans(:announcements, :lounge, :help, :news_wire, :slack_guide)
 
     # Returns :internal_tutorial or :external_program
     # Defaults to :internal_tutorial so every scenario gets the Flaming Skull welcome
@@ -111,9 +111,7 @@ module OnboardingScenarios
 
     # Card attributes for auth/onboarding card styling
     # Override per-scenario as needed
-    def card_attributes
-      { wide_logo: false }
-    end
+    def card_attributes = { wide_logo: false }
     def dark_mode_background_path = background_path
 
     # Custom dialogue flow hooks - override in subclasses

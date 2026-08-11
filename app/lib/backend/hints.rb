@@ -52,9 +52,7 @@ module Backend
         end
       end
 
-      def current_hints
-        hints_for_action.filter_map { |slug| Backend::Hints.find(slug) }
-      end
+      def current_hints = hints_for_action.filter_map { |slug| Backend::Hints.find(slug) }
 
       def has_unseen_hints?
         return false unless current_user

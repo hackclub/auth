@@ -54,8 +54,12 @@ class LoginsController < ApplicationController
             track_event("login.code_sent", is_signup: attempt.provenance == "signup", scenario: analytics_scenario_from_return_to(@return_to))
             redirect_to login_attempt_path(id: attempt.to_param), status: :see_other
         end
-    rescue => e
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound => e
         flash[:error] = e.message
+        redirect_to login_path(return_to: @return_to)
+    rescue => e
+        Rails.logger.error "Login create error: #{e.class}: #{e.message}"
+        flash[:error] = "Something went wrong, please try again"
         redirect_to login_path(return_to: @return_to)
     end
 
@@ -73,7 +77,7 @@ class LoginsController < ApplicationController
         flash.clear
 
         code = params[:code].to_s.strip.gsub(/[^0-9]/, "")
-        login_code = Identity::V2LoginCode.active.find_by(identity: @identity, code: code)
+        login_code = Identity::V2LoginCode.active.where(purpose: "login").find_by(identity: @identity, code: code)
 
         unless login_code
             track_event("login.code_failed", reason: "invalid", scenario: analytics_scenario_from_return_to(@attempt.return_to))
@@ -126,7 +130,7 @@ class LoginsController < ApplicationController
 
 
     def totp
-        render status: :unprocessable_entity
+      render status: :unprocessable_entity
     end
 
     def verify_totp
@@ -150,7 +154,7 @@ class LoginsController < ApplicationController
     end
 
     def backup_code
-        render status: :unprocessable_entity
+      render status: :unprocessable_entity
     end
 
     def verify_backup_code
@@ -164,7 +168,11 @@ class LoginsController < ApplicationController
             return
         end
 
-        backup.mark_used!
+        unless backup.consume_atomically!
+            flash.now[:error] = "This backup code has already been used"
+            render :backup_code, status: :unprocessable_entity
+            return
+        end
         track_event("mfa.backup_code_used", scenario: analytics_scenario_from_return_to(@attempt.return_to))
 
         factors = (@attempt.authentication_factors || {}).dup
@@ -175,7 +183,7 @@ class LoginsController < ApplicationController
     end
 
     def webauthn
-        render status: :unprocessable_entity
+      render status: :unprocessable_entity
     end
 
     def skip_webauthn
@@ -188,7 +196,7 @@ class LoginsController < ApplicationController
         options = generate_webauthn_authentication_options(
             @identity,
             session_key: WEBAUTHN_SESSION_KEY,
-            user_verification: "preferred"
+            user_verification: "required"
         )
         render json: options
     end
@@ -215,6 +223,10 @@ class LoginsController < ApplicationController
         @attempt.update!(authentication_factors: factors)
 
         handle_post_verification_redirect
+    rescue WebauthnCredentialCompromisedError => e
+        Rails.logger.warn "Login blocked: compromised credential detected for identity #{@identity.id}"
+        flash.now[:error] = "Security issue detected with your passkey. It has been disabled for your protection. Please use another login method or register a new passkey."
+        render :webauthn, status: :unprocessable_entity
     rescue WebAuthn::Error => e
         Rails.logger.error "WebAuthn authentication error: #{e.message}"
         flash.now[:error] = "Passkey verification failed. Please try again or use email code."
@@ -231,6 +243,7 @@ class LoginsController < ApplicationController
         @attempt = LoginAttempt.incomplete.active.find_by_hashid!(params[:id])
 
         @identity = @attempt.identity
+        @onboarding_scenario = @identity.onboarding_scenario_instance
     rescue ActiveRecord::RecordNotFound
         flash[:error] = "Invalid login attempt, please start again"
         redirect_to login_path
@@ -286,7 +299,7 @@ class LoginsController < ApplicationController
     end
 
     def send_v2_login_code(identity, attempt = nil)
-        code = Identity::V2LoginCode.create!(identity: identity, ip_address: request.remote_ip, user_agent: request.user_agent)
+        code = Identity::V2LoginCode.generate(identity, ip_address: request.remote_ip, user_agent: request.user_agent)
         IdentityMailer.v2_login_code(code).deliver_later if defined?(IdentityMailer)
     end
 
@@ -314,13 +327,13 @@ class LoginsController < ApplicationController
         track_event("login.completed", has_mfa: @identity.use_two_factor_authentication?, next_action: @attempt.next_action, scenario: analytics_scenario_from_return_to(@attempt.return_to))
 
         scenario = scenario_for_identity(@identity)
-        if @identity.slack_id.blank? && (scenario.should_create_slack? || @attempt.next_action == "slack")
+        if @identity.slack_id.blank? && !@identity.disallow_slack && (scenario.should_create_slack? || @attempt.next_action == "slack")
             provision_slack_on_first_login(scenario)
         end
 
         if @attempt.next_action == "slack"
             return redirect_to slack_staging_path if Rails.env.staging?
-            if Flipper.enabled?(:are_we_enterprise_yet, current_identity)
+            if Flipper.enabled?(:are_we_enterprise_yet_2025_10_21, current_identity)
                 render_saml_response_for("slack")
             else
                 flash[:success] = "Logged in!"
@@ -359,8 +372,9 @@ class LoginsController < ApplicationController
                 )
             end
 
-            if Flipper.enabled?(:are_we_enterprise_yet, current_identity) && scenario.slack_onboarding_flow == :internal_tutorial
+            if Flipper.enabled?(:are_we_enterprise_yet_2025_10_21, current_identity) && scenario.slack_onboarding_flow == :internal_tutorial
                 Tutorial::BeginJob.perform_later(@identity)
+                Tutorial::WelcomeMessageJob.set(wait: 30.minutes).perform_later(@identity)
             end
 
             slack_result

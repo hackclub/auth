@@ -67,25 +67,15 @@ class Identity::EmailChangeRequest < ApplicationRecord
     completed_at.nil? && cancelled_at.nil? && !expired?
   end
 
-  def completed?
-    completed_at.present?
-  end
+  def completed? = completed_at.present?
 
-  def cancelled?
-    cancelled_at.present?
-  end
+  def cancelled? = cancelled_at.present?
 
-  def expired?
-    expires_at < Time.current
-  end
+  def expired? = expires_at < Time.current
 
-  def old_email_verified?
-    old_email_verified_at.present?
-  end
+  def old_email_verified? = old_email_verified_at.present?
 
-  def new_email_verified?
-    new_email_verified_at.present?
-  end
+  def new_email_verified? = new_email_verified_at.present?
 
   def both_emails_verified?
     old_email_verified? && new_email_verified?
@@ -140,7 +130,15 @@ class Identity::EmailChangeRequest < ApplicationRecord
       return unless pending?
       return if completed?
 
+      identity.reload
+      unless identity.primary_email == old_email
+        update!(cancelled_at: Time.current)
+        return
+      end
+
       identity.update!(primary_email: new_email)
+      identity.sessions.not_expired.update_all(signed_out_at: Time.current, expires_at: Time.current)
+      identity.all_access_tokens.where(revoked_at: nil).update_all(revoked_at: Time.current)
       update!(completed_at: Time.current)
       identity.create_activity :email_changed,
         owner: identity,
@@ -175,7 +173,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
 
   def new_email_not_tombstoned
     return unless new_email.present?
-    return unless TombstonedEmail.tombstoned?(new_email)
+    return unless Deletion.email_tombstoned?(new_email)
 
     errors.add(:new_email, "is not available")
   end

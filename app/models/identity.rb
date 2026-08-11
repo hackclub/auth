@@ -36,13 +36,16 @@
 #  fk_rails_...  (primary_address_id => addresses.id)
 #
 class Identity < ApplicationRecord
-  has_paper_trail
+  has_paper_trail skip: %i[aadhaar_number_ciphertext aadhaar_number_bidx]
   acts_as_paranoid
   include PublicActivity::Model
 
   tracked owner: ->(controller, model) { controller&.user_for_public_activity }, only: [ :create, :admin_update ]
 
   include CountryEnumable
+
+  include HasPersonaUrl
+  has_persona_url "accounts", :persona_account_id
 
   include PublicIdentifiable
   set_public_id_prefix "ident"
@@ -60,15 +63,16 @@ class Identity < ApplicationRecord
 
   has_one :backend_user, class_name: "Backend::User", dependent: :destroy
 
-  def active_for_backend?
-    backend_user&.active?
-  end
+  def active_for_backend? = backend_user&.active?
 
   has_many :documents, class_name: "Identity::Document", dependent: :destroy
+  has_many :persona_records, class_name: "Identity::PersonaRecord", dependent: :destroy
   has_many :verifications, class_name: "Verification", dependent: :destroy
   has_many :document_verifications, class_name: "Verification::DocumentVerification", dependent: :destroy
   has_many :aadhaar_verifications, class_name: "Verification::AadhaarVerification", dependent: :destroy
   has_many :vouch_verifications, class_name: "Verification::VouchVerification", dependent: :destroy
+  has_many :persona_verifications, class_name: "Verification::PersonaVerification", dependent: :destroy
+  has_many :persona_student_id_verifications, class_name: "Verification::PersonaStudentIdVerification", dependent: :destroy
   has_many :addresses, class_name: "Address", dependent: :destroy
   belongs_to :primary_address, class_name: "Address", optional: true
 
@@ -76,6 +80,7 @@ class Identity < ApplicationRecord
   has_many :programs, through: :access_tokens, source: :application
 
   has_many :resemblances, class_name: "Identity::Resemblance", dependent: :destroy
+  has_many :tombstone_collisions, class_name: "Identity::TombstoneCollision", dependent: :destroy
   has_many :break_glass_records, as: :break_glassable, dependent: :destroy
 
   has_many :all_access_tokens, class_name: "Doorkeeper::AccessToken", foreign_key: :resource_owner_id, dependent: :destroy
@@ -91,8 +96,10 @@ class Identity < ApplicationRecord
   validates :primary_email, uniqueness: { conditions: -> { where(deleted_at: nil) } }
   validate :validate_primary_email, if: -> { new_record? || primary_email_changed? }
   validate :validate_email_not_tombstoned, if: -> { new_record? || primary_email_changed? }
+  validate :country_not_sanctioned, if: -> { new_record? || country_changed? }
 
-  validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, allow_blank: true
+  validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, format: { with: /\AU[A-Z0-9]+\z/ }, allow_blank: true
+  validates :persona_account_id, uniqueness: true, allow_blank: true
   validates :aadhaar_number, uniqueness: true, allow_blank: true
   validates :aadhaar_number, format: { with: /\A\d{12}\z/, message: "must be 12 digits" }, if: -> { aadhaar_number.present? }
 
@@ -197,15 +204,24 @@ class Identity < ApplicationRecord
     scenario_class.new(self)
   end
 
+  def required_verification_method
+    if Flipper.enabled?(:persona_verification_2026_04_09, self)
+      if country == "IN"
+        return :document unless Flipper.enabled?(:persona_verification_in_india_2026_06_05, self)
+      elsif country == "CN"
+        return :document unless Flipper.enabled?(:persona_verification_in_china_2026_06_08, self)
+      end
+      :persona
+    else
+      :document
+    end
+  end
+
   def onboarding_step
     return :basic_info unless persisted?
 
     unless verifications.where(status: %w[approved pending]).any?
-      if country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self)
-        return :aadhaar
-      else
-        return :document
-      end
+      return required_verification_method
     end
 
     return :address unless primary_address_id.present?
@@ -215,9 +231,18 @@ class Identity < ApplicationRecord
 
   def onboarding_complete? = onboarding_step == :submitted
 
-  def needs_documents? = country != "IN" && onboarding_step == :document
+  def needs_documents? = required_verification_method == :document && onboarding_step == :document
 
-  def needs_aadhaar? = country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self) && onboarding_step == :aadhaar
+  def needs_persona?
+    return false if permabanned
+    return false unless required_verification_method == :persona
+    !verifications.not_ignored.where(status: %w[approved pending]).any?
+  end
+
+  def persona_student_id_eligible?
+    Verification::PersonaStudentIdVerification::STUDENT_ID_COUNTRIES.include?(country) &&
+      required_verification_method == :persona
+  end
 
   def latest_verification = verifications.not_ignored.order(created_at: :desc).first
 
@@ -269,51 +294,53 @@ class Identity < ApplicationRecord
       verifications.not_ignored.retryable_rejections.any?
   end
 
-  def rejected_verifications_for_context
-    verifications.not_ignored.retryable_rejections
+  def rejected_verifications_for_context = verifications.not_ignored.retryable_rejections
+
+  # -- persona attempt cap ------------------------------------------------
+  # each persona inquiry costs real money. cap retries so a single user
+  # can't burn through the budget on expired sessions and bad photos.
+  # admin "unlock" = bulk-ignore the old rejections (resets the count).
+  MAX_PERSONA_ATTEMPTS = 3
+
+  def persona_verification_locked?
+    return false unless required_verification_method == :persona
+    consumed_persona_attempts >= MAX_PERSONA_ATTEMPTS
+  end
+
+  def consumed_persona_attempts
+    verifications.not_ignored.rejected
+      .where(type: %w[Verification::PersonaVerification Verification::PersonaStudentIdVerification])
+      .count
   end
 
   # TODO: this is schnasty
   def onboarding_redirect_path
-    return Rails.application.routes.url_helpers.basic_info_onboarding_path unless persisted?
+    helpers = Rails.application.routes.url_helpers
 
-    if country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self)
-      return Rails.application.routes.url_helpers.aadhaar_onboarding_path if needs_aadhaar_upload?
-      return Rails.application.routes.url_helpers.aadhaar_step_2_onboarding_path unless aadhaar_verifications.pending.any?
-    else
-      return Rails.application.routes.url_helpers.document_onboarding_path if needs_document_upload?
-    end
+    return helpers.basic_info_onboarding_path unless persisted?
+    return helpers.new_verifications_path if needs_persona? || needs_documents?
+    return helpers.address_onboarding_path unless primary_address_id.present?
 
-    return Rails.application.routes.url_helpers.address_onboarding_path unless primary_address_id.present?
-
-    Rails.application.routes.url_helpers.submitted_onboarding_path
+    helpers.submitted_onboarding_path
   end
 
   def needs_document_upload?
-    return false if country == "IN" && Flipper.enabled?(:authbridge_aadhaar_2025_07_10, self)
     return false if verification_status == "ineligible"
     return true unless verifications.not_ignored.where(status: %w[approved pending]).any?
     return false if verification_status == "verified"
     needs_resubmission?
   end
 
-  def needs_aadhaar_upload?
-    return false unless country == "IN"
-    return false if verification_status == "ineligible"
-    return true unless verifications.not_ignored.where(status: %w[approved pending draft]).any?
-    return false if verification_status == "verified"
-    needs_resubmission?
-  end
 
   def under_13? = age < 13
 
   def locked? = locked_at.present?
 
-  def unlock! = update!(locked_at: nil)
+  def unlock_account! = update!(locked_at: nil)
 
-  def lock!
-    update!(locked_at: Time.now)
-    sessions.destroy_all
+  def lock_account!
+    update!(locked_at: Time.current)
+    sessions.update_all(expires_at: Time.current)
   end
 
   def self.calculate_age(birthday)
@@ -323,15 +350,13 @@ class Identity < ApplicationRecord
     age
   end
 
-  def age
-    self.class.calculate_age(birthday)
-  end
+  def age = self.class.calculate_age(birthday)
 
   def totp = totps.verified.first
 
   def backup_codes_enabled? = backup_codes.active.any?
 
-  def webauthn_enabled? = webauthn_credentials.any?
+  def webauthn_enabled? = webauthn_credentials.active.any?
 
   # Encode identity ID as base64url for WebAuthn user.id
   # Uses 64-bit unsigned big-endian binary format
@@ -353,18 +378,14 @@ class Identity < ApplicationRecord
   def two_factor_methods
     [
       totps.verified,
-      webauthn_credentials
+      webauthn_credentials.active
       # Future: sms_two_factors.verified,
     ].flatten.compact
   end
 
-  def has_two_factor_method?
-    two_factor_methods.any?
-  end
+  def has_two_factor_method? = two_factor_methods.any?
 
-  def primary_two_factor_method
-    two_factor_methods.first
-  end
+  def primary_two_factor_method = two_factor_methods.first
 
   def requires_two_factor?
     use_two_factor_authentication? && has_two_factor_method?
@@ -404,9 +425,7 @@ class Identity < ApplicationRecord
 
   private
 
-  def downcase_email
-    self.primary_email = primary_email&.downcase
-  end
+  def downcase_email = self.primary_email = primary_email&.downcase
 
   def copy_legal_name_if_needed
     self.legal_first_name = first_name if legal_first_name.blank?
@@ -421,6 +440,14 @@ class Identity < ApplicationRecord
     end
   end
 
+  def country_not_sanctioned
+    return unless country.present?
+    sanctioned = Rails.configuration.try(:sanctioned_countries) || []
+    if country.to_s.in?(sanctioned)
+      errors.add(:country, "is in a restricted region")
+    end
+  end
+
   def birthday_must_be_at_least_six_years_ago
     return unless birthday.present?
 
@@ -432,7 +459,7 @@ class Identity < ApplicationRecord
 
   def validate_email_not_tombstoned
     return unless primary_email.present?
-    return unless TombstonedEmail.tombstoned?(primary_email)
+    return unless Deletion.email_tombstoned?(primary_email)
 
     errors.add(:primary_email, "is not available")
   end

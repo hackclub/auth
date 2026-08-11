@@ -147,7 +147,11 @@ class DeveloperAppsController < ApplicationController
   end
 
   def app_params_for_identity
-    permitted = [ :name, :redirect_uri, scopes_array: [] ]
+    permitted = [ :name, scopes_array: [] ]
+
+    if @app.nil? || policy(@app).update_redirect_uri?
+      permitted << :redirect_uri
+    end
 
     if policy(@app || Program.new).update_trust_level?
       permitted << :trust_level
@@ -163,6 +167,11 @@ class DeveloperAppsController < ApplicationController
 
     if policy(@app || Program.new).update_active?
       permitted << :active
+    end
+
+    if policy(@app || Program.new).update_whoami?
+      permitted << :whoami_enabled
+      permitted << :whoami_allowed_origin
     end
 
     params.require(:program).permit(permitted)

@@ -34,13 +34,9 @@ class Identity::LoginCode < ApplicationRecord
   has_encrypted :token
   blind_index :token
 
-  def mark_used!
-    update!(used_at: Time.current)
-  end
+  def mark_used! = update!(used_at: Time.current)
 
-  def to_param
-    token
-  end
+  def to_param = token
 
   def self.generate(identity, return_url: nil)
     # Expire any existing unused codes for this identity
@@ -53,13 +49,9 @@ class Identity::LoginCode < ApplicationRecord
     expires_at > Time.current && used_at.nil?
   end
 
-  def expired?
-    expires_at <= Time.current
-  end
+  def expired? = expires_at <= Time.current
 
-  def used?
-    used_at.present?
-  end
+  def used? = used_at.present?
 
   private
 

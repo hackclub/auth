@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  reset persona verification attempts (<%= activity.parameters[:ignored_count] %> rejected <%= "verification".pluralize(activity.parameters[:ignored_count]) %> ignored).
+<% end %>

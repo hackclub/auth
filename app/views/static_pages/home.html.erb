@@ -1,3 +1,4 @@
+<% content_for :title, "Home" %>
 <h1> Hello <%= current_identity.first_name %>!</h1>
 
 <% if current_identity.slack_id.blank? && current_identity.onboarding_scenario_instance.should_create_slack? %>

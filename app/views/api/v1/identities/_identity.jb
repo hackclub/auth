@@ -52,4 +52,8 @@ scope "address", identity: do
   end
 end
 
+scope "phone", identity: do
+  ident[:phone_number] = identity.phone_number
+end
+
 ident.compact_blank

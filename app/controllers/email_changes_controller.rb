@@ -27,26 +27,26 @@ class EmailChangesController < ApplicationController
       return redirect_to new_email_change_path
     end
 
-    existing_pending = current_identity.email_change_requests.pending.first
-    if existing_pending
-      existing_pending.cancel!
-    end
-
     @email_change_request = current_identity.email_change_requests.build(
       new_email: new_email,
       old_email: current_identity.primary_email,
       requested_from_ip: request.remote_ip
     )
 
-    if @email_change_request.save
-      @email_change_request.send_verification_emails!
-      consume_step_up!
-      flash[:success] = t(".success")
-      redirect_to email_change_path(@email_change_request)
-    else
-      flash[:error] = @email_change_request.errors.full_messages.to_sentence
-      redirect_to new_email_change_path
+    ActiveRecord::Base.transaction do
+      existing_pending = current_identity.email_change_requests.pending.first
+      existing_pending&.cancel!
+      @email_change_request.save!
     end
+
+    @email_change_request.send_verification_emails!
+    consume_step_up!
+    flash[:success] = t(".success")
+    redirect_to email_change_path(@email_change_request)
+  rescue ActiveRecord::RecordInvalid => e
+    errors = e.record == @email_change_request ? e.record.errors.full_messages.to_sentence : e.message
+    flash[:error] = errors
+    redirect_to new_email_change_path
   end
 
   def verify_old
@@ -128,16 +128,12 @@ class EmailChangesController < ApplicationController
     @email_change_request = current_identity.email_change_requests.find_by_public_id!(params[:id])
   end
 
-  def email_change_params
-    params.require(:email_change).permit(:new_email)
-  end
+  def email_change_params = params.require(:email_change).permit(:new_email)
 
-  def require_step_up_for_email_change
-    require_step_up("email_change", return_to: new_email_change_path)
-  end
+  def require_step_up_for_email_change = require_step_up("email_change", return_to: new_email_change_path)
 
   def require_email_change_feature_enabled
-    unless Flipper.enabled?(:email_change, current_identity)
+    unless Flipper.enabled?(:email_change_2025_10_09, current_identity)
       redirect_to edit_identity_path, alert: t("errors.feature_not_available")
     end
   end
@@ -147,7 +143,7 @@ class EmailChangesController < ApplicationController
     email_change_request = Identity::EmailChangeRequest.pending.find_by(old_email_token: token) ||
                           Identity::EmailChangeRequest.pending.find_by(new_email_token: token)
 
-    if email_change_request && !Flipper.enabled?(:email_change, email_change_request.identity)
+    if email_change_request && !Flipper.enabled?(:email_change_2025_10_09, email_change_request.identity)
       flash[:error] = t("errors.feature_not_available")
       redirect_to root_path
     end

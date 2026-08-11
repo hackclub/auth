@@ -14,8 +14,8 @@ production:
   help: C07TM4C0AQ5
   pyramid-scheme: C07N1TCHY3T
   waiting_room: C0A24UHUMA7
-  #Below: new welcome channel added Jan 2026. This will 
-  #need to be replaced with a channel name once we implement 
+  #Below: new welcome channel added Jan 2026. This will
+  #need to be replaced with a channel name once we implement
   #automatic retiring and renaming of the welcome channel //EPS
   welcome_to_hack_club: C0A9PMV58R5
 shared:
@@ -34,6 +34,7 @@ shared:
   flavortown_help: C09MATKQM8C
   happenings: C05B6DBN802
   community: C01D7AHKMPF
+  community_announcements: C08KQ9DUJUX
   blueprint: C083S537USC
   blueprint_support: C09CMJV6V6K
   blueprint_announcements: C09D1C2BFKL
@@ -62,10 +63,29 @@ shared:
   beest: C0ALJ3NT1D0
   beest_bulletin: C0AQMUTMN8N
   beest_help: C0AQ4T1CWH2
+  sunbeam: C0BERFPEKQU
+  sunbeam_help: C0BEJF0K8G5
+  sunbeam_announcements: C0BESH8NYDU
+  athena_initiative: C06T17NQB0B
+  welcome_to_athena: C0BLVTFNKGE
+  athena_announcements: C0BLUJDU0G5
   help: C07TM4C0AQ5
+  hackachu: C0BFWNU7V4M
+  hackachu_announcements: C0BGUGKKTNU
+  hackachu_help: C0BG071AE66
   macondo: C0AUZ1LAMH6
   macondo_help: C0AU8AWD5BN
   macondo_announcements: C0AUZ1P2DEC
+  slack_guide: C0B73A5V2UD
   stickers: C1FV67WVB
   stickers_help: C0B2MMC68E9
   stickers_bulletin: C0ASA11S84A
+  stardance: C0APH2MMHH7
+  stardance_help: C0AP0NMSP3P
+  stardance_bulletin: C0APYDG859N
+  planet: C0B76LQN22E
+  hackatime_help: C0AFG0XGGMP
+  ysws: C0710J7F4U9
+  leaders: C02PA5G01ND
+  leaders_bulletin: C0AQ1CG4JLD
+  news_wire: C0BJ6LTLAFJ

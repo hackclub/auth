@@ -32,9 +32,7 @@ class ApplicationPolicy
       @scope = scope
     end
 
-    def resolve
-      raise NoMethodError, "You must define #resolve in #{self.class}"
-    end
+    def resolve = raise NoMethodError, "You must define #resolve in #{self.class}"
 
     private
 

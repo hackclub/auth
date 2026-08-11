@@ -51,13 +51,17 @@ Rails.application.configure do
 
   # Replace the default in-process and non-durable queuing backend for Active Job.
   config.active_job.queue_adapter = :good_job
+  config.good_job.execution_mode = :async
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "auth.hackclub.com" }
+  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST") }
+
+  Rails.application.routes.default_url_options[:host] = ENV.fetch("APP_HOST")
+  Rails.application.routes.default_url_options[:protocol] = "https"
 
   # Amazon SES SMTP settings
   config.action_mailer.delivery_method = :smtp

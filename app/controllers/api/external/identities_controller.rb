@@ -23,6 +23,7 @@ module API
       ].freeze
 
       before_action :set_cors_headers, only: %i[check options]
+      before_action :set_whoami_cors_headers, only: %i[whoami whoami_options]
 
       def check
         ident = if (public_id = params[:idv_id]).present?
@@ -60,7 +61,35 @@ module API
 
       def options = head :ok
 
+      def whoami
+        identity = current_identity if whoami_app
+        render json: {
+          signed_in: identity.present?,
+          email: identity&.primary_email,
+          first_name: identity&.first_name
+        }
+      end
+
+      def whoami_options = head :ok
+
       private
+
+      def whoami_app
+        return @whoami_app if defined?(@whoami_app)
+
+        origin = request.headers["Origin"]
+        @whoami_app = origin.present? ? Program.whoami_for_origin(origin).first : nil
+      end
+
+      def set_whoami_cors_headers
+        return unless whoami_app
+
+        response.set_header("Access-Control-Allow-Origin", whoami_app.whoami_allowed_origin)
+        response.set_header("Access-Control-Allow-Credentials", "true")
+        response.set_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        response.set_header("Access-Control-Allow-Headers", "Content-Type")
+        response.set_header("Vary", "Origin")
+      end
 
       def set_cors_headers
         response.set_header("Access-Control-Allow-Origin", "*")

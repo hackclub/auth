@@ -14,13 +14,105 @@ class VerificationsController < ApplicationController
       return
     end
 
-    redirect_to verification_step_path(:document)
+    if current_identity.persona_verification_locked?
+      redirect_to verification_status_path
+      return
+    end
+
+    case current_identity.required_verification_method
+    when :persona
+      if current_identity.persona_student_id_eligible?
+        @persona_path = persona_verification_path
+        @student_id_path = student_id_verification_path
+        render :choose
+      else
+        redirect_to persona_verification_path
+      end
+    when :document then redirect_to verification_step_path(:document)
+    end
   end
 
   def status
     @identity = current_identity
     @status = @identity.verification_status
     @latest_verification = @identity.latest_verification
+
+    # Draft persona/aadhaar verifications mean the user has started an async
+    # flow — show "pending" instead of "not started" while we wait for the webhook.
+    if @status == "needs_submission" && @identity.verifications.not_ignored.where(status: :draft).any?
+      @status = "pending"
+    end
+  end
+
+  def status_check
+    status = current_identity.verification_status
+    if status == "needs_submission" && current_identity.verifications.not_ignored.where(status: :draft).any?
+      status = "pending"
+    end
+    render json: { status: }
+  end
+
+  def persona
+    @identity = current_identity
+
+    status = @identity.verification_status
+    if verification_should_redirect?(status)
+      redirect_to verification_status_path
+      return
+    end
+
+    if @identity.persona_verification_locked?
+      redirect_to verification_status_path
+      return
+    end
+
+    unless @identity.required_verification_method == :persona
+      redirect_to verification_step_path(:document)
+      return
+    end
+
+    setup_persona_step
+    if @inquiry_already_completed
+      redirect_to verification_status_path
+      return
+    end
+    render :persona
+  end
+
+  def student_id
+    @identity = current_identity
+
+    status = @identity.verification_status
+    if verification_should_redirect?(status)
+      redirect_to verification_status_path
+      return
+    end
+
+    if @identity.persona_verification_locked?
+      redirect_to verification_status_path
+      return
+    end
+
+    unless @identity.persona_student_id_eligible?
+      redirect_to new_verifications_path
+      return
+    end
+
+    setup_student_id_step
+    if @inquiry_already_completed
+      redirect_to verification_status_path
+      return
+    end
+    render :persona
+  end
+
+  def update_legal_name
+    draft = current_identity.persona_verifications.where(status: :draft).first
+    redirect_path = draft.is_a?(Verification::PersonaStudentIdVerification) ? student_id_verification_path : persona_verification_path
+    handle_legal_name_update(
+      redirect_path: redirect_path,
+      find_verification: -> { draft }
+    )
   end
 
   def show
@@ -30,6 +122,11 @@ class VerificationsController < ApplicationController
     if verification_should_redirect?(status)
       redirect_to verification_status_path
       return
+    end
+
+    if @identity.required_verification_method == :persona && step == :document && !Internal::Eligibility.manual_flow?(@identity)
+      flash[:info] = "We use automated verification now — it's faster!"
+      redirect_to persona_verification_path and return
     end
 
     case step
@@ -42,6 +139,16 @@ class VerificationsController < ApplicationController
 
   def update
     @identity = current_identity
+
+    status = @identity.verification_status
+    if verification_should_redirect?(status)
+      redirect_to verification_status_path
+      return
+    end
+
+    if @identity.required_verification_method == :persona && !Internal::Eligibility.manual_flow?(@identity)
+      redirect_to persona_verification_path and return
+    end
 
     case step
     when :document
@@ -61,7 +168,5 @@ class VerificationsController < ApplicationController
     redirect_to root_path
   end
 
-  def on_verification_failure
-    render_wizard
-  end
+  def on_verification_failure = render_wizard
 end

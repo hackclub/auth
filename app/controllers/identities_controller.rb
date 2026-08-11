@@ -81,7 +81,7 @@ class IdentitiesController < ApplicationController
           unless slack_user_id.present?
             age = Identity.calculate_age(birthday)
 
-            if age >= 19 && !@onboarding_scenario.accepts_adults
+            if age >= 19 && !@onboarding_scenario.accepts_adults && !Flipper.enabled?(:allow_adult_registration_2026_05_28)
               track_event("signup.age_rejected", scenario: analytics_scenario, rejection_type: "too_old")
               @age_restriction = "Hack Club is a community for teenagers. <br/>Unfortunately, you are not eligible to join.".html_safe
               @identity = Identity.new(@prefill_attributes.merge(attrs))
@@ -131,10 +131,13 @@ class IdentitiesController < ApplicationController
             # Set browser token cookie for security
             cookies.signed["browser_token_#{login_attempt.to_param}"] = {
                 value: login_attempt.browser_token,
-                expires: LoginAttempt::EXPIRATION.from_now
+                expires: LoginAttempt::EXPIRATION.from_now,
+                httponly: true,
+                secure: Rails.env.production?,
+                same_site: :lax
             }
 
-            login_code = Identity::V2LoginCode.create!(identity: @identity)
+            login_code = Identity::V2LoginCode.generate(@identity, ip_address: request.remote_ip, user_agent: request.user_agent)
             if defined?(IdentityMailer)
                 IdentityMailer.v2_login_code(login_code).deliver_later
             end
@@ -212,9 +215,7 @@ class IdentitiesController < ApplicationController
 
     def portal_onboarding_scenario = @onboarding_scenario
 
-    def identity_params
-        params.require(:identity).permit(:first_name, :last_name, :phone_number, :developer_mode, :saml_debug)
-    end
+    def identity_params = params.require(:identity).permit(:first_name, :last_name, :phone_number, :developer_mode, :saml_debug)
 
     public
 

@@ -1,1 +1,2 @@
 --require spec_helper
+--pattern spec/**/*_spec.rb,internal/spec/**/*_spec.rb

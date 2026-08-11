@@ -59,9 +59,7 @@ class IdentitySession < ApplicationRecord
     update!(last_step_up_at: Time.current, last_step_up_action: action.to_s)
   end
 
-  def clear_step_up!
-    update!(last_step_up_at: nil, last_step_up_action: nil)
-  end
+  def clear_step_up! = update!(last_step_up_at: nil, last_step_up_action: nil)
 
   private
 

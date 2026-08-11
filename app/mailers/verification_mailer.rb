@@ -19,7 +19,7 @@ class VerificationMailer < ApplicationMailer
     @identity = verification.identity
     @first_name = @identity.first_name
     @reason_line = build_reason_line(verification)
-    @resubmit_url = verification_step_url(:document)
+    @resubmit_url = new_verifications_url
     @env_prefix = env_prefix
     @preview_text = "We need you to resubmit your documents"
 

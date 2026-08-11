@@ -5,7 +5,7 @@
     "@csstools/postcss-sass": "^5.1.1",
     "@noble/secp256k1": "^2.2.3",
     "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.3",
+    "postcss": "^8.5.10",
     "postcss-import": "^16.1.0",
     "postcss-nested": "^7.0.2",
     "postcss-sass": "^0.5.0",
@@ -28,6 +28,7 @@
     "alpinejs": "^3.14.9",
     "axios": "^1.15.0",
     "htmx.org": "^1.9.12",
-    "svelte": "^5.55.1"
+    "persona": "^5.8.0",
+    "svelte": "^5.55.7"
   }
 }

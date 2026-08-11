@@ -30,12 +30,14 @@ class Identity::Document < ApplicationRecord
 
   enum :document_type, {
          government_id: 0,
-         transcript: 1
+         transcript: 1,
+         persona_gov_id: 2
        }
 
   FRIENDLY_NAMES = {
     government_id: "Government-issued ID",
-    transcript: "Transcript & Student ID"
+    transcript: "Transcript & Student ID",
+    persona_gov_id: "Identity Documents (Persona)"
   }
 
   validates :document_type, presence: true
@@ -55,36 +57,32 @@ class Identity::Document < ApplicationRecord
     selectable_types_for_country(country).map { |type| [ FRIENDLY_NAMES[type], type ] }
   end
 
-  def current_verification
-    verification
-  end
+  def current_verification = verification
 
   def verification_status
     current_verification&.status || "pending"
   end
 
-  def verified?
-    verification_status == "approved"
-  end
+  def verified? = verification_status == "approved"
 
-  def rejected?
-    verification_status == "rejected"
-  end
+  def rejected? = verification_status == "rejected"
 
-  def pending_verification?
-    verification_status == "pending"
-  end
+  def pending_verification? = verification_status == "pending"
 
   private
 
   def correct_number_of_files
     return unless files.attached?
 
-    required_count = transcript? ? 2 : 1
     actual_count = files.count
 
-    if actual_count != required_count
-      errors.add(:files, "must include exactly #{required_count} file#{"s" if required_count > 1}")
+    case document_type
+    when "transcript"
+      errors.add(:files, "must include exactly 2 files") unless actual_count == 2
+    when "government_id"
+      errors.add(:files, "must include exactly 1 file") unless actual_count == 1
+    when "persona_gov_id"
+      errors.add(:files, "must include at least 1 file") unless actual_count >= 1
     end
   end
 

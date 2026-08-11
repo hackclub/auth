@@ -1,0 +1,20 @@
+module OnboardingScenarios
+  class Stardance < Base
+    def self.slug = "stardance"
+
+    def title = "get ready for launch!"
+
+    def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
+
+    def slack_user_type = :full_member
+
+    def slack_channels = chans(:stardance_help, :identity_help, :hackatime_help, :help, :stardance_bulletin, :planet, :welcome_to_hack_club, :slack_guide) + promotion_channels
+
+    def promotion_channels = chans(:stardance, :library, :lounge, :welcome, :happenings, :community_announcements, :announcements, :ysws)
+
+    def first_step = :welcome
+
+    def logo_path = "images/stardance/logo.png"
+    def background_path = "images/stardance/hero-bg.png"
+  end
+end

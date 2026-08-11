@@ -40,6 +40,7 @@ module Backend
     def human_endorser? = human_endorser
     def all_fields_access? = all_fields_access
     def can_break_glass? = can_break_glass
+    def can_process_deletions? = can_process_deletions
 
     # Returns a human-readable string of the user's roles
     def pretty_roles
@@ -53,9 +54,7 @@ module Backend
     end
 
     # Returns an array of organized program IDs
-    def organized_program_ids
-      organized_programs.pluck(:id)
-    end
+    def organized_program_ids = organized_programs.pluck(:id)
 
     # Sets the organized programs by IDs
     def organized_program_ids=(ids)

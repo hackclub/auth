@@ -23,25 +23,17 @@ module SpecialAppCards
       @identity = identity
     end
 
-    def visible?
-      raise NotImplementedError, "Subclasses must implement #visible?"
-    end
+    def visible? = raise NotImplementedError, "Subclasses must implement #visible?"
 
-    def friendly_name
-      raise NotImplementedError, "Subclasses must implement #friendly_name"
-    end
+    def friendly_name = raise NotImplementedError, "Subclasses must implement #friendly_name"
 
-    def tagline
-      raise NotImplementedError, "Subclasses must implement #tagline"
-    end
+    def tagline = raise NotImplementedError, "Subclasses must implement #tagline"
 
     def icon = nil
 
     def icon_background = nil
 
-    def url
-      raise NotImplementedError, "Subclasses must implement #url"
-    end
+    def url = raise NotImplementedError, "Subclasses must implement #url"
 
     def launch_text = nil
 

@@ -3,7 +3,7 @@
 module SpecialAppCards
   class Blueprint < Base
     def visible?
-      identity.ysws_eligible != false && Flipper.enabled?(:blueprint, identity)
+      identity.ysws_eligible != false && Flipper.enabled?(:app_card_blueprint_2026_01_14, identity)
     end
 
     def friendly_name = "Blueprint"

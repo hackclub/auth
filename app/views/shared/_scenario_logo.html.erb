@@ -1,0 +1,6 @@
+<% if scenario&.logo_path %>
+  <div class="auth-brand">
+    <% card_attrs = scenario.card_attributes %>
+    <%= vite_image_tag scenario.logo_path, alt: "Logo", class: ["brand-logo", "brand-logo--custom", ("brand-logo--wide" if card_attrs[:wide_logo])].compact.join(" ") %>
+  </div>
+<% end %>

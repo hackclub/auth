@@ -20,9 +20,7 @@ module AhoyAnalytics
   end
 
   # Helper to get scenario slug safely from @onboarding_scenario
-  def analytics_scenario
-    @onboarding_scenario&.class&.slug
-  end
+  def analytics_scenario = @onboarding_scenario&.class&.slug
 
   # Helper to get scenario from an identity's signup scenario
   def analytics_scenario_for(identity)

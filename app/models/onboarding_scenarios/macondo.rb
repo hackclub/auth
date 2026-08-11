@@ -4,9 +4,7 @@ module OnboardingScenarios
 
     def title = "time to go on an adventure!"
 
-    def form_fields
-      [ :first_name, :last_name, :primary_email, :birthday, :country ]
-    end
+    def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
     def slack_onboarding_flow = :internal_tutorial
     def slack_channels = chans(:macondo, :macondo_help, :macondo_announcements, :welcome_to_hack_club)
