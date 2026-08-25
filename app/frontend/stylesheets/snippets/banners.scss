@@ -1,34 +1,52 @@
 @mixin banner-base {
     display: flex;
     align-items: center;
-    border-radius: 10px;
-    padding: .875rem 1.125rem;
+    gap: 0.75rem;
+    border-radius: $radius-lg;
+    padding: $space-3 $space-4;
     margin-bottom: 1rem;
+    font-size: 0.9rem;
     font-weight: 500;
-    box-shadow: 
-        0 2px 6px rgba(0, 0, 0, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        inset 0 -1px 1px rgba(0, 0, 0, 0.08);
+    line-height: 1.5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+    @include dark-mode {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
 
     & > svg {
         height: 1.25rem;
         width: 1.25rem;
-        margin-right: 0.5rem;
+        flex-shrink: 0;
     }
 }
 
 @mixin banner-theme($bg-color, $border-color, $fg-color, $list-fg-color) {
-    background: linear-gradient(145deg, 
-        color-mix(in srgb, $bg-color 100%, white 5%), 
+    background: linear-gradient(145deg,
+        color-mix(in srgb, $bg-color 100%, white 5%),
         $bg-color);
-    border: 1px solid $border-color;
+    border: 1.5px solid $border-color;
     color: $fg-color;
 
-    & > ul, p {
+    & > ul, & > p {
         color: $list-fg-color;
         & > li {
             color: $list-fg-color;
         }
+    }
+
+    h4 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0 0 $space-1;
+        color: $fg-color;
+    }
+
+    ul {
+        margin: 0;
+        padding-left: 1.25rem;
+
+        li + li { margin-top: 0.25rem; }
     }
 }
 
@@ -66,6 +84,16 @@
     @include banner-base;
     text-align: left;
 
+    &:has(h3, h4, p, ul, ol) {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    &:has(.banner-action) {
+        flex-direction: row;
+        align-items: center;
+    }
+
     &.warning {
         @include banner-warning;
     }
@@ -85,6 +113,12 @@
     &.purple {
         @include banner-purple;
     }
+}
+
+.banner-action {
+    margin-left: auto;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .banner-actions {
