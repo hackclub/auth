@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  locked <%= activity.recipient&.first_name || "user" %>'s account.<% if activity.parameters[:slack_deactivated] %> Slack account deactivated.<% end %><% if activity.parameters[:reason].present? %> — "<%= activity.parameters[:reason] %>"<% end %>
+<% end %>

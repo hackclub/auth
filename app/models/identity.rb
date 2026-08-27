@@ -341,6 +341,7 @@ class Identity < ApplicationRecord
   def lock_account!
     update!(locked_at: Time.current)
     sessions.update_all(expires_at: Time.current)
+    all_access_tokens.update_all(revoked_at: Time.current)
   end
 
   def self.calculate_age(birthday)

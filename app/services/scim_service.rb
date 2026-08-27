@@ -243,6 +243,37 @@ module SCIMService
       { success: false, error: e.message }
     end
 
+    def deactivate_user(slack_id:)
+      if Rails.env.staging?
+        Rails.logger.info "Skipping Slack deactivation in staging for #{slack_id}"
+        return { success: true }
+      end
+
+      response = client.patch("Users/#{slack_id}", {
+        schemas: [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
+        Operations: [
+          { op: "replace", path: "active", value: false }
+        ]
+      })
+
+      if response.success?
+        { success: true }
+      else
+        error_msg = if response.body.is_a?(Hash)
+          response.body.dig("Errors", 0, "description") ||
+            response.body["detail"] ||
+            response.body["message"] ||
+            response.body["error"]
+        end
+        error_msg ||= "Unknown error (Status #{response.status})"
+        { success: false, error: error_msg }
+      end
+    rescue => e
+      Rails.logger.error "Error deactivating Slack user #{slack_id}: #{e.message}"
+      Sentry.capture_exception(e, tags: { component: "slack", operation: "scim_deactivate_user" })
+      { success: false, error: e.message }
+    end
+
     def find_existing_user_by_email(email)
       return nil if email.include?('"')
 

@@ -272,6 +272,67 @@ module Backend
       redirect_to backend_identity_path(@identity)
     end
 
+    def ban
+      authorize @identity
+
+      if @identity == current_user&.identity
+        flash[:alert] = "You can't ban your own account."
+        return redirect_to backend_identity_path(@identity)
+      end
+
+      if params[:reason].blank?
+        flash[:alert] = "Reason is required to ban an account."
+        return redirect_to backend_identity_path(@identity)
+      end
+
+      if params[:confirm_email] != @identity.primary_email
+        flash[:alert] = "Email confirmation did not match."
+        return redirect_to backend_identity_path(@identity)
+      end
+
+      @identity.lock_account!
+      activity_params = { reason: params[:reason] }
+
+      if params[:deactivate_slack] == "1" && @identity.slack_id.present?
+        result = SCIMService.deactivate_user(slack_id: @identity.slack_id)
+        activity_params[:slack_deactivated] = result[:success]
+
+        if result[:success]
+          @identity.update!(disallow_slack: true)
+          flash[:notice] = "Account locked and Slack deactivated."
+        else
+          activity_params[:slack_error] = result[:error]
+          flash[:warning] = "Account locked, but Slack deactivation failed: #{result[:error]}"
+        end
+      else
+        flash[:notice] = "Account locked."
+      end
+
+      @identity.create_activity(
+        :ban,
+        owner: current_user,
+        recipient: @identity,
+        parameters: activity_params
+      )
+
+      redirect_to backend_identity_path(@identity)
+    end
+
+    def unban
+      authorize @identity
+
+      @identity.unlock_account!
+      @identity.update!(disallow_slack: false) if @identity.disallow_slack?
+      @identity.create_activity(
+        :unban,
+        owner: current_user,
+        recipient: @identity,
+      )
+
+      flash[:notice] = "Account unlocked."
+      redirect_to backend_identity_path(@identity)
+    end
+
     def reset_persona_attempts
       authorize @identity
 

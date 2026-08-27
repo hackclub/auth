@@ -10,13 +10,16 @@ class IdentityPolicy < ApplicationPolicy
   alias_method :promote_to_full_user?, :update?
   alias_method :clear_slack_photo?, :update?
 
+  def ban? = user.present? && (user.can_ban? || user.super_admin?)
+  alias_method :unban?, :ban?
+
   def simulate_onboarding? = user&.super_admin?
   def flip? = user&.super_admin?
   alias_method :reset_persona_attempts?, :simulate_onboarding?
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      if user.super_admin? || user.manual_document_verifier? || user.all_fields_access?
+      if user.super_admin? || user.manual_document_verifier? || user.all_fields_access? || user.can_ban?
         scope.all
       elsif user.organized_programs.any?
         program_ids = user.organized_programs.pluck(:id)

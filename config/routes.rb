@@ -236,6 +236,8 @@ Rails.application.routes.draw do
         post :simulate_onboarding
         post :flip
         post :reset_persona_attempts
+        post :ban
+        post :unban
       end
       resources :addresses, only: [ :new, :create, :edit, :update, :destroy ], controller: "identity_addresses"
     end
