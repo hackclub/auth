@@ -109,6 +109,7 @@ class IdentitiesController < ApplicationController
         attrs[:country] ||= detected_country_alpha2
         attrs[:onboarding_scenario] = @onboarding_scenario.class.slug
         @identity = Identity.new(attrs)
+        @identity.email_typo_confirmed = params[:email_typo_confirmed] == "1"
 
         if @identity.save
             track_event("signup.completed", scenario: analytics_scenario, country: @identity.country)

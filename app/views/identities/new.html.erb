@@ -30,26 +30,37 @@
       <%= hidden_field_tag :return_to, params[:return_to] %>
     <% end %>
     <% if @identity.suggested_email.present? %>
-      <div class="banner warning" aria-live="polite">
+      <div class="banner warning" aria-live="polite" data-suggested-email="<%= @identity.suggested_email %>">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
         </svg>
-        <span><%= t(".email_typo", suggested: @identity.suggested_email).html_safe %></span>
-        <button type="button" class="secondary small-btn banner-action" onclick="
-          var suggested = '<%= j @identity.suggested_email %>';
-          var hidden = document.querySelector('input[type=hidden][name*=primary_email]');
-          var visible = document.querySelector('input[type=email][name*=primary_email]');
-          var disabled = document.querySelector('input[type=text][disabled][autocomplete=email]');
-          if (hidden) hidden.value = suggested;
-          if (visible) visible.value = suggested;
-          if (disabled) disabled.value = suggested;
-          this.closest('form').submit();
-        ">
-          <%= t(".email_typo_fix") %>
-        </button>
+        <span><%= t(".email_typo", suggested: ERB::Util.html_escape(@identity.suggested_email)).html_safe %></span>
+        <div class="banner-actions">
+          <button type="button" class="secondary small-btn" onclick="
+            var suggested = this.closest('[data-suggested-email]').dataset.suggestedEmail;
+            var hidden = document.querySelector('input[type=hidden][name*=primary_email]');
+            var visible = document.querySelector('input[type=email][name*=primary_email]');
+            if (hidden) hidden.value = suggested;
+            if (visible) visible.value = suggested;
+            this.closest('form').submit();
+          ">
+            <%= t(".email_typo_fix") %>
+          </button>
+          <% if @identity.typo_dismissable %>
+            <button type="button" class="secondary small-btn" onclick="
+              var f = this.closest('form');
+              var inp = document.createElement('input');
+              inp.type = 'hidden'; inp.name = 'email_typo_confirmed'; inp.value = '1';
+              f.appendChild(inp);
+              f.submit();
+            ">
+              <%= t(".email_typo_dismiss") %>
+            </button>
+          <% end %>
+        </div>
       </div>
     <% end %>
-    <% other_errors = @identity.errors.reject { |e| e.attribute == :primary_email && @identity.suggested_email.present? } %>
+    <% other_errors = @identity.errors.reject { |e| e.type == :typo } %>
     <% if other_errors.any? %>
       <div class="banner danger" aria-live="polite">
         <h4><%= pluralize(other_errors.count, "issue") %> prevented this from being saved:</h4>

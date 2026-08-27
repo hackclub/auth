@@ -52,7 +52,7 @@ class Identity < ApplicationRecord
 
   has_country_enum
 
-  attr_accessor :suggested_email
+  attr_accessor :suggested_email, :email_typo_confirmed, :typo_dismissable
 
   has_many :sessions, class_name: "IdentitySession", dependent: :destroy
   has_many :login_attempts, dependent: :destroy
@@ -476,10 +476,13 @@ class Identity < ApplicationRecord
       return
     end
 
-    self.suggested_email = EmailDomainSuggester.suggest(primary_email)
-    if suggested_email
-      errors.add(:primary_email, :typo)
-      return
+    if new_record? && !email_typo_confirmed
+      self.suggested_email = EmailDomainSuggester.suggest(primary_email)
+      if suggested_email
+        self.typo_dismissable = !(Rails.env.production? && address.disposable_domain?)
+        errors.add(:primary_email, :typo)
+        return
+      end
     end
 
     return unless Rails.env.production?
