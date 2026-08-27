@@ -41,6 +41,7 @@ module Backend
     def all_fields_access? = all_fields_access
     def can_break_glass? = can_break_glass
     def can_process_deletions? = can_process_deletions
+    def can_ban? = can_ban
 
     # Returns a human-readable string of the user's roles
     def pretty_roles
@@ -50,6 +51,7 @@ module Backend
       roles << "Manual Document Verifier" if manual_document_verifier?
       roles << "Human Endorser" if human_endorser?
       roles << "All Fields Access" if all_fields_access?
+      roles << "Ban" if can_ban?
       roles.presence&.join(", ") || "None"
     end
 
