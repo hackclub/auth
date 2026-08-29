@@ -14,15 +14,17 @@ FROM docker.io/library/ruby:3.4.4-slim@sha256:4020c2d289c1266fe4a2ea1d0018c22c17
 # Rails app lives here
 WORKDIR /rails
 
-# Install base packages
+# Install base packages with runtime libraries for libheif
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips imagemagick libheif-dev postgresql-client libffi-dev libxmlsec1-dev libxmlsec1 libxmlsec1-openssl && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips imagemagick postgresql-client libffi-dev \
+    libjpeg62-turbo libaom3 libx265-199 libde265-0 libpng16-16 libxmlsec1-dev libxmlsec1 libxmlsec1-openssl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 ENV BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development"
+    BUNDLE_WITHOUT="development" \
+    LD_LIBRARY_PATH="/usr/local/lib"
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
@@ -66,6 +68,11 @@ FROM base
 # Copy built artifacts: gems, application
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
+# Copy libheif libraries and examples from build stage
+COPY --from=build /usr/local/lib/libheif* /usr/local/lib/
+COPY --from=build /usr/local/bin/heif-* /usr/local/bin/
+COPY --from=build /usr/local/include/libheif /usr/local/include/libheif
+RUN ldconfig
 
 # Restrictive ImageMagick policy: only allow JPEG, PNG, HEIC, WEBP, PDF
 COPY config/imagemagick-policy.xml /etc/ImageMagick-6/policy.xml
