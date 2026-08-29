@@ -96,8 +96,8 @@ class Identity::Document < ApplicationRecord
       end
 
       # Check file type
-      unless file.content_type.in?(%w[image/jpeg image/png image/jpg image/heic image/heif application/pdf])
-        errors.add(:files, "#{file.filename} must be a JPEG, PNG, HEIC, or PDF file")
+      unless file.content_type.in?(%w[image/jpeg image/png image/jpg application/pdf])
+        errors.add(:files, "#{file.filename} must be a JPEG, PNG, or PDF file")
       end
     end
   end
