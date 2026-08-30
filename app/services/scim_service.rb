@@ -3,6 +3,11 @@ module SCIMService
     SCIM_BASE_URL = "https://api.slack.com/scim/v2"
 
     def find_or_create_user(identity:, scenario:)
+      if identity.disallow_slack?
+        Rails.logger.warn "Refusing to provision Slack for blocked identity #{identity.id}"
+        return { success: false, error: "This account is blocked from Slack" }
+      end
+
       if Rails.env.staging?
         Rails.logger.info "Skipping Slack provisioning in staging for #{identity.primary_email}"
         return {

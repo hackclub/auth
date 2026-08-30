@@ -121,6 +121,11 @@ module Backend
     def reprovision_slack
       authorize @identity
 
+      if @identity.disallow_slack?
+        flash[:error] = "This account is blocked from Slack. Unban it first."
+        return redirect_to backend_identity_path(@identity)
+      end
+
       scenario = OnboardingScenarios::DefaultJoin.new(@identity)
       slack_result = SCIMService.find_or_create_user(
         identity: @identity,
@@ -294,15 +299,16 @@ module Backend
       activity_params = { reason: params[:reason] }
 
       if params[:deactivate_slack] == "1" && @identity.slack_id.present?
+        @identity.update!(disallow_slack: true)
+
         result = SCIMService.deactivate_user(slack_id: @identity.slack_id)
         activity_params[:slack_deactivated] = result[:success]
 
         if result[:success]
-          @identity.update!(disallow_slack: true)
           flash[:notice] = "Account locked and Slack deactivated."
         else
           activity_params[:slack_error] = result[:error]
-          flash[:warning] = "Account locked, but Slack deactivation failed: #{result[:error]}"
+          flash[:warning] = "Account locked and Slack sign-in blocked, but Slack deactivation failed: #{result[:error]}"
         end
       else
         flash[:notice] = "Account locked."
