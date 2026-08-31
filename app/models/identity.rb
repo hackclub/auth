@@ -179,6 +179,10 @@ class Identity < ApplicationRecord
       return { success: false, error: "This Slack account is already linked to another identity" }
     end
 
+    if current_identity.disallow_slack?
+      return { success: false, error: "This Slack account can't be linked" }
+    end
+
     current_identity.update!(slack_id: slack_id)
 
     { success: true, slack_id: slack_id }
