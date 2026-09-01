@@ -79,14 +79,18 @@ class Rack::Attack
     req.ip unless req.path.start_with?("/api/", "/oauth/")
   end
 
-  self.throttled_responder = lambda do |env|
-    headers = {
-      "Content-Type" => "text/html",
-      "Retry-After" => "300" #
-    }
+  # Machines get a parseable error; humans keep getting yelled at.
+  self.throttled_responder = lambda do |request_or_env|
+    # rack-attack >= 6 hands us a Rack::Attack::Request; older versions, a raw env.
+    request = request_or_env.respond_to?(:path) ? request_or_env : ::Rack::Request.new(request_or_env)
+    api_client = ::APIErrors.api_path?(request.path) ||
+                 request.get_header("HTTP_ACCEPT").to_s.include?("application/json")
 
-    message = "slow your roll!"
-
-    [ 429, headers, [ message ] ]
+    if api_client
+      body = ::APIErrors.body(:rate_limited, base_url: request.base_url).merge(retry_after: 300)
+      [ 429, { "Content-Type" => "application/json", "Retry-After" => "300" }, [ body.to_json ] ]
+    else
+      [ 429, { "Content-Type" => "text/html", "Retry-After" => "300" }, [ "slow your roll!" ] ]
+    end
   end
 end

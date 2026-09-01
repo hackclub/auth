@@ -138,4 +138,20 @@ RSpec.describe OAuthScope do
       )
     end
   end
+  # Doorkeeper's configured scopes drive `scopes_supported` in the RFC 8414 and
+  # OpenID Connect discovery documents. config/initializers/doorkeeper.rb can't
+  # reference this autoloaded constant, so keep the two lists honest here.
+  describe "the scopes Doorkeeper advertises" do
+    it "matches OAuthScope::ALL exactly" do
+      expect(Doorkeeper.configuration.scopes.to_a).to match_array(described_class::ALL.map(&:name))
+    end
+  end
+
+  describe "every declared scope" do
+    it "has a description a consent screen and an API client can both show" do
+      described_class::ALL.each do |scope|
+        expect(scope.description).to be_present, "#{scope.name} has no description"
+      end
+    end
+  end
 end

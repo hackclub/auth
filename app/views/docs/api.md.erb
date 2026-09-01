@@ -24,6 +24,22 @@ Most API endpoints require an OAuth access token. Include it in the <code>Author
 <%= root_url.chomp("/") %>
 ```
 
+### Machine-readable description
+
+If you're wiring up an API client (or pointing an AI agent at us), you don't have to read this
+page — everything below is published in a form machines can consume:
+
+| What | Where |
+|------|-------|
+| OpenAPI 3.1 description | <%= link_to "/openapi.json", "#{root_url.chomp("/")}/openapi.json" %> (also `/openapi.yaml`, mirrored at `/api/openapi.json`) |
+| Endpoint index | <%= link_to "/api", api_index_url %> |
+| Scopes + authorization server (RFC 9728) | <%= link_to "/.well-known/oauth-protected-resource", oauth_protected_resource_url %> |
+| Authorization server metadata (RFC 8414) | `/.well-known/oauth-authorization-server` |
+| OpenID Connect discovery | `/.well-known/openid-configuration` |
+| API catalog linkset (RFC 9727) | `/.well-known/api-catalog` |
+
+All of these are unauthenticated and CORS-open.
+
 ## Endpoints
 
 ### GET /api/v1/me
@@ -102,19 +118,40 @@ For OIDC-specific scopes and claims, see the <%= link_to "OpenID Connect guide",
 All API endpoints return standard HTTP status codes:
 <ul>
 <li><code>200</code> - Success</li>
+<li><code>400</code> - Bad request (missing or malformed parameters)</li>
 <li><code>401</code> - Unauthorized (missing or invalid token)</li>
 <li><code>403</code> - Forbidden (insufficient permissions/scopes)</li>
 <li><code>404</code> - Not found</li>
 <li><code>422</code> - Invalid parameters</li>
+<li><code>429</code> - Rate limited</li>
 </ul>
-
-Error responses include a JSON body with details:
-
-<pre>{
-  "error": "Unauthorized",
-  "message": "Invalid or expired token"
-}</pre>
 </div>
+
+Every error is JSON, in one shape:
+
+```json
+{
+  "error": "invalid_auth",
+  "message": "The access token is missing, malformed, expired or revoked.",
+  "hint": "Send a valid credential as `Authorization: Bearer <token>`. Obtain one via the authorization code flow at /oauth/authorize, or refresh it at /oauth/token.",
+  "status": 401,
+  "documentation_url": "<%= root_url.chomp("/") %>/docs/api"
+}
+```
+
+Branch on `error`, not on `message` — the codes are stable, the prose isn't.
+
+<%= content_tag(:table, safe_join([
+      content_tag(:thead, content_tag(:tr, safe_join([content_tag(:th, "Code"), content_tag(:th, "Status"), content_tag(:th, "Meaning")]))),
+      content_tag(:tbody, safe_join(APIErrors::CATALOG.map { |code, definition| content_tag(:tr, safe_join([content_tag(:td, content_tag(:code, code.to_s)), content_tag(:td, definition[:status].to_s), content_tag(:td, definition[:message])])) }))
+    ])) %>
+
+`401` and `403` responses also carry a `WWW-Authenticate: Bearer …` header naming the failure and
+pointing at `/.well-known/oauth-protected-resource`, so a client can discover how to authenticate
+without reading these docs.
+
+The OAuth endpoints (`/oauth/token`, `/oauth/revoke`) use the RFC 6749 error shape instead:
+`{ "error": "invalid_grant", "error_description": "…" }`.
 
 ## Program-wide endpoints
 
