@@ -1,5 +1,12 @@
 module OnboardingScenarios
   class Base
+
+    FORCE_FULL_MEMBER = true
+
+    module ForceFullMember
+      def slack_user_type = :full_member
+    end
+
     class << self
       # Optional slug for /join/:slug routing. Default: no slug
       def slug = nil
@@ -11,6 +18,11 @@ module OnboardingScenarios
 
       def available_slugs
         descendants&.filter_map(&:slug)&.sort || []
+      end
+
+      def inherited(subclass)
+        super
+        subclass.prepend(ForceFullMember) if FORCE_FULL_MEMBER
       end
     end
 

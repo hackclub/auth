@@ -100,8 +100,8 @@ RSpec.describe OnboardingScenarios::Flavortown do
   end
 
   describe "slack configuration" do
-    it "uses multi-channel guest type" do
-      expect(scenario.slack_user_type).to eq(:multi_channel_guest)
+    it "is forced to full member (MCG provisioning disabled workspace-wide)" do
+      expect(scenario.slack_user_type).to eq(:full_member)
     end
 
     it "does not use DM channel" do
