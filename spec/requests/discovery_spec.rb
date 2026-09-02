@@ -76,6 +76,26 @@ RSpec.describe "API discovery documents", type: :request do
       expect(ids.uniq.length).to eq(ids.length), "duplicate operationIds: #{ids.tally.select { |_, n| n > 1 }.keys}"
     end
 
+    # OpenAPI 3.1: only oauth2 / openIdConnect schemes may list scopes. A non-empty
+    # list on an http-bearer scheme makes the document fail strict validation.
+    it "lists scopes only for schemes that can carry them" do
+      schemes = doc.dig("components", "securitySchemes")
+
+      doc["paths"].each do |path, methods|
+        methods.each do |verb, operation|
+          operation["security"].to_a.each do |requirement|
+            requirement.each do |scheme_name, scopes|
+              type = schemes.dig(scheme_name, "type")
+              next if %w[oauth2 openIdConnect].include?(type)
+
+              expect(scopes).to be_empty,
+                "#{verb.upcase} #{path} lists scopes for #{scheme_name} (type: #{type})"
+            end
+          end
+        end
+      end
+    end
+
     it "only names security schemes it declares" do
       declared = doc.dig("components", "securitySchemes").keys
 
@@ -206,6 +226,14 @@ RSpec.describe "API discovery documents", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(JSON.parse(response.body)["scopes_supported"]).to match_array(OAuthScope::ALL.map(&:name))
+    end
+
+    # RFC 9728 §3.3: `resource` must be identical to the identifier the client
+    # asked about, or a compliant client rejects the document as a mismatch.
+    it "echoes the requested resource identifier back in `resource`" do
+      get "/.well-known/oauth-protected-resource/api/v1"
+
+      expect(JSON.parse(response.body)["resource"]).to eq("http://www.example.com/api/v1")
     end
   end
 

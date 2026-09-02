@@ -4,19 +4,26 @@
 #
 # Tells a client — without it having to read our docs — which authorization
 # server protects this API and exactly which scopes it can ask for. Served at
-# /.well-known/oauth-protected-resource by WellKnownController.
+# /.well-known/oauth-protected-resource by DiscoveryController.
 class ProtectedResourceMetadata
-  attr_reader :base_url
+  attr_reader :base_url, :resource_path
 
-  def initialize(base_url:)
+  # `resource_path` is the path RFC 9728 §3.1 inserted after the well-known
+  # segment (e.g. "api/v1" for a resource identified as https://host/api/v1).
+  def initialize(base_url:, resource_path: nil)
     @base_url = base_url.to_s.chomp("/")
+    @resource_path = resource_path.to_s.delete_prefix("/").chomp("/").presence
   end
 
-  def self.build(base_url:) = new(base_url:).as_json
+  def self.build(base_url:, resource_path: nil) = new(base_url:, resource_path:).as_json
+
+  # RFC 9728 §3.3: `resource` MUST be identical to the resource identifier the
+  # client requested metadata for, or a compliant client rejects the document.
+  def resource = resource_path ? "#{base_url}/#{resource_path}" : base_url
 
   def as_json
     {
-      resource: base_url,
+      resource: resource,
       authorization_servers: [ issuer ],
       jwks_uri: "#{base_url}/oauth/discovery/keys",
       scopes_supported: OAuthScope::ALL.map(&:name),

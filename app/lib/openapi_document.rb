@@ -4,7 +4,7 @@
 #
 # The scope list is derived from OAuthScope::ALL so the machine-readable
 # description can never drift from what the authorization server actually
-# grants. Served (as JSON and YAML) by OpenapiController.
+# grants. Served (as JSON and YAML) by DiscoveryController.
 class OpenapiDocument
   # Bump when the shape of the described API changes in a breaking way.
   API_VERSION = "1.0.0"
@@ -224,7 +224,9 @@ class OpenapiDocument
       MD
       tags: [ "Identity" ],
       deprecated: true,
-      security: [ { programKey: [ "set_slack_id" ] } ],
+      # OpenAPI 3.1: the value list must be empty for schemes that aren't
+      # oauth2/openIdConnect. The required scope is stated in the description.
+      security: [ { programKey: [] } ],
       parameters: [ identity_id_parameter ],
       requestBody: {
         required: true,

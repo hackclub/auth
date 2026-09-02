@@ -124,10 +124,12 @@ RSpec.describe "API error responses", type: :request do
     around do |example|
       cache = Rack::Attack.cache.store
       Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
+      enabled = Rack::Attack.enabled
       Rack::Attack.enabled = true
       example.run
     ensure
       Rack::Attack.cache.store = cache
+      Rack::Attack.enabled = enabled
     end
 
     it "answers an API client with a structured JSON 429" do
@@ -135,13 +137,16 @@ RSpec.describe "API error responses", type: :request do
 
       expect(response).to have_http_status(:too_many_requests)
       expect(response.media_type).to eq("application/json")
-      expect(response.headers["Retry-After"]).to eq("300")
+      # Retry-After reflects the matched throttle's own window (60s here), not a
+      # blanket constant, so a client backs off for exactly as long as it must.
+      retry_after = response.headers["Retry-After"].to_i
+      expect(retry_after).to be_between(1, 60)
 
       body = JSON.parse(response.body)
       expect(body["error"]).to eq("rate_limited")
       expect(body["message"]).to be_present
       expect(body["hint"]).to be_present
-      expect(body["retry_after"]).to eq(300)
+      expect(body["retry_after"]).to eq(retry_after)
     end
 
     it "still yells at browsers in plain HTML" do

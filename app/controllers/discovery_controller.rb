@@ -27,7 +27,7 @@ class DiscoveryController < ActionController::API
   end
 
   def oauth_protected_resource
-    render json: ProtectedResourceMetadata.build(base_url: base_url)
+    render json: ProtectedResourceMetadata.build(base_url: base_url, resource_path: params[:resource_path])
   end
 
   # RFC 9727: a linkset (RFC 9264) pointing at the descriptions of this API.

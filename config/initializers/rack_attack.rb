@@ -79,18 +79,33 @@ class Rack::Attack
     req.ip unless req.path.start_with?("/api/", "/oauth/")
   end
 
+  # Seconds until the throttle window that matched this request rolls over.
+  # rack-attack stashes the matched throttle's period and epoch under
+  # `rack.attack.match_data`; falling back to 300 only when it's absent.
+  RETRY_AFTER_FALLBACK = 300
+
+  def self.retry_after_for(request)
+    match_data = request.env["rack.attack.match_data"]
+    period = match_data && match_data[:period].to_i
+    return RETRY_AFTER_FALLBACK unless period&.positive?
+
+    epoch_time = (match_data[:epoch_time] || Time.now.to_i).to_i
+    period - (epoch_time % period)
+  end
+
   # Machines get a parseable error; humans keep getting yelled at.
   self.throttled_responder = lambda do |request_or_env|
     # rack-attack >= 6 hands us a Rack::Attack::Request; older versions, a raw env.
     request = request_or_env.respond_to?(:path) ? request_or_env : ::Rack::Request.new(request_or_env)
     api_client = ::APIErrors.api_path?(request.path) ||
                  request.get_header("HTTP_ACCEPT").to_s.include?("application/json")
+    retry_after = ::Rack::Attack.retry_after_for(request)
 
     if api_client
-      body = ::APIErrors.body(:rate_limited, base_url: request.base_url).merge(retry_after: 300)
-      [ 429, { "Content-Type" => "application/json", "Retry-After" => "300" }, [ body.to_json ] ]
+      body = ::APIErrors.body(:rate_limited, base_url: request.base_url).merge(retry_after: retry_after)
+      [ 429, { "Content-Type" => "application/json", "Retry-After" => retry_after.to_s }, [ body.to_json ] ]
     else
-      [ 429, { "Content-Type" => "text/html", "Retry-After" => "300" }, [ "slow your roll!" ] ]
+      [ 429, { "Content-Type" => "text/html", "Retry-After" => retry_after.to_s }, [ "slow your roll!" ] ]
     end
   end
 end

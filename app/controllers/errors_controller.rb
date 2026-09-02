@@ -18,18 +18,39 @@ class ErrorsController < ActionController::Base
   def render_error(status, template:)
     @event_id = request.env["sentry.error_event_id"]
 
-    if wants_json?
-      render json: error_body(status), status: status, content_type: "application/json"
+    # Both the body and the negotiation decision are computed up front, so the
+    # rescue below can never re-run the code that just failed.
+    json = wants_json?
+    body = json ? safe_error_body(status) : nil
+
+    if json
+      render json: body, status: status, content_type: "application/json"
     else
       render template, status: status
     end
   rescue StandardError
-    # Last resort: never let the error page raise its own error.
-    if wants_json?
-      render json: error_body(status), status: status, content_type: "application/json"
+    # Last resort: never let the error page raise its own error. Nothing here
+    # may call back into error_body/wants_json? — `body` and `json` are already
+    # resolved, and the plain-text fallbacks cannot raise.
+    if json
+      render json: (body || minimal_error_body(status)).to_json,
+             status: status, content_type: "application/json"
     else
       render plain: "#{Rack::Utils.status_code(status)} - #{status.to_s.titleize}", status: status
     end
+  end
+
+  # error_body touches the request and the APIErrors catalog; if either misbehaves
+  # we still owe the client a parseable body.
+  def safe_error_body(status)
+    error_body(status)
+  rescue StandardError
+    minimal_error_body(status)
+  end
+
+  def minimal_error_body(status)
+    code = Rack::Utils.status_code(status) == 404 ? "not_found" : "server_error"
+    { error: code, status: Rack::Utils.status_code(status) }
   end
 
   def error_body(status)
