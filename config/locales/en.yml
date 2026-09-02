@@ -428,6 +428,9 @@ en:
       subtitle: Sign in to Hack Club Auth
       email_label: Email address
       continue: Continue
+      or: or
+      passkey_login: Sign in with a passkey
+      authenticating: Signing in
       no_account: Don't have an account?
       signup: Make one
       free: ", it's free!"
@@ -561,6 +564,18 @@ en:
     remove_confirmation: Are you sure you want to remove this passkey? You won't be able to use it to sign in anymore.
     successfully_added: passkey added!
     successfully_removed: passkey removed!
+  passkey_setups:
+    show:
+      title: Sign in faster with a passkey
+      subtitle: Sign in faster with your face, fingerprint, or PIN
+      error_title: Something went wrong
+      setup_button: Set up a passkey
+      setting_up: Setting up
+      skip: Skip
+      dont_show_again: Don't show again
+  passkey_login:
+    button: Sign in with a passkey
+    signing_in: Signing in
   step_up:
     new:
       title: Gotta confirm it's you...

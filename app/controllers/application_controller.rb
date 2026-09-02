@@ -3,9 +3,15 @@ class ApplicationController < ActionController::Base
   include SessionsHelper
   include StepUpAuthenticatable
 
-  helper_method :current_identity, :identity_signed_in?, :current_onboarding_step, :current_user
+  helper_method :current_identity, :identity_signed_in?, :current_onboarding_step, :current_user, :show_passkey_promotion?
 
   def current_user = nil # TODO: this is a temp hack to fix partials until /backend auth is replaced
+
+  def show_passkey_promotion?
+    current_identity.present? &&
+      current_identity.passkey_promotion_allowed? &&
+      !session[:passkey_promotion_dismissed]
+  end
 
   helper_method :detected_country_alpha2
 
@@ -111,4 +117,13 @@ class ApplicationController < ActionController::Base
   private
 
   def touch_session_last_seen_at = current_session&.touch_last_seen_at
+
+  # Route eligible identities through the passkey setup step.
+  def redirect_with_passkey_prompt(destination)
+    if show_passkey_promotion?
+      redirect_to(passkey_setup_path(return_to: destination))
+    else
+      redirect_to destination
+    end
+  end
 end

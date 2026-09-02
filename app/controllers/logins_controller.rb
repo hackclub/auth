@@ -340,13 +340,9 @@ class LoginsController < ApplicationController
                 redirect_to root_path
             end
         else
-        flash[:success] = "Logged in!"
-        safe_return_to = @attempt.return_to
-        begin
-          redirect_to safe_return_to.presence || root_path
-        rescue ActionController::Redirecting::UnsafeRedirectError
-          redirect_to root_path
-        end
+            flash[:success] = "Logged in!"
+            destination = url_from(@attempt.return_to) || root_path
+            redirect_with_passkey_prompt(destination)
         end
     end
 
