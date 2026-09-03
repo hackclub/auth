@@ -54,6 +54,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
   validate :new_email_not_taken
   validate :new_email_not_tombstoned
   validate :new_email_different_from_old
+  validate :identity_may_change_email, on: :create
 
   scope :pending, -> { where(completed_at: nil, cancelled_at: nil).where("expires_at > ?", Time.current) }
   scope :completed, -> { where.not(completed_at: nil) }
@@ -130,7 +131,20 @@ class Identity::EmailChangeRequest < ApplicationRecord
       return unless pending?
       return if completed?
 
+      identity.reload
+      unless identity.primary_email == old_email
+        update!(cancelled_at: Time.current)
+        return
+      end
+
+      if identity.disallow_slack?
+        update!(cancelled_at: Time.current)
+        return
+      end
+
       identity.update!(primary_email: new_email)
+      identity.sessions.not_expired.update_all(signed_out_at: Time.current, expires_at: Time.current)
+      identity.all_access_tokens.where(revoked_at: nil).update_all(revoked_at: Time.current)
       update!(completed_at: Time.current)
       identity.create_activity :email_changed,
         owner: identity,
@@ -175,6 +189,13 @@ class Identity::EmailChangeRequest < ApplicationRecord
 
     existing = Identity.where.not(id: identity_id).find_by(primary_email: new_email)
     errors.add(:new_email, "is already taken by another account") if existing
+  end
+
+  def identity_may_change_email
+    return unless identity
+    return unless identity.disallow_slack?
+
+    errors.add(:base, "This account can't change its email address. Contact Hack Club for help.")
   end
 
   def new_email_different_from_old

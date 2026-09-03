@@ -28,7 +28,8 @@ module API
 
       def index
         raise Pundit::NotAuthorizedError unless acting_as_program
-        @identities = ident_scope.all.includes(:access_tokens, :addresses, :verifications)
+        @identities = ident_scope.includes(:access_tokens, :addresses, :verifications)
+          .page(params[:page]).per((params[:per_page]&.to_i || 100).clamp(1, 100))
         render :index
       end
 

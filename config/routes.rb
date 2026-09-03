@@ -165,7 +165,8 @@ class SuperAdminConstraint
     session = IdentitySession.not_expired.find_by(session_token: session_token)
     return false unless session&.identity
 
-    session.identity.backend_user&.super_admin?
+    backend_user = session.identity.backend_user
+    backend_user&.super_admin? && backend_user&.active?
   end
 end
 
@@ -235,6 +236,8 @@ Rails.application.routes.draw do
         post :simulate_onboarding
         post :flip
         post :reset_persona_attempts
+        post :ban
+        post :unban
       end
       resources :addresses, only: [ :new, :create, :edit, :update, :destroy ], controller: "identity_addresses"
     end

@@ -16,6 +16,7 @@ module SAMLHelper
         identity.to_saml_nameid,
         saml_filtered_attributes(identity, sp_config)
       )
+      saml_response.assertions.first.conditions << SAML2::Conditions::AudienceRestriction.new(sp_config[:entity].entity_id)
     end
 
     now = Time.now.utc

@@ -131,10 +131,13 @@ class IdentitiesController < ApplicationController
             # Set browser token cookie for security
             cookies.signed["browser_token_#{login_attempt.to_param}"] = {
                 value: login_attempt.browser_token,
-                expires: LoginAttempt::EXPIRATION.from_now
+                expires: LoginAttempt::EXPIRATION.from_now,
+                httponly: true,
+                secure: Rails.env.production?,
+                same_site: :lax
             }
 
-            login_code = Identity::V2LoginCode.create!(identity: @identity)
+            login_code = Identity::V2LoginCode.generate(@identity, ip_address: request.remote_ip, user_agent: request.user_agent)
             if defined?(IdentityMailer)
                 IdentityMailer.v2_login_code(login_code).deliver_later
             end

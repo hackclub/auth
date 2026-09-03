@@ -4,10 +4,15 @@ class StepUpController < ApplicationController
   helper_method :step_up_cancel_path
 
   WEBAUTHN_SESSION_KEY = :step_up_webauthn_challenge
+  VALID_ACTIONS = %w[remove_totp disable_2fa oidc_reauth email_change remove_passkey add_passkey regenerate_backup_codes add_totp].freeze
   ACTIONS_WITHOUT_EMAIL_FALLBACK = %w[email_change disable_2fa remove_passkey].freeze
 
+  before_action :validate_action_type, except: [ :webauthn_options ]
+  before_action :require_pending_step_up, only: [ :send_email_code, :verify, :resend_email ]
+
   def new
-    @action = params[:action_type] # e.g., "remove_totp", "disable_2fa", "oidc_reauth", "email_change"
+    session[:pending_step_up_action] = params[:action_type]
+    @action = params[:action_type]
     @return_to = params[:return_to]
     @available_methods = current_identity.available_step_up_methods
     @available_methods << :email unless @action.in?(ACTIONS_WITHOUT_EMAIL_FALLBACK)
@@ -38,7 +43,7 @@ class StepUpController < ApplicationController
       return
     end
 
-    complete_step_up(params[:action_type], params[:return_to])
+    complete_step_up(params[:return_to])
   rescue WebauthnCredentialCompromisedError => e
     Rails.logger.warn "Step-up blocked: compromised credential detected for identity #{current_identity.id}"
     flash[:error] = "Security issue detected with your passkey. It has been disabled for your protection. Please use another verification method or register a new passkey."
@@ -54,7 +59,7 @@ class StepUpController < ApplicationController
   end
 
   def send_email_code
-    if params[:action_type].in?(ACTIONS_WITHOUT_EMAIL_FALLBACK)
+    if session[:pending_step_up_action].in?(ACTIONS_WITHOUT_EMAIL_FALLBACK)
       flash[:error] = "Email verification is not available for this action"
       redirect_to new_step_up_path(action_type: params[:action_type], return_to: params[:return_to])
       return
@@ -81,7 +86,7 @@ class StepUpController < ApplicationController
       return
     end
 
-    if action_type.in?(ACTIONS_WITHOUT_EMAIL_FALLBACK) && method == :email
+    if session[:pending_step_up_action].in?(ACTIONS_WITHOUT_EMAIL_FALLBACK) && method == :email
       flash[:error] = "Email verification is not available for this action"
       redirect_to new_step_up_path(action_type: action_type, return_to: params[:return_to])
       return
@@ -95,17 +100,19 @@ class StepUpController < ApplicationController
     when :backup_code
       backup = current_identity.backup_codes.active.find { |bc| bc.authenticate_code(code) }
       if backup
-        backup.mark_used!
-        true
+        backup.consume_atomically!
       else
         false
       end
 
     when :email
-      login_code = current_identity.v2_login_codes.active.find_by(code: code.delete("-").strip)
+      login_code = current_identity.v2_login_codes.active.where(purpose: "step_up").find_by(code: code.delete("-").strip)
       if login_code
-        login_code.update!(used_at: Time.current)
-        true
+        Identity::V2LoginCode.where(id: login_code.id, used_at: nil).update_all(
+          used_at: Time.current,
+          ip_address: request.remote_ip.to_s,
+          user_agent: request.user_agent
+        ) == 1
       else
         false
       end
@@ -119,11 +126,11 @@ class StepUpController < ApplicationController
       return
     end
 
-    complete_step_up(action_type, params[:return_to])
+    complete_step_up(params[:return_to])
   end
 
   def resend_email
-    if params[:action_type] == "email_change"
+    if session[:pending_step_up_action].in?(ACTIONS_WITHOUT_EMAIL_FALLBACK)
       flash[:error] = "Email verification is not available for this action"
       redirect_to new_step_up_path(action_type: params[:action_type], return_to: params[:return_to])
       return
@@ -141,7 +148,13 @@ class StepUpController < ApplicationController
 
   private
 
-  def complete_step_up(action_type, return_to)
+  def complete_step_up(return_to)
+    action_type = session.delete(:pending_step_up_action)
+    unless action_type&.in?(VALID_ACTIONS)
+      redirect_to security_path, alert: "Invalid action"
+      return
+    end
+
     current_session.record_step_up!(action: action_type)
 
     case action_type
@@ -177,11 +190,27 @@ class StepUpController < ApplicationController
       credential = current_identity.webauthn_credentials.find_by(id: credential_id) if credential_id
       if credential
         credential.destroy
+        TwoFactorMailer.authentication_method_disabled(current_identity).deliver_later
+
+        if current_identity.two_factor_methods.empty?
+          current_identity.update!(use_two_factor_authentication: false)
+          current_identity.backup_codes.active.each(&:mark_discarded!)
+        end
+
         consume_step_up!
         redirect_to security_path, notice: t("identity_webauthn_credentials.successfully_removed")
       else
         redirect_to security_path
       end
+
+    when "regenerate_backup_codes"
+      consume_step_up!
+      safe_path = safe_internal_redirect(return_to)
+      redirect_to safe_path || security_path
+
+    when "add_passkey", "add_totp"
+      safe_path = safe_internal_redirect(return_to)
+      redirect_to safe_path || security_path
 
     else
       redirect_to security_path, alert: "Unknown action"
@@ -189,7 +218,7 @@ class StepUpController < ApplicationController
   end
 
   def send_step_up_email_code
-    login_code = current_identity.v2_login_codes.create!
+    login_code = Identity::V2LoginCode.generate(current_identity, purpose: "step_up", ip_address: request.remote_ip, user_agent: request.user_agent)
     IdentityMailer.v2_login_code(login_code).deliver_later
   end
 
@@ -200,6 +229,18 @@ class StepUpController < ApplicationController
     else
       security_path
     end
+  end
+
+  def validate_action_type
+    return if params[:action_type].in?(VALID_ACTIONS)
+
+    flash[:error] = "Invalid action"
+    redirect_to security_path
+  end
+
+  def require_pending_step_up
+    return if session[:pending_step_up_action].present?
+    redirect_to new_step_up_path(action_type: params[:action_type], return_to: params[:return_to])
   end
 
   def safe_internal_redirect(return_to)

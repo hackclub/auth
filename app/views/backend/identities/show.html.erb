@@ -146,6 +146,7 @@
   </row>
 
   <%# === Feature Flags === %>
+  <% if current_user&.super_admin? || current_user&.manual_document_verifier? %>
   <div is-="separator"></div>
   <details>
     <summary style="color: var(--foreground2); cursor: pointer;">feature flags</summary>
@@ -189,9 +190,10 @@
       <% end %>
     </column>
   </details>
+  <% end %>
 
   <%# === Recent Sessions === %>
-  <% if @sessions.any? %>
+  <% if @sessions.any? && (current_user&.super_admin? || current_user&.manual_document_verifier?) %>
     <div is-="separator"></div>
     <details>
       <summary style="color: var(--foreground2); cursor: pointer;">recent sessions (<%= @active_session_count %> active)
@@ -327,7 +329,7 @@
   <% end %>
 
   <%# === Audit log === %>
-  <% if @activities.any? %>
+  <% if @activities.any? && (current_user&.super_admin? || current_user&.manual_document_verifier?) %>
     <div is-="separator"></div>
     <details>
       <summary style="color: var(--foreground2); cursor: pointer;">audit log (<%= @activities.size %>)</summary>
@@ -335,6 +337,59 @@
         <%= render "backend/shared/activity_log", activities: @activities %>
       </column>
     </details>
+  <% end %>
+
+  <%# === Ban / Unlock === %>
+  <% ban_tool do %>
+    <div is-="separator"></div>
+    <% if @identity.locked? %>
+      <column gap-="1">
+        <row align-="center" gap-="2">
+          <span style="color: var(--red);">this account is locked</span>
+          <%= button_to "unlock account", unban_backend_identity_path(@identity), method: :post, data: { confirm: "unlock #{@identity.first_name}'s account?" } %>
+        </row>
+        <% if @identity.disallow_slack? || @identity.slack_id.present? %>
+          <span style="color: var(--foreground2);">if their Slack was deactivated, you can reprovision it after unlocking.</span>
+        <% end %>
+      </column>
+    <% else %>
+      <details>
+        <summary style="color: var(--red); cursor: pointer;">ban tools</summary>
+        <column pad-="1 0" gap-="1">
+          <%= render Components::Backend::Banner.new(kind: :warning) do %>
+            this will lock the account, expire all sessions, and prevent login.
+          <% end %>
+          <%= form_with url: ban_backend_identity_path(@identity), method: :post, local: true do %>
+            <column gap-="1">
+              <label>
+                <b>reason</b>
+                <span style="color: var(--foreground2);">(required — logged in audit trail)</span>
+                <textarea name="reason" required placeholder="why is this account being banned?" rows="2"></textarea>
+              </label>
+
+              <% if @identity.slack_id.present? %>
+                <label>
+                  <%= check_box_tag :deactivate_slack, "1", false %> also deactivate Slack account
+                </label>
+              <% end %>
+
+              <label>
+                <b>type "<%= @identity.primary_email %>" to confirm</b>
+                <input type="text" name="confirm_email" id="ban-confirm-email" required autocomplete="off" placeholder="<%= @identity.primary_email %>">
+              </label>
+
+              <button type="submit" variant-="red" id="ban-submit" disabled>lock account</button>
+
+              <script>
+                document.getElementById('ban-confirm-email').addEventListener('input', function(e) {
+                  document.getElementById('ban-submit').disabled = e.target.value !== '<%= j @identity.primary_email %>';
+                });
+              </script>
+            </column>
+          <% end %>
+        </column>
+      </details>
+    <% end %>
   <% end %>
 
   <%# === Simulate onboarding === %>

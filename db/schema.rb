@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_31_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -482,6 +482,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_22_000001) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "login_attempt_id"
+    t.datetime "invalidated_at"
     t.index ["identity_id", "login_attempt_id", "code", "used_at"], name: "index_v2_codes_on_identity_attempt_code_used"
     t.index ["identity_id"], name: "index_identity_v2_login_codes_on_identity_id"
     t.index ["login_attempt_id"], name: "index_identity_v2_login_codes_on_login_attempt_id"

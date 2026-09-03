@@ -4,7 +4,7 @@ module SessionsHelper
   class AccountLockedError < StandardError; end
 
   def sign_in(identity:, fingerprint_info: {}, impersonate: false)
-    raise(AccountLockedError, "Your HCB account has been locked.") if identity.locked?
+    raise(AccountLockedError, "Your account has been locked.") if identity.locked?
 
     # Preserve fingerprint info from session if not passed
     fingerprint_info = session[:fingerprint_info] if fingerprint_info.blank? && session[:fingerprint_info].present?
@@ -23,13 +23,6 @@ module SessionsHelper
     cookies.encrypted[:session_token] = {
       value: session_token,
       expires: expires_at,
-      httponly: true,
-      secure: Rails.env.production?,
-      same_site: :lax
-    }
-    cookies.encrypted[:signed_user] = {
-      value: identity.signed_id(expires_in: 2.months, purpose: :remember_me),
-      expires: 2.months.from_now,
       httponly: true,
       secure: Rails.env.production?,
       same_site: :lax
@@ -89,6 +82,7 @@ module SessionsHelper
     end
 
     cookies.delete(:session_token)
+    cookies.delete(:signed_user)
     self.current_identity = nil
 
     reset_session

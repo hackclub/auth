@@ -60,7 +60,7 @@ class OAuthToken < ApplicationRecord
   end
 
   def active?
-    !revoked_at? && (expires_in.nil? || expires_in > 0)
+    !revoked_at? && !expired?
   end
 
   def self.generate_access_token(size: SIZE)

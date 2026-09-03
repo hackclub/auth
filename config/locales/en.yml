@@ -633,7 +633,7 @@ en:
       upload_government_id: Upload your government-issued ID
       accepted_formats: "Accepted formats:"
       formats_india: PDF only
-      formats_other: Images, PDF, HEIC
+      formats_other: Images, PDF
       upload_transcript: Upload your transcript
       transcript_help: Your most recent report card or transcript
       upload_student_id: Upload your student ID
@@ -753,6 +753,7 @@ en:
           subtitle: Verify your age and identity to participate in programs and compete for prizes
           start_verification: Start Verification
   email_changes:
+    unavailable: Email changes aren't available on this account.
     new:
       title: Change your email
       current_email: Current email

@@ -36,7 +36,7 @@
 #  fk_rails_...  (primary_address_id => addresses.id)
 #
 class Identity < ApplicationRecord
-  has_paper_trail
+  has_paper_trail skip: %i[aadhaar_number_ciphertext aadhaar_number_bidx]
   acts_as_paranoid
   include PublicActivity::Model
 
@@ -96,8 +96,9 @@ class Identity < ApplicationRecord
   validates :primary_email, uniqueness: { conditions: -> { where(deleted_at: nil) } }
   validate :validate_primary_email, if: -> { new_record? || primary_email_changed? }
   validate :validate_email_not_tombstoned, if: -> { new_record? || primary_email_changed? }
+  validate :country_not_sanctioned, if: -> { new_record? || country_changed? }
 
-  validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, allow_blank: true
+  validates :slack_id, uniqueness: { conditions: -> { where(deleted_at: nil) } }, format: { with: /\AU[A-Z0-9]+\z/ }, allow_blank: true
   validates :persona_account_id, uniqueness: true, allow_blank: true
   validates :aadhaar_number, uniqueness: true, allow_blank: true
   validates :aadhaar_number, format: { with: /\A\d{12}\z/, message: "must be 12 digits" }, if: -> { aadhaar_number.present? }
@@ -176,6 +177,10 @@ class Identity < ApplicationRecord
     existing_identity = find_by(slack_id: slack_id)
     if existing_identity && existing_identity != current_identity
       return { success: false, error: "This Slack account is already linked to another identity" }
+    end
+
+    if current_identity.disallow_slack?
+      return { success: false, error: "This Slack account can't be linked" }
     end
 
     current_identity.update!(slack_id: slack_id)
@@ -340,6 +345,7 @@ class Identity < ApplicationRecord
   def lock_account!
     update!(locked_at: Time.current)
     sessions.update_all(expires_at: Time.current)
+    all_access_tokens.update_all(revoked_at: Time.current)
   end
 
   def self.calculate_age(birthday)
@@ -355,7 +361,7 @@ class Identity < ApplicationRecord
 
   def backup_codes_enabled? = backup_codes.active.any?
 
-  def webauthn_enabled? = webauthn_credentials.any?
+  def webauthn_enabled? = webauthn_credentials.active.any?
 
   # Encode identity ID as base64url for WebAuthn user.id
   # Uses 64-bit unsigned big-endian binary format
@@ -377,7 +383,7 @@ class Identity < ApplicationRecord
   def two_factor_methods
     [
       totps.verified,
-      webauthn_credentials
+      webauthn_credentials.active
       # Future: sms_two_factors.verified,
     ].flatten.compact
   end
@@ -436,6 +442,14 @@ class Identity < ApplicationRecord
       errors.add(:legal_last_name, "must be present when legal first name is provided")
     elsif legal_last_name.present? && legal_first_name.blank?
       errors.add(:legal_first_name, "must be present when legal last name is provided")
+    end
+  end
+
+  def country_not_sanctioned
+    return unless country.present?
+    sanctioned = Rails.configuration.try(:sanctioned_countries) || []
+    if country.to_s.in?(sanctioned)
+      errors.add(:country, "is in a restricted region")
     end
   end
 
