@@ -52,6 +52,8 @@ class Identity < ApplicationRecord
 
   has_country_enum
 
+  attr_accessor :suggested_email, :email_typo_confirmed, :typo_dismissable
+
   has_many :sessions, class_name: "IdentitySession", dependent: :destroy
   has_many :login_attempts, dependent: :destroy
   has_many :login_codes, class_name: "Identity::LoginCode", dependent: :destroy
@@ -477,6 +479,15 @@ class Identity < ApplicationRecord
     unless address.valid?
       errors.add(:primary_email, I18n.t("errors.attributes.primary_email.invalid_format"))
       return
+    end
+
+    if new_record? && !email_typo_confirmed
+      self.suggested_email = EmailDomainSuggester.suggest(primary_email)
+      if suggested_email
+        self.typo_dismissable = !(Rails.env.production? && address.disposable_domain?)
+        errors.add(:primary_email, :typo)
+        return
+      end
     end
 
     return unless Rails.env.production?

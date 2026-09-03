@@ -409,6 +409,9 @@ en:
       email_code: We'll send a one-time code to this address.
       continue: Continue
       wrong_email: "← Wrong email? Go back"
+      email_typo: "Looks like a typo... did you mean <strong>%{suggested}</strong>?"
+      email_typo_fix: "yeah, that one! →"
+      email_typo_dismiss: "no, it's correct"
     update:
       success: saved changes!
     create:
