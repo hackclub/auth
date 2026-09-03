@@ -33,6 +33,11 @@ class Backend::BreakGlassController < Backend::ApplicationController
       Identity::PersonaRecord.find(params[:break_glassable_id])
     when "Identity"
       Identity.find_by_public_id!(params[:break_glassable_id])
+    when "VerificationCase::Document"
+      VerificationCase::Document.find(params[:break_glassable_id]).tap do |doc|
+        doc.verification_case.log_event!(:document_break_glass, actor: current_user,
+          data: { document_id: doc.id, reason: params[:reason] }, request: request)
+      end
     else
       raise ArgumentError, "Invalid break_glassable_type: #{params[:break_glassable_type]}"
     end
@@ -49,6 +54,8 @@ class Backend::BreakGlassController < Backend::ApplicationController
       "persona record"
     when "Identity"
       "identity"
+    when "VerificationCase::Document"
+      "case document"
     else
       "item"
     end

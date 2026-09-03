@@ -4,7 +4,12 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
   def perform(event_name:, inquiry_id:)
     @verification = Verification.find_by(persona_inquiry_id: inquiry_id)
     unless @verification
-      Rails.logger.info("[Persona] No verification found for inquiry #{inquiry_id} — may have been nuked")
+      # capture-only inquiries belong to manual verification cases, not verifications
+      if (verification_case = VerificationCase.find_by(persona_inquiry_id: inquiry_id))
+        handle_case_event(verification_case, event_name, inquiry_id)
+      else
+        Rails.logger.info("[Persona] No verification found for inquiry #{inquiry_id} — may have been nuked")
+      end
       return
     end
     @identity = @verification.identity
@@ -33,6 +38,54 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
   end
 
   private
+
+  # manual verification case capture inquiries: no decisioning, just
+  # snapshot the signals + pull the captured docs onto the case.
+  def handle_case_event(verification_case, event_name, inquiry_id)
+    Sentry.set_tags(component: "persona", event: event_name)
+    Sentry.set_extras(inquiry_id: inquiry_id, verification_case_id: verification_case.id)
+
+    case event_name
+    when "inquiry.completed", "inquiry.approved"
+      return if verification_case.docs_submitted? || !verification_case.link_sent?
+
+      inquiry = Persona.instance.retrieve_inquiry(inquiry_id)
+
+      photos = Persona::PhotoSet.empty
+      (inquiry.document_ids + inquiry.verification_ids).each do |ref|
+        photos += ref[:type].to_s.include?("document") ?
+          Persona.instance.retrieve_document_photos(ref[:id], type: ref[:type]) :
+          Persona.instance.retrieve_verification_photos(ref[:id], type: ref[:type])
+      rescue Persona::APIError => e
+        Sentry.capture_exception(e)
+      end
+
+      downloaded = download_photos(photos)
+
+      ActiveRecord::Base.transaction do
+        verification_case.update!(persona_signal_snapshot: {
+          inquiry: inquiry.raw,
+          sessions: inquiry.sessions,
+          behaviors: inquiry.behaviors,
+          network_signals: build_network_signals(inquiry.sessions)
+        }.as_json)
+
+        (downloaded || []).each do |dl|
+          doc = verification_case.documents.new(document_kind: "persona_capture", source: "persona")
+          doc.file.attach(io: StringIO.new(dl[:bytes]), filename: dl[:filename], content_type: "image/jpeg")
+          doc.save!
+        end
+
+        verification_case.submit_docs!
+      end
+
+      verification_case.log_event!(:docs_submitted, data: { source: "persona", inquiry_id: inquiry_id })
+    when "inquiry.failed", "inquiry.expired", "inquiry.declined"
+      verification_case.log_event!(:capture_inquiry_ended, data: { event: event_name, inquiry_id: inquiry_id })
+    end
+  rescue AASM::InvalidTransition
+    Rails.logger.info("[Persona] Ignoring duplicate #{event_name} for case inquiry #{inquiry_id}")
+  end
 
   def handle_completed(inquiry_id)
     return if @verification.pending? || @verification.approved?

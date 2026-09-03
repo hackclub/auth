@@ -4,6 +4,9 @@ class VerificationsController < ApplicationController
   include AhoyAnalytics
 
   before_action :set_identity
+  # an open manual verification call case supersedes the self-serve flows —
+  # send the user to their case instead of the legacy pages
+  before_action :redirect_to_open_manual_case, except: [ :status_check ]
 
   steps :document
 
@@ -161,6 +164,7 @@ class VerificationsController < ApplicationController
   def set_identity
     @identity = current_identity
   end
+
 
   def on_verification_success
     track_event("verification.submitted", verification_type: "document", scenario: analytics_scenario_for(@identity))
