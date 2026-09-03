@@ -33,9 +33,17 @@ when 1
   header "✨ you're already in!"
 
   section <<~TEXT, markdown: true
-    Oh! Um, it looks like you're already a full member of Hack Club! That's wonderful!
-
     I'm so glad you're here. How have you been enjoying the community? Have you made any new friends yet?
+
+    Visit <##{chan_welcome_to_hc}> for questions, advice, or just to introduce yourself!
+
+    For Fallout related things:
+
+    *<##{chan_fallout}>* - The main Fallout channel
+
+    *<##{chan_fallout_bulletin}>* - Channel for Fallout announcements
+
+    *<##{chan_fallout_help}>* - Channel to ask for Fallout related help
   TEXT
 
   divider
