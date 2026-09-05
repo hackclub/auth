@@ -708,7 +708,7 @@ en:
         submitted_ago: Submitted %{time} ago
       pending_persona:
         title: Your ID is being checked
-        subtitle: This usually takes under a minute
+        subtitle: This usually takes less than 24 hours
         description: "Your ID is being reviewed automatically. We'll email %{email} as soon as it's done — you don't need to stay on this page."
         review_title: We're reviewing your submission
         review_subtitle: We'll get back to you soon
