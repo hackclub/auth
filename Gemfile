@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.0.4"
+gem "rails", "~> 8.1.3"
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.6"
 # Use the Puma web server [https://github.com/puma/puma]
@@ -108,7 +108,7 @@ gem "valid_email2", github: "24c02/valid_email2"
 
 gem "rails_semantic_logger", "~> 4.19"
 
-gem "acts_as_paranoid", "~> 0.10.3"
+gem "acts_as_paranoid", "~> 0.11.0"
 
 gem "console1984", "~> 0.2.3"
 
