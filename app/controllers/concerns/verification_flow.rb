@@ -107,6 +107,7 @@ module VerificationFlow
 
   def find_or_create_persona_verification
     expired_inquiry_ids = []
+    @identity.reload if @identity.persisted?
     verification = @identity.with_lock do
       expired_inquiry_ids = destroy_conflicting_drafts("Verification::PersonaStudentIdVerification")
       @identity.verifications.where(status: :draft, type: "Verification::PersonaVerification").first ||
@@ -118,6 +119,7 @@ module VerificationFlow
 
   def find_or_create_student_id_verification
     expired_inquiry_ids = []
+    @identity.reload if @identity.persisted?
     verification = @identity.with_lock do
       expired_inquiry_ids = destroy_conflicting_drafts("Verification::PersonaVerification")
       @identity.persona_student_id_verifications.where(status: :draft).first ||
