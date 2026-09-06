@@ -23,7 +23,7 @@ module IdentityVault
   class Application < Rails::Application
     config.autoload_paths << "#{root}/app/views/forms"
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 8.1
+    config.load_defaults 8.0
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
@@ -66,6 +66,9 @@ module IdentityVault
                          secure: Rails.env.production?,
                          httponly: true,
                          same_site: :lax
+
+    # Loopback HTTP probes (Docker HEALTHCHECK / Coolify) must not be bounced to HTTPS.
+    config.ssl_options = { redirect: { exclude: ->(request) { request.local? } } }
 
     config.middleware.insert_before 0, DomainRedirect if Rails.env.production?
 

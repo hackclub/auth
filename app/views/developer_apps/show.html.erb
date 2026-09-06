@@ -90,7 +90,7 @@
               <code class="credential-value" x-show="revealed"><%= @app.secret %></code>
               <span class="credential-value credential-masked" x-show="!revealed">[hidden]</span>
             <% end %>
-            <button type="button" class="button-secondary small-btn usn" <%= t('.hide') %> ' : '<%= t('.reveal') %>'"></button>
+            <button type="button" class="button-secondary small-btn usn" x-on:click="revealed = !revealed" x-text="revealed ? '<%= t('.hide') %>' : '<%= t('.reveal') %>'"></button>
           </div>
         </div>
       <% end %>
@@ -102,7 +102,7 @@
               <code class="credential-value" x-show="revealed"><%= @app.program_key %></code>
               <span class="credential-value credential-masked" x-show="!revealed">[hidden]</span>
             <% end %>
-            <button type="button" class="button-secondary small-btn usn" @click="revealed = !revealed" x-text="revealed ? '<%= t('.hide') %>' : '<%= t('.reveal') %>'"></button>
+            <button type="button" class="button-secondary small-btn usn" x-on:click="revealed = !revealed" x-text="revealed ? '<%= t('.hide') %>' : '<%= t('.reveal') %>'"></button>
           </div>
         </div>
       <% end %>
@@ -176,7 +176,7 @@
         <div class="add-collaborator">
           <p class="label-upper" style="margin: 0 0 0.75rem;"><%= t(".add_collaborator") %></p>
           <%= form_with url: developer_app_collaborators_path(@app), method: :post, local: true do |f| %>
-            <%= email_field_tag :email, nil, placeholder: t(".collaborator_email_placeholder"), required: true %>
+            <%= email_field_tag :email, nil, placeholder: t(".collaborator_email_placeholder"), required: true, autocomplete: "email" %>
             <button type="submit" class="approve small-btn"><%= t(".add_button") %></button>
           <% end %>
         </div>

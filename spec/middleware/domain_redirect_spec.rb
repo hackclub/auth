@@ -5,24 +5,26 @@ RSpec.describe DomainRedirect do
 
   let(:app) { ->(_env) { [ 200, { "Content-Type" => "text/plain" }, [ "ok" ] ] } }
 
-  def call_on(path, host:)
-    middleware.call(Rack::MockRequest.env_for("http://#{host}#{path}"))
+  def call_on(path, host:, remote_addr: "203.0.113.10")
+    env = Rack::MockRequest.env_for("http://#{host}#{path}")
+    env["REMOTE_ADDR"] = remote_addr
+    middleware.call(env)
   end
 
-  it "does not redirect /up so container healthchecks can use Host: localhost" do
-    status, _headers, body = call_on("/up", host: "localhost")
+  it "does not redirect loopback so container healthchecks can probe any path" do
+    status, _headers, body = call_on("/up", host: "localhost", remote_addr: "127.0.0.1")
 
     expect(status).to eq(200)
     expect(body).to eq([ "ok" ])
   end
 
-  it "lets /up through on identity.hackclub.com" do
-    status, = call_on("/up", host: "identity.hackclub.com")
+  it "does not redirect other loopback paths" do
+    status, = call_on("/", host: "identity.hackclub.com", remote_addr: "127.0.0.1")
 
     expect(status).to eq(200)
   end
 
-  it "still redirects other paths off auth.hackclub.com" do
+  it "still redirects public traffic off identity.hackclub.com" do
     status, headers = call_on("/", host: "identity.hackclub.com")
 
     expect(status).to eq(301)

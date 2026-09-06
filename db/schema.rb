@@ -103,6 +103,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_173061) do
   create_table "backend_users", force: :cascade do |t|
     t.boolean "active"
     t.boolean "all_fields_access"
+    t.boolean "can_ban", default: false, null: false
     t.boolean "can_break_glass"
     t.boolean "can_process_deletions", default: false, null: false
     t.datetime "created_at", null: false
@@ -460,6 +461,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_173061) do
     t.string "timezone"
     t.datetime "updated_at", null: false
     t.index ["identity_id"], name: "index_identity_sessions_on_identity_id"
+    t.index ["session_token_bidx"], name: "index_identity_sessions_on_session_token_bidx", unique: true
   end
 
   create_table "identity_tombstone_collisions", force: :cascade do |t|
@@ -490,6 +492,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_173061) do
     t.datetime "invalidated_at"
     t.inet "ip_address"
     t.bigint "login_attempt_id"
+    t.string "purpose", default: "login"
     t.datetime "updated_at", null: false
     t.datetime "used_at"
     t.text "user_agent"

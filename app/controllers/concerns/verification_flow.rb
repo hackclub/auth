@@ -106,24 +106,25 @@ module VerificationFlow
   end
 
   def find_or_create_persona_verification
-    expired_inquiry_ids = []
-    @identity.reload if @identity.persisted?
-    verification = @identity.with_lock do
-      expired_inquiry_ids = destroy_conflicting_drafts("Verification::PersonaStudentIdVerification")
-      @identity.verifications.where(status: :draft, type: "Verification::PersonaVerification").first ||
-        Verification::PersonaVerification.create!(identity: @identity)
-    end
-    expire_remote_inquiries(expired_inquiry_ids)
-    verification
+    find_or_create_draft_verification(
+      Verification::PersonaVerification,
+      conflicting_type: Verification::PersonaStudentIdVerification
+    )
   end
 
   def find_or_create_student_id_verification
+    find_or_create_draft_verification(
+      Verification::PersonaStudentIdVerification,
+      conflicting_type: Verification::PersonaVerification
+    )
+  end
+
+  def find_or_create_draft_verification(klass, conflicting_type:)
     expired_inquiry_ids = []
-    @identity.reload if @identity.persisted?
     verification = @identity.with_lock do
-      expired_inquiry_ids = destroy_conflicting_drafts("Verification::PersonaVerification")
-      @identity.persona_student_id_verifications.where(status: :draft).first ||
-        Verification::PersonaStudentIdVerification.create!(identity: @identity)
+      expired_inquiry_ids = destroy_conflicting_drafts(conflicting_type.name)
+      @identity.verifications.where(status: :draft, type: klass.name).first ||
+        klass.create!(identity: @identity)
     end
     expire_remote_inquiries(expired_inquiry_ids)
     verification
