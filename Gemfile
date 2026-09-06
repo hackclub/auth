@@ -5,7 +5,8 @@ gem "rails", "~> 8.1.3"
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.6"
 # Use the Puma web server [https://github.com/puma/puma]
-gem "puma", ">= 5.0"
+# 7.2.x is the Rails 8.1 line (7.2.1 is the PROXY-protocol security patch). Puma 8 is current latest.
+gem "puma", "~> 7.2"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
@@ -20,6 +21,7 @@ gem "bootsnap", require: false
 gem "thruster", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
+# Rails 8.1's app template still recommends 1.x; 2.x is the latest major.
 gem "image_processing", "~> 1.14"
 
 group :development, :test do
@@ -50,8 +52,9 @@ gem "vite_rails"
 
 gem "pundit", "~> 2.5"
 
-gem "sentry-ruby", "~> 5.28"
-gem "sentry-rails", "~> 5.28"
+# 6.7 is the last 6.x (Rails 8.1-compatible). 7.0 is current latest and enables logs by default.
+gem "sentry-ruby", "~> 6.7"
+gem "sentry-rails", "~> 6.7"
 
 gem "http", "~> 5.3"
 
@@ -73,8 +76,9 @@ gem "awesome_print", "~> 1.9"
 
 gem "active_storage_encryption", "~> 0.3.0"
 
-gem "doorkeeper", "~> 5.8"
-gem "doorkeeper-openid_connect", "~> 1.8"
+# OIDC 1.10 is the Rails 8.1-tested line (not 2.0 beta). It requires Doorkeeper 5.5+ / < 6.
+gem "doorkeeper", "~> 5.9"
+gem "doorkeeper-openid_connect", "~> 1.10"
 
 gem "aasm", "~> 5.5"
 
@@ -94,7 +98,8 @@ gem "ahoy_matey", "~> 5.4"
 gem "chartkick", "~> 5.2"
 gem "groupdate", "~> 6.7"
 
-gem "good_job", "~> 4.13"
+# 4.19 is the current 4.x line; Good Job CI tests Rails 8.1 on it.
+gem "good_job", "~> 4.19"
 
 group :development do
   gem "letter_opener_web", "~> 3.0"
