@@ -71,12 +71,10 @@
           <strong><%= t("developer_apps.edit.scopes_removed", default: "Scopes removed:") %></strong>
           <span x-text="removedScopes.join(', ')"></span>
           — <%= t("developer_apps.edit.scopes_not_valid_for_trust_level", default: "not valid for this trust level.") %>
-          <button type="button" @click="dismissWarning()">&#x2715;</button>
-        </div>
-
+          <button type="button"
         <%# Quick-fill for YSWS programs (HQ officializers only) %>
         <template x-if="showYswsDefaults">
-          <button type="button" class="button-secondary small-btn ysws-defaults-btn" @click="applyYswsDefaults()"><%= t(".ysws_defaults", default: "Default YSWS scopes") %></button>
+          <button type="button" class="button-secondary small-btn ysws-defaults-btn" <%= t(".ysws_defaults", default: "Default YSWS scopes") %>>
         </template>
 
         <%# Blank input ensures empty array when nothing checked %>
@@ -88,21 +86,12 @@
             <input type="checkbox" name="program[scopes_array][]"
                    :value="scope.name"
                    :checked="isChecked(scope.name)"
-                   @change="toggle(scope.name)">
-            <div>
-              <span x-text="scope.name"></span>
-              <small x-text="scope.description"></small>
-            </div>
-          </label>
-        </template>
-
         <%# Community-only note for users who can't change trust level %>
         <% unless policy(@app).update_trust_level? %>
           <%= render Components::Banner.new(kind: :info) do %>
             <%= t(".trust_level_note_html").html_safe %>
           <% end %>
-        <% end %>
-      </section>
+        <% end %>>
     </div>
   </div>
 
