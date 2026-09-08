@@ -1,0 +1,30 @@
+<div class="page-header-centered">
+  <h1>Scan your document</h1>
+  <p>This uses your camera to capture your document and a quick selfie.</p>
+</div>
+
+<div class="page-sections">
+  <section class="section-card persona-verify-card"
+           data-persona-verify
+           data-inquiry-id="<%= @inquiry_id %>"
+           data-session-token="<%= @session_token %>"
+           data-environment-id="<%= @environment_id %>"
+           data-host="<%= @persona_host %>"
+           data-status-url="<%= manual_verification_path %>"
+           data-msg-complete="All done — sending you back…"
+           data-msg-cancel="Capture cancelled. You can retry or upload directly instead."
+           data-msg-error="Something went wrong with the capture flow."
+           data-fallback-url="<%= manual_verification_path %>">
+
+    <div class="persona-hero">
+      <h3>Ready when you are</h3>
+      <p>Have your document handy. The scan takes about two minutes.</p>
+    </div>
+
+    <div class="status-actions">
+      <button data-persona-start type="button">Start scanning</button>
+      <p data-persona-message></p>
+      <%= link_to "Upload directly instead", manual_verification_path, class: "secondary" %>
+    </div>
+  </section>
+</div>

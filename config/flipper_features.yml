@@ -14,3 +14,4 @@ shared:
   disable_slack_invites_2025_12_08: suppresses Slack SCIM provisioning for an actor
   dev_force_manual_review_2026_05_27: forces verifications for an actor into manual review
   dev_force_deny_verification_2026_05_27: auto-denies verifications for an actor
+  manual_verification_call_2026_07_03: enables the manual verification call flow for an actor with an open case
