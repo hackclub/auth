@@ -1,0 +1,43 @@
+<% content_for :title, t(".title") %>
+<div class="auth-container" x-data="passkeySetup()">
+  <div class="auth-card passkey-setup">
+    <header>
+      <h1><%= t(".title") %></h1>
+      <small><%= t(".subtitle") %></small>
+    </header>
+
+    <div x-show="error" x-cloak class="alert alert-error" role="alert">
+      <strong><%= t(".error_title") %></strong>
+      <p x-text="error"></p>
+    </div>
+
+    <%= form_with url: identity_webauthn_credentials_path, method: :post, local: true, id: "setup-registration-form", style: "display: none;" do |form| %>
+      <%= form.hidden_field :credential_data, id: "setup-credential-data" %>
+      <%= form.hidden_field :return_to, value: @return_to %>
+    <% end %>
+
+    <div class="passkey-prompt">
+      <button
+        type="button"
+        class="webauthn-button"
+        x-on:click="setup()"
+        x-bind:disabled="loading">
+        <span class="webauthn-icon"><%= inline_icon("fingerprint", size: 16) %></span>
+        <span x-show="!loading"><%= t(".setup_button") %></span>
+        <span x-show="loading" x-cloak><%= t(".setting_up") %>...</span>
+      </button>
+    </div>
+
+    <div style="margin-top: 0.75rem;">
+      <%= form_with url: passkey_setup_skip_path(return_to: @return_to), method: :post, local: true do |form| %>
+        <%= form.hidden_field :dont_show_again, "x-bind:value": "dontShowAgain" %>
+        <%= form.submit t(".skip"), class: "secondary" %>
+      <% end %>
+    </div>
+
+    <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; margin: 1rem 0 0; font-size: 0.85rem; color: var(--muted-color); cursor: pointer;">
+      <input type="checkbox" x-model="dontShowAgain" style="margin: 0; width: 1rem; height: 1rem;">
+      <%= t(".dont_show_again") %>
+    </label>
+  </div>
+</div>

@@ -16,6 +16,19 @@ module WebauthnAuthenticatable
     options
   end
 
+  # Verify a discoverable passkey without a prior identity (passkey-first sign in).
+  def find_and_verify_discoverable_webauthn_credential(credential_data, session_key:)
+    webauthn_credential = WebAuthn::Credential.from_get(credential_data)
+
+    credential = Identity::WebauthnCredential.active.find_by(
+      external_id: Base64.urlsafe_encode64(webauthn_credential.id, padding: false)
+    )
+
+    return nil unless credential
+
+    verify_webauthn_credential(credential.identity, credential_data:, session_key:)
+  end
+
   def verify_webauthn_credential(identity, credential_data:, session_key:)
     # Delete challenge before parsing to prevent reuse on parse failure
     stored_challenge = session.delete(session_key)

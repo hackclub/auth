@@ -134,4 +134,30 @@ RSpec.describe Identity, type: :model do
       expect(identity.persona_verification_locked?).to be false
     end
   end
+
+  describe "#passkey_promotion_allowed?" do
+    it "is true when no passkey is enrolled and not dismissed" do
+      expect(identity.passkey_promotion_allowed?).to be true
+    end
+
+    it "is false when a passkey is enrolled" do
+      identity.webauthn_credentials.create!(
+        webauthn_id: SecureRandom.random_bytes(32),
+        webauthn_public_key: SecureRandom.random_bytes(65)
+      )
+      expect(identity.passkey_promotion_allowed?).to be false
+    end
+
+    it "is false when the promotion has been dismissed" do
+      identity.update!(passkey_prompt_dismissed_at: Time.current)
+      expect(identity.passkey_promotion_allowed?).to be false
+    end
+  end
+
+  describe "#dismiss_passkey_promotion!" do
+    it "sets the dismissed timestamp" do
+      expect { identity.dismiss_passkey_promotion! }
+        .to change { identity.passkey_prompt_dismissed_at }.from(nil)
+    end
+  end
 end

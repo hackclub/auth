@@ -371,6 +371,12 @@ Rails.application.routes.draw do
     end
   end
 
+  post "/passkey/login/options", to: "passkey_logins#options", as: :passkey_login_options
+  post "/passkey/login/verify", to: "passkey_logins#verify", as: :passkey_login_verify
+
+  get "/passkey/setup", to: "passkey_setups#show", as: :passkey_setup
+  post "/passkey/setup/skip", to: "passkey_setups#skip", as: :passkey_setup_skip
+
   # Step-up authentication flow
   get "/step_up", to: "step_up#new", as: :new_step_up
   post "/step_up/verify", to: "step_up#verify", as: :verify_step_up

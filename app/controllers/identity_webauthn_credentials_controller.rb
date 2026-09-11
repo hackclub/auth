@@ -1,7 +1,9 @@
 class IdentityWebauthnCredentialsController < ApplicationController
   include WebauthnAuthenticatable
+  include SafeUrlValidation
 
-  before_action -> { require_step_up("add_passkey", return_to: security_path) }, only: [ :new, :options, :create ]
+  before_action -> { require_step_up("add_passkey", return_to: security_path) }, only: [ :new ]
+  before_action -> { require_step_up("add_passkey", return_to: passkey_setup_path(return_to: params[:return_to])) }, only: [ :options, :create ]
 
   def index
     @webauthn_credentials = current_identity.webauthn_credentials.order(created_at: :desc)
@@ -22,7 +24,7 @@ class IdentityWebauthnCredentialsController < ApplicationController
       exclude: current_identity.webauthn_credentials.raw_credential_ids,
       authenticator_selection: {
         user_verification: "required",
-        resident_key: "preferred"
+        resident_key: "required"
       }
     )
 
@@ -57,7 +59,7 @@ class IdentityWebauthnCredentialsController < ApplicationController
 
       TwoFactorMailer.authentication_method_enabled(current_identity).deliver_later
       flash[:success] = t(".successfully_added")
-      redirect_to security_path
+      redirect_to url_from(params[:return_to]) || security_path
     rescue WebAuthn::Error => e
       Rails.logger.error "WebAuthn registration error: credential creation failed"
       flash[:error] = "Passkey registration failed. Please try again."
