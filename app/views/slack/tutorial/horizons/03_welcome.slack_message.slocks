@@ -23,9 +23,9 @@ when 0
   header "🎉 welcome in!"
 
   section <<~TEXT, markdown: true
-    Great! The Code of Conduct is enforced by the Fire Department. DM <@U07K4TS9HQE> if you ever have a concern.
+    You're in! All channels are open to you, reload Slack to see them.
 
-    You now have access to all channels! Reload Slack to see them.
+    We take our <https://hackclub.com/conduct|Code of Conduct> seriously, it's enforced by the Fire Department. DM <@U07K4TS9HQE> if you ever have a concern.
 
     Visit <##{chan_welcome}> for questions, advice, or just to introduce yourself!
 
@@ -39,6 +39,12 @@ when 0
 
     **Horizons is a series of hackathons being run all around the world. Our flagship event is Horizons Nexus, but we have a selection of subevents around the world that you can join.
   TEXT
+
+  actions [
+    button("I'll follow the CoC!", "tutorial_agree", style: "primary")
+  ]
+
+  divider
 
   section "? Click a button below to be added!", markdown: true
 
