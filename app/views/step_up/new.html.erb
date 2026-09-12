@@ -94,7 +94,7 @@
 
         <div x-show="error" x-cloak style="margin: 1rem 0;">
           <div class="alert alert-error" x-text="error"></div>
-          <button @click="authenticate()" class="btn" style="width: 100%; margin-top: 1rem;">
+          <button x-on:click="authenticate()" class="btn" style="width: 100%; margin-top: 1rem;">
             Try again
           </button>
         </div>

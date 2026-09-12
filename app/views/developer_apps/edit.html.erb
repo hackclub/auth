@@ -66,7 +66,7 @@
           <strong><%= t(".scopes_removed", default: "Scopes removed:") %></strong>
           <span x-text="removedScopes.join(', ')"></span>
           — <%= t(".scopes_not_valid_for_trust_level", default: "not valid for this trust level.") %>
-          <button type="button" @click="dismissWarning()">&#x2715;</button>
+          <button type="button" x-on:click="dismissWarning()">&#x2715;</button>
         </div>
 
         <%# Blank input ensures empty array when nothing checked %>
@@ -78,7 +78,7 @@
             <input type="checkbox" name="program[scopes_array][]"
                    :value="scope.name"
                    :checked="isChecked(scope.name)"
-                   @change="toggle(scope.name)">
+                   x-on:change="toggle(scope.name)">
             <div>
               <span x-text="scope.name"></span>
               <small x-text="scope.description"></small>

@@ -20,7 +20,7 @@
     "@fingerprintjs/fingerprintjs": "^3.4.2",
     "@noble/curves": "^1.9.1",
     "@picocss/pico": "^2.1.1",
-    "@rails/activestorage": "^8.0.200",
+    "@rails/activestorage": "^8.1.301",
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@webtui/css": "^0.1.7",
     "@webtui/theme-gruvbox": "^0.0.2",
