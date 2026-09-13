@@ -72,14 +72,7 @@
     <% if (@onboarding_scenario.form_fields & [:primary_email, :phone_number, :country]).any? || @identity.primary_email.present? %>
       <fieldset>
         <div class="grid">
-          <% if @identity.primary_email.present? %>
-            <%= form.hidden_field :primary_email, value: @identity.primary_email %>
-            <div>
-              <%= form.label :primary_email, t("identities.email") %>
-              <input type="text" value="<%= @identity.primary_email %>" disabled aria-disabled="true" autocomplete="email">
-              <small><a href="#" onclick="history.back(); return false;"><%= t("identities.new.wrong_email") %></a></small>
-            </div>
-          <% elsif @onboarding_scenario.form_fields.include?(:primary_email) %>
+          <% if @identity.primary_email.present? || @onboarding_scenario.form_fields.include?(:primary_email) %>
             <div>
               <%= form.label :primary_email, t("identities.email") %>
               <%= form.email_field :primary_email, required: true, placeholder: t("identities.email_placeholder"), autocomplete: "email", "aria-describedby": "emailHelp" %>
