@@ -33,7 +33,11 @@ module API
         elsif (slack_id = params[:slack_id]).present?
                   Identity.find_by(slack_id:)
         else
-                  raise ActionController::ParameterMissing, "provide one of: idv_id, email, slack_id"
+                  return render_api_error(
+                    :param_missing,
+                    message: "Provide exactly one of: idv_id, email, slack_id.",
+                    hint: "Call this endpoint as /api/external/check?email=someone@example.com (or ?idv_id=ident!abc123, or ?slack_id=U06QK6AG3RD)."
+                  )
         end
 
         result = if ident

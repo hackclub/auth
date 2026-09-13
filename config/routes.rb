@@ -404,6 +404,25 @@ Rails.application.routes.draw do
   end
 
 
+  # Machine-readable descriptions of the API (see DiscoveryController).
+  # Declared before the :api namespace so /api and /api/openapi.* win over the
+  # unmatched-API catch-all below.
+  get "/openapi", to: "discovery#openapi", as: :openapi, defaults: { format: :json }
+  get "/api/openapi", to: "discovery#openapi", as: :api_openapi, defaults: { format: :json }
+  get "/api", to: "discovery#api_index", as: :api_index
+  get "/.well-known/oauth-protected-resource", to: "discovery#oauth_protected_resource",
+      as: :oauth_protected_resource
+  # RFC 9728 §3.1 builds the metadata URL by inserting the resource's path after
+  # the well-known segment, so answer for any resource path under this origin.
+  get "/.well-known/oauth-protected-resource/*resource_path", to: "discovery#oauth_protected_resource",
+      format: false
+  get "/.well-known/api-catalog", to: "discovery#api_catalog", as: :api_catalog
+  match "/openapi", to: "discovery#preflight", via: :options
+  match "/api/openapi", to: "discovery#preflight", via: :options
+  match "/api", to: "discovery#preflight", via: :options
+  match "/.well-known/oauth-protected-resource", to: "discovery#preflight", via: :options
+  match "/.well-known/api-catalog", to: "discovery#preflight", via: :options
+
   namespace :api do
     namespace :v1 do
       resources :identities, only: [ :show, :index ] do
@@ -424,6 +443,10 @@ Rails.application.routes.draw do
   end
 
   get "/api/external", to: "static_pages#external_api_docs"
+
+  # Anything else under /api is a machine calling a path that doesn't exist —
+  # answer with a JSON 404 rather than the HTML error page.
+  match "/api/*unmatched_path", to: "discovery#not_found", via: :all, format: false
 
   get "/slack_staging", to: "static_pages#slack_staging" if Rails.env.staging?
 
