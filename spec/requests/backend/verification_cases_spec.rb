@@ -114,4 +114,31 @@ RSpec.describe "Backend verification cases", type: :request do
       expect(kase.verification).to be_nil
     end
   end
+
+  describe "navigation" do
+    it "links the cases queue from the backend home page" do
+      get backend_root_path
+
+      expect(response.body).to include(backend_verification_cases_path)
+      expect(response.body).to include("Manual call cases")
+    end
+
+    it "exposes the cases queue in the kbar palette" do
+      get backend_root_path
+
+      kbar = JSON.parse(response.body[/id="kbar-data">(.*?)<\/script>/m, 1])
+      entry = kbar["shortcuts"].find { |s| s["code"] == "CASE" }
+
+      expect(entry).to be_present
+      expect(entry["path"]).to eq(backend_verification_cases_path)
+    end
+
+    it "hides the cases queue from users who cannot review" do
+      plain = create(:backend_user)
+
+      codes = Shortcodes.all(plain).map(&:code)
+
+      expect(codes).not_to include("CASE")
+    end
+  end
 end
