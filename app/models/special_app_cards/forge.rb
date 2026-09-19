@@ -17,4 +17,3 @@ module SpecialAppCards
     def launch_text = "Start building!"
   end
 end
-
