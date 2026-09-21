@@ -258,7 +258,7 @@ module Backend
     def flip
       authorize @identity
 
-      feature = params[:flag]
+      feature = params[:flag].to_sym
       state = params[:state] == "true"
 
       if state
