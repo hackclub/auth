@@ -8,7 +8,7 @@ module SpecialAppCards
 
     def friendly_name = "Forge"
 
-    def tagline = "Build hardware, get funding!"
+    def tagline = "Get funding for designing and building hardware projects!"
 
     def icon = "forge.png"
 
