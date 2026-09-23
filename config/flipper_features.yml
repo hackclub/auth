@@ -10,6 +10,7 @@ shared:
   app_card_hctg_2026_03_19: enables HCTG app card on the welcome page
   app_card_blueprint_2026_01_14: enables Blueprint app card on the welcome page
   app_card_forge_2026_09_19: enables Forge app card on the welcome page
+  app_card_crescent_2026_09_23: enables Crescent app card on the welcome page
   full_user_open_floodgates_2026_04_06: provisions users as full Slack members instead of multi-channel guests
   dev_allow_manual_flow_2026_05_27: enables the manual document verification flow for an actor
   disable_slack_invites_2025_12_08: suppresses Slack SCIM provisioning for an actor
