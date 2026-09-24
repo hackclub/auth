@@ -408,7 +408,6 @@ en:
       not_necessarily_legal_name: not necessarily your legal name, what do people usually call you?
       email_code: We'll send a one-time code to this address.
       continue: Continue
-      wrong_email: "← Wrong email? Go back"
     update:
       success: saved changes!
     create:
