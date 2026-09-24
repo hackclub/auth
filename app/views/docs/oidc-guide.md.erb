@@ -5,7 +5,7 @@ category: Developer
 order: 9
 ---
 
-OpenID Connect (OIDC) is an identity layer on top of OAuth 2.0 that lets you verify user identity and get basic profile information. If you're building a web app that needs to know *who* the user is, OIDC is the way to go.
+OpenID Connect (OIDC) is an identity layer on top of OAuth 2.0 that lets you verify user identity and get basic profile information. If you're building a web app that needs to know _who_ the user is, OIDC is the way to go.
 
 <div class="banner info">
 <b>OIDC vs OAuth:</b>
@@ -28,12 +28,22 @@ This returns all the endpoints and capabilities of our OIDC implementation. Most
 ### 1. Create an OAuth application
 
 Head to the [Developer Apps](<%= developer_apps_path %>) page and create a new app. Make sure to:
+
 - Set your redirect URI (e.g., `https://arcade.hackclub.com/auth/callback`)
 - Note your Client ID and Client Secret
 
 ### 2. Redirect users to authorize
 
-<%= render Components::APIExample.new(method: "GET", url: oauth_authorization_url(client_id: "your_client_id", redirect_uri: "https://arcade.hackclub.com/auth/callback", response_type: "code", scope: "openid profile email")) %>
+<div style="
+  overflow-x: auto;  
+  max-width: 100%;
+  padding-bottom: 8px;
+">
+  <%= render Components::APIExample.new(
+    method: "GET", 
+    url: oauth_authorization_url(client_id: "your_client_id", redirect_uri: "https://arcade.hackclub.com/auth/callback", response_type: "code", scope: "openid profile email")
+  ) %>
+</div>
 
 ### 3. Exchange the code for tokens
 
@@ -98,14 +108,14 @@ Slack's OIDC solution provides a `picture` field in its claims that gives you a 
 
 ### Standard OIDC Scopes
 
-| Scope | Claims | Description |
-|-------|--------|-------------|
-| `openid` | `sub` | Required for OIDC. Returns the user's public ID (`ident!abc123`) |
-| `profile` | `name`, `given_name`, `family_name`, `nickname`, `updated_at` | Basic profile info |
-| `email` | `email`, `email_verified` | Email address |
-| `phone` | `phone_number`, `phone_number_verified` | Phone number |
-| `address` | `address` | Structured address object |
-| `birthdate` | `birthdate` | Date of birth (ISO 8601) |
+| Scope       | Claims                                                        | Description                                                      |
+| ----------- | ------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `openid`    | `sub`                                                         | Required for OIDC. Returns the user's public ID (`ident!abc123`) |
+| `profile`   | `name`, `given_name`, `family_name`, `nickname`, `updated_at` | Basic profile info                                               |
+| `email`     | `email`, `email_verified`                                     | Email address                                                    |
+| `phone`     | `phone_number`, `phone_number_verified`                       | Phone number                                                     |
+| `address`   | `address`                                                     | Structured address object                                        |
+| `birthdate` | `birthdate`                                                   | Date of birth (ISO 8601)                                         |
 
 <div class="banner info">
 <b>Privacy note:</b>
@@ -116,9 +126,9 @@ The <code>birthdate</code> scope is separate from <code>profile</code> intention
 
 ### Hack Club Custom Scopes
 
-| Scope | Claims | Description |
-|-------|--------|-------------|
-| `slack_id` | `slack_id` | The user's Hack Club Slack ID |
+| Scope                 | Claims                                 | Description                              |
+| --------------------- | -------------------------------------- | ---------------------------------------- |
+| `slack_id`            | `slack_id`                             | The user's Hack Club Slack ID            |
 | `verification_status` | `verification_status`, `ysws_eligible` | Verification status and YSWS eligibility |
 
 ### Example ID Token Claims
@@ -162,7 +172,13 @@ When the `address` scope is granted, the address claim follows the OIDC standard
 
 If you need to force the user to re-authenticate (for sensitive operations), use the `prompt=login` parameter:
 
-<%= render Components::APIExample.new(method: "GET", url: oauth_authorization_url(client_id: "your_client_id", redirect_uri: "https://arcade.hackclub.com/auth/callback", response_type: "code", scope: "openid", prompt: "login")) %>
+<div style="
+  overflow-x: auto;  
+  max-width: 100%;
+  padding-bottom: 8px;
+">
+  <%= render Components::APIExample.new(method: "GET", url: oauth_authorization_url(client_id: "your_client_id", redirect_uri: "https://arcade.hackclub.com/auth/callback", response_type: "code", scope: "openid", prompt: "login")) %>
+</div>
 
 This will require the user to verify their identity again, even if they have an active session. They can use TOTP, backup codes, or email verification.
 
@@ -177,7 +193,7 @@ max_age=3600
 <div class="banner warning">
 <b>Scope restrictions:</b>
 <p>
-Community apps can only request: <code>openid <%= Program::COMMUNITY_ALLOWED_SCOPES.join(" ") %></code><br/>
+Community apps can only request: <code><%= Program::COMMUNITY_ALLOWED_SCOPES.join(" ") %></code><br/>
 Other scopes require HQ official status.
 </p>
 </div>
@@ -204,8 +220,8 @@ npm i better-auth
 
 ```typescript
 // auth.ts
-import { betterAuth } from "better-auth"
-import { genericOAuth } from "better-auth/plugins"
+import { betterAuth } from "better-auth";
+import { genericOAuth } from "better-auth/plugins";
 
 export const auth = betterAuth({
   // ...your other config
@@ -222,19 +238,19 @@ export const auth = betterAuth({
       ],
     }),
   ],
-})
+});
 ```
 
 **3. Add the client plugin:**
 
 ```typescript
 // auth-client.ts
-import { createAuthClient } from "better-auth/client"
-import { genericOAuthClient } from "better-auth/client/plugins"
+import { createAuthClient } from "better-auth/client";
+import { genericOAuthClient } from "better-auth/client/plugins";
 
 export const authClient = createAuthClient({
   plugins: [genericOAuthClient()],
-})
+});
 ```
 
 **4. Sign in:**
@@ -243,7 +259,7 @@ export const authClient = createAuthClient({
 await authClient.signIn.oauth2({
   providerId: "hackclub",
   callbackURL: "/dashboard",
-})
+});
 ```
 
 Better Auth will automatically discover our endpoints, handle the OAuth flow, and validate the ID token for you.
