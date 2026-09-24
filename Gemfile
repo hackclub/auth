@@ -142,7 +142,7 @@ gem "rexml" # Required explicitly in Ruby 3.4+ for SAML XML parsing
 gem "geocoder", "~> 1.8"
 
 gem "rotp", "~> 6.3"
-gem "rqrcode", "~> 2.2"
+gem "rqrcode", "~> 3.2"
 
 gem "webauthn", "~> 3.4"
 
