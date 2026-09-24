@@ -19,7 +19,7 @@ module PapersPleaseEngine
       aadhaar_name = "#{aadhaar_first_name} #{aadhaar_last_name}".downcase
 
       if identity_name != aadhaar_name
-        issues << if MiniLevenshtein.edit_distance(identity_name, aadhaar_name) > 4
+        issues << if DamerauLevenshtein.distance(identity_name, aadhaar_name) > 4
           "Name doesn't seem to match"
         else
           "Name doesn't match exactly (this is probably fine)"
