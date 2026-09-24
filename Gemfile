@@ -50,8 +50,8 @@ gem "vite_rails"
 
 gem "pundit", "~> 2.5"
 
-gem "sentry-ruby", "~> 5.28"
-gem "sentry-rails", "~> 5.28"
+gem "sentry-ruby", "~> 7.0"
+gem "sentry-rails", "~> 7.0"
 
 gem "http", "~> 5.3"
 
