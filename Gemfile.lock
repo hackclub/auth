@@ -177,8 +177,9 @@ GEM
       bigdecimal
       rexml
     crass (1.0.6)
-    css_parser (2.0.0)
+    css_parser (3.0.0)
       addressable
+      ssrf_filter (~> 1.5)
     csv (3.3.5)
     date (3.5.1)
     debug (1.11.1)
@@ -602,6 +603,7 @@ GEM
       actionview (>= 6.0)
       activesupport (>= 6.0)
     smart_properties (1.17.0)
+    ssrf_filter (1.5.0)
     stringio (3.2.0)
     superform (0.5.1)
       phlex-rails (>= 1.0, < 3.0)
