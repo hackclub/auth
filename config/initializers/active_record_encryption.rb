@@ -1,17 +1,24 @@
 # frozen_string_literal: true
 
-# Configure Active Record Encryption to use environment variables
-# instead of Rails credentials
+keys = {
+  primary_key: ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"],
+  deterministic_key: ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"],
+  key_derivation_salt: ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"]
+}
 
-if ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"].present?
-  config = {
-    primary_key: ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"],
-    deterministic_key: ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"],
-    key_derivation_salt: ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"]
-  }
-
-  config.each do |key, value|
-    Rails.application.config.active_record.encryption.send(:"#{key}=", value)
-    ActiveRecord::Encryption.config.send(:"#{key}=", value)
+unless keys.values.all?(&:present?)
+  unless Rails.env.local?
+    raise "ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY, DETERMINISTIC_KEY, and KEY_DERIVATION_SALT are required"
   end
+
+  keys = {
+    primary_key: Digest::SHA256.hexdigest("hca-ar-encryption-primary"),
+    deterministic_key: Digest::SHA256.hexdigest("hca-ar-encryption-deterministic"),
+    key_derivation_salt: Digest::SHA256.hexdigest("hca-ar-encryption-salt")
+  }
+end
+
+keys.each do |name, value|
+  Rails.application.config.active_record.encryption.public_send(:"#{name}=", value)
+  ActiveRecord::Encryption.config.public_send(:"#{name}=", value)
 end
