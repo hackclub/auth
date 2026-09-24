@@ -258,6 +258,11 @@ module DeletionService
     identity.vouch_verifications.with_deleted.each do |vv|
       blobs << vv.evidence.blob if vv.evidence.attached?
     end
+    identity.verification_cases.with_deleted.each do |kase|
+      kase.documents.with_deleted.each do |doc|
+        blobs << doc.file.blob if doc.file.attached?
+      end
+    end
     blobs.compact
   end
 
@@ -267,6 +272,11 @@ module DeletionService
     end
     identity.vouch_verifications.with_deleted.each do |vv|
       vv.evidence.detach if vv.evidence.attached?
+    end
+    identity.verification_cases.with_deleted.each do |kase|
+      kase.documents.with_deleted.each do |doc|
+        doc.file.detach if doc.file.attached?
+      end
     end
   end
 

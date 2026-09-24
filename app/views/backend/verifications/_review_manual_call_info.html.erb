@@ -1,0 +1,5 @@
+<span style="color: var(--foreground2);">
+  manual verification call decided <%= verification.created_at.strftime("%B %d, %Y") %>
+  <% if verification.reviewer %>by <%= verification.reviewer.identity&.first_name || "staff" %><% end %>
+  <% if verification.expires_at.present? %>· expires <%= verification.expires_at.to_date %><% end %>
+</span>

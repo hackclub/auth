@@ -1,0 +1,9 @@
+<p class="greeting">Hey <%= @first_name %>,</p>
+
+<p class="body-text">Your identity verification call is booked<% if @starts_at %> for <strong><%= @starts_at.strftime("%A, %B %-d at %H:%M %Z") %></strong><% end %>.</p>
+
+<p class="body-text"><strong>This call is recorded.</strong> We record so a decision can be re-reviewed later without asking you to do this again. The recording is stored encrypted and every access to it is logged.</p>
+
+<p class="secondary-text">Have your document with you on the call — the reviewer will compare it against what you submitted.</p>
+
+<p class="signature">— The Hack Club team</p>

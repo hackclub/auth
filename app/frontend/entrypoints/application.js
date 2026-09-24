@@ -3,6 +3,7 @@ import "../js/lightswitch.js";
 import "../js/click-to-copy";
 import "../js/otp-input.js";
 import "../js/persona-verify.js";
+import "../js/camera-capture.js";
 
 import htmx from "htmx.org"
 window.htmx = htmx

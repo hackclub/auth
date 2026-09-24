@@ -116,5 +116,15 @@ RSpec.describe DeletionService do
         described_class.execute_deletion(identity, privacy_request_reference: "recASDASDASD", logger: ->(_) { })
       }.to change { PublicActivity::Activity.where(key: "identity.deletion_request").count }.by(1)
     end
+
+    it "purges verification case document files" do
+      kase = create(:verification_case, identity: identity)
+      doc = create(:verification_case_document, verification_case: kase)
+      blob_id = doc.file.blob.id
+
+      described_class.execute_deletion(identity, privacy_request_reference: "recASDASDASD", logger: ->(_) { })
+
+      expect(ActiveStorage::Attachment.where(blob_id: blob_id)).to be_empty
+    end
   end
 end
