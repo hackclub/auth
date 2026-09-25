@@ -74,6 +74,45 @@ class Components::AuthWelcome < Components::Base
           plain "→"
         end
       end
+
+      render_passkey_login
+    end
+  end
+
+  def render_passkey_login
+    div(x_data: "passkeyLogin") do
+      div(x_show: "browserSupported", x_cloak: true) do
+        div(style: "display: flex; align-items: center; gap: 0.75rem; margin: 0 0 0.5rem; color: var(--muted-color);") do
+          hr(style: "flex: 1; border: none; border-top: 1px solid var(--border-color); margin: 0;")
+          small(style: "margin: 0;") { t("logins.new.or") }
+          hr(style: "flex: 1; border: none; border-top: 1px solid var(--border-color); margin: 0;")
+        end
+
+        div(x_show: "error", x_cloak: true, class: "alert alert-error", role: "alert") do
+          p(x_text: "error")
+        end
+
+        form(action: passkey_login_verify_path, method: "post", id: "passkey-login-form") do
+          input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+          input(type: "hidden", name: "credential_data", id: "passkey-login-credential-data")
+          input(type: "hidden", name: "return_to", value: @return_to)
+        end
+
+        button(
+          type: "button",
+          class: "webauthn-button secondary",
+          style: "width: 100%;",
+          x_on: { click: "login()" },
+          x_bind: { disabled: "loading" }
+        ) do
+          span(class: "webauthn-icon") { inline_icon("fingerprint", size: 16) }
+          span(x_show: "!loading") { t("passkey_login.button") }
+          span(x_show: "loading", x_cloak: true) do
+            plain t("passkey_login.signing_in")
+            plain "..."
+          end
+        end
+      end
     end
   end
 

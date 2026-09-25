@@ -46,6 +46,10 @@ class IdentitySession < ApplicationRecord
 
   STEP_UP_DURATION = 15.minutes
 
+  def recently_authenticated?
+    created_at > STEP_UP_DURATION.ago
+  end
+
   def recently_stepped_up?(for_action: nil)
     return false unless last_step_up_at.present? && last_step_up_at > STEP_UP_DURATION.ago
 

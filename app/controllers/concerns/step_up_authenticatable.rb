@@ -12,6 +12,8 @@ module StepUpAuthenticatable
     email_available = !action_type.to_s.in?(StepUpController::ACTIONS_WITHOUT_EMAIL_FALLBACK)
     return unless has_2fa || email_available
     return if current_session.recently_stepped_up?(for_action: action_type)
+    # A recent login counts as re-auth for adding a passkey.
+    return if action_type.to_s == "add_passkey" && current_session&.recently_authenticated?
 
     redirect_to new_step_up_path(action_type: action_type, return_to: return_to || request.fullpath)
     false

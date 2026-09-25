@@ -21,6 +21,7 @@
 #  ysws_eligible                 :boolean
 #  created_at                    :datetime         not null
 #  updated_at                    :datetime         not null
+#  passkey_prompt_dismissed_at   :datetime
 #  primary_address_id            :bigint
 #  slack_id                      :string
 #
@@ -362,6 +363,14 @@ class Identity < ApplicationRecord
   def backup_codes_enabled? = backup_codes.active.any?
 
   def webauthn_enabled? = webauthn_credentials.active.any?
+
+  def passkey_promotion_allowed?
+    !webauthn_enabled? && passkey_prompt_dismissed_at.nil?
+  end
+
+  def dismiss_passkey_promotion!
+    update!(passkey_prompt_dismissed_at: Time.current)
+  end
 
   # Encode identity ID as base64url for WebAuthn user.id
   # Uses 64-bit unsigned big-endian binary format

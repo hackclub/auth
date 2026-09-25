@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_31_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_31_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -116,6 +116,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_31_000001) do
     t.bigint "identity_id"
     t.string "seen_hints", default: [], array: true
     t.boolean "can_process_deletions", default: false, null: false
+    t.boolean "can_ban", default: false, null: false
     t.index ["identity_id"], name: "index_backend_users_on_identity_id"
   end
 
@@ -318,6 +319,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_31_000001) do
     t.boolean "can_hq_officialize", default: false, null: false
     t.string "persona_account_id"
     t.boolean "disallow_slack", default: false, null: false
+    t.datetime "passkey_prompt_dismissed_at"
     t.index "lower((primary_email)::text)", name: "idx_identities_unique_primary_email", unique: true, where: "(deleted_at IS NULL)"
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
@@ -450,6 +452,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_31_000001) do
     t.datetime "last_step_up_at"
     t.string "last_step_up_action"
     t.index ["identity_id"], name: "index_identity_sessions_on_identity_id"
+    t.index ["session_token_bidx"], name: "index_identity_sessions_on_session_token_bidx", unique: true
   end
 
   create_table "identity_tombstone_collisions", force: :cascade do |t|
@@ -483,6 +486,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_31_000001) do
     t.datetime "updated_at", null: false
     t.bigint "login_attempt_id"
     t.datetime "invalidated_at"
+    t.string "purpose", default: "login"
     t.index ["identity_id", "login_attempt_id", "code", "used_at"], name: "index_v2_codes_on_identity_attempt_code_used"
     t.index ["identity_id"], name: "index_identity_v2_login_codes_on_identity_id"
     t.index ["login_attempt_id"], name: "index_identity_v2_login_codes_on_login_attempt_id"
