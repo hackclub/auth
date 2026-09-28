@@ -30,7 +30,7 @@ jobs:
             image: auth-worker
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Build image
         run: docker build -f ${{ matrix.dockerfile }} -t ${{ matrix.image }}:sbom .
