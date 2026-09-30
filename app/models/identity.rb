@@ -208,12 +208,19 @@ class Identity < ApplicationRecord
     scenario_class.new(self)
   end
 
+  PERSONA_UNSUPPORTED_COUNTRIES = %w[
+    AQ AW AX BL BQ BV CC CD CK CX EH FK GF GP GS HM IO KR
+    MP MQ NC NF NU PF PM PN RE RU SH SJ TF TK UM VA VG WF YT
+  ].freeze
+
   def required_verification_method
     if Flipper.enabled?(:persona_verification_2026_04_09, self)
       if country == "IN"
         return :document unless Flipper.enabled?(:persona_verification_in_india_2026_06_05, self)
       elsif country == "CN"
         return :document unless Flipper.enabled?(:persona_verification_in_china_2026_06_08, self)
+      elsif country.to_s.in?(PERSONA_UNSUPPORTED_COUNTRIES)
+        return :document
       end
       :persona
     else

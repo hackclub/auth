@@ -20,6 +20,16 @@ RSpec.describe Identity, type: :model do
       ensure
         Flipper.disable(:authbridge_aadhaar_2025_07_10)
       end
+
+      it "returns :document for persona-unsupported countries" do
+        identity.update!(country: "RU")
+        expect(identity.required_verification_method).to eq(:document)
+      end
+
+      it "returns :persona for supported countries" do
+        identity.update!(country: "DE")
+        expect(identity.required_verification_method).to eq(:persona)
+      end
     end
 
     context "when persona flag is disabled" do
