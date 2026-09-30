@@ -261,8 +261,17 @@ Doorkeeper.configure do
   # default_scopes  :public
   # optional_scopes :write, :update
 
-  # OIDC standard scopes
-  optional_scopes :openid, :profile, :phone, :birthdate
+  # Every scope this provider understands — OIDC standard scopes plus our own.
+  #
+  # This drives `scopes_supported` in the RFC 8414 / OpenID Connect discovery
+  # documents, so it has to list the full set for those to be truthful. It is
+  # NOT an access grant: what a program may actually request is still bounded by
+  # its own configured scopes (see Program#validate_community_scopes).
+  #
+  # Kept in lockstep with OAuthScope::ALL by spec/models/oauth_scope_spec.rb —
+  # this file is an initializer, so it can't reference the autoloaded constant.
+  optional_scopes :openid, :email, :name, :profile, :phone, :birthdate, :address,
+                  :verification_status, :slack_id, :legal_name, :basic_info, :set_slack_id
 
   # Allows to restrict only certain scopes for grant_type.
   # By default, all the scopes will be available for all the grant types.
