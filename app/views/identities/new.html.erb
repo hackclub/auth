@@ -105,6 +105,9 @@
         </div>
         <small id="emailHelp">
           <%= t ".email_code" %>
+          <% if @onboarding_scenario.form_fields.include?(:primary_email) && @identity.primary_email.blank? %>
+            <br><%= t ".email_public_warning" %>
+          <% end %>
           <% if @onboarding_scenario.is_a?(OnboardingScenarios::LegacyMigration) %>
             <br>This needs to be the same email your Slack account is registered under.
           <% end %>
