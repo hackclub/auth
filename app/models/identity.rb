@@ -209,7 +209,7 @@ class Identity < ApplicationRecord
   end
 
   PERSONA_UNSUPPORTED_COUNTRIES = %w[
-    AQ AW AX BL BQ BV CC CD CK CX EH FK GF GP GS HM IO KR
+    AQ AW AX BL BQ BV CC CD CK CX EH FK GF GP GS HM IO KR LK
     MP MQ NC NF NU PF PM PN RE RU SH SJ TF TK UM VA VG WF YT
   ].freeze
 
