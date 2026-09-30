@@ -1,0 +1,9 @@
+Hey <%= @first_name %>,
+
+Your identity verification call is booked<% if @starts_at %> for <%= @starts_at.strftime("%A, %B %-d at %H:%M %Z") %><% end %>.
+
+This call is recorded. We record so a decision can be re-reviewed later without asking you to do this again. The recording is stored encrypted and every access to it is logged.
+
+Have your document with you on the call — the reviewer will compare it against what you submitted.
+
+— The Hack Club team
