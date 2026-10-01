@@ -324,10 +324,10 @@
   resolved "https://registry.yarnpkg.com/@picocss/pico/-/pico-2.1.1.tgz#f2c4573b0332758b6d9c3caf4ee8b24cf3819f8e"
   integrity sha512-kIDugA7Ps4U+2BHxiNHmvgPIQDWPDU4IeU6TNRdvXQM1uZX+FibqDQT2xUOnnO2yq/LUHcwnGlu1hvf4KfXnMg==
 
-"@rails/activestorage@^8.0.200":
-  version "8.0.200"
-  resolved "https://registry.yarnpkg.com/@rails/activestorage/-/activestorage-8.0.200.tgz#147c088e2b4167d6d49292431bdbdf10b118d5bd"
-  integrity sha512-V7GnZXsAMPDWVOBv4/XpHwj5sOw5bWjidWCuUbK3Zx1xt2pOfFaeJDUG7fEWb1MwP4aW1oVVlGkJBdXVyvru0A==
+"@rails/activestorage@^8.1.301":
+  version "8.1.301"
+  resolved "https://registry.yarnpkg.com/@rails/activestorage/-/activestorage-8.1.301.tgz#3d5e4204fb106bb30277f025058dbcc36dc475cb"
+  integrity sha512-o+gxhV96Wa/NpVdTWib9iR9RWlqWjjsylPv16muSFUjIhI6usZJBjM1y93h9cjwWfuW/FxI5QONeH3EFv3+cbg==
   dependencies:
     spark-md5 "^3.0.1"
 

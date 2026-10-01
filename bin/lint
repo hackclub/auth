@@ -4,4 +4,5 @@ set -e
 echo "rubocoppin'..."
 bundle exec rubocop -A
 echo "erb_lint-in'?"
-bundle exec erb_lint app/views/ -a
+# Autocorrect mangles Alpine `@click` attributes; use `x-on:click` instead.
+bundle exec erb_lint app/views/
