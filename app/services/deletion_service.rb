@@ -83,7 +83,7 @@ module DeletionService
           name_first: "[REDACTED]", name_last: "[REDACTED]",
           birthdate: nil, raw_json_response: nil,
           behaviors: {}, network_signals: {}, checks: [],
-          inquiry_id: "[REDACTED]", expiration_date: nil,
+          inquiry_id: "REDACTED-#{record.id}", expiration_date: nil,
           country_code: nil, id_class: nil
         )
         persona_count += 1
