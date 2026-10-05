@@ -253,7 +253,7 @@ module DeletionService
   def self.collect_attachments(identity)
     blobs = []
     identity.documents.with_deleted.each do |doc|
-      doc.files.each { |f| blobs << f.blob if f.attached? }
+      doc.files.each { |f| blobs << f.blob }
     end
     identity.vouch_verifications.with_deleted.each do |vv|
       blobs << vv.evidence.blob if vv.evidence.attached?
@@ -263,7 +263,7 @@ module DeletionService
 
   def self.detach_attachments(identity)
     identity.documents.with_deleted.each do |doc|
-      doc.files.each { |f| f.detach if f.attached? }
+      doc.files.detach
     end
     identity.vouch_verifications.with_deleted.each do |vv|
       vv.evidence.detach if vv.evidence.attached?
