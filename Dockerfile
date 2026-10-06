@@ -118,4 +118,11 @@ ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 # Start server via Thruster by default, this can be overwritten at runtime
 EXPOSE 80
+
+# Coolify/Traefik mark the container unhealthy without this, which surfaces as
+# HTTP 503 "no available server". Start period covers bin/docker-entrypoint
+# running db:prepare before Thruster/Puma bind port 80.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=120s --retries=5 \
+  CMD curl -fSs http://127.0.0.1:80/up || exit 1
+
 CMD ["./bin/thrust", "./bin/rails", "server"]

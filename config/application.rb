@@ -67,6 +67,9 @@ module IdentityVault
                          httponly: true,
                          same_site: :lax
 
+    # Loopback HTTP probes (Docker HEALTHCHECK / Coolify) must not be bounced to HTTPS.
+    config.ssl_options = { redirect: { exclude: ->(request) { request.local? } } }
+
     config.middleware.insert_before 0, DomainRedirect if Rails.env.production?
 
     config.audits1984.base_controller_class = "Backend::NoAuthController"
