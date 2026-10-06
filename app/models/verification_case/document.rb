@@ -22,6 +22,10 @@ class VerificationCase::Document < ApplicationRecord
     "call_screenshot" => "Call screenshot"
   }.freeze
 
+  # what may be stored on a case, whatever the upload path. persona captures
+  # are sniffed against this before they're attached.
+  ALLOWED_CONTENT_TYPES = %w[image/jpeg image/png image/jpg image/heic image/heif application/pdf].freeze
+
   enum :document_kind, DOCUMENT_KINDS.keys.index_by(&:itself)
   enum :source, %w[persona direct_upload staff_upload].index_by(&:itself), prefix: :from
 
@@ -45,8 +49,7 @@ class VerificationCase::Document < ApplicationRecord
 
     errors.add(:file, "is too large (maximum is 25MB)") if file.byte_size > 25.megabytes
 
-    allowed = %w[image/jpeg image/png image/jpg image/heic image/heif application/pdf]
-    unless file.content_type.in?(allowed)
+    unless file.content_type.in?(ALLOWED_CONTENT_TYPES)
       errors.add(:file, "must be a JPEG, PNG, HEIC, or PDF")
     end
   end

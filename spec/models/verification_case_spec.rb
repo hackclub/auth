@@ -1,6 +1,11 @@
 require "rails_helper"
 
 RSpec.describe VerificationCase, type: :model do
+  let(:submitted_fields) do
+    { "legal_name" => "Heidi Trashworth", "date_of_birth" => "2008-04-01",
+      "document_type" => "passport", "issuing_authority" => "Romania" }
+  end
+
   describe "state machine" do
     it "walks the happy path" do
       kase = create(:verification_case)
@@ -10,7 +15,8 @@ RSpec.describe VerificationCase, type: :model do
       expect(kase).to be_link_sent
       expect(kase.link_sent_at).to be_present
 
-      kase.update!(document_class: "government_id")
+      kase.update!(document_class: "government_id", attested: true, biometric_consent: true,
+        submitted_fields: submitted_fields)
       kase.submit_docs!
       kase.schedule_call!
       kase.hold_call!
@@ -18,6 +24,22 @@ RSpec.describe VerificationCase, type: :model do
 
       expect(kase).to be_approved
       expect(kase).to be_decided
+    end
+
+    it "refuses submit_docs until attestation, consent and the submitted fields are recorded" do
+      kase = create(:verification_case, :link_sent)
+      expect(kase.missing_submission_prerequisites).to eq(%w[attested biometric_consent] + VerificationCase::REQUIRED_SUBMITTED_FIELDS)
+      expect { kase.submit_docs! }.to raise_error(AASM::InvalidTransition)
+      expect(kase.reload).to be_link_sent
+
+      kase.update!(attested: true, biometric_consent: true, submitted_fields: submitted_fields.except("issuing_authority"))
+      expect(kase.missing_submission_prerequisites).to eq([ "issuing_authority" ])
+      expect { kase.submit_docs! }.to raise_error(AASM::InvalidTransition)
+
+      kase.update!(submitted_fields: submitted_fields)
+      expect(kase).to be_docs_submission_prerequisites_met
+      kase.submit_docs!
+      expect(kase.reload).to be_docs_submitted
     end
 
     it "cannot decide before the call is held" do
@@ -129,6 +151,54 @@ RSpec.describe VerificationCase, type: :model do
     end
   end
 
+  describe "#rotate_access_link!" do
+    it "issues a fresh token and enters link_sent" do
+      kase = create(:verification_case)
+      token = kase.rotate_access_link!
+
+      expect(token).to be_present
+      expect(kase.reload).to be_link_sent
+      expect(kase.access_token).to eq(token)
+    end
+
+    it "refuses once the case is past link_sent, leaving the token untouched" do
+      kase = create(:verification_case, :docs_submitted, access_token_used_at: 1.hour.ago)
+      token = kase.access_token
+      used_at = kase.access_token_used_at
+
+      expect { kase.rotate_access_link! }.to raise_error(AASM::InvalidTransition)
+
+      kase.reload
+      expect(kase).to be_docs_submitted
+      expect(kase.access_token).to eq(token)
+      expect(kase.access_token_used_at).to be_within(1.second).of(used_at)
+    end
+
+    it "keeps an opened link's session live unless the gate is reopened" do
+      kase = create(:verification_case, :link_sent, access_token_used_at: 1.hour.ago)
+
+      kase.rotate_access_link!
+      expect(kase.reload.access_token_used_at).to be_present
+
+      kase.rotate_access_link!(reopen_gate: true)
+      expect(kase.reload.access_token_used_at).to be_nil
+    end
+  end
+
+  describe ".due_for_link_reminder" do
+    it "only picks quiet, unopened, unexpired link_sent cases that haven't been nudged" do
+      due = create(:verification_case, :link_sent, link_sent_at: 4.days.ago)
+      create(:verification_case, :link_sent, link_sent_at: 4.days.ago, access_token_used_at: 2.days.ago)
+      create(:verification_case, :link_sent, link_sent_at: 1.day.ago)
+      create(:verification_case, :link_sent, link_sent_at: 4.days.ago, access_token_expires_at: 1.hour.ago)
+      create(:verification_case, :docs_submitted, link_sent_at: 4.days.ago)
+      nudged = create(:verification_case, :link_sent, link_sent_at: 4.days.ago)
+      nudged.log_event!(:reminder_sent)
+
+      expect(VerificationCase.due_for_link_reminder(quiet_for: 3.days)).to contain_exactly(due)
+    end
+  end
+
   describe "#unschedule_call" do
     it "returns a cancelled booking to docs_submitted so the user can rebook" do
       kase = create(:verification_case, :call_scheduled)
@@ -215,6 +285,55 @@ RSpec.describe VerificationCase, type: :model do
       event = kase.log_event!(:case_opened)
       expect { event.update!(key: "tampered") }.to raise_error(ActiveRecord::ReadOnlyRecord)
       expect { event.destroy! }.to raise_error(ActiveRecord::ReadOnlyRecord)
+    end
+  end
+
+  describe "soft delete" do
+    let(:kase) { create(:verification_case) }
+    let!(:event) { kase.log_event!(:case_opened) }
+    let!(:comment) { kase.comments.create!(author: create(:backend_user), body: "pending second opinion") }
+    let!(:document) { create(:verification_case_document, verification_case: kase) }
+
+    it "soft-deletes the case and leaves the audit trail in place" do
+      expect(kase.destroy).to be_truthy
+
+      expect(kase.reload).to be_deleted
+      expect(described_class.find_by(id: kase.id)).to be_nil
+      expect(described_class.with_deleted.find(kase.id)).to eq(kase)
+
+      expect(VerificationCase::Event.find(event.id).verification_case_id).to eq(kase.id)
+      expect(VerificationCase::Comment.find(comment.id).verification_case_id).to eq(kase.id)
+      expect(kase.events).to contain_exactly(event)
+      expect(kase.comments).to contain_exactly(comment)
+    end
+
+    it "leaves documents, their files and break-glass records untouched" do
+      BreakGlassRecord.create!(backend_user: create(:backend_user), break_glassable: document,
+                               reason: "reviewing before the call", accessed_at: Time.current)
+
+      expect { kase.destroy }.not_to have_enqueued_job(ActiveStorage::PurgeJob)
+
+      expect(VerificationCase::Document.find(document.id)).not_to be_deleted
+      expect(document.reload.file).to be_attached
+      expect(document.break_glass_records.count).to eq(1)
+      expect(kase.documents).to contain_exactly(document)
+    end
+
+    it "is cascaded from an identity soft-delete without raising" do
+      identity = kase.identity
+
+      expect { identity.destroy! }.not_to raise_error
+
+      expect(Identity.with_deleted.find(identity.id)).to be_deleted
+      expect(described_class.with_deleted.find(kase.id)).to be_deleted
+      expect(VerificationCase::Event.find(event.id)).to be_present
+      expect(VerificationCase::Comment.find(comment.id)).to be_present
+    end
+
+    it "refuses a hard delete" do
+      expect { kase.destroy_fully! }.to raise_error(ActiveRecord::ReadOnlyRecord)
+      expect(described_class.find(kase.id)).to eq(kase)
+      expect(VerificationCase::Event.find(event.id)).to be_present
     end
   end
 end

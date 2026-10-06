@@ -83,8 +83,19 @@ module Backend
       redirect_to backend_verification_case_path(@case)
     end
 
+    # a fresh copy of the invitation. only while the case is waiting on the
+    # link (requested / link_sent) — once docs are in there's nothing to
+    # resend, and rotating the token would only disturb the user's session.
+    # the pre-check is for a clear message; rotate_access_link! re-checks
+    # under the row lock, so a stale tab racing a state change still can't
+    # touch the token (that path lands in the InvalidTransition rescue).
     def resend_link
       authorize @case
+
+      unless @case.may_send_link?
+        flash[:warning] = "This case is #{@case.status.humanize.downcase} — the user is past the link, so there's nothing to resend"
+        redirect_to backend_verification_case_path(@case) and return
+      end
 
       deliver_link!
       @case.log_event!(:link_resent, actor: current_user, request: request)
@@ -131,7 +142,8 @@ module Backend
       token = nil
       @case.with_lock do
         @case.request_redo!
-        token = @case.rotate_access_link!
+        # a redo re-arms the gate: the user must come back through the new link
+        token = @case.rotate_access_link!(reopen_gate: true)
       end
       VerificationCaseMailer.redo_requested(@case, token, message).deliver_later
       @case.log_event!(:redo_requested, actor: current_user, request: request,

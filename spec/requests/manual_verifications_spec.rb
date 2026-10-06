@@ -80,7 +80,7 @@ RSpec.describe "Manual verifications", type: :request do
         access_token_used_at: 1.hour.ago)
       Flipper.enable(VerificationCase::FLIPPER_FLAG, identity)
       kase.request_redo!
-      token = kase.rotate_access_link!
+      token = kase.rotate_access_link!(reopen_gate: true)
 
       get manual_verification_path
       expect(response).to have_http_status(:forbidden)
@@ -184,6 +184,162 @@ RSpec.describe "Manual verifications", type: :request do
       expect(kase).to be_docs_submitted
       expect(kase.documents.where(document_kind: "selfie").count).to eq(1)
       expect(kase.selfie_available?).to be(true)
+    end
+
+    describe "non-file values in the upload fields" do
+      let(:base_params) do
+        {
+          attested: "1", biometric_consent: "1",
+          legal_name: "Heidi Trashworth", date_of_birth: "2008-04-01",
+          document_type: "passport", issuing_authority: "Romania"
+        }
+      end
+
+      it "rejects a plain string document on a normal case without crashing" do
+        kase.update!(document_class: "government_id")
+
+        post manual_verification_documents_path, params: base_params.merge(primary_doc: "not-a-file")
+
+        expect(response).to redirect_to(manual_verification_path)
+        expect(flash[:error]).to match(/choose a file/)
+        expect(kase.reload).to be_link_sent
+        expect(kase.documents.count).to eq(0)
+      end
+
+      it "rejects a plain string document on a skip-persona case without crashing" do
+        kase.update!(document_class: "government_id", skip_persona: true)
+
+        post manual_verification_documents_path, params: base_params.merge(
+          primary_doc: "not-a-file",
+          selfie: camera_capture_upload("selfie-capture.jpg")
+        )
+
+        expect(response).to redirect_to(manual_verification_path)
+        expect(flash[:error]).to match(/choose a file/)
+        expect(kase.reload).to be_link_sent
+        expect(kase.documents.count).to eq(0)
+      end
+
+      it "rejects a plain string selfie on a skip-persona case without crashing" do
+        kase.update!(document_class: "government_id", skip_persona: true)
+
+        post manual_verification_documents_path, params: base_params.merge(
+          primary_doc: camera_capture_upload("document-capture.jpg"),
+          selfie: "not-a-file"
+        )
+
+        expect(response).to redirect_to(manual_verification_path)
+        expect(flash[:error]).to match(/choose a file/)
+        expect(kase.reload).to be_link_sent
+        expect(kase.documents.count).to eq(0)
+      end
+
+      it "treats an empty-string document as missing" do
+        kase.update!(document_class: "government_id")
+
+        post manual_verification_documents_path, params: base_params.merge(primary_doc: "")
+
+        expect(response).to redirect_to(manual_verification_path)
+        expect(flash[:error]).to match(/document is required/)
+        expect(kase.reload).to be_link_sent
+        expect(kase.documents.count).to eq(0)
+      end
+
+      it "rejects a zero-byte upload" do
+        kase.update!(document_class: "government_id")
+
+        post manual_verification_documents_path, params: base_params.merge(
+          primary_doc: Rack::Test::UploadedFile.new(StringIO.new(""), "application/pdf", original_filename: "empty.pdf")
+        )
+
+        expect(response).to redirect_to(manual_verification_path)
+        expect(flash[:error]).to match(/empty/)
+        expect(kase.reload).to be_link_sent
+        expect(kase.documents.count).to eq(0)
+      end
+    end
+
+    describe "persona capture prerequisites" do
+      let(:details) do
+        { legal_name: "Heidi Trashworth", date_of_birth: "2008-04-01",
+          document_type: "passport", issuing_authority: "Romania" }
+      end
+
+      before do
+        kase.update!(document_class: "government_id")
+        allow(ENV).to receive(:[]).and_call_original
+        allow(ENV).to receive(:[]).with("PERSONA_MANUAL_CAPTURE_TEMPLATE").and_return("itmpl_test123")
+      end
+
+      it "offers the scan button inside the same form as the details and consent" do
+        get manual_verification_path
+        expect(response.body).to include("Scan with your camera")
+        expect(response.body).to include(manual_verification_prepare_capture_path)
+        expect(response.body).to include('name="biometric_consent"')
+      end
+
+      it "refuses to start the capture before anything was recorded on the case" do
+        expect(Persona).not_to receive(:instance)
+
+        get manual_verification_capture_path
+        expect(response).to redirect_to(manual_verification_path)
+        expect(flash[:error]).to match(/before scanning/)
+        expect(kase.reload.persona_inquiry_id).to be_nil
+      end
+
+      it "requires attestation and biometric consent to prepare the capture" do
+        post manual_verification_prepare_capture_path, params: details.merge(attested: "1")
+        expect(response).to redirect_to(manual_verification_path)
+        expect(flash[:error]).to match(/consent checkbox/)
+
+        kase.reload
+        expect(kase.attested).to be(false)
+        expect(kase.biometric_consent).to be(false)
+        expect(kase.submitted_fields).to be_empty
+      end
+
+      it "requires the same submitted fields as the direct upload" do
+        post manual_verification_prepare_capture_path, params: { attested: "1", biometric_consent: "1", legal_name: "Heidi Trashworth" }
+        expect(response).to redirect_to(manual_verification_path)
+        expect(flash[:error]).to match(/Date of birth, Document type, and Issuing authority are required/)
+        expect(kase.reload.submitted_fields).to be_empty
+      end
+
+      it "records the prerequisites on the case, then lets the capture start" do
+        post manual_verification_prepare_capture_path, params: details.merge(attested: "1", biometric_consent: "1")
+        expect(response).to redirect_to(manual_verification_capture_path)
+
+        kase.reload
+        expect(kase.attested).to be(true)
+        expect(kase.biometric_consent).to be(true)
+        expect(kase.submitted_fields).to eq(details.transform_keys(&:to_s))
+        expect(kase).to be_link_sent
+        expect(kase.events.find_by(key: "capture_prerequisites_recorded").data["fields"]).to match_array(details.keys.map(&:to_s))
+
+        service = instance_double(Persona::APIService)
+        allow(Persona).to receive(:instance).and_return(service)
+        allow(service).to receive(:create_inquiry).and_return(
+          Persona::Inquiry.new(id: "inq_case_new", status: "created", account_id: nil, session_token: "sess_tok",
+            verification_ids: [], document_ids: [], behaviors: {}, sessions: [], raw: {})
+        )
+
+        get manual_verification_capture_path
+        expect(response).to have_http_status(:ok)
+        expect(kase.reload.persona_inquiry_id).to eq("inq_case_new")
+        # the capture template's prefill keys are underscored, not hyphenated
+        expect(service).to have_received(:create_inquiry).with(
+          hash_including(fields: hash_including(:name_first, :name_last, :email_address))
+        )
+      end
+
+      it "keeps the direct upload path requiring the same fields" do
+        post manual_verification_documents_path, params: {
+          primary_doc: fixture_file_upload_for("doc.pdf"), attested: "1", biometric_consent: "1",
+          legal_name: "Heidi Trashworth", date_of_birth: "2008-04-01"
+        }
+        expect(flash[:error]).to match(/Document type and Issuing authority are required/)
+        expect(kase.reload).to be_link_sent
+      end
     end
 
     it "keeps skip-persona cases away from the persona capture flow" do

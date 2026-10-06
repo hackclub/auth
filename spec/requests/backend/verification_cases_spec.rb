@@ -32,6 +32,66 @@ RSpec.describe "Backend verification cases", type: :request do
     end
   end
 
+  describe "POST /backend/verification_cases/:id/resend_link" do
+    it "rotates the token, re-sends the invitation and logs it" do
+      kase = create(:verification_case, :link_sent)
+      old_token = kase.access_token
+
+      expect {
+        post resend_link_backend_verification_case_path(kase)
+      }.to have_enqueued_mail(VerificationCaseMailer, :invitation)
+
+      kase.reload
+      expect(kase).to be_link_sent
+      expect(kase.access_token).not_to eq(old_token)
+      expect(kase.events.where(key: "link_resent").count).to eq(1)
+      expect(response).to redirect_to(backend_verification_case_path(kase))
+    end
+
+    it "does not lock out a user who already opened their link" do
+      kase = create(:verification_case, :link_sent, access_token_used_at: 1.hour.ago)
+
+      post resend_link_backend_verification_case_path(kase)
+
+      expect(kase.reload.access_token_used_at).to be_present
+    end
+
+    # a stale tab still showing the button after the user submitted docs
+    it "refuses once the case is past the link, without touching the token" do
+      kase = create(:verification_case, :docs_submitted, access_token_used_at: 1.hour.ago)
+      old_token = kase.access_token
+      used_at = kase.access_token_used_at
+
+      expect {
+        post resend_link_backend_verification_case_path(kase)
+      }.not_to have_enqueued_mail(VerificationCaseMailer, :invitation)
+
+      kase.reload
+      expect(kase).to be_docs_submitted
+      expect(kase.access_token).to eq(old_token)
+      expect(kase.access_token_used_at).to be_within(1.second).of(used_at)
+      expect(kase.events.where(key: "link_resent")).not_to exist
+      expect(response).to redirect_to(backend_verification_case_path(kase))
+      expect(flash[:warning]).to include("nothing to resend")
+    end
+
+    it "still refuses when the case moves on under a stale pre-check" do
+      kase = create(:verification_case, :link_sent)
+      old_token = kase.access_token
+      allow_any_instance_of(VerificationCase).to receive(:may_send_link?).and_return(true)
+      kase.update!(status: "docs_submitted", attested: true, biometric_consent: true)
+
+      expect {
+        post resend_link_backend_verification_case_path(kase)
+      }.not_to have_enqueued_mail(VerificationCaseMailer, :invitation)
+
+      kase.reload
+      expect(kase).to be_docs_submitted
+      expect(kase.access_token).to eq(old_token)
+      expect(flash[:warning]).to include("isn't valid")
+    end
+  end
+
   describe "POST /backend/verification_cases/:id/comment" do
     it "records a comment by the current reviewer" do
       kase = create(:verification_case, :docs_submitted)
@@ -45,6 +105,16 @@ RSpec.describe "Backend verification cases", type: :request do
   end
 
   describe "PATCH /backend/verification_cases/:id/decide" do
+    # the shared Rejectable mail relays the internal reason to the user and
+    # must never fire here. the staff-only slack ping is separate.
+    def rejection_mail_jobs
+      enqueued_jobs.select do |j|
+        j[:args].first == "VerificationMailer" && j[:args].second.to_s.start_with?("rejected_")
+      end
+    end
+
+    def guardian_pings = enqueued_jobs.select { |j| j[:job] == Slack::NotifyGuardiansJob }
+
     let(:full_checklist) do
       {
         doc_matches_live_face: "yes",
@@ -112,6 +182,37 @@ RSpec.describe "Backend verification cases", type: :request do
           params: { decision: "deny", checklist: full_checklist, confidence: "high",
                     rejection_reason: "fraud", rejection_reason_details: "internal note" }
       }.to have_enqueued_mail(VerificationCaseMailer, :denied).with(kase)
+    end
+
+    it "sends only the reason-free case email on a fatal denial" do
+      kase = create(:verification_case, :call_held)
+
+      expect {
+        patch decide_backend_verification_case_path(kase),
+          params: { decision: "deny", checklist: full_checklist, confidence: "high",
+                    rejection_reason: "fraud", rejection_reason_details: "internal note" }
+      }.to have_enqueued_mail(VerificationCaseMailer, :denied).with(kase)
+
+      expect(rejection_mail_jobs).to be_empty
+      expect(guardian_pings.size).to eq(1)
+
+      verification = kase.reload.verification
+      expect(verification).to be_rejected
+      expect(verification.fatal).to be(true)
+      expect(verification.rejection_reason).to eq("fraud")
+      expect(verification.rejection_reason_details).to eq("internal note")
+    end
+
+    it "sends only the reason-free case email on a retryable denial" do
+      kase = create(:verification_case, :call_held)
+
+      expect {
+        patch decide_backend_verification_case_path(kase),
+          params: { decision: "deny", checklist: full_checklist, confidence: "high", rejection_reason: "no_show" }
+      }.to have_enqueued_mail(VerificationCaseMailer, :denied).with(kase)
+
+      expect(rejection_mail_jobs).to be_empty
+      expect(guardian_pings).to be_empty
     end
 
     it "does not send the denial email on approval" do

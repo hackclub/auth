@@ -36,6 +36,28 @@ RSpec.describe Verification::ManualVerificationCall, type: :model do
     verification.mark_as_rejected!("fraud", nil)
     expect(verification.fatal).to be(true)
   end
+
+  it "pings guardians but sends no shared rejection mail on a fatal rejection" do
+    verification = create(:manual_verification_call)
+
+    expect { verification.mark_as_rejected!("fraud", "internal note") }
+      .to have_enqueued_job(Slack::NotifyGuardiansJob).with(verification.identity)
+
+    expect(ActiveJob::Base.queue_adapter.enqueued_jobs.map { |j| j[:job] })
+      .not_to include(ActionMailer::MailDeliveryJob)
+
+    expect(verification.reload).to be_rejected
+    expect(verification.rejection_reason_details).to eq("internal note")
+  end
+
+  it "enqueues nothing on a retryable rejection" do
+    verification = create(:manual_verification_call)
+
+    expect { verification.mark_as_rejected!("no_show", nil) }
+      .not_to have_enqueued_job
+
+    expect(verification.reload).to be_rejected
+  end
   describe "qa sampling" do
     # ids are assigned by the sequence, so build enough records that at
     # least one lands on a multiple of QA_SAMPLE_EVERY and pick by id
