@@ -181,7 +181,10 @@
         </label>
 
         <% if @case.persona_capture_available? %>
-          <button type="submit" formaction="<%= manual_verification_prepare_capture_path %>" formmethod="post" class="chooser-cta">Scan with your camera</button>
+          <%# same action as the form on purpose: rails per-form csrf tokens are
+              bound to the form url, so a formaction elsewhere fails forgery
+              protection. submit_documents dispatches on intent instead. %>
+          <button type="submit" name="intent" value="scan" class="chooser-cta">Scan with your camera</button>
           <p><small>Camera not working? Upload directly below.</small></p>
         <% end %>
 

@@ -98,6 +98,10 @@ class ManualVerificationsController < ApplicationController
 
   # direct upload fallback for either document class
   def submit_documents
+    # the scan button shares this form (per-form csrf tokens rule out a
+    # formaction to another url) and marks itself with intent=scan
+    return prepare_capture if params[:intent] == "scan"
+
     unless @case.link_sent? && @case.document_class.present?
       redirect_to manual_verification_path and return
     end

@@ -274,7 +274,9 @@ RSpec.describe "Manual verifications", type: :request do
       it "offers the scan button inside the same form as the details and consent" do
         get manual_verification_path
         expect(response.body).to include("Scan with your camera")
-        expect(response.body).to include(manual_verification_prepare_capture_path)
+        # must post to the shared form's own url: per-form csrf tokens reject a formaction elsewhere
+        expect(response.body).to include('name="intent" value="scan"')
+        expect(response.body).not_to include("formaction")
         expect(response.body).to include('name="biometric_consent"')
       end
 
@@ -305,8 +307,26 @@ RSpec.describe "Manual verifications", type: :request do
         expect(kase.reload.submitted_fields).to be_empty
       end
 
+      it "passes real forgery protection when the scan button submits the shared form" do
+        # the test env disables csrf checks, which is how the formaction bug
+        # shipped: per-form tokens are bound to the form url, so the scan
+        # button must post to the same url as the upload form.
+        ActionController::Base.allow_forgery_protection = true
+
+        get manual_verification_path
+        form = Nokogiri::HTML(response.body).at_css("form[action='#{manual_verification_documents_path}']")
+        token = form.at_css("input[name='authenticity_token']")["value"]
+
+        post manual_verification_documents_path,
+          params: details.merge(attested: "1", biometric_consent: "1", intent: "scan", authenticity_token: token)
+        expect(response).to redirect_to(manual_verification_capture_path)
+        expect(kase.reload.attested).to be(true)
+      ensure
+        ActionController::Base.allow_forgery_protection = false
+      end
+
       it "records the prerequisites on the case, then lets the capture start" do
-        post manual_verification_prepare_capture_path, params: details.merge(attested: "1", biometric_consent: "1")
+        post manual_verification_documents_path, params: details.merge(attested: "1", biometric_consent: "1", intent: "scan")
         expect(response).to redirect_to(manual_verification_capture_path)
 
         kase.reload
