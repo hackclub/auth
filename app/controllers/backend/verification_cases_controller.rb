@@ -158,8 +158,7 @@ module Backend
       Verification::ManualVerificationCall.new(
         identity: @case.identity,
         reviewer: current_user,
-        checklist: checklist,
-        expires_at: @case.alternative? ? VerificationCase::ALTERNATIVE_DOCS_EXPIRY.from_now : nil
+        checklist: checklist
       )
     end
   end

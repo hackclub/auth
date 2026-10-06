@@ -16,9 +16,6 @@ class VerificationCase < ApplicationRecord
 
   FLIPPER_FLAG = :manual_verification_call_2026_07_03
   ACCESS_TOKEN_TTL = 7.days
-  # alternative-docs approvals expire; gov-id manual approvals don't (same
-  # document class as a persona-verified ID — only the extraction path differed)
-  ALTERNATIVE_DOCS_EXPIRY = 12.months
 
   belongs_to :identity
   belongs_to :opened_by, class_name: "Backend::User", optional: true

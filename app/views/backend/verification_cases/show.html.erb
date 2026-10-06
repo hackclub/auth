@@ -159,9 +159,6 @@
       <span style="color: var(--foreground2);">decision record:</span>
       <a href="<%= backend_verification_path(@case.verification) %>"><%= @case.verification.public_id %></a>
       <span is-="badge" variant-="<%= @case.verification.approved? ? 'green' : 'red' %>"><%= @case.verification.status %></span>
-      <% if @case.verification.expires_at.present? %>
-        <span style="color: var(--foreground2);">expires <%= @case.verification.expires_at.to_date %></span>
-      <% end %>
     </row>
   <% end %>
 

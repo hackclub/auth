@@ -36,14 +36,4 @@ RSpec.describe Verification::ManualVerificationCall, type: :model do
     verification.mark_as_rejected!("fraud", nil)
     expect(verification.fatal).to be(true)
   end
-
-  describe "#expired?" do
-    it "is false with no expiry (tier A)" do
-      expect(build(:manual_verification_call, expires_at: nil).expired?).to be(false)
-    end
-
-    it "is true past expiry (tier B backstop)" do
-      expect(build(:manual_verification_call, expires_at: 1.day.ago).expired?).to be(true)
-    end
-  end
 end

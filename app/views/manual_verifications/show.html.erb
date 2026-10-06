@@ -64,7 +64,7 @@
     <% if @show_alternative_nudge %>
       <section class="section-card">
         <h3>One more thing before you continue</h3>
-        <p>Almost any government-issued document works — a passport, national ID, driver's license or permit, or residency card, even if Persona rejected it. A government document makes your verification permanent; other documents mean we'll need to re-verify you in a year.</p>
+        <p>Almost any government-issued document works — a passport, national ID, driver's license or permit, or residency card, even if Persona rejected it. A government document is the strongest evidence we can take and makes the review quickest.</p>
         <p>Sure you don't have one?</p>
         <%= form_with url: manual_verification_document_class_path, method: :post, local: true do %>
           <input type="hidden" name="document_class" value="alternative">

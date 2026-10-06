@@ -717,7 +717,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_27_164018) do
     t.bigint "persona_record_id"
     t.bigint "reviewer_id"
     t.jsonb "checklist"
-    t.datetime "expires_at"
     t.datetime "sampled_at"
     t.bigint "sample_reviewer_id"
     t.index ["aadhaar_record_id"], name: "index_verifications_on_aadhaar_record_id"

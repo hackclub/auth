@@ -1,7 +1,7 @@
 # the durable outcome of a manual verification call — created at
 # decision time from a VerificationCase. this is the record that
 # the durable decision record alongside the raw evidence: reviewer,
-# checklist, signal snapshot pointer, and (for tier B) an expiry.
+# checklist and signal snapshot pointer.
 class Verification::ManualVerificationCall < Verification
   include Verification::Rejectable
 
@@ -55,10 +55,6 @@ class Verification::ManualVerificationCall < Verification
   def reviewer_notes = checklist&.dig("notes")
 
   def checklist_answer(item) = checklist&.dig(item)
-
-  # tier A approvals never expire; tier B gets a 12-month backstop.
-  # nullable by design so the policy can change without a migration.
-  def expired? = expires_at.present? && expires_at.past?
 
 
   # polymorphic interface
