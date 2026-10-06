@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_08_06_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_27_164018) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -116,6 +116,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_06_000001) do
     t.bigint "identity_id"
     t.string "seen_hints", default: [], array: true
     t.boolean "can_process_deletions", default: false, null: false
+    t.boolean "can_ban", default: false, null: false
     t.index ["identity_id"], name: "index_backend_users_on_identity_id"
   end
 
