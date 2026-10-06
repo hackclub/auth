@@ -3,7 +3,7 @@
   <row align-="center between">
     <h2><%= @case.public_id %></h2>
     <row gap-="1" align-="center">
-      <span is-="badge" variant-="<%= @case.approved? ? 'green' : @case.denied? ? 'red' : 'yellow' %>"><%= @case.status.humanize.downcase %></span>
+      <span is-="badge" variant-="<%= @case.approved? ? 'green' : @case.denied? ? 'red' : @case.withdrawn? ? 'background2' : 'yellow' %>"><%= @case.status.humanize.downcase %></span>
       <% if @case.document_class.present? %><span is-="badge" variant-="background2"><%= @case.document_class.humanize.downcase %></span><% end %>
       <% if @case.skip_persona? %><span is-="badge" variant-="background2">no persona</span><% end %>
     </row>
@@ -101,6 +101,16 @@
       </row>
     <% end %>
 
+    <% if @case.docs_submitted? %>
+      <div is-="separator"></div>
+      <%= form_with url: request_redo_backend_verification_case_path(@case), method: :post, local: true do %>
+        <row gap-="1" align-="center">
+          <textarea name="message" rows="2" placeholder="what should the user redo? this goes in the email" required style="flex: 1;"></textarea>
+          <button type="submit" is-="button" size-="small">request redo</button>
+        </row>
+      <% end %>
+    <% end %>
+
     <% if @case.call_held? %>
       <div is-="separator"></div>
       <span style="color: var(--foreground2); font-style: italic;">decision</span>
@@ -150,6 +160,16 @@
         </column>
       <% end %>
 
+    <% end %>
+
+    <div is-="separator"></div>
+    <%= form_with url: withdraw_backend_verification_case_path(@case), method: :post, local: true,
+        data: { confirm: "withdraw this case? the user's link stops working and no decision is recorded." } do %>
+      <row gap-="1" align-="center">
+        <span style="color: var(--foreground2);">close without a decision:</span>
+        <input type="text" name="reason" placeholder="reason (optional)" style="flex: 1;">
+        <button type="submit" is-="button" size-="small" variant-="red">withdraw</button>
+      </row>
     <% end %>
   <% end %>
 

@@ -148,11 +148,20 @@ class ManualVerificationsController < ApplicationController
 
   def set_case
     unless Flipper.enabled?(VerificationCase::FLIPPER_FLAG, current_identity)
+      render(:link_invalid, status: :forbidden) and return if params[:token].present?
       redirect_to root_path and return
     end
 
     @case = current_identity.verification_cases.open_cases.order(created_at: :desc).first
-    redirect_to root_path if @case.nil?
+    return if @case
+
+    # someone followed an emailed link to a case that has since closed
+    # (withdrawn, decided) — tell them, don't silently bounce to the home page
+    if params[:token].present?
+      render :link_invalid, status: :forbidden
+    else
+      redirect_to root_path
+    end
   end
 
   # first visit must carry the emailed single-use token; after it's been

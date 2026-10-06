@@ -104,6 +104,28 @@ RSpec.describe "Backend verification cases", type: :request do
       expect(kase.verification).to be_rejected
     end
 
+    it "emails the user on denial, without the internal reason" do
+      kase = create(:verification_case, :call_held, persona_inquiry_id: "inq_test789")
+
+      expect {
+        patch decide_backend_verification_case_path(kase),
+          params: { decision: "deny", checklist: full_checklist, confidence: "high",
+                    rejection_reason: "fraud", rejection_reason_details: "internal note" }
+      }.to have_enqueued_mail(VerificationCaseMailer, :denied).with(kase)
+    end
+
+    it "does not send the denial email on approval" do
+      kase = create(:verification_case, :call_held)
+
+      expect {
+        patch decide_backend_verification_case_path(kase),
+          params: { decision: "approve", checklist: full_checklist, confidence: "high" }
+      }.to have_enqueued_mail(VerificationMailer, :approved)
+
+      denial = enqueued_jobs.select { |j| j[:args].first(2) == [ "VerificationCaseMailer", "denied" ] }
+      expect(denial).to be_empty
+    end
+
     it "rejects deciding before the call is held" do
       kase = create(:verification_case, :call_scheduled)
 
@@ -112,6 +134,100 @@ RSpec.describe "Backend verification cases", type: :request do
 
       expect(kase.reload).to be_call_scheduled
       expect(kase.verification).to be_nil
+    end
+  end
+
+  describe "POST /backend/verification_cases/:id/request_redo" do
+    it "sends the case back behind the booking gate with a fresh link and the reviewer's message" do
+      kase = create(:verification_case, :docs_submitted, persona_inquiry_id: "inq_blurry", access_token_used_at: 1.hour.ago)
+      old_token = kase.access_token
+
+      expect {
+        post request_redo_backend_verification_case_path(kase), params: { message: "the photo is too blurry to read the name" }
+      }.to have_enqueued_mail(VerificationCaseMailer, :redo_requested)
+
+      kase.reload
+      expect(kase).to be_link_sent
+      expect(kase.access_token).not_to eq(old_token)
+      expect(kase.access_token_used_at).to be_nil
+      expect(kase.persona_inquiry_id).to be_nil
+
+      event = kase.events.find_by(key: "redo_requested")
+      expect(event.actor).to eq(verifier)
+      expect(event.data).to include("message" => "the photo is too blurry to read the name", "previous_inquiry_id" => "inq_blurry")
+    end
+
+    it "requires a message" do
+      kase = create(:verification_case, :docs_submitted)
+
+      expect {
+        post request_redo_backend_verification_case_path(kase), params: { message: "  " }
+      }.not_to have_enqueued_mail(VerificationCaseMailer, :redo_requested)
+
+      expect(kase.reload).to be_docs_submitted
+    end
+
+    it "refuses once a call is booked" do
+      kase = create(:verification_case, :call_scheduled)
+
+      expect {
+        post request_redo_backend_verification_case_path(kase), params: { message: "redo please" }
+      }.not_to have_enqueued_mail(VerificationCaseMailer, :redo_requested)
+
+      expect(kase.reload).to be_call_scheduled
+      expect(response).to redirect_to(backend_verification_case_path(kase))
+    end
+  end
+
+  describe "POST /backend/verification_cases/:id/withdraw" do
+    it "closes the case, revokes the flag, invalidates the link, and logs the reason" do
+      kase = create(:verification_case, :call_scheduled)
+      token = kase.access_token
+      Flipper.enable(VerificationCase::FLIPPER_FLAG, kase.identity)
+
+      post withdraw_backend_verification_case_path(kase), params: { reason: "opened on the wrong account" }
+
+      kase.reload
+      expect(kase).to be_withdrawn
+      expect(kase.verification).to be_nil
+      expect(kase.access_token).to be_nil
+      expect(kase.consume_access_token!(token)).to be(false)
+      expect(Flipper.enabled?(VerificationCase::FLIPPER_FLAG, kase.identity)).to be(false)
+
+      event = kase.events.find_by(key: "case_withdrawn")
+      expect(event.actor).to eq(verifier)
+      expect(event.data).to eq("reason" => "opened on the wrong account")
+    end
+
+    it "lets a new case be opened for the identity afterwards" do
+      kase = create(:verification_case, :link_sent)
+      post withdraw_backend_verification_case_path(kase)
+      expect(kase.reload).to be_withdrawn
+
+      post backend_verification_cases_path, params: { identity_id: kase.identity.public_id }
+
+      expect(kase.identity.verification_cases.open_cases.count).to eq(1)
+      expect(kase.identity.verification_cases.count).to eq(2)
+    end
+
+    it "refuses on a decided case" do
+      kase = create(:verification_case, :call_held)
+      kase.approve!
+
+      post withdraw_backend_verification_case_path(kase)
+
+      expect(kase.reload).to be_approved
+      expect(response).to redirect_to(backend_verification_case_path(kase))
+    end
+
+    it "lists withdrawn cases under recently closed, not open" do
+      kase = create(:verification_case, :withdrawn)
+
+      get backend_verification_cases_path
+
+      expect(response.body).to include("0 open")
+      expect(response.body).to include(kase.public_id)
+      expect(response.body).to include("recently closed")
     end
   end
 

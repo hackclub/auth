@@ -52,6 +52,49 @@ RSpec.describe "Manual verifications", type: :request do
     end
   end
 
+  describe "after withdrawal" do
+    it "shows the invalid-link page to a user following the old emailed link" do
+      kase = create(:verification_case, identity: identity, status: :link_sent)
+      token = kase.generate_access_token!
+      Flipper.enable(VerificationCase::FLIPPER_FLAG, identity)
+
+      kase.withdraw!
+
+      get manual_verification_path(token: token)
+      expect(response).to have_http_status(:forbidden)
+      expect(response.body).to include("This link isn't valid")
+    end
+
+    it "bounces a plain visit (no token) to the home page" do
+      kase = create(:verification_case, identity: identity, status: :link_sent, access_token_used_at: Time.current)
+      kase.withdraw!
+
+      get manual_verification_path
+      expect(response).to redirect_to(root_path)
+    end
+  end
+
+  describe "after a redo request" do
+    it "puts the user back at document submission, needing the new link first" do
+      kase = create(:verification_case, identity: identity, status: :docs_submitted, document_class: "government_id",
+        access_token_used_at: 1.hour.ago)
+      Flipper.enable(VerificationCase::FLIPPER_FLAG, identity)
+      kase.request_redo!
+      token = kase.rotate_access_link!
+
+      get manual_verification_path
+      expect(response).to have_http_status(:forbidden)
+
+      get manual_verification_path(token: token)
+      expect(response).to redirect_to(manual_verification_path)
+
+      get manual_verification_path
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Submit your document")
+      expect(response.body).not_to include("Book your call")
+    end
+  end
+
   describe "the flow" do
     let(:kase) do
       create(:verification_case, identity: identity, status: :link_sent,

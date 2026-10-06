@@ -1,0 +1,11 @@
+<p class="greeting">Hey <%= @first_name %>,</p>
+
+<p class="body-text">Thanks for sending your documents. The reviewer looked at them and needs you to submit them again before your call can go ahead. Here's what they said:</p>
+
+<blockquote class="body-text" style="border-left: 3px solid #ccc; margin: 0; padding-left: 12px; white-space: pre-wrap;"><%= @message %></blockquote>
+
+<p class="body-text"><a href="<%= @link %>" class="button">Resubmit your documents</a></p>
+
+<p class="secondary-text">This link works once and expires <%= @expires_at.strftime("%B %-d, %Y") %>. If it stops working, reply to this email and we'll send you a fresh one.</p>
+
+<p class="signature">— The Hack Club team</p>

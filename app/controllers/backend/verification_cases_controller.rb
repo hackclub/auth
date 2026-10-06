@@ -12,7 +12,7 @@ module Backend
         .includes(:identity, :opened_by)
         .order(created_at: :asc)
         .page(params[:page]).per(20)
-      @decided_cases = VerificationCase.where(status: %w[approved denied])
+      @decided_cases = VerificationCase.closed_cases
         .includes(:identity, :verification)
         .order(updated_at: :desc)
         .page(params[:decided_page]).per(10)
@@ -77,6 +77,45 @@ module Backend
       redirect_to backend_verification_case_path(@case)
     end
 
+    # reviewer sends the user back behind the booking gate to redo their
+    # documents. evidence already submitted is kept; a fresh link goes out
+    # with the reviewer's message.
+    def request_redo
+      authorize @case
+
+      message = params[:message].to_s.strip
+      if message.blank?
+        flash[:error] = "Tell the user what to redo"
+        redirect_to backend_verification_case_path(@case) and return
+      end
+
+      previous_inquiry_id = @case.persona_inquiry_id
+      token = nil
+      ActiveRecord::Base.transaction do
+        @case.request_redo!
+        token = @case.rotate_access_link!
+      end
+      VerificationCaseMailer.redo_requested(@case, token, message).deliver_later
+      @case.log_event!(:redo_requested, actor: current_user, request: request,
+        data: { message: message, previous_inquiry_id: previous_inquiry_id }.compact)
+
+      flash[:success] = "Redo requested — fresh link sent to #{@case.identity.primary_email}"
+      redirect_to backend_verification_case_path(@case)
+    end
+
+    # close the case without a decision. drops the flag and kills the link
+    # so the user can't get back in; a new case can be opened later.
+    def withdraw
+      authorize @case
+
+      @case.withdraw!
+      @case.log_event!(:case_withdrawn, actor: current_user, request: request,
+        data: { reason: params[:reason].to_s.strip.presence }.compact)
+
+      flash[:success] = "Case withdrawn"
+      redirect_to backend_verification_case_path(@case)
+    end
+
     def comment
       authorize @case
 
@@ -114,7 +153,12 @@ module Backend
       verification.create_activity(key: "verification.#{decision == 'approve' ? 'approve' : 'reject'}",
         owner: current_user, recipient: @case.identity)
 
-      VerificationMailer.approved(verification).deliver_later if decision == "approve"
+      if decision == "approve"
+        VerificationMailer.approved(verification).deliver_later
+      else
+        # no reason in the email — the rejection reason + details are internal
+        VerificationCaseMailer.denied(@case).deliver_later
+      end
 
       flash[:success] = "Case #{decision == 'approve' ? 'approved' : 'denied'}"
       redirect_to backend_verification_case_path(@case)
@@ -139,8 +183,7 @@ module Backend
     end
 
     def deliver_link!
-      token = @case.generate_access_token!
-      @case.send_link!
+      token = @case.rotate_access_link!
       VerificationCaseMailer.invitation(@case, token).deliver_later
     end
 

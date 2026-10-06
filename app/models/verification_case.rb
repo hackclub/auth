@@ -42,7 +42,19 @@ class VerificationCase < ApplicationRecord
   validates :alternative_reason_details, presence: true, if: -> { alternative? && alternative_reason == "other" }
   validates :persona_inquiry_id, uniqueness: { allow_nil: true, conditions: -> { where(deleted_at: nil) } }
 
-  scope :open_cases, -> { where.not(status: %w[approved denied]) }
+  CLOSED_STATUSES = %w[approved denied withdrawn].freeze
+
+  scope :open_cases, -> { where.not(status: CLOSED_STATUSES) }
+  scope :closed_cases, -> { where(status: CLOSED_STATUSES) }
+
+  # invitation went out, user never started, link still good, not yet nudged.
+  # the reminder_sent audit event is the "already sent" marker.
+  scope :due_for_link_reminder, ->(quiet_for:) {
+    where(status: "link_sent")
+      .where(link_sent_at: ..quiet_for.ago)
+      .where(access_token_expires_at: Time.current..)
+      .where.not(id: VerificationCase::Event.where(key: "reminder_sent").select(:verification_case_id))
+  }
 
   alias_method :to_param, :public_id
 
@@ -54,6 +66,9 @@ class VerificationCase < ApplicationRecord
     state :call_held
     state :approved
     state :denied
+    # closed by staff without a decision — opened by mistake, user went
+    # quiet, user asked us to stop. no verification record is created.
+    state :withdrawn
 
     event :send_link do
       transitions from: [ :requested, :link_sent ], to: :link_sent
@@ -61,6 +76,13 @@ class VerificationCase < ApplicationRecord
 
     event :submit_docs do
       transitions from: [ :link_sent, :docs_submitted ], to: :docs_submitted
+    end
+
+    # reviewer wants the documents redone — back behind the booking gate.
+    # only before a call is booked; once it's booked, talk about it on the call.
+    event :request_redo do
+      transitions from: :docs_submitted, to: :link_sent
+      after { reset_capture! }
     end
 
     event :schedule_call do
@@ -85,9 +107,18 @@ class VerificationCase < ApplicationRecord
       transitions from: :call_held, to: :denied
       after { close_out! }
     end
+
+    event :withdraw do
+      transitions from: [ :requested, :link_sent, :docs_submitted, :call_scheduled, :call_held ], to: :withdrawn
+      after do
+        close_out!
+        invalidate_access_token!
+      end
+    end
   end
 
-  def open? = !approved? && !denied?
+  def open? = !closed?
+  def closed? = CLOSED_STATUSES.include?(status)
   def decided? = approved? || denied?
 
   # -- feature flag ------------------------------------------------------
@@ -104,6 +135,19 @@ class VerificationCase < ApplicationRecord
       access_token_used_at: nil
     )
     access_token
+  end
+
+  # rotate the token and (re)enter link_sent — the caller picks which
+  # email carries the returned token (invitation, reminder, ...)
+  def rotate_access_link!
+    token = generate_access_token!
+    send_link!
+    token
+  end
+
+  # the emailed link stops working — a withdrawn case must not be enterable
+  def invalidate_access_token!
+    update!(access_token: nil, access_token_expires_at: nil)
   end
 
   # atomic single-use consume — the update_all guarded on used_at: nil
@@ -186,6 +230,13 @@ class VerificationCase < ApplicationRecord
   end
 
   private
+
+  # a redo means a fresh capture: the finished persona inquiry can't be
+  # re-run, so forget it and let start_capture create a new one. the old
+  # inquiry id stays in the audit trail (capture_inquiry_created / redo_requested).
+  def reset_capture!
+    update!(persona_inquiry_id: nil, persona_session_token: nil)
+  end
 
   # decision time: drop the flag. documents are retained (break-glass
   # gated) — the ManualVerificationCall itself is created by the decision flow.

@@ -12,4 +12,8 @@ class VerificationCasePolicy < ApplicationPolicy
   def comment? = user_is_manual_document_verifier?
 
   def decide? = user_is_manual_document_verifier?
+
+  def request_redo? = user_is_manual_document_verifier?
+
+  def withdraw? = user_is_manual_document_verifier?
 end

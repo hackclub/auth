@@ -1,0 +1,11 @@
+<p class="greeting">Hey <%= @first_name %>,</p>
+
+<p class="body-text">A few days ago we sent you a link to verify your identity manually, and it looks like you haven't started yet. No worries — here's a fresh one. It takes a few minutes to submit your documents, then you'll book a short video call with a member of our team.</p>
+
+<p class="body-text"><a href="<%= @link %>" class="button">Start manual verification</a></p>
+
+<p class="secondary-text">This link works once and expires <%= @expires_at.strftime("%B %-d, %Y") %>. If it stops working, reply to this email and we'll send you a fresh one.</p>
+
+<p class="secondary-text">If you no longer need this, you can ignore this email.</p>
+
+<p class="signature">— The Hack Club team</p>

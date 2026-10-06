@@ -38,6 +38,13 @@ FactoryBot.define do
       call_scheduled
       status { :call_held }
     end
+
+    trait :withdrawn do
+      link_sent
+      status { :withdrawn }
+      access_token { nil }
+      access_token_expires_at { nil }
+    end
   end
 
   factory :verification_case_document, class: "VerificationCase::Document" do

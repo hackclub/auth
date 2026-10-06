@@ -42,6 +42,60 @@ RSpec.describe VerificationCase, type: :model do
     end
   end
 
+  describe "#withdraw" do
+    it "closes from any open state, drops the flag, and kills the link" do
+      %i[requested link_sent docs_submitted call_scheduled call_held].each do |state|
+        kase = create(:verification_case, state == :requested ? nil : state, access_token: "tok", access_token_expires_at: 1.day.from_now)
+        Flipper.enable(described_class::FLIPPER_FLAG, kase.identity)
+
+        kase.withdraw!
+
+        expect(kase).to be_withdrawn
+        expect(kase).to be_closed
+        expect(kase).not_to be_open
+        expect(kase).not_to be_decided
+        expect(kase.access_token).to be_nil
+        expect(kase.consume_access_token!("tok")).to be(false)
+        expect(Flipper.enabled?(described_class::FLIPPER_FLAG, kase.identity)).to be(false)
+      end
+    end
+
+    it "is not allowed once decided" do
+      kase = create(:verification_case, :call_held)
+      kase.approve!
+      expect { kase.withdraw! }.to raise_error(AASM::InvalidTransition)
+    end
+
+    it "no longer counts as open, so a new case can be opened" do
+      kase = create(:verification_case, :withdrawn)
+      expect(described_class.open_cases).not_to include(kase)
+      expect(described_class.closed_cases).to include(kase)
+      expect(kase.identity.verification_cases.open_cases.exists?).to be(false)
+    end
+  end
+
+  describe "#request_redo" do
+    it "returns to link_sent, keeps documents, and forgets the finished persona inquiry" do
+      kase = create(:verification_case, :docs_submitted, persona_inquiry_id: "inq_done", persona_session_token: "sess")
+      doc = create(:verification_case_document, verification_case: kase)
+
+      kase.request_redo!
+
+      expect(kase).to be_link_sent
+      expect(kase).not_to be_booking_available
+      expect(kase.persona_inquiry_id).to be_nil
+      expect(kase.persona_session_token).to be_nil
+      expect(doc.reload.file).to be_attached
+      expect(kase.documents).to include(doc)
+    end
+
+    it "is only allowed before a call is booked" do
+      expect { create(:verification_case, :call_scheduled).request_redo! }.to raise_error(AASM::InvalidTransition)
+      expect { create(:verification_case, :call_held).request_redo! }.to raise_error(AASM::InvalidTransition)
+      expect { create(:verification_case, :link_sent).request_redo! }.to raise_error(AASM::InvalidTransition)
+    end
+  end
+
   describe "alternative-docs validation" do
     it "requires a reason" do
       kase = build(:verification_case, document_class: "alternative", alternative_reason: nil)

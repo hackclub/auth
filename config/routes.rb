@@ -227,6 +227,8 @@ Rails.application.routes.draw do
       member do
         post :resend_link
         post :comment
+        post :request_redo
+        post :withdraw
         patch :hold_call
         patch :decide
       end
