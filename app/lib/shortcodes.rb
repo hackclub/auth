@@ -26,6 +26,8 @@ module Shortcodes
       if user&.manual_document_verifier? || user&.super_admin?
         shortcuts << Shortcode.new(code: "PEND", label: "Pending verifications", controller: "backend/verifications", action: "pending", icon: "⭢", role: :mdv, path_override: nil)
         shortcuts << Shortcode.new(code: "VERF", label: "All verifications", controller: "backend/verifications", action: "index", icon: "⭢", role: :mdv, path_override: nil)
+        shortcuts << Shortcode.new(code: "CASE", label: "Manual call cases", controller: "backend/verification_cases", action: "index", icon: "⭢", role: :mdv, path_override: nil)
+        shortcuts << Shortcode.new(code: "QASM", label: "QA sampling", controller: "backend/verification_cases", action: "qa", icon: "⭢", role: :mdv, path_override: nil)
       end
 
       # Common

@@ -1,0 +1,11 @@
+Hey <%= @first_name %>,
+
+Thanks for sending your documents. The reviewer looked at them and needs you to submit them again before your call can go ahead. Here's what they said:
+
+<%= @message %>
+
+Resubmit here: <%= @link %>
+
+This link works once and expires <%= @expires_at.strftime("%B %-d, %Y") %>. If it stops working, reply to this email and we'll send you a fresh one.
+
+— The Hack Club team

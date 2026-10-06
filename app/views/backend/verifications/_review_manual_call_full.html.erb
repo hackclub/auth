@@ -1,0 +1,24 @@
+<column gap-="1">
+  <% if verification.verification_case %>
+    <a href="<%= backend_verification_case_path(verification.verification_case) %>">view full case <%= verification.verification_case.public_id %> →</a>
+  <% end %>
+
+  <table>
+    <tbody>
+      <% Verification::ManualVerificationCall::CHECKLIST_ITEMS.each do |key, label| %>
+        <tr>
+          <td><%= label %></td>
+          <td>
+            <% answer = verification.checklist_answer(key) %>
+            <span is-="badge" variant-="<%= answer == true ? 'green' : answer == false ? 'red' : 'background2' %>"><%= answer.nil? ? "—" : answer ? "yes" : "no" %></span>
+          </td>
+        </tr>
+      <% end %>
+      <tr><td>confidence</td><td><%= verification.confidence || "—" %></td></tr>
+    </tbody>
+  </table>
+
+  <% if verification.reviewer_notes.present? %>
+    <span style="color: var(--foreground2);">notes: <%= verification.reviewer_notes %></span>
+  <% end %>
+</column>

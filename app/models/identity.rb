@@ -73,6 +73,7 @@ class Identity < ApplicationRecord
   has_many :vouch_verifications, class_name: "Verification::VouchVerification", dependent: :destroy
   has_many :persona_verifications, class_name: "Verification::PersonaVerification", dependent: :destroy
   has_many :persona_student_id_verifications, class_name: "Verification::PersonaStudentIdVerification", dependent: :destroy
+  has_many :verification_cases, class_name: "VerificationCase", dependent: :destroy
   has_many :addresses, class_name: "Address", dependent: :destroy
   belongs_to :primary_address, class_name: "Address", optional: true
 
