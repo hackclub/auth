@@ -1,0 +1,47 @@
+<% content_for :title, "QA sampling" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>qa sampling (<%= @queue.total_count %> waiting)</h2>
+    <a href="<%= backend_verification_cases_path %>">← cases</a>
+  </row>
+  <span style="color: var(--foreground2);">
+    every <%= Verification::ManualVerificationCall::QA_SAMPLE_EVERY.ordinalize %> decision is queued for a second look.
+    open the case, re-read the evidence, and say whether you agree. you can't sample your own decisions.
+  </span>
+
+  <div is-="separator"></div>
+
+  <span style="color: var(--foreground2); font-style: italic;">last 30 days</span>
+  <row gap-="2">
+    <span><b><%= @stats[:decided] %></b> decided</span>
+    <span><b><%= @stats[:sampled] %></b> sampled</span>
+    <span is-="badge" variant-="green"><%= @stats[:agree] %> agree</span>
+    <span is-="badge" variant-="<%= @stats[:disagree].positive? ? 'red' : 'background2' %>"><%= @stats[:disagree] %> disagree</span>
+  </row>
+
+  <div is-="separator"></div>
+
+  <% if @queue.any? %>
+    <column data-navigable-list>
+      <% @queue.each do |verification| %>
+        <% kase = verification.verification_case %>
+        <a href="<%= backend_verification_case_path(kase) %>" data-navigable-item>
+          <span style="flex: 1;">
+            <b><%= kase.public_id %></b>
+            · <%= verification.identity.first_name %> <%= verification.identity.last_name %>
+          </span>
+          <row gap-="1" align-="center">
+            <span is-="badge" variant-="<%= verification.approved? ? 'green' : 'red' %>"><%= verification.status %></span>
+            <span style="color: var(--foreground2);">by <%= verification.reviewer&.identity&.first_name || "staff" %></span>
+            <span style="color: var(--foreground2);"><%= time_ago_in_words(verification.decided_at) %> ago</span>
+          </row>
+        </a>
+      <% end %>
+    </column>
+    <%= paginate @queue %>
+  <% else %>
+    <column align-="center center" pad-="2 2" style="color: var(--foreground2);">
+      queue is clear
+    </column>
+  <% end %>
+</column>

@@ -257,4 +257,95 @@ RSpec.describe "Backend verification cases", type: :request do
       expect(codes).not_to include("CASE")
     end
   end
+  describe "qa sampling" do
+    def decided_case(reviewer: create(:backend_user), status: :approved)
+      verification = create(:manual_verification_call, status, reviewer: reviewer)
+      create(:verification_case, :call_held, identity: verification.identity, verification: verification,
+        status: status == :approved ? :approved : :denied)
+    end
+
+    describe "GET /backend/verification_cases/qa" do
+      it "lists candidates, skips the current reviewer's own decisions, and shows stats" do
+        step = Verification::ManualVerificationCall::QA_SAMPLE_EVERY
+        cases = Array.new(step * 2) { decided_case }
+        own = Array.new(step) { decided_case(reviewer: verifier) }
+        sampled = create(:manual_verification_call, :sampled)
+        create(:verification_case, :call_held, identity: sampled.identity, verification: sampled, status: :approved)
+
+        get qa_backend_verification_cases_path
+
+        expect(response).to have_http_status(:ok)
+        listed = cases.select { |k| (k.verification.id % step).zero? }
+        expect(listed).not_to be_empty
+        listed.each { |k| expect(response.body).to include(k.public_id) }
+        own.each { |k| expect(response.body).not_to include(k.public_id) }
+        expect(response.body).to include("#{cases.size + own.size + 1}</b> decided")
+        expect(response.body).to include("1</b> sampled")
+      end
+
+      it "denies users without the verifier role" do
+        pleb = create(:backend_user)
+        allow_any_instance_of(Backend::ApplicationController).to receive(:current_identity).and_return(pleb.identity)
+
+        get qa_backend_verification_cases_path
+
+        expect(response).to redirect_to(backend_root_path)
+      end
+    end
+
+    describe "POST /backend/verification_cases/:id/sample" do
+      it "records an agreeing sample and logs it" do
+        kase = decided_case
+
+        post sample_backend_verification_case_path(kase), params: { verdict: "agree", notes: "" }
+
+        expect(response).to redirect_to(backend_verification_case_path(kase))
+        verification = kase.verification.reload
+        expect(verification.sample_reviewer).to eq(verifier)
+        expect(verification.sample_verdict).to eq("agree")
+        event = kase.events.find_by(key: "qa_sampled")
+        expect(event.actor).to eq(verifier)
+        expect(event.data).to include("verdict" => "agree", "verification_id" => verification.id)
+        expect(kase.comments).to be_empty
+      end
+
+      it "leaves a comment on a disagreement" do
+        kase = decided_case(status: :rejected)
+
+        post sample_backend_verification_case_path(kase), params: { verdict: "disagree", notes: "the selfie clearly matches the document" }
+
+        expect(kase.verification.reload.sample_verdict).to eq("disagree")
+        expect(kase.comments.sole.body).to include("qa sample: disagree")
+        expect(kase.comments.sole.body).to include("selfie clearly matches")
+      end
+
+      it "refuses to sample twice" do
+        kase = decided_case
+        kase.verification.record_sample!(reviewer: create(:backend_user), verdict: "agree", notes: nil)
+
+        post sample_backend_verification_case_path(kase), params: { verdict: "disagree", notes: "second opinion" }
+
+        expect(flash[:warning]).to match(/already been sampled/)
+        expect(kase.verification.reload.sample_verdict).to eq("agree")
+        expect(kase.comments).to be_empty
+      end
+
+      it "refuses a reviewer sampling their own decision" do
+        kase = decided_case(reviewer: verifier)
+
+        post sample_backend_verification_case_path(kase), params: { verdict: "agree" }
+
+        expect(flash[:error]).to match(/own decision/)
+        expect(kase.verification.reload).not_to be_sampled
+      end
+
+      it "refuses an undecided case" do
+        kase = create(:verification_case, :call_held)
+
+        post sample_backend_verification_case_path(kase), params: { verdict: "agree" }
+
+        expect(flash[:warning]).to match(/decided/)
+      end
+    end
+  end
 end

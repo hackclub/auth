@@ -1,6 +1,6 @@
 module Backend
   class VerificationCasesController < ApplicationController
-    before_action :set_case, except: [ :index, :create ]
+    before_action :set_case, except: [ :index, :create, :qa ]
 
     def index
       authorize VerificationCase
@@ -16,6 +16,32 @@ module Backend
         .includes(:identity, :verification)
         .order(updated_at: :desc)
         .page(params[:decided_page]).per(10)
+      @qa_waiting = Verification::ManualVerificationCall.qa_candidates.where.not(reviewer_id: current_user.id).count
+    end
+
+    # qa queue: every nth decision, waiting for a second reviewer who
+    # isn't the one that made it. stats cover the last 30 days.
+    def qa
+      authorize VerificationCase
+      add_breadcrumb "CASES", backend_verification_cases_path
+      add_breadcrumb "QA"
+
+      set_keyboard_shortcut(:back, backend_verification_cases_path)
+
+      @queue = Verification::ManualVerificationCall.qa_candidates
+        .where.not(reviewer_id: current_user.id)
+        .joins(:verification_case)
+        .includes(:identity, :reviewer, :verification_case)
+        .page(params[:page]).per(20)
+
+      recent = Verification::ManualVerificationCall.decided.where("COALESCE(approved_at, rejected_at, verifications.created_at) >= ?", 30.days.ago)
+      sampled = recent.qa_sampled
+      @stats = {
+        decided: recent.count,
+        sampled: sampled.count,
+        agree: sampled.where(sample_verdict: "agree").count,
+        disagree: sampled.where(sample_verdict: "disagree").count
+      }
     end
 
     def show
@@ -113,6 +139,37 @@ module Backend
         data: { reason: params[:reason].to_s.strip.presence }.compact)
 
       flash[:success] = "Case withdrawn"
+      redirect_to backend_verification_case_path(@case)
+    end
+
+    # second reviewer records whether they agree with a decision. the
+    # model refuses self-review; a disagreement also lands as a comment so
+    # the discussion happens where reviewers already look.
+    def sample
+      authorize @case
+
+      verification = @case.verification
+      unless @case.decided? && verification.present?
+        flash[:warning] = "Only decided cases can be sampled"
+        redirect_to backend_verification_case_path(@case) and return
+      end
+      if verification.sampled?
+        flash[:warning] = "This decision has already been sampled"
+        redirect_to backend_verification_case_path(@case) and return
+      end
+
+      verdict = params[:verdict].to_s
+      notes = params[:notes].to_s.strip
+      ActiveRecord::Base.transaction do
+        verification.record_sample!(reviewer: current_user, verdict: verdict, notes: notes)
+        if verdict == "disagree"
+          @case.comments.create!(author: current_user, body: "qa sample: disagree — #{notes}")
+        end
+      end
+      @case.log_event!(:qa_sampled, actor: current_user, request: request,
+        data: { verdict: verdict, verification_id: verification.id })
+
+      flash[:success] = "QA sample recorded (#{verdict})"
       redirect_to backend_verification_case_path(@case)
     end
 

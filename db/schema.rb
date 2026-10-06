@@ -719,6 +719,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_27_164018) do
     t.jsonb "checklist"
     t.datetime "sampled_at"
     t.bigint "sample_reviewer_id"
+    t.string "sample_verdict"
+    t.text "sample_notes"
     t.index ["aadhaar_record_id"], name: "index_verifications_on_aadhaar_record_id"
     t.index ["deleted_at"], name: "index_verifications_on_deleted_at"
     t.index ["fatal"], name: "index_verifications_on_fatal"

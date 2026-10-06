@@ -224,8 +224,12 @@ Rails.application.routes.draw do
     end
 
     resources :verification_cases, only: [ :index, :show, :create ] do
+      collection do
+        get :qa
+      end
       member do
         post :resend_link
+        post :sample
         post :comment
         post :request_redo
         post :withdraw

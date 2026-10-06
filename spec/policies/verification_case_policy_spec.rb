@@ -20,6 +20,18 @@ RSpec.describe VerificationCasePolicy do
     end
   end
 
+  describe "qa sampling" do
+    let(:kase) { create(:verification_case, :call_held) }
+
+    it "allows verifiers and denies others" do
+      expect(described_class.new(verifier, kase).qa?).to be(true)
+      expect(described_class.new(verifier, kase).sample?).to be(true)
+      expect(described_class.new(super_admin, kase).sample?).to be(true)
+      expect(described_class.new(pleb, kase).qa?).to be(false)
+      expect(described_class.new(pleb, kase).sample?).to be(false)
+    end
+  end
+
   describe "comments" do
     let(:kase) { create(:verification_case, :call_held) }
 

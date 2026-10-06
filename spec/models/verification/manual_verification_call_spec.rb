@@ -36,4 +36,61 @@ RSpec.describe Verification::ManualVerificationCall, type: :model do
     verification.mark_as_rejected!("fraud", nil)
     expect(verification.fatal).to be(true)
   end
+  describe "qa sampling" do
+    # ids are assigned by the sequence, so build enough records that at
+    # least one lands on a multiple of QA_SAMPLE_EVERY and pick by id
+    def divisible?(v) = (v.id % described_class::QA_SAMPLE_EVERY).zero?
+
+    it "queues only decided, unsampled decisions whose id is on the sampling step, oldest first" do
+      decided = Array.new(described_class::QA_SAMPLE_EVERY * 2) { |i| create(:manual_verification_call, :approved, approved_at: i.days.ago) }
+      pending = create(:manual_verification_call)
+      sampled = create(:manual_verification_call, :sampled)
+
+      queue = described_class.qa_candidates.to_a
+
+      expect(queue).to all(satisfy { |v| divisible?(v) && v.decided? && !v.sampled? })
+      expect(queue).to match_array(decided.select { |v| divisible?(v) })
+      expect(queue).not_to include(pending, sampled)
+      expect(queue.map(&:approved_at)).to eq(queue.map(&:approved_at).sort)
+      expect(queue.first).to be_qa_candidate
+      expect(pending).not_to be_qa_candidate
+    end
+
+    it "records a sample by a second reviewer" do
+      verification = create(:manual_verification_call, :approved)
+      other = create(:backend_user)
+
+      verification.record_sample!(reviewer: other, verdict: "agree", notes: "  ")
+
+      expect(verification.reload).to be_sampled
+      expect(verification.sample_reviewer).to eq(other)
+      expect(verification.sample_verdict).to eq("agree")
+      expect(verification.sample_notes).to be_nil
+      expect(described_class.qa_sampled).to include(verification)
+    end
+
+    it "refuses a reviewer sampling their own decision" do
+      verification = create(:manual_verification_call, :approved)
+
+      expect {
+        verification.record_sample!(reviewer: verification.reviewer, verdict: "agree", notes: nil)
+      }.to raise_error(ActiveRecord::RecordInvalid, /own decision/)
+    end
+
+    it "requires notes on a disagreement" do
+      verification = create(:manual_verification_call, :rejected)
+
+      expect {
+        verification.record_sample!(reviewer: create(:backend_user), verdict: "disagree", notes: "")
+      }.to raise_error(ActiveRecord::RecordInvalid, /notes/i)
+    end
+
+    it "rejects an unknown verdict" do
+      verification = create(:manual_verification_call, :approved)
+
+      expect {
+        verification.record_sample!(reviewer: create(:backend_user), verdict: "maybe", notes: nil)
+      }.to raise_error(ActiveRecord::RecordInvalid, /verdict/i)
+    end
+  end
 end

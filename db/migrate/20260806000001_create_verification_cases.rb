@@ -77,6 +77,8 @@ class CreateVerificationCases < ActiveRecord::Migration[8.0]
     add_column :verifications, :checklist, :jsonb
     add_column :verifications, :sampled_at, :datetime
     add_column :verifications, :sample_reviewer_id, :bigint
+    add_column :verifications, :sample_verdict, :string
+    add_column :verifications, :sample_notes, :text
 
     add_foreign_key :verifications, :backend_users, column: :reviewer_id
     add_foreign_key :verifications, :backend_users, column: :sample_reviewer_id

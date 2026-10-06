@@ -81,5 +81,23 @@ FactoryBot.define do
         "notes" => "all clear on the call"
       }
     end
+
+    trait :approved do
+      status { :approved }
+      approved_at { 1.day.ago }
+    end
+
+    trait :rejected do
+      status { :rejected }
+      rejected_at { 1.day.ago }
+      rejection_reason { "docs_insufficient" }
+    end
+
+    trait :sampled do
+      approved
+      sampled_at { Time.current }
+      association :sample_reviewer, factory: :backend_user
+      sample_verdict { "agree" }
+    end
   end
 end

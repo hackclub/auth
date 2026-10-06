@@ -180,6 +180,41 @@
       <a href="<%= backend_verification_path(@case.verification) %>"><%= @case.verification.public_id %></a>
       <span is-="badge" variant-="<%= @case.verification.approved? ? 'green' : 'red' %>"><%= @case.verification.status %></span>
     </row>
+
+    <%# === qa sample === %>
+    <% verification = @case.verification %>
+    <% if verification.respond_to?(:sampled?) %>
+      <row gap-="1" align-="center">
+        <span style="color: var(--foreground2);">qa sample:</span>
+        <% if verification.sampled? %>
+          <span is-="badge" variant-="<%= verification.sample_verdict == 'agree' ? 'green' : 'red' %>"><%= verification.sample_verdict %></span>
+          <span style="color: var(--foreground2);">by <%= verification.sample_reviewer&.identity&.first_name || "staff" %> · <%= verification.sampled_at.strftime("%b %-d, %Y") %></span>
+        <% elsif verification.reviewer_id == current_user.id %>
+          <span style="color: var(--foreground2);">your decision — someone else has to sample it</span>
+          <% if verification.qa_candidate? %><span is-="badge" variant-="yellow">selected for qa</span><% end %>
+        <% else %>
+          <% if verification.qa_candidate? %><span is-="badge" variant-="yellow">selected for qa</span><% end %>
+          <span style="color: var(--foreground2);">not sampled yet</span>
+        <% end %>
+      </row>
+      <% if verification.sampled? && verification.sample_notes.present? %>
+        <span style="white-space: pre-wrap; color: var(--foreground2);"><%= verification.sample_notes %></span>
+      <% end %>
+      <% if !verification.sampled? && verification.reviewer_id != current_user.id %>
+        <%= form_with url: sample_backend_verification_case_path(@case), method: :post, local: true do %>
+          <column gap-="1">
+            <row gap-="2">
+              <label><input type="radio" name="verdict" value="agree" required> agree with the decision</label>
+              <label><input type="radio" name="verdict" value="disagree" required> disagree</label>
+            </row>
+            <row gap-="1" align-="center">
+              <textarea name="notes" rows="2" placeholder="notes (required if you disagree)" style="flex: 1;"></textarea>
+              <button type="submit" is-="button" size-="small">record sample</button>
+            </row>
+          </column>
+        <% end %>
+      <% end %>
+    <% end %>
   <% end %>
 
   <%# === comments === %>

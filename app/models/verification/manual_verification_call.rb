@@ -21,8 +21,25 @@ class Verification::ManualVerificationCall < Verification
 
   CONFIDENCE_LEVELS = %w[high medium low].freeze
 
+  # qa sampling: every nth decision is queued for a second reviewer to
+  # re-read the evidence and say whether they agree. any decided record
+  # can also be sampled voluntarily; the queue just picks the nth ones.
+  QA_SAMPLE_EVERY = 5
+  SAMPLE_VERDICTS = %w[agree disagree].freeze
+
   validates :reviewer, presence: true
   validate :checklist_complete, if: -> { approved? || rejected? }
+  validates :sample_verdict, inclusion: { in: SAMPLE_VERDICTS }, if: -> { sampled_at.present? }
+  validates :sample_notes, presence: true, if: -> { sample_verdict == "disagree" }
+  validate :sample_reviewer_is_not_the_reviewer, if: -> { sample_reviewer_id.present? }
+
+  scope :decided, -> { where(status: %w[approved rejected]) }
+  scope :qa_sampled, -> { where.not(sampled_at: nil) }
+  scope :qa_candidates, -> {
+    decided.where(sampled_at: nil)
+      .where("#{table_name}.id % ? = 0", QA_SAMPLE_EVERY)
+      .order(Arel.sql("COALESCE(verifications.approved_at, verifications.rejected_at, verifications.created_at) ASC"))
+  }
 
   rejection_reasons(
     identity_not_confirmed: { name: "Could not confirm identity on the call", fatal: false },
@@ -56,6 +73,19 @@ class Verification::ManualVerificationCall < Verification
 
   def checklist_answer(item) = checklist&.dig(item)
 
+  def decided? = approved? || rejected?
+  def sampled? = sampled_at.present?
+  def qa_candidate? = decided? && !sampled? && (id % QA_SAMPLE_EVERY).zero?
+  def decided_at = approved_at || rejected_at || created_at
+
+  def record_sample!(reviewer:, verdict:, notes:)
+    update!(
+      sampled_at: Time.current,
+      sample_reviewer: reviewer,
+      sample_verdict: verdict,
+      sample_notes: notes.to_s.strip.presence
+    )
+  end
 
   # polymorphic interface
   def document_type_label = "Manual verification call"
@@ -68,6 +98,10 @@ class Verification::ManualVerificationCall < Verification
   def auto_approvable?        = false
 
   private
+
+  def sample_reviewer_is_not_the_reviewer
+    errors.add(:sample_reviewer, "can't QA their own decision") if sample_reviewer_id == reviewer_id
+  end
 
   def checklist_complete
     missing = CHECKLIST_ITEMS.keys.reject { |k| checklist&.key?(k) }
