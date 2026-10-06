@@ -181,6 +181,8 @@ class Persona::APIService
   def error_message(response)
     errors = response.body.is_a?(Hash) ? response.body["errors"] : nil
     return "Persona API error (#{response.status})" unless errors&.any?
-    errors.map { |e| e["title"] || e["detail"] }.compact.join(", ")
+    # persona puts the generic status text in `title` ("Bad request") and the
+    # actual cause in `detail` — surface both so sentry tells us why
+    errors.map { |e| [ e["title"], e["detail"] ].compact.uniq.join(": ") }.reject(&:empty?).join(", ")
   end
 end
