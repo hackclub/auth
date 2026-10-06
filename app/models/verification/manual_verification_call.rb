@@ -24,7 +24,7 @@ class Verification::ManualVerificationCall < Verification
   # qa sampling: every nth decision is queued for a second reviewer to
   # re-read the evidence and say whether they agree. any decided record
   # can also be sampled voluntarily; the queue just picks the nth ones.
-  QA_SAMPLE_EVERY = 5
+  QA_SAMPLE_EVERY = 15
   SAMPLE_VERDICTS = %w[agree disagree].freeze
 
   validates :reviewer, presence: true
