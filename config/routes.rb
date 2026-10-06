@@ -340,6 +340,7 @@ Rails.application.routes.draw do
   # manual verification call flow (flipper-gated, single-use link entry)
   get "/verifications/manual", to: "manual_verifications#show", as: :manual_verification
   post "/verifications/manual/document_class", to: "manual_verifications#choose_document_class", as: :manual_verification_document_class
+  post "/verifications/manual/capture/prepare", to: "manual_verifications#prepare_capture", as: :manual_verification_prepare_capture
   get "/verifications/manual/capture", to: "manual_verifications#start_capture", as: :manual_verification_capture
   post "/verifications/manual/documents", to: "manual_verifications#submit_documents", as: :manual_verification_documents
   post "/verifications/manual/call_capture_ack", to: "manual_verifications#acknowledge_call_capture", as: :manual_verification_call_capture_ack

@@ -13,7 +13,14 @@ class Backend::BreakGlassController < Backend::ApplicationController
       accessed_at: Time.current,
     )
 
-    if break_glass_record.save
+    # the case audit event is written in the same transaction as the record,
+    # so a failed save (blank reason) or a create! error leaves no trace of
+    # access that never happened. the event trail is append-only.
+    saved = BreakGlassRecord.transaction do
+      break_glass_record.save.tap { |ok| log_case_event!(break_glass_record) if ok }
+    end
+
+    if saved
       redirect_back(fallback_location: backend_root_path, notice: "Access granted. #{document_type.capitalize} is now visible.")
     else
       redirect_back(fallback_location: backend_root_path, alert: "Failed to grant access: #{break_glass_record.errors.full_messages.join(", ")}")
@@ -34,13 +41,20 @@ class Backend::BreakGlassController < Backend::ApplicationController
     when "Identity"
       Identity.find_by_public_id!(params[:break_glassable_id])
     when "VerificationCase::Document"
-      VerificationCase::Document.find(params[:break_glassable_id]).tap do |doc|
-        doc.verification_case.log_event!(:document_break_glass, actor: current_user,
-          data: { document_id: doc.id, reason: params[:reason] }, request: request)
-      end
+      VerificationCase::Document.find(params[:break_glassable_id])
     else
       raise ArgumentError, "Invalid break_glassable_type: #{params[:break_glassable_type]}"
     end
+  end
+
+  # case documents carry their own audit trail on the case, alongside the
+  # BreakGlassRecord. reason comes from the saved record, not raw params.
+  def log_case_event!(record)
+    doc = record.break_glassable
+    return unless doc.is_a?(VerificationCase::Document)
+
+    doc.verification_case.log_event!(:document_break_glass, actor: current_user,
+      data: { document_id: doc.id, reason: record.reason }, request: request)
   end
 
   # TODO: these should be model methods! @break_glassable.try(:thing_name) || "item"

@@ -49,6 +49,22 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     when "inquiry.completed", "inquiry.approved"
       return if verification_case.docs_submitted? || !verification_case.link_sent?
 
+      # the capture must not advance the case unless the user attested,
+      # consented to biometric collection and gave the submitted fields
+      # before starting it. the UI gates start_capture on exactly this, so
+      # getting here means the inquiry was started around that gate — drop
+      # the capture (the finished inquiry can't be re-run) and let the user
+      # go through the step properly.
+      unless verification_case.docs_submission_prerequisites_met?
+        missing = verification_case.missing_submission_prerequisites
+        Sentry.capture_message("[Persona] capture inquiry finished without submission prerequisites",
+          level: :warning, extra: { missing: missing })
+        verification_case.log_event!(:capture_refused_missing_prerequisites,
+          data: { source: "persona", inquiry_id: inquiry_id, missing: missing })
+        verification_case.reset_capture!
+        return
+      end
+
       inquiry = Persona.instance.retrieve_inquiry(inquiry_id)
 
       photos = Persona::PhotoSet.empty
@@ -60,7 +76,31 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
         Sentry.capture_exception(e)
       end
 
-      downloaded = download_photos(photos)
+      # download_photos sniffs the real content type from the bytes; anything
+      # the Document model wouldn't accept is dropped here rather than stored
+      # under a made-up type.
+      usable, rejected = (download_photos(photos) || []).partition do |dl|
+        dl[:content_type].in?(VerificationCase::Document::ALLOWED_CONTENT_TYPES)
+      end
+
+      if rejected.any?
+        rejected_files = rejected.map { |dl| { filename: dl[:filename], content_type: dl[:content_type] } }
+        Sentry.capture_message("[Persona] capture inquiry returned files of an unsupported type",
+          level: :warning, extra: { rejected: rejected_files })
+        verification_case.log_event!(:capture_files_rejected,
+          data: { source: "persona", inquiry_id: inquiry_id, rejected: rejected_files })
+      end
+
+      # a capture with nothing reviewable must not land the case in
+      # docs_submitted — the reviewer would have no evidence to look at and the
+      # user no way to redo it. same treatment as the prerequisites gate above.
+      if usable.empty?
+        Sentry.capture_message("[Persona] capture inquiry finished with no usable documents", level: :warning)
+        verification_case.log_event!(:capture_refused_no_usable_documents,
+          data: { source: "persona", inquiry_id: inquiry_id })
+        verification_case.reset_capture!
+        return
+      end
 
       ActiveRecord::Base.transaction do
         verification_case.update!(persona_signal_snapshot: {
@@ -70,16 +110,17 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
           network_signals: build_network_signals(inquiry.sessions)
         }.as_json)
 
-        (downloaded || []).each do |dl|
+        usable.each do |dl|
           doc = verification_case.documents.new(document_kind: "persona_capture", source: "persona")
-          doc.file.attach(io: StringIO.new(dl[:bytes]), filename: dl[:filename], content_type: "image/jpeg")
+          doc.file.attach(io: StringIO.new(dl[:bytes]), filename: dl[:filename], content_type: dl[:content_type])
           doc.save!
         end
 
         verification_case.submit_docs!
       end
 
-      verification_case.log_event!(:docs_submitted, data: { source: "persona", inquiry_id: inquiry_id })
+      verification_case.log_event!(:docs_submitted,
+        data: { source: "persona", inquiry_id: inquiry_id, documents: usable.size })
     when "inquiry.failed", "inquiry.expired", "inquiry.declined"
       verification_case.log_event!(:capture_inquiry_ended, data: { event: event_name, inquiry_id: inquiry_id })
     end
@@ -223,6 +264,10 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
     @verification.link_persona_account!(inquiry.account_id)
   end
 
+  # downloads every photo in the set and returns [{ bytes:, filename:, content_type: }].
+  # the content type is sniffed from the bytes (falling back to persona's
+  # filename) rather than trusted, and the filename extension is made to agree
+  # with it so a PNG capture doesn't get stored as "front.jpg".
   def download_photos(photo_set)
     all_photos = photo_set.document + photo_set.liveness
     return nil if all_photos.blank?
@@ -232,20 +277,24 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
       label = photo[:label] || photo[:filename] || "photo_#{i + 1}"
       raw = Persona.instance.download_file(photo[:url])
       bytes = raw.respond_to?(:read) ? raw.read : raw
-      { bytes: bytes, filename: photo[:filename] || "#{label}.jpg" }
+      sniff_download(bytes, photo[:filename] || "#{label}.jpg")
     rescue Persona::APIError => e
       Sentry.capture_exception(e)
       nil
     end.presence
   end
 
+  def sniff_download(bytes, declared_filename)
+    content_type = Marcel::MimeType.for(StringIO.new(bytes), name: declared_filename)
+    extension = Marcel::Magic.new(content_type)&.extensions&.first
+    filename = extension ? "#{File.basename(declared_filename, '.*')}.#{extension}" : declared_filename
+    { bytes: bytes, filename: filename, content_type: content_type }
+  end
+
   def build_document(type, downloaded)
     doc = Identity::Document.new(identity: @identity, document_type: type)
     downloaded.each do |dl|
-      io = StringIO.new(dl[:bytes])
-      content_type = Marcel::MimeType.for(io, name: dl[:filename])
-      io.rewind
-      doc.files.attach(io: io, filename: dl[:filename], content_type: content_type)
+      doc.files.attach(io: StringIO.new(dl[:bytes]), filename: dl[:filename], content_type: dl[:content_type])
     end
     return nil unless doc.files.any?
     doc.save!

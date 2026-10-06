@@ -140,48 +140,16 @@
         <p>A transcript, report card, or letter from your school all work.</p>
       <% end %>
       <% if @case.persona_capture_available? %>
-        <p>Scan your document with your camera — this also captures a quick selfie for the call reviewer to compare against.</p>
-        <%= link_to "Scan with your camera", manual_verification_capture_path, role: "button", class: "chooser-cta" %>
-        <p><small>Camera not working? Upload directly below.</small></p>
+        <p>Fill in your document details below, then scan your document with your camera — this also captures a quick selfie for the call reviewer to compare against.</p>
       <% elsif @case.skip_persona? %>
         <p>Take a photo of your document and a selfie with your camera. On the call, the reviewer will compare them against you directly.</p>
       <% elsif @case.government_id? %>
         <p>Upload a clear photo or scan of your government document. On the call, the reviewer will compare it against you directly.</p>
       <% end %>
 
+      <%# one form for both paths: the details + consent below are required
+          before EITHER the persona scan or a direct upload may proceed %>
       <%= form_with url: manual_verification_documents_path, method: :post, local: true, multipart: true do %>
-        <% if @case.skip_persona? %>
-          <fieldset data-camera-capture data-camera-facing="environment" data-camera-filename="document-capture.jpg">
-            <legend>Your document</legend>
-            <input type="file" name="primary_doc" accept="image/jpeg,image/png" data-camera-input style="display: none;">
-            <video data-camera-video playsinline autoplay muted style="display: none; width: 100%; border-radius: 8px;"></video>
-            <canvas data-camera-canvas style="display: none; width: 100%; border-radius: 8px;"></canvas>
-            <p data-camera-message>Your photos have to come straight from your camera — there's no file upload on this case.</p>
-            <div class="grid">
-              <button type="button" data-camera-open>Open camera</button>
-              <button type="button" data-camera-take style="display: none;">Take photo</button>
-              <button type="button" data-camera-retake class="secondary" style="display: none;">Retake</button>
-            </div>
-          </fieldset>
-
-          <fieldset data-camera-capture data-camera-facing="user" data-camera-filename="selfie-capture.jpg">
-            <legend>A selfie, right now</legend>
-            <input type="file" name="selfie" accept="image/jpeg,image/png" data-camera-input style="display: none;">
-            <video data-camera-video playsinline autoplay muted style="display: none; width: 100%; border-radius: 8px;"></video>
-            <canvas data-camera-canvas style="display: none; width: 100%; border-radius: 8px;"></canvas>
-            <p data-camera-message>The reviewer compares this against your document on the call.</p>
-            <div class="grid">
-              <button type="button" data-camera-open>Open camera</button>
-              <button type="button" data-camera-take style="display: none;">Take photo</button>
-              <button type="button" data-camera-retake class="secondary" style="display: none;">Retake</button>
-            </div>
-          </fieldset>
-        <% else %>
-          <label>Your document
-            <input type="file" name="primary_doc" accept="image/jpeg,image/png,image/heic,application/pdf" required>
-          </label>
-        <% end %>
-
         <%# prefilled from the account — editable because the document may
             differ from what we have on file, and that difference is exactly
             what the reviewer needs to see %>
@@ -212,8 +180,49 @@
           I consent to Hack Club collecting a scan of my face geometry from my selfie and comparing it against my document to verify my identity. This data is stored encrypted and every access to it is logged.
         </label>
 
+        <% if @case.persona_capture_available? %>
+          <button type="submit" formaction="<%= manual_verification_prepare_capture_path %>" formmethod="post" class="chooser-cta">Scan with your camera</button>
+          <p><small>Camera not working? Upload directly below.</small></p>
+        <% end %>
+
+        <% if @case.skip_persona? %>
+          <fieldset data-camera-capture data-camera-facing="environment" data-camera-filename="document-capture.jpg">
+            <legend>Your document</legend>
+            <input type="file" name="primary_doc" accept="image/jpeg,image/png" data-camera-input style="display: none;">
+            <video data-camera-video playsinline autoplay muted style="display: none; width: 100%; border-radius: 8px;"></video>
+            <canvas data-camera-canvas style="display: none; width: 100%; border-radius: 8px;"></canvas>
+            <p data-camera-message>Your photos have to come straight from your camera — there's no file upload on this case.</p>
+            <div class="grid">
+              <button type="button" data-camera-open>Open camera</button>
+              <button type="button" data-camera-take style="display: none;">Take photo</button>
+              <button type="button" data-camera-retake class="secondary" style="display: none;">Retake</button>
+            </div>
+          </fieldset>
+
+          <fieldset data-camera-capture data-camera-facing="user" data-camera-filename="selfie-capture.jpg">
+            <legend>A selfie, right now</legend>
+            <input type="file" name="selfie" accept="image/jpeg,image/png" data-camera-input style="display: none;">
+            <video data-camera-video playsinline autoplay muted style="display: none; width: 100%; border-radius: 8px;"></video>
+            <canvas data-camera-canvas style="display: none; width: 100%; border-radius: 8px;"></canvas>
+            <p data-camera-message>The reviewer compares this against your document on the call.</p>
+            <div class="grid">
+              <button type="button" data-camera-open>Open camera</button>
+              <button type="button" data-camera-take style="display: none;">Take photo</button>
+              <button type="button" data-camera-retake class="secondary" style="display: none;">Retake</button>
+            </div>
+          </fieldset>
+        <% else %>
+          <%# not `required` when the scan button shares this form — the
+              server still rejects a direct upload with no file %>
+          <label>Your document
+            <input type="file" name="primary_doc" accept="image/jpeg,image/png,image/heic,application/pdf" <%= "required" unless @case.persona_capture_available? %>>
+          </label>
+        <% end %>
+
         <% if @case.skip_persona? %>
           <button type="submit" data-camera-submit disabled>Submit documents</button>
+        <% elsif @case.persona_capture_available? %>
+          <button type="submit" class="secondary">Upload directly instead</button>
         <% else %>
           <button type="submit">Submit documents</button>
         <% end %>

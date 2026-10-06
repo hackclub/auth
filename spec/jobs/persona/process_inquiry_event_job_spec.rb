@@ -269,6 +269,152 @@ RSpec.describe Persona::ProcessInquiryEventJob, type: :job do
     end
   end
 
+  describe "manual verification case capture (no Verification for the inquiry)" do
+    let(:case_inquiry_id) { "inq_case_capture_123" }
+    let(:submitted_fields) do
+      { "legal_name" => "Heidi Trashworth", "date_of_birth" => "2008-04-01",
+        "document_type" => "passport", "issuing_authority" => "Romania" }
+    end
+    let(:inquiry_data) do
+      Persona::Inquiry.new(
+        id: case_inquiry_id, status: "completed", account_id: "act_xyz789", session_token: nil,
+        verification_ids: [ { type: "verification/selfie", id: "ver_selfie456" } ],
+        document_ids: [ { type: "document/government-id", id: "doc_gov123" } ],
+        behaviors: { "behavior_threat_level" => "low" },
+        sessions: [ { is_tor: false, is_proxy: false, threat_level: "low", country_code: "US" } ],
+        raw: { status: "completed" }
+      )
+    end
+
+    context "when attestation, consent and submitted fields were recorded before the capture" do
+      let!(:kase) do
+        create(:verification_case, :link_sent, identity: identity, persona_inquiry_id: case_inquiry_id,
+          attested: true, biometric_consent: true, submitted_fields: submitted_fields)
+      end
+
+      it "pulls the captured photos onto the case and advances it to docs_submitted" do
+        described_class.perform_now(event_name: "inquiry.completed", inquiry_id: case_inquiry_id)
+
+        kase.reload
+        expect(kase).to be_docs_submitted
+        expect(kase.documents.where(source: "persona", document_kind: "persona_capture").count).to eq(4)
+        expect(kase.persona_signal_snapshot).to include("network_signals")
+        expect(kase.events.find_by(key: "docs_submitted").data).to include("source" => "persona", "documents" => 4)
+      end
+
+      describe "content type of the stored captures" do
+        let(:png_bytes) { "\x89PNG\r\n\x1a\n".b + "\x00" * 16 }
+        let(:jpeg_bytes) { "\xFF\xD8\xFF\xE0".b + "\x00" * 16 }
+        let(:gif_bytes) { "GIF89a".b + "\x00" * 16 }
+
+        def stub_downloads(by_url)
+          allow(mock_service).to receive(:download_file) do |url|
+            match = by_url.find { |needle, _| url.include?(needle) }
+            StringIO.new(match ? match.last : jpeg_bytes)
+          end
+        end
+
+        it "stores a PNG capture as image/png with a .png filename even though persona named it .jpg" do
+          stub_downloads("front.jpg" => png_bytes)
+
+          described_class.perform_now(event_name: "inquiry.completed", inquiry_id: case_inquiry_id)
+
+          front = kase.reload.documents.detect { |d| d.file.filename.base == "front" }
+          expect(front.file.content_type).to eq("image/png")
+          expect(front.file.filename.to_s).to eq("front.png")
+        end
+
+        it "stores a JPEG capture as image/jpeg" do
+          stub_downloads("back.jpg" => jpeg_bytes)
+
+          described_class.perform_now(event_name: "inquiry.completed", inquiry_id: case_inquiry_id)
+
+          back = kase.reload.documents.detect { |d| d.file.filename.base == "back" }
+          expect(back.file.content_type).to eq("image/jpeg")
+          expect(back.file.filename.to_s).to eq("back.jpg")
+        end
+
+        it "drops a capture of an unsupported type, records it, and still advances on the usable ones" do
+          stub_downloads("front.jpg" => gif_bytes)
+          expect(Sentry).to receive(:capture_message).with(/unsupported type/, hash_including(level: :warning))
+
+          described_class.perform_now(event_name: "inquiry.completed", inquiry_id: case_inquiry_id)
+
+          kase.reload
+          expect(kase).to be_docs_submitted
+          expect(kase.documents.count).to eq(3)
+          expect(kase.documents.map { |d| d.file.content_type }.uniq).to eq([ "image/jpeg" ])
+          expect(kase.events.find_by(key: "capture_files_rejected").data["rejected"])
+            .to eq([ { "filename" => "front.gif", "content_type" => "image/gif" } ])
+        end
+
+        it "refuses to advance the case when no capture is of a supported type, and drops the capture so it can be redone" do
+          allow(mock_service).to receive(:download_file) { StringIO.new(gif_bytes) }
+          allow(Sentry).to receive(:capture_message)
+
+          described_class.perform_now(event_name: "inquiry.completed", inquiry_id: case_inquiry_id)
+
+          kase.reload
+          expect(kase).to be_link_sent
+          expect(kase.documents).to be_empty
+          expect(kase.persona_signal_snapshot).to be_blank
+          expect(kase.persona_inquiry_id).to be_nil
+          expect(kase.events.find_by(key: "capture_files_rejected").data["rejected"].size).to eq(4)
+          expect(kase.events.find_by(key: "capture_refused_no_usable_documents").data)
+            .to include("inquiry_id" => case_inquiry_id)
+          expect(Sentry).to have_received(:capture_message).with(/no usable documents/, hash_including(level: :warning))
+        end
+
+        it "refuses to advance the case when every download failed" do
+          allow(mock_service).to receive(:download_file).and_raise(Persona::APIError, "failed to download file (400)")
+          allow(Sentry).to receive(:capture_exception)
+          allow(Sentry).to receive(:capture_message)
+
+          described_class.perform_now(event_name: "inquiry.completed", inquiry_id: case_inquiry_id)
+
+          kase.reload
+          expect(kase).to be_link_sent
+          expect(kase.documents).to be_empty
+          expect(kase.persona_inquiry_id).to be_nil
+          expect(kase.events.find_by(key: "capture_refused_no_usable_documents")).to be_present
+        end
+      end
+    end
+
+    context "when the capture finished without the prerequisites on the case" do
+      let!(:kase) do
+        create(:verification_case, :link_sent, identity: identity, persona_inquiry_id: case_inquiry_id,
+          attested: true, biometric_consent: false, submitted_fields: submitted_fields)
+      end
+
+      it "refuses to advance the case, stores nothing from the inquiry, and drops the capture so it can be redone" do
+        expect(Sentry).to receive(:capture_message).with(/without submission prerequisites/, hash_including(level: :warning))
+
+        described_class.perform_now(event_name: "inquiry.completed", inquiry_id: case_inquiry_id)
+
+        kase.reload
+        expect(kase).to be_link_sent
+        expect(kase.documents).to be_empty
+        expect(kase.persona_signal_snapshot).to be_blank
+        expect(kase.persona_inquiry_id).to be_nil
+        expect(kase.events.find_by(key: "capture_refused_missing_prerequisites").data)
+          .to include("inquiry_id" => case_inquiry_id, "missing" => [ "biometric_consent" ])
+        expect(mock_service).not_to have_received(:retrieve_inquiry)
+      end
+
+      it "also refuses when the submitted fields are missing" do
+        kase.update!(biometric_consent: true, submitted_fields: {})
+        allow(Sentry).to receive(:capture_message)
+
+        described_class.perform_now(event_name: "inquiry.completed", inquiry_id: case_inquiry_id)
+
+        expect(kase.reload).to be_link_sent
+        expect(kase.events.find_by(key: "capture_refused_missing_prerequisites").data["missing"])
+          .to eq(VerificationCase::REQUIRED_SUBMITTED_FIELDS)
+      end
+    end
+  end
+
   describe "idempotency" do
     let(:event_name) { "inquiry.completed" }
 

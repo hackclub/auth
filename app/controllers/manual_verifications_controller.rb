@@ -43,10 +43,35 @@ class ManualVerificationsController < ApplicationController
     redirect_to manual_verification_path
   end
 
+  # the persona capture collects face geometry, so the same attestation,
+  # biometric consent and submitted fields the direct upload requires are
+  # recorded on the case BEFORE the capture inquiry can be started
+  def prepare_capture
+    unless @case.link_sent? && @case.document_class.present? && @case.persona_capture_available?
+      redirect_to manual_verification_path and return
+    end
+
+    return unless submission_prerequisites_present?
+
+    @case.update!(attested: true, biometric_consent: true, submitted_fields: submitted_fields)
+    @case.log_event!(:capture_prerequisites_recorded, actor: current_identity, request: request,
+      data: { fields: submitted_fields.keys })
+
+    redirect_to manual_verification_capture_path
+  rescue ActiveRecord::RecordInvalid => e
+    flash[:error] = e.record.errors.full_messages.to_sentence
+    redirect_to manual_verification_path
+  end
+
   # launch the embedded persona capture-only inquiry (if a template is
   # configured for this document class — otherwise the direct upload form is shown)
   def start_capture
     unless @case.link_sent? && @case.document_class.present? && !@case.skip_persona?
+      redirect_to manual_verification_path and return
+    end
+
+    unless @case.docs_submission_prerequisites_met?
+      flash[:error] = "Fill in your document details and tick both boxes before scanning"
       redirect_to manual_verification_path and return
     end
 
@@ -77,29 +102,28 @@ class ManualVerificationsController < ApplicationController
       redirect_to manual_verification_path and return
     end
 
-    unless params[:attested] == "1" && params[:biometric_consent] == "1"
-      flash[:error] = "Both the attestation and the consent checkbox are required"
-      redirect_to manual_verification_path and return
-    end
+    return unless submission_prerequisites_present?
 
     if params[:primary_doc].blank?
       flash[:error] = "A document is required"
       redirect_to manual_verification_path and return
     end
 
+    if @case.skip_persona? && params[:selfie].blank?
+      flash[:error] = "A selfie is required"
+      redirect_to manual_verification_path and return
+    end
+
+    uploads = [ params[:primary_doc] ]
+    uploads << params[:selfie] if @case.skip_persona?
+    return unless uploaded_files_present?(uploads)
+
     # skip-persona cases are camera-capture only — the document AND a live
     # selfie, both JPEG/PNG straight from the camera widget, never an
     # arbitrary uploaded file
-    if @case.skip_persona?
-      if params[:selfie].blank?
-        flash[:error] = "A selfie is required"
-        redirect_to manual_verification_path and return
-      end
-
-      unless [ params[:primary_doc], params[:selfie] ].all? { |f| f.content_type.to_s.match?(%r{\Aimage/(jpeg|png)\z}) }
-        flash[:error] = "Your photos have to come straight from your camera"
-        redirect_to manual_verification_path and return
-      end
+    if @case.skip_persona? && !uploads.all? { |f| f.content_type.to_s.match?(%r{\Aimage/(jpeg|png)\z}) }
+      flash[:error] = "Your photos have to come straight from your camera"
+      redirect_to manual_verification_path and return
     end
 
     ActiveRecord::Base.transaction do
@@ -182,5 +206,50 @@ class ManualVerificationsController < ApplicationController
   def submitted_fields
     params.permit(:legal_name, :date_of_birth, :country, :address, :document_type, :issuing_authority)
       .to_h.compact_blank
+  end
+
+  # shared by both submission paths: both checkboxes ticked and every
+  # required field present. on failure, flashes + redirects and returns false.
+  def submission_prerequisites_present?
+    unless params[:attested] == "1" && params[:biometric_consent] == "1"
+      flash[:error] = "Both the attestation and the consent checkbox are required"
+      redirect_to manual_verification_path
+      return false
+    end
+
+    missing = VerificationCase::REQUIRED_SUBMITTED_FIELDS.reject { |field| params[field].present? }
+    if missing.any?
+      flash[:error] = "#{missing.map(&:humanize).to_sentence} #{missing.one? ? "is" : "are"} required"
+      redirect_to manual_verification_path
+      return false
+    end
+
+    true
+  end
+
+  # every file param has to be an actual multipart upload with bytes in it.
+  # a tampered form (or a browser posting a bare file field as text) sends a
+  # string, which would otherwise blow up in attach. content type and size
+  # limits are the Document model's job. on failure, flashes + redirects and
+  # returns false.
+  def uploaded_files_present?(uploads)
+    unless uploads.all? { |upload| uploaded_file?(upload) }
+      flash[:error] = "Please choose a file to upload"
+      redirect_to manual_verification_path
+      return false
+    end
+
+    if uploads.any? { |upload| upload.size.to_i.zero? }
+      flash[:error] = "One of your files is empty — please choose it again"
+      redirect_to manual_verification_path
+      return false
+    end
+
+    true
+  end
+
+  def uploaded_file?(value)
+    value.is_a?(ActionDispatch::Http::UploadedFile) ||
+      %i[content_type original_filename tempfile size].all? { |m| value.respond_to?(m) }
   end
 end

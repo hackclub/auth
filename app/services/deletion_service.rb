@@ -96,9 +96,15 @@ module DeletionService
           aadhaar_hc_transaction_id: nil,
           aadhaar_external_transaction_id: nil,
           aadhaar_link: nil,
-          persona_inquiry_id: nil
+          persona_inquiry_id: nil,
+          sample_notes: nil
         )
-      log.call "  scrubbed #{addr_count} #{"address".pluralize(addr_count)}, #{aadhaar_count} aadhaar, #{persona_count} persona"
+      call_count = scrub_manual_call_checklists(identity)
+      case_counts = scrub_verification_cases(identity)
+      log.call "  scrubbed #{addr_count} #{"address".pluralize(addr_count)}, #{aadhaar_count} aadhaar, #{persona_count} persona, " \
+               "#{call_count} manual call #{"checklist".pluralize(call_count)}, " \
+               "#{case_counts[:cases]} verification #{"case".pluralize(case_counts[:cases])} " \
+               "(#{case_counts[:events]} #{"event".pluralize(case_counts[:events])}, #{case_counts[:comments]} #{"comment".pluralize(case_counts[:comments])})"
 
       log.call "step 5: destroying resemblances..."
       r_count = Identity::Resemblance.where(identity_id: identity.id).destroy_all.size +
@@ -213,17 +219,22 @@ module DeletionService
       "Identity::PersonaRecord" => Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
       "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id),
       "Verification" => Verification.with_deleted.where(identity_id: identity.id).pluck(:id),
+      "VerificationCase" => VerificationCase.with_deleted.where(identity_id: identity.id).pluck(:id),
       "BreakGlassRecord" => BreakGlassRecord.where(
         "(break_glassable_type = 'Identity' AND break_glassable_id = ?) OR " \
         "(break_glassable_type = 'Identity::Document' AND break_glassable_id IN (?)) OR " \
         "(break_glassable_type = 'Identity::AadhaarRecord' AND break_glassable_id IN (?)) OR " \
         "(break_glassable_type = 'Identity::PersonaRecord' AND break_glassable_id IN (?)) OR " \
-        "(break_glassable_type = 'Verification::VouchVerification' AND break_glassable_id IN (?))",
+        "(break_glassable_type = 'Verification::VouchVerification' AND break_glassable_id IN (?)) OR " \
+        "(break_glassable_type = 'VerificationCase::Document' AND break_glassable_id IN (?))",
         identity.id,
         Identity::Document.with_deleted.where(identity_id: identity.id).pluck(:id),
         Identity::AadhaarRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
         Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
-        Verification::VouchVerification.with_deleted.where(identity_id: identity.id).pluck(:id)
+        Verification::VouchVerification.with_deleted.where(identity_id: identity.id).pluck(:id),
+        VerificationCase::Document.with_deleted.where(
+          verification_case_id: VerificationCase.with_deleted.where(identity_id: identity.id).select(:id)
+        ).pluck(:id)
       ).pluck(:id)
     }.each do |type, ids|
       ids.each { |id| items << [ type, id ] }
@@ -239,6 +250,7 @@ module DeletionService
       "Address" => identity.addresses.pluck(:id),
       "IdentitySession" => IdentitySession.where(identity_id: identity.id).pluck(:id),
       "Verification" => Verification.with_deleted.where(identity_id: identity.id).pluck(:id),
+      "VerificationCase" => VerificationCase.with_deleted.where(identity_id: identity.id).pluck(:id),
       "Identity::PersonaRecord" => Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
       "Identity::TOTP" => Identity::TOTP.where(identity_id: identity.id).pluck(:id),
       "Identity::WebauthnCredential" => Identity::WebauthnCredential.where(identity_id: identity.id).pluck(:id),
@@ -277,6 +289,67 @@ module DeletionService
       kase.documents.with_deleted.each do |doc|
         doc.file.detach if doc.file.attached?
       end
+    end
+  end
+
+  # the reviewer's y/n answers and confidence are the decision; the free-text
+  # notes are where names, addresses and "the dad said..." end up
+  def self.scrub_manual_call_checklists(identity)
+    count = 0
+    Verification::ManualVerificationCall.with_deleted.where(identity_id: identity.id).where.not(checklist: nil).find_each do |call|
+      call.update_columns(checklist: call.checklist.except("notes"))
+      count += 1
+    end
+    count
+  end
+
+  # keys inside VerificationCase::Event#data that hold typed free text
+  # (reviewer's redo message, withdrawal reason, checklist notes). the
+  # structural keys — verification_id, booking_uid, verdicts — stay so the
+  # audit trail keeps its shape.
+  EVENT_DATA_FREE_TEXT_KEYS = %w[message reason notes].freeze
+
+  def self.scrub_verification_cases(identity)
+    cases = VerificationCase.with_deleted.where(identity_id: identity.id)
+    case_ids = cases.pluck(:id)
+    counts = { cases: case_ids.size, events: 0, comments: 0 }
+    return counts if case_ids.empty?
+
+    # update_all intentionally — bypasses PaperTrail (the old versions are
+    # deleted in step 9) and the AASM/validation layer on closed cases
+    cases.update_all(
+      submitted_fields: {},
+      persona_signal_snapshot: nil,
+      alternative_reason_details: nil,
+      persona_inquiry_id: nil,
+      persona_session_token: nil,
+      access_token: nil,
+      access_token_expires_at: nil
+    )
+
+    # events are append-only (readonly? + before_destroy guard), so even
+    # update_columns refuses them — go straight to the table. rows and their
+    # keys survive; the request fingerprint and typed text do not.
+    VerificationCase::Event.where(verification_case_id: case_ids).find_each do |event|
+      VerificationCase::Event.where(id: event.id).update_all(
+        ip_address: nil, user_agent: nil, data: scrub_event_data(event.data)
+      )
+      counts[:events] += 1
+    end
+
+    counts[:comments] = VerificationCase::Comment.where(verification_case_id: case_ids).update_all(body: "[REDACTED]")
+
+    counts
+  end
+
+  def self.scrub_event_data(data)
+    case data
+    when Hash
+      data.to_h { |k, v| [ k, EVENT_DATA_FREE_TEXT_KEYS.include?(k.to_s) && v.present? ? "[REDACTED]" : scrub_event_data(v) ] }
+    when Array
+      data.map { |v| scrub_event_data(v) }
+    else
+      data
     end
   end
 
@@ -365,5 +438,6 @@ module DeletionService
 
   private_class_method :collect_version_items, :collect_activity_trackables, :purge_attachments,
                        :purge_or_detach, :delete_versions, :discard_pending_jobs, :scrub_activities,
-                       :collect_attachments, :detach_attachments
+                       :collect_attachments, :detach_attachments, :scrub_manual_call_checklists,
+                       :scrub_verification_cases, :scrub_event_data
 end

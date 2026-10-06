@@ -126,5 +126,99 @@ RSpec.describe DeletionService do
 
       expect(ActiveStorage::Attachment.where(blob_id: blob_id)).to be_empty
     end
+
+    context "with a decided manual verification case" do
+      let(:reviewer) { create(:backend_user) }
+      let(:verification) { create(:manual_verification_call, :approved, identity: identity, reviewer: reviewer, sample_notes: "qa: saw the same doc") }
+      let!(:kase) do
+        create(:verification_case, :call_held, identity: identity, verification: verification, status: :approved,
+          alternative_reason_details: "lost my passport moving house",
+          persona_inquiry_id: "inq_fictional123",
+          persona_session_token: "sess_fictional",
+          submitted_fields: { "legal_name" => "Zephyrine Quokkason", "date_of_birth" => "2008-02-29",
+                              "document_type" => "passport", "issuing_authority" => "Narnia" },
+          persona_signal_snapshot: { "inquiry" => { "name-first" => "Zephyrine", "ip" => "203.0.113.9" } })
+      end
+      let!(:docs) do
+        [
+          create(:verification_case_document, verification_case: kase, document_kind: "persona_capture", source: "persona"),
+          build(:verification_case_document, :call_screenshot, verification_case: kase).tap do |doc|
+            doc.file.attach(io: StringIO.new("fake png"), filename: "call.png", content_type: "image/png")
+            doc.save!
+          end
+        ]
+      end
+      let!(:comment) { kase.comments.create!(author: reviewer, body: "mum confirmed the address") }
+      let!(:events) do
+        [
+          kase.events.create!(key: "case_opened", actor: reviewer, ip_address: "203.0.113.1", user_agent: "Mozilla/5.0 (staff)",
+            data: { "skip_persona" => false }),
+          kase.events.create!(key: "redo_requested", actor: reviewer, ip_address: "203.0.113.1", user_agent: "Mozilla/5.0 (staff)",
+            data: { "message" => "retake the photo of your id card", "previous_inquiry_id" => "inq_old" }),
+          kase.events.create!(key: "decision_approve", actor: reviewer, ip_address: "203.0.113.1", user_agent: "Mozilla/5.0 (staff)",
+            data: { "verification_id" => verification.id, "checklist" => verification.checklist })
+        ]
+      end
+      let!(:version_count_before) { PaperTrail::Version.where(item_type: "VerificationCase", item_id: kase.id).count }
+
+      before do
+        allow(Persona.instance).to receive(:redact_account)
+        described_class.execute_deletion(identity, privacy_request_reference: "recASDASDASD", logger: ->(_) { })
+      end
+
+      it "blanks the case's identity fields but keeps the row and its outcome" do
+        kase.reload
+        expect(kase).to be_approved
+        expect(kase.submitted_fields).to eq({})
+        expect(kase.persona_signal_snapshot).to be_nil
+        expect(kase.alternative_reason_details).to be_nil
+        expect(kase.persona_inquiry_id).to be_nil
+        expect(kase.persona_session_token).to be_nil
+        expect(kase.access_token).to be_nil
+        expect(kase.verification_id).to eq(verification.id)
+      end
+
+      it "keeps the event rows and kinds but drops ip, user agent and typed text" do
+        rows = VerificationCase::Event.where(verification_case_id: kase.id).order(:id)
+        expect(rows.map(&:key)).to eq(%w[case_opened redo_requested decision_approve])
+        expect(rows.map(&:ip_address).uniq).to eq([ nil ])
+        expect(rows.map(&:user_agent).uniq).to eq([ nil ])
+        expect(rows.map(&:actor_id).uniq).to eq([ reviewer.id ])
+
+        opened, redo_event, decision = rows.to_a
+        expect(opened.data).to eq({ "skip_persona" => false })
+        expect(redo_event.data).to eq({ "message" => "[REDACTED]", "previous_inquiry_id" => "inq_old" })
+        expect(decision.data["verification_id"]).to eq(verification.id)
+        expect(decision.data.dig("checklist", "notes")).to eq("[REDACTED]")
+        expect(decision.data.dig("checklist", "doc_unaltered")).to be true
+      end
+
+      it "redacts comment bodies in place" do
+        expect(comment.reload.body).to eq("[REDACTED]")
+        expect(comment.author_id).to eq(reviewer.id)
+      end
+
+      it "drops the reviewer notes but keeps the checklist answers and confidence" do
+        verification.reload
+        expect(verification).to be_approved
+        expect(verification.checklist).not_to have_key("notes")
+        expect(verification.checklist["confidence"]).to eq("high")
+        expect(verification.checklist_answer("doc_matches_live_face")).to be true
+        expect(verification.sample_notes).to be_nil
+        expect(verification.reviewer_id).to eq(reviewer.id)
+      end
+
+      it "purges the persona capture and staff screenshot blobs" do
+        blob_ids = docs.map { |d| d.file.blob.id }
+        expect(ActiveStorage::Attachment.where(blob_id: blob_ids)).to be_empty
+        expect(ActiveStorage::Blob.where(id: blob_ids)).to be_empty
+        expect(VerificationCase::Document.with_deleted.where(verification_case_id: kase.id).count).to eq(2)
+      end
+
+      it "deletes the case's PaperTrail versions" do
+        expect(version_count_before).to be > 0
+        expect(PaperTrail::Version.where(item_type: "VerificationCase", item_id: kase.id)).to be_empty
+      end
+    end
   end
 end

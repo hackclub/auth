@@ -61,10 +61,16 @@ class Verification::ManualVerificationCall < Verification
       transitions from: :pending, to: :approved
     end
 
+    # not the shared notify_rejection, unlike the other rejectable
+    # verifications: the case flow owns the user-facing email
+    # (VerificationCaseMailer.denied, sent by the controller) and it
+    # deliberately carries no reason. the shared rejected_* mailers would
+    # relay rejection_reason + details and a resubmit link to the user. the
+    # staff-only slack deactivation ping on a fatal reason is still wanted.
     event :mark_as_rejected do
       transitions from: :pending, to: :rejected
       before { |reason, details| set_rejection_fields(reason, details) }
-      after  { notify_rejection }
+      after  { Slack::NotifyGuardiansJob.perform_later(identity) if fatal_rejection? }
     end
   end
 
