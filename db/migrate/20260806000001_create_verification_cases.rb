@@ -27,7 +27,7 @@ class CreateVerificationCases < ActiveRecord::Migration[8.0]
 
       t.boolean :attested, default: false, null: false
       t.boolean :biometric_consent, default: false, null: false
-      t.boolean :recording_consent_acknowledged, default: false, null: false
+      t.boolean :call_capture_acknowledged, default: false, null: false
 
       # AASM timestamps
       t.datetime :link_sent_at

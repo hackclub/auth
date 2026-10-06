@@ -1,5 +1,5 @@
 # a raw evidence artifact on a case: user-submitted doc, persona capture,
-# or the call recording. all of it lands in encrypted storage; access
+# or the staff screenshot from the call. all of it lands in encrypted storage; access
 # goes through break-glass and is logged.
 class VerificationCase::Document < ApplicationRecord
   self.table_name = "verification_case_documents"
@@ -19,27 +19,35 @@ class VerificationCase::Document < ApplicationRecord
     "corroborating_doc" => "Corroborating document",
     "persona_capture" => "Persona capture",
     "selfie" => "Selfie",
-    "call_recording" => "Call recording"
+    "call_screenshot" => "Call screenshot"
   }.freeze
 
   enum :document_kind, DOCUMENT_KINDS.keys.index_by(&:itself)
-  enum :source, %w[persona direct_upload call_recording].index_by(&:itself), prefix: :from
+  enum :source, %w[persona direct_upload staff_upload].index_by(&:itself), prefix: :from
 
   validates :file, presence: true
   validate :file_size_and_type
+  # the staff screenshot is a still image of the call, nothing else
+  validate :screenshot_is_image, if: :call_screenshot?
 
   def kind_label = DOCUMENT_KINDS[document_kind]
 
   private
 
+  def screenshot_is_image
+    return unless file.attached?
+
+    errors.add(:file, "must be a JPEG or PNG screenshot") unless file.content_type.in?(%w[image/jpeg image/png image/jpg])
+  end
+
   def file_size_and_type
     return unless file.attached?
 
-    errors.add(:file, "is too large (maximum is 100MB)") if file.byte_size > 100.megabytes
+    errors.add(:file, "is too large (maximum is 25MB)") if file.byte_size > 25.megabytes
 
-    allowed = %w[image/jpeg image/png image/jpg image/heic image/heif application/pdf video/mp4 video/webm audio/mpeg]
+    allowed = %w[image/jpeg image/png image/jpg image/heic image/heif application/pdf]
     unless file.content_type.in?(allowed)
-      errors.add(:file, "must be a JPEG, PNG, HEIC, PDF, or recording file")
+      errors.add(:file, "must be a JPEG, PNG, HEIC, or PDF")
     end
   end
 end

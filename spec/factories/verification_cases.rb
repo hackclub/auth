@@ -31,7 +31,7 @@ FactoryBot.define do
       status { :call_scheduled }
       booking_uid { "bkng_#{SecureRandom.hex(6)}" }
       call_starts_at { 2.days.from_now }
-      recording_consent_acknowledged { true }
+      call_capture_acknowledged { true }
     end
 
     trait :call_held do
@@ -60,9 +60,9 @@ FactoryBot.define do
       )
     end
 
-    trait :recording do
-      document_kind { "call_recording" }
-      source { "call_recording" }
+    trait :call_screenshot do
+      document_kind { "call_screenshot" }
+      source { "staff_upload" }
     end
   end
 

@@ -7,7 +7,7 @@ class ManualVerificationsController < ApplicationController
 
   def show
     @document_class_selected = @case.document_class.present?
-    @documents = @case.documents.where.not(source: "call_recording")
+    @documents = @case.documents.where.not(source: "staff_upload")
   end
 
   def choose_document_class
@@ -24,7 +24,7 @@ class ManualVerificationsController < ApplicationController
     # the alternative-docs path gets one more nudge back toward government ID
     if document_class == "alternative" && params[:nudge_confirmed] != "true"
       @show_alternative_nudge = true
-      @documents = @case.documents.where.not(source: "call_recording")
+      @documents = @case.documents.where.not(source: "staff_upload")
       render :show and return
     end
 
@@ -132,14 +132,14 @@ class ManualVerificationsController < ApplicationController
     redirect_to manual_verification_path
   end
 
-  # recording disclosure must be acknowledged before the booking link shows
-  def acknowledge_recording
+  # call-capture disclosure must be acknowledged before the booking link shows
+  def acknowledge_call_capture
     unless @case.booking_available?
       redirect_to manual_verification_path and return
     end
 
-    @case.update!(recording_consent_acknowledged: true)
-    @case.log_event!(:recording_consent_acknowledged, actor: current_identity, request: request)
+    @case.update!(call_capture_acknowledged: true)
+    @case.log_event!(:call_capture_acknowledged, actor: current_identity, request: request)
 
     redirect_to manual_verification_path
   end

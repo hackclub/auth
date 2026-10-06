@@ -342,7 +342,7 @@ Rails.application.routes.draw do
   post "/verifications/manual/document_class", to: "manual_verifications#choose_document_class", as: :manual_verification_document_class
   get "/verifications/manual/capture", to: "manual_verifications#start_capture", as: :manual_verification_capture
   post "/verifications/manual/documents", to: "manual_verifications#submit_documents", as: :manual_verification_documents
-  post "/verifications/manual/recording_ack", to: "manual_verifications#acknowledge_recording", as: :manual_verification_recording_ack
+  post "/verifications/manual/call_capture_ack", to: "manual_verifications#acknowledge_call_capture", as: :manual_verification_call_capture_ack
 
   get "/verifications/new", to: "verifications#new", as: :new_verifications
   get "/verifications/status", to: "verifications#status", as: :verification_status

@@ -202,16 +202,16 @@ RSpec.describe "Manual verifications", type: :request do
       expect(response).to redirect_to(manual_verification_path)
     end
 
-    it "gates the booking link behind the recording acknowledgment" do
+    it "gates the booking link behind the call-capture acknowledgment" do
       kase.update!(document_class: "government_id", status: :docs_submitted)
       allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with("CALCOM_MANUAL_VERIFICATION_BOOKING_URL").and_return("https://cal.example.com/verify")
 
       get manual_verification_path
-      expect(response.body).to include("verification calls are recorded")
+      expect(response.body).to include("calls are not recorded")
       expect(response.body).not_to include("https://cal.example.com/verify")
 
-      post manual_verification_recording_ack_path
+      post manual_verification_call_capture_ack_path
       get manual_verification_path
       expect(response.body).to include("https://cal.example.com/verify")
     end

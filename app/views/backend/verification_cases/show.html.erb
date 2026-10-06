@@ -94,8 +94,12 @@
           <% end %>
         <% end %>
         <% if @case.call_scheduled? %>
-          <%= form_with url: hold_call_backend_verification_case_path(@case), method: :patch, local: true do %>
-            <button type="submit" is-="button" size-="small">mark call held</button>
+          <%= form_with url: hold_call_backend_verification_case_path(@case), method: :patch, local: true, multipart: true do %>
+            <row gap-="1" align-="center">
+              <input type="file" name="screenshot" accept="image/jpeg,image/png" required>
+              <button type="submit" is-="button" size-="small">mark call held</button>
+            </row>
+            <span style="color: var(--foreground2);"><small>one screenshot showing the user and their document</small></span>
           <% end %>
         <% end %>
       </row>

@@ -78,13 +78,21 @@ class Verification::ManualVerificationCall < Verification
   def qa_candidate? = decided? && !sampled? && (id % QA_SAMPLE_EVERY).zero?
   def decided_at = approved_at || rejected_at || created_at
 
+  class AlreadySampled < StandardError; end
+
+  # row-locked so two reviewers sampling at once can't both win: the
+  # second one re-reads under the lock, sees the sample, and raises
   def record_sample!(reviewer:, verdict:, notes:)
-    update!(
-      sampled_at: Time.current,
-      sample_reviewer: reviewer,
-      sample_verdict: verdict,
-      sample_notes: notes.to_s.strip.presence
-    )
+    with_lock do
+      raise AlreadySampled, "this decision has already been sampled" if sampled?
+
+      update!(
+        sampled_at: Time.current,
+        sample_reviewer: reviewer,
+        sample_verdict: verdict,
+        sample_notes: notes.to_s.strip.presence
+      )
+    end
   end
 
   # polymorphic interface

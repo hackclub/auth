@@ -85,6 +85,17 @@ RSpec.describe Verification::ManualVerificationCall, type: :model do
       }.to raise_error(ActiveRecord::RecordInvalid, /notes/i)
     end
 
+    it "refuses a second sample, even from a stale in-memory copy" do
+      verification = create(:manual_verification_call, :approved)
+      stale = described_class.find(verification.id)
+      verification.record_sample!(reviewer: create(:backend_user), verdict: "agree", notes: nil)
+
+      expect {
+        stale.record_sample!(reviewer: create(:backend_user), verdict: "disagree", notes: "late to the party")
+      }.to raise_error(described_class::AlreadySampled)
+      expect(verification.reload.sample_verdict).to eq("agree")
+    end
+
     it "rejects an unknown verdict" do
       verification = create(:manual_verification_call, :approved)
 

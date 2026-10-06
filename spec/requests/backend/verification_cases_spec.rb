@@ -137,6 +137,40 @@ RSpec.describe "Backend verification cases", type: :request do
     end
   end
 
+  describe "PATCH /backend/verification_cases/:id/hold_call" do
+    let(:kase) { create(:verification_case, :call_scheduled) }
+
+    it "refuses without a screenshot and leaves the case scheduled" do
+      patch hold_call_backend_verification_case_path(kase)
+
+      expect(response).to redirect_to(backend_verification_case_path(kase))
+      expect(flash[:error]).to include("screenshot is required")
+      expect(kase.reload).to be_call_scheduled
+      expect(kase.documents).to be_empty
+    end
+
+    it "stores the screenshot as staff evidence and marks the call held" do
+      patch hold_call_backend_verification_case_path(kase), params: { screenshot: screenshot_upload("call.png") }
+
+      expect(kase.reload).to be_call_held
+      doc = kase.documents.sole
+      expect(doc.document_kind).to eq("call_screenshot")
+      expect(doc.source).to eq("staff_upload")
+      expect(doc.file).to be_attached
+      event = kase.events.find_by(key: "call_held")
+      expect(event.data["screenshot_document_id"]).to eq(doc.id)
+    end
+
+    it "rejects a non-image screenshot without transitioning" do
+      pdf = Rack::Test::UploadedFile.new(StringIO.new("fake pdf bytes"), "application/pdf", original_filename: "call.pdf")
+      patch hold_call_backend_verification_case_path(kase), params: { screenshot: pdf }
+
+      expect(flash[:error]).to include("Could not save")
+      expect(kase.reload).to be_call_scheduled
+      expect(kase.documents).to be_empty
+    end
+  end
+
   describe "POST /backend/verification_cases/:id/request_redo" do
     it "sends the case back behind the booking gate with a fresh link and the reviewer's message" do
       kase = create(:verification_case, :docs_submitted, persona_inquiry_id: "inq_blurry", access_token_used_at: 1.hour.ago)
@@ -347,5 +381,9 @@ RSpec.describe "Backend verification cases", type: :request do
         expect(flash[:warning]).to match(/decided/)
       end
     end
+  end
+
+  def screenshot_upload(name)
+    Rack::Test::UploadedFile.new(StringIO.new("fake png bytes"), "image/png", original_filename: name)
   end
 end

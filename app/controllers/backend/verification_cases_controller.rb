@@ -93,11 +93,23 @@ module Backend
       redirect_to backend_verification_case_path(@case)
     end
 
+    # the call itself is not recorded; the reviewer uploads one screenshot
+    # showing the user and their document as the durable evidence
     def hold_call
       authorize @case
 
-      @case.hold_call!
-      @case.log_event!(:call_held, actor: current_user, request: request)
+      if params[:screenshot].blank?
+        flash[:error] = "a call screenshot is required to mark the call held"
+        redirect_to backend_verification_case_path(@case) and return
+      end
+
+      screenshot = nil
+      @case.with_lock do
+        screenshot = @case.documents.create!(document_kind: "call_screenshot", source: "staff_upload", file: params[:screenshot])
+        @case.hold_call!
+      end
+      @case.log_event!(:call_held, actor: current_user, request: request,
+        data: { screenshot_document_id: screenshot.id })
 
       flash[:success] = "Call marked as held — record the decision below"
       redirect_to backend_verification_case_path(@case)
@@ -117,7 +129,7 @@ module Backend
 
       previous_inquiry_id = @case.persona_inquiry_id
       token = nil
-      ActiveRecord::Base.transaction do
+      @case.with_lock do
         @case.request_redo!
         token = @case.rotate_access_link!
       end
@@ -134,7 +146,7 @@ module Backend
     def withdraw
       authorize @case
 
-      @case.withdraw!
+      @case.with_lock { @case.withdraw! }
       @case.log_event!(:case_withdrawn, actor: current_user, request: request,
         data: { reason: params[:reason].to_s.strip.presence }.compact)
 
@@ -160,7 +172,7 @@ module Backend
 
       verdict = params[:verdict].to_s
       notes = params[:notes].to_s.strip
-      ActiveRecord::Base.transaction do
+      @case.with_lock do
         verification.record_sample!(reviewer: current_user, verdict: verdict, notes: notes)
         if verdict == "disagree"
           @case.comments.create!(author: current_user, body: "qa sample: disagree — #{notes}")
@@ -192,7 +204,7 @@ module Backend
 
       verification = build_verification
 
-      ActiveRecord::Base.transaction do
+      @case.with_lock do
         verification.save!
         @case.update!(verification: verification)
 
@@ -221,6 +233,9 @@ module Backend
       redirect_to backend_verification_case_path(@case)
     end
 
+    # every state change above runs under @case.with_lock, which re-reads the
+    # row before aasm checks the transition, so two reviewers racing on the
+    # same button get one success and one of these
     rescue_from AASM::InvalidTransition do
       flash[:warning] = "That action isn't valid for this case's current state (#{@case&.status})"
       redirect_to @case ? backend_verification_case_path(@case) : backend_verification_cases_path
@@ -228,6 +243,11 @@ module Backend
 
     rescue_from ActiveRecord::RecordInvalid do |exception|
       flash[:error] = "Could not save: #{exception.record.errors.full_messages.to_sentence}"
+      redirect_to backend_verification_case_path(@case)
+    end
+
+    rescue_from Verification::ManualVerificationCall::AlreadySampled do
+      flash[:warning] = "This decision has already been sampled"
       redirect_to backend_verification_case_path(@case)
     end
 

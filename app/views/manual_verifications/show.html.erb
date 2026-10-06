@@ -37,7 +37,7 @@
         <% else %>
           <p>Your booking is confirmed. Have your document with you.</p>
         <% end %>
-        <p><small>Reminder: the call is recorded. Details are in your booking confirmation email.</small></p>
+        <p><small>Reminder: during the call a staff member takes one screenshot showing you and your document. Details are in your booking confirmation email.</small></p>
       </div>
     </section>
 
@@ -46,15 +46,15 @@
       <h3>Documents received — book your call</h3>
       <p>Last step: a short video call with a member of our team to confirm you match your document.</p>
 
-      <% if @case.recording_consent_acknowledged? %>
+      <% if @case.call_capture_acknowledged? %>
         <% if @case.booking_url %>
           <%= link_to "Book your call", @case.booking_url, role: "button", class: "chooser-cta" %>
         <% else %>
           <p>Booking isn't set up yet — we'll email you a scheduling link shortly.</p>
         <% end %>
       <% else %>
-        <p><strong>Before you book:</strong> verification calls are recorded. We record so a decision can be re-reviewed later without asking you to repeat this process.</p>
-        <%= form_with url: manual_verification_recording_ack_path, method: :post, local: true do %>
+        <p><strong>Before you book:</strong> calls are not recorded. During the call a staff member takes one screenshot showing you and your document. It is kept with your case so a decision can be re-reviewed later without asking you to repeat this process.</p>
+        <%= form_with url: manual_verification_call_capture_ack_path, method: :post, local: true do %>
           <button type="submit">I understand — show me the booking link</button>
         <% end %>
       <% end %>

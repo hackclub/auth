@@ -671,7 +671,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_27_164018) do
     t.jsonb "submitted_fields", default: {}, null: false
     t.boolean "attested", default: false, null: false
     t.boolean "biometric_consent", default: false, null: false
-    t.boolean "recording_consent_acknowledged", default: false, null: false
+    t.boolean "call_capture_acknowledged", default: false, null: false
     t.datetime "link_sent_at"
     t.datetime "docs_submitted_at"
     t.datetime "call_scheduled_at"
