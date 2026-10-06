@@ -121,6 +121,11 @@ module Backend
     def reprovision_slack
       authorize @identity
 
+      if @identity.disallow_slack?
+        flash[:error] = "This account is blocked from Slack. Unban it first."
+        return redirect_to backend_identity_path(@identity)
+      end
+
       scenario = OnboardingScenarios::DefaultJoin.new(@identity)
       slack_result = SCIMService.find_or_create_user(
         identity: @identity,
@@ -253,7 +258,7 @@ module Backend
     def flip
       authorize @identity
 
-      feature = params[:flag]
+      feature = params[:flag].to_sym
       state = params[:state] == "true"
 
       if state
@@ -269,6 +274,68 @@ module Backend
       )
 
       flash[:notice] = "#{feature}: #{state ? 'enabled' : 'disabled'} for #{@identity.first_name}"
+      redirect_to backend_identity_path(@identity)
+    end
+
+    def ban
+      authorize @identity
+
+      if @identity == current_user&.identity
+        flash[:alert] = "You can't ban your own account."
+        return redirect_to backend_identity_path(@identity)
+      end
+
+      if params[:reason].blank?
+        flash[:alert] = "Reason is required to ban an account."
+        return redirect_to backend_identity_path(@identity)
+      end
+
+      if params[:confirm_email] != @identity.primary_email
+        flash[:alert] = "Email confirmation did not match."
+        return redirect_to backend_identity_path(@identity)
+      end
+
+      @identity.lock_account!
+      activity_params = { reason: params[:reason] }
+
+      if params[:deactivate_slack] == "1" && @identity.slack_id.present?
+        @identity.update!(disallow_slack: true)
+
+        result = SCIMService.deactivate_user(slack_id: @identity.slack_id)
+        activity_params[:slack_deactivated] = result[:success]
+
+        if result[:success]
+          flash[:notice] = "Account locked and Slack deactivated."
+        else
+          activity_params[:slack_error] = result[:error]
+          flash[:warning] = "Account locked and Slack sign-in blocked, but Slack deactivation failed: #{result[:error]}"
+        end
+      else
+        flash[:notice] = "Account locked."
+      end
+
+      @identity.create_activity(
+        :ban,
+        owner: current_user,
+        recipient: @identity,
+        parameters: activity_params
+      )
+
+      redirect_to backend_identity_path(@identity)
+    end
+
+    def unban
+      authorize @identity
+
+      @identity.unlock_account!
+      @identity.update!(disallow_slack: false) if @identity.disallow_slack?
+      @identity.create_activity(
+        :unban,
+        owner: current_user,
+        recipient: @identity,
+      )
+
+      flash[:notice] = "Account unlocked."
       redirect_to backend_identity_path(@identity)
     end
 

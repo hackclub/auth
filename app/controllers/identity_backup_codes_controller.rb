@@ -1,5 +1,5 @@
 class IdentityBackupCodesController < ApplicationController
-  before_action -> { require_step_up("regenerate_backup_codes", return_to: identity_backup_codes_path) }, only: [:create, :confirm]
+  before_action -> { require_step_up("regenerate_backup_codes", return_to: identity_backup_codes_path) }, only: [ :create, :confirm ]
 
   def index
     @backup_codes = current_identity.backup_codes.active.order(created_at: :desc)

@@ -7,8 +7,8 @@ class StepUpController < ApplicationController
   VALID_ACTIONS = %w[remove_totp disable_2fa oidc_reauth email_change remove_passkey add_passkey regenerate_backup_codes add_totp].freeze
   ACTIONS_WITHOUT_EMAIL_FALLBACK = %w[email_change disable_2fa remove_passkey].freeze
 
-  before_action :validate_action_type, except: [:webauthn_options]
-  before_action :require_pending_step_up, only: [:send_email_code, :verify, :resend_email]
+  before_action :validate_action_type, except: [ :webauthn_options ]
+  before_action :require_pending_step_up, only: [ :send_email_code, :verify, :resend_email ]
 
   def new
     session[:pending_step_up_action] = params[:action_type]

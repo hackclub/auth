@@ -6,9 +6,11 @@ module OnboardingScenarios
 
     def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
-    def slack_user_type = :multi_channel_guest
+    def slack_user_type = :full_member
 
-    def slack_channels = chans(:beest, :beest_bulletin, :beest_help, :welcome_to_hack_club, :help)
+    def slack_channels = chans(:beest, :beest_bulletin, :beest_help, :identity_help, :help, :welcome_to_hack_club, :slack_guide, :library, :lounge, :welcome, :happenings, :community, :announcements, :news_wire)
+
+    def first_step = :welcome
 
     def slack_onboarding_flow = :internal_tutorial
 

@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  unlocked <%= activity.recipient&.first_name || "user" %>'s account.
+<% end %>

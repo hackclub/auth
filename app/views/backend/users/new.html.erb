@@ -41,7 +41,7 @@
       <span style="color: var(--foreground2);"><%= identity.primary_email %></span>
     </column>
 
-    <%= form_with url: backend_users_path, method: :post, local: true do |f| %>
+    <%= form_with url: backend_users_path, method: :post, scope: :backend_user, local: true do |f| %>
       <%= hidden_field_tag :identity_id, identity.id %>
       <div is-="separator"></div>
       <%= render "backend/shared/permissions_form", f: f, user: Backend::User.new %>

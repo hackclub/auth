@@ -399,9 +399,11 @@
 }
 
 .scenario-stardance .page-header-centered {
-  h1 { color: #ffffff !important; }
-  p { color: rgba(255, 255, 255, 0.9) !important; }
-  .text-muted { color: rgba(255, 255, 255, 0.7) !important; }
+  @include dark-mode {
+    h1 { color: #ffffff !important; }
+    p { color: rgba(255, 255, 255, 0.9) !important; }
+    .text-muted { color: rgba(255, 255, 255, 0.7) !important; }
+  }
 }
 
 // Common card and list layouts

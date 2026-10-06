@@ -83,7 +83,7 @@ module DeletionService
           name_first: "[REDACTED]", name_last: "[REDACTED]",
           birthdate: nil, raw_json_response: nil,
           behaviors: {}, network_signals: {}, checks: [],
-          inquiry_id: "[REDACTED]", expiration_date: nil,
+          inquiry_id: "REDACTED-#{record.id}", expiration_date: nil,
           country_code: nil, id_class: nil
         )
         persona_count += 1
@@ -253,7 +253,7 @@ module DeletionService
   def self.collect_attachments(identity)
     blobs = []
     identity.documents.with_deleted.each do |doc|
-      doc.files.each { |f| blobs << f.blob if f.attached? }
+      doc.files.each { |f| blobs << f.blob }
     end
     identity.vouch_verifications.with_deleted.each do |vv|
       blobs << vv.evidence.blob if vv.evidence.attached?
@@ -268,7 +268,7 @@ module DeletionService
 
   def self.detach_attachments(identity)
     identity.documents.with_deleted.each do |doc|
-      doc.files.each { |f| f.detach if f.attached? }
+      doc.files.detach
     end
     identity.vouch_verifications.with_deleted.each do |vv|
       vv.evidence.detach if vv.evidence.attached?

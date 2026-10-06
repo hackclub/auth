@@ -20,6 +20,11 @@ module Backend::ApplicationHelper
     concat content_tag(element, class: "deletion-tool #{class_name}", **options, &block)
   end
 
+  def ban_tool(class_name: "", element: "div", **options, &block)
+    return unless current_user&.can_ban? || current_user&.super_admin?
+    concat content_tag(element, class: "ban-tool #{class_name}", **options, &block)
+  end
+
   def program_manager_tool(class_name: "", element: "div", **options, &block)
     return unless current_user&.program_manager? || current_user&.super_admin?
     concat content_tag(element, class: "program-manager-tool #{class_name}", **options, &block)

@@ -4,7 +4,7 @@ module SessionsHelper
   class AccountLockedError < StandardError; end
 
   def sign_in(identity:, fingerprint_info: {}, impersonate: false)
-    raise(AccountLockedError, "Your HCB account has been locked.") if identity.locked?
+    raise(AccountLockedError, "Your account has been locked.") if identity.locked?
 
     # Preserve fingerprint info from session if not passed
     fingerprint_info = session[:fingerprint_info] if fingerprint_info.blank? && session[:fingerprint_info].present?

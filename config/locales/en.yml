@@ -633,7 +633,7 @@ en:
       upload_government_id: Upload your government-issued ID
       accepted_formats: "Accepted formats:"
       formats_india: PDF only
-      formats_other: Images, PDF, HEIC
+      formats_other: Images, PDF
       upload_transcript: Upload your transcript
       transcript_help: Your most recent report card or transcript
       upload_student_id: Upload your student ID
@@ -708,7 +708,7 @@ en:
         submitted_ago: Submitted %{time} ago
       pending_persona:
         title: Your ID is being checked
-        subtitle: This usually takes under a minute
+        subtitle: This usually takes less than 24 hours
         description: "Your ID is being reviewed automatically. We'll email %{email} as soon as it's done — you don't need to stay on this page."
         review_title: We're reviewing your submission
         review_subtitle: We'll get back to you soon
@@ -753,6 +753,7 @@ en:
           subtitle: Verify your age and identity to participate in programs and compete for prizes
           start_verification: Start Verification
   email_changes:
+    unavailable: Email changes aren't available on this account.
     new:
       title: Change your email
       current_email: Current email

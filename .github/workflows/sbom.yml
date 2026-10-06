@@ -1,0 +1,68 @@
+name: SBOM
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Dockerfile'
+      - 'Dockerfile.worker'
+      - 'Gemfile.lock'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/sbom.yml'
+  schedule:
+    # Catches CVEs published against libs we already ship, not just new pushes.
+    - cron: '17 8 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - dockerfile: Dockerfile
+            image: auth-app
+          - dockerfile: Dockerfile.worker
+            image: auth-worker
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Build image
+        run: docker build -f ${{ matrix.dockerfile }} -t ${{ matrix.image }}:sbom .
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ matrix.image }}:sbom
+          format: cyclonedx-json
+          output-file: ${{ matrix.image }}.cdx.json
+          upload-artifact: false
+
+      # Syft's binary classifiers detect apt-installed packages via dpkg, but
+      # libheif is compiled from a bare tarball in the Dockerfile with no
+      # package-manager record, so it won't show up in the generated SBOM.
+      # Add it explicitly from the same ARG the Dockerfile pins, so Dependabot
+      # alerts actually fire when strukturag/libheif ships a fix.
+      - name: Add source-built libraries Syft can't see
+        run: |
+          set -euo pipefail
+          LIBHEIF_VERSION=$(grep -oP '^ARG LIBHEIF_VERSION=\K[0-9.]+' ${{ matrix.dockerfile }})
+          jq --arg v "$LIBHEIF_VERSION" \
+            '.components += [{
+              "type": "library",
+              "name": "libheif",
+              "version": $v,
+              "purl": ("pkg:github/strukturag/libheif@v" + $v),
+              "bom-ref": ("libheif@" + $v)
+            }]' ${{ matrix.image }}.cdx.json > ${{ matrix.image }}.merged.cdx.json
+
+      - name: Submit dependency snapshot
+        uses: anchore/sbom-action@v0
+        with:
+          sbom-file: ${{ matrix.image }}.merged.cdx.json
+          dependency-snapshot: true

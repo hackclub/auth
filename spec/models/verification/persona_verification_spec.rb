@@ -148,23 +148,36 @@ RSpec.describe Verification::PersonaVerification, type: :model do
         persona_record: persona_record)
     end
 
-    it "sets ysws_eligible to true when 13 <= age <= 19" do
-      # identity birthday is 2005-06-15, age ~20 in 2026
-      # persona_record birthdate is 2010-01-15, age ~16 in 2026
+    it "sets ysws_eligible to true when age is 13-18" do
+      persona_record.update!(birthdate: 16.years.ago.to_date)
       verification.approve!
       identity.reload
       expect(identity.ysws_eligible).to be true
     end
 
-    it "sets ysws_eligible to false when age > 19" do
-      persona_record.update!(birthdate: Date.parse("2000-01-01"))
+    it "sets ysws_eligible to true at the upper boundary (age 18)" do
+      persona_record.update!(birthdate: 18.years.ago.to_date)
+      verification.approve!
+      identity.reload
+      expect(identity.ysws_eligible).to be true
+    end
+
+    it "sets ysws_eligible to false when age > 18" do
+      persona_record.update!(birthdate: 19.years.ago.to_date)
       verification.approve!
       identity.reload
       expect(identity.ysws_eligible).to be false
     end
 
+    it "sets ysws_eligible to true at the lower boundary (age 13)" do
+      persona_record.update!(birthdate: 13.years.ago.to_date)
+      verification.approve!
+      identity.reload
+      expect(identity.ysws_eligible).to be true
+    end
+
     it "sets ysws_eligible to false when age < 13" do
-      persona_record.update!(birthdate: Date.parse("2020-01-01"))
+      persona_record.update!(birthdate: 12.years.ago.to_date)
       verification.approve!
       identity.reload
       expect(identity.ysws_eligible).to be false

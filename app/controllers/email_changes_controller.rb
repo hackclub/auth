@@ -2,6 +2,7 @@ class EmailChangesController < ApplicationController
   skip_before_action :authenticate_identity!, only: [ :verify_old, :verify_new, :confirm_verify_old, :confirm_verify_new ]
 
   before_action :set_email_change_request, only: [ :show, :cancel_confirmation, :cancel ]
+  before_action :require_email_change_allowed, only: [ :new, :create ]
   before_action :require_step_up_for_email_change, only: [ :new, :create ]
   before_action :require_email_change_feature_enabled, except: [ :verify_old, :verify_new, :confirm_verify_old, :confirm_verify_new ]
   before_action :require_email_change_feature_enabled_for_verification, only: [ :verify_old, :verify_new, :confirm_verify_old, :confirm_verify_new ]
@@ -131,6 +132,12 @@ class EmailChangesController < ApplicationController
   def email_change_params = params.require(:email_change).permit(:new_email)
 
   def require_step_up_for_email_change = require_step_up("email_change", return_to: new_email_change_path)
+
+  def require_email_change_allowed
+    return unless current_identity&.disallow_slack?
+
+    redirect_to edit_identity_path, alert: t("email_changes.unavailable")
+  end
 
   def require_email_change_feature_enabled
     unless Flipper.enabled?(:email_change_2025_10_09, current_identity)
