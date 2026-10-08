@@ -34,6 +34,7 @@ class IdentitiesController < ApplicationController
         @prefill_attributes[:last_name] ||= params[:last_name] if params[:last_name].present?
         @prefill_attributes[:country] ||= params[:country] if params[:country].present?
         @prefill_attributes[:birthday] ||= params[:birthday] if params[:birthday].present?
+        @prefill_attributes[:phone_number] ||= params[:phone_number] if params[:phone_number].present?
         # Prefill country from GeoIP if not provided
         @prefill_attributes[:country] ||= detected_country_alpha2
         @identity = Identity.new(@prefill_attributes)
