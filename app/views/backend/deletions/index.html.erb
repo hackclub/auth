@@ -22,8 +22,8 @@
         <tr>
           <td><%= link_to deletion.id, backend_deletion_path(deletion) %></td>
           <td><%= deletion.privacy_request_reference.presence || "—" %></td>
-          <td><%= deletion.name_combos.size %> hashes</td>
-          <td><%= deletion.session_ips.size %> hashes</td>
+          <td><%= pluralize(deletion.name_combos.size, "hash") %></td>
+          <td><%= pluralize(deletion.session_ips.size, "hash") %></td>
           <td style="color: var(--foreground2);"><%= time_ago_in_words(deletion.created_at) %> ago</td>
         </tr>
       <% end %>
