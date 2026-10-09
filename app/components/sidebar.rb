@@ -38,11 +38,14 @@ class Components::Sidebar < Components::Base
     # Add verification link if user needs to submit or resubmit
     if current_identity.present?
       status = current_identity.verification_status
+
+
       if status == "needs_submission" || status == "pending"
         items << {
           label: t("sidebar.verification"),
           path: new_verifications_path,
-          icon: status == "pending" ? "clock" : "card-id"
+          icon: status == "pending" ? "clock" : "card-id",
+          badge: 1
         }
       end
     end
