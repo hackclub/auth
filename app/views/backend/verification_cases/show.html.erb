@@ -36,33 +36,75 @@
   <div is-="separator"></div>
   <span style="color: var(--foreground2); font-style: italic;">documents (raw evidence — access is logged)</span>
   <% if @documents.any? %>
-    <table>
-      <thead><tr><th>kind</th><th>source</th><th>submitted</th><th></th></tr></thead>
-      <tbody>
-        <% @documents.each do |doc| %>
-          <tr>
-            <td><%= doc.kind_label %></td>
-            <td><%= doc.source %></td>
-            <td style="color: var(--foreground2);"><%= doc.created_at.strftime("%b %-d, %Y") %></td>
-            <td>
-              <% if doc.file.attached? %>
-                <% recent_bg = BreakGlassRecord.for_user_and_document(current_user, doc).recent.exists? %>
-                <% if recent_bg %>
-                  <%= link_to "view", rails_blob_path(doc.file, disposition: "inline"), target: "_blank" %>
-                <% else %>
-                  <%= form_with url: backend_break_glass_path, method: :post, local: true, style: "display:inline" do %>
-                    <input type="hidden" name="break_glassable_type" value="VerificationCase::Document">
-                    <input type="hidden" name="break_glassable_id" value="<%= doc.id %>">
-                    <input type="text" name="reason" placeholder="reason for access" required style="width: 20ch;">
-                    <button type="submit" is-="button" size-="small">break glass</button>
-                  <% end %>
-                <% end %>
+    <column gap-="2">
+      <% @documents.each_with_index do |doc, index| %>
+        <column gap-="1">
+          <row align-="center between">
+            <b><%= index + 1 %>. <%= doc.kind_label %></b>
+            <row gap-="1" align-="center" style="color: var(--foreground2);">
+              <span><%= doc.source %></span>
+              <span>·</span>
+              <span><%= doc.created_at.strftime("%b %-d, %Y") %></span>
+            </row>
+          </row>
+          <% if doc.file.attached? %>
+            <% if glass_broken?(doc, auto_break_glass: @case.auto_break_glass_reason) %>
+              <% file = doc.file %>
+              <% if file.content_type.start_with?("image/") %>
+                <%
+                  image_src = if file.content_type.in?(%w[image/heic image/heif])
+                    url_for(file.variant(format: :png))
+                  else
+                    url_for(file)
+                  end
+                %>
+                <div id="case-loader-<%= index %>" style="color: var(--foreground2); padding: 1lh 0;">
+                  <%= file.content_type.in?(%w[image/heic image/heif]) ? "converting heic..." : "loading..." %>
+                </div>
+                <div id="case-image-container-<%= index %>" style="display: none;">
+                  <%= image_tag image_src,
+                    alt: "case document #{index + 1}",
+                    id: "case-image-#{index}",
+                    style: "max-width: 100%; transition: transform 0.2s;",
+                    data: { rotation: 0 },
+                    onload: "document.getElementById('case-loader-#{index}').style.display='none'; document.getElementById('case-image-container-#{index}').style.display='block';",
+                    onerror: "document.getElementById('case-loader-#{index}').textContent='error loading image';" %>
+                  <row gap-="1" align-="center">
+                    <button type="button" size-="small" onclick="rotateCaseImage(<%= index %>)">↻ rotate</button>
+                    <%= link_to "open ↗", url_for(file), target: "_blank" %>
+                  </row>
+                </div>
+              <% elsif file.content_type == "application/pdf" %>
+                <iframe src="<%= url_for(file) %>" style="width: 100%; height: 60vh; border: 1px solid var(--background2);" type="application/pdf">
+                  <span style="color: var(--foreground2);">
+                    browser doesn't support pdf embedding.
+                    <%= link_to "open pdf", url_for(file), target: "_blank" %>
+                  </span>
+                </iframe>
+              <% else %>
+                <%= link_to "download file", url_for(file), target: "_blank" %>
               <% end %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
+            <% else %>
+              <%= form_with url: backend_break_glass_path, method: :post, local: true, style: "display:inline" do %>
+                <input type="hidden" name="break_glassable_type" value="VerificationCase::Document">
+                <input type="hidden" name="break_glassable_id" value="<%= doc.id %>">
+                <input type="text" name="reason" placeholder="reason for access" required style="width: 20ch;">
+                <button type="submit" is-="button" size-="small">break glass</button>
+              <% end %>
+            <% end %>
+          <% end %>
+        </column>
+      <% end %>
+    </column>
+    <script>
+      function rotateCaseImage(index) {
+        const img = document.getElementById('case-image-' + index);
+        let currentRotation = parseInt(img.dataset.rotation || 0);
+        currentRotation = (currentRotation + 90);
+        img.dataset.rotation = currentRotation;
+        img.style.transform = 'rotate(' + currentRotation + 'deg)';
+      }
+    </script>
   <% else %>
     <span style="color: var(--foreground2);">nothing submitted yet</span>
   <% end %>

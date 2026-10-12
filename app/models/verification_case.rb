@@ -146,6 +146,9 @@ class VerificationCase < ApplicationRecord
 
   def open? = !closed?
   def closed? = CLOSED_STATUSES.include?(status)
+  # auto break glass for case documents when the case is still being
+  # reviewed — same pattern as Verification::DocumentVerification etc.
+  def auto_break_glass_reason = open? ? "reviewing undecisioned case" : nil
 
   # cases are soft-deleted only. the events under a case can't be deleted
   # (append-only) and the FK from events to cases means the row can't go
