@@ -279,6 +279,23 @@ RSpec.describe VerificationCase, type: :model do
     end
   end
 
+  describe "#auto_break_glass_reason" do
+    it "returns a reason when the case is open" do
+      kase = create(:verification_case)
+      expect(kase.auto_break_glass_reason).to eq("reviewing undecisioned case")
+    end
+
+    it "returns nil when the case is decided" do
+      kase = create(:verification_case, status: :approved)
+      expect(kase.auto_break_glass_reason).to be_nil
+    end
+
+    it "returns nil when the case is withdrawn" do
+      kase = create(:verification_case, status: :withdrawn)
+      expect(kase.auto_break_glass_reason).to be_nil
+    end
+  end
+
   describe "events" do
     it "are append-only" do
       kase = create(:verification_case)
