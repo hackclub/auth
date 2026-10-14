@@ -1,6 +1,8 @@
 module API
   module V1
     class ApplicationController < ActionController::API
+      include RendersJsonErrors
+
       prepend_view_path "app/views/api/v1"
 
       helper_method :current_identity, :current_program, :current_scopes, :acting_as_program, :identity_authorized_for_scope?
@@ -13,14 +15,6 @@ module API
       before_action :authenticate!
 
       include ActionController::HttpAuthentication::Token::ControllerMethods
-
-      rescue_from Pundit::NotAuthorizedError do |e|
-        render json: { error: "not_authorized" }, status: :forbidden
-      end
-
-      rescue_from ActionController::ParameterMissing do |e|
-        render json: { error: e.message }, status: :bad_request
-      end
 
       def identity_authorized_for_scope?(identity, scope)
         if current_identity
@@ -37,23 +31,28 @@ module API
           OAuthToken.find_by(token: t) || Program.find_by(program_key: t)
         end
         unless @current_token&.active?
-          return render json: { error: "invalid_auth" }, status: :unauthorized
+          return render_invalid_auth
         end
         if @current_token.is_a?(OAuthToken)
           @current_identity = @current_token.resource_owner
           @current_program = @current_token.application
           @current_scopes = @current_token.scopes
           unless @current_program&.active?
-            render json: { error: "invalid_auth" }, status: :unauthorized
+            render_invalid_auth(message: "The application this token belongs to is no longer active.")
           end
         else
           unless @current_token.hq_official?
-            return render json: { error: "not_authorized" }, status: :forbidden
+            return render_api_error(:not_authorized,
+                                    message: "Program keys are only accepted from HQ-official programs.")
           end
           @acting_as_program = true
           @current_program = @current_token
           @current_scopes = @current_program.scopes
         end
+      end
+
+      def render_invalid_auth(message: nil)
+        render_api_error :invalid_auth, message: message
       end
     end
   end
