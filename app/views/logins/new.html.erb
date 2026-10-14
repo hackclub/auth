@@ -24,7 +24,7 @@
     <footer>
       <p>
         <%= t(".no_account") %>
-        <%= link_to t(".signup"), signup_path %><%= t(".free") %>
+        <%= link_to t(".signup"), signup_path(return_to: params[:return_to].presence) %><%= t(".free") %>
       </p>
     </footer>
   </div>
