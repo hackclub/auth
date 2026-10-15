@@ -27,7 +27,7 @@ class Identity::BackupCode < ApplicationRecord
       end
     end
     event :mark_discarded do
-      transitions from: :active, to: :discarded
+      transitions from: [:active, :previewed], to: :discarded
     end
   end
 
