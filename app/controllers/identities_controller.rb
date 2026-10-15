@@ -111,6 +111,7 @@ class IdentitiesController < ApplicationController
         # Ensure country is present; if missing, use GeoIP detection with US fallback
         attrs[:country] ||= detected_country_alpha2
         attrs[:onboarding_scenario] = @onboarding_scenario.class.slug
+        attrs[:registration_ip] = request.remote_ip
         @identity = Identity.new(attrs)
         @identity.email_typo_confirmed = params[:email_typo_confirmed] == "1"
 
