@@ -144,6 +144,7 @@
       </fieldset>
     <% end %>
 
+    <%= internal_content(:cedar_frost_window) %>
     <%= form.submit "#{t ".continue"} →", disabled: @age_restriction.present? %>
   <% end %>
   </div>
