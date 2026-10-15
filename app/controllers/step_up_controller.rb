@@ -203,12 +203,7 @@ class StepUpController < ApplicationController
         redirect_to security_path
       end
 
-    when "regenerate_backup_codes"
-      consume_step_up!
-      safe_path = safe_internal_redirect(return_to)
-      redirect_to safe_path || security_path
-
-    when "add_passkey", "add_totp"
+    when "regenerate_backup_codes", "add_passkey", "add_totp"
       safe_path = safe_internal_redirect(return_to)
       redirect_to safe_path || security_path
 
