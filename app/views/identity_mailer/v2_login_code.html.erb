@@ -2,7 +2,7 @@
 
 <p class="body-text"><%= t(".body") %></p>
 
-<div class="code-block"><%= @code %></div>
+<div class="code-block"><span class="code"><% @code.scan(/.{1,3}/).each do |group| %><span class="code-group"><%= group %></span><% end %></span></div>
 <p class="hint"><%= t(".triple_click") %></p>
 
 <p class="secondary-text"><%= t(".expiry") %></p>
