@@ -7,7 +7,7 @@ en:
       subject: "%{code} is your Hack Club login code"
       greeting: "Hey %{first_name}!"
       body: "Here's the code to sign into your Hack Club Account:"
-      triple_click: "(triple-click to copy it quicker!)"
+      triple_click: "(click to copy it quicker!)"
       expiry: "This code expires in 30 minutes."
       not_you: "Didn't request this? You can safely ignore this email."
       signature: "– Hack Club"
