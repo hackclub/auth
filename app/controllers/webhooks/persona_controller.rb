@@ -16,6 +16,7 @@ module Webhooks
       inquiry_id = parsed_body.dig(:data, :attributes, :payload, :data, :id)
 
       return head(:bad_request) if event_name.blank? || inquiry_id.blank?
+      return link_staff_inquiry(inquiry_id) if event_name == "inquiry.created"
       return head(:ok) unless HANDLED_EVENTS.include?(event_name)
 
       Persona::ProcessInquiryEventJob.perform_later(
@@ -27,6 +28,25 @@ module Webhooks
     end
 
     private
+
+    # inquiries we create through the API have creator "API"; anything else is
+    # the email of whoever made it by hand in the persona dashboard — see
+    # LinkStaffInquiryJob
+    def link_staff_inquiry(inquiry_id)
+      attributes = parsed_body.dig(:data, :attributes, :payload, :data, :attributes) || {}
+      creator = attributes[:creator]
+      reference_id = attributes[:"reference-id"]
+
+      if creator.present? && creator != "API" && reference_id.present?
+        Persona::LinkStaffInquiryJob.perform_later(
+          inquiry_id: inquiry_id,
+          creator: creator,
+          reference_id: reference_id
+        )
+      end
+
+      head :ok
+    end
 
     def verify_signature!
       signature_header = request.headers["Persona-Signature"]

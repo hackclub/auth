@@ -106,8 +106,15 @@ class Verification::PersonaVerification < Verification
   def needs_break_glass?         = true
   def auto_break_glass_reason    = pending? ? "to review submission" : nil
   def nukeable?                  = draft? || pending?
-  def auto_approvable?                  = true
+  def auto_approvable?                  = !staff_created_inquiry?
   def status_pending_partial     = "verifications/status/pending_persona"
+
+  # set by Persona::LinkStaffInquiryJob. a hand-made inquiry is an account
+  # recovery: persona passing the document says nothing about whether the
+  # person owns this account, so a human always makes the call.
+  STAFF_CREATED_ISSUE = "Inquiry created by staff in the Persona dashboard — requires manual review"
+
+  def staff_created_inquiry? = issues.include?(STAFF_CREATED_ISSUE)
 
   def inquiry_unlinked?
     return false unless persona_inquiry_id.present? && persona_record_id.present?
