@@ -237,6 +237,54 @@ RSpec.describe "Webhooks::Persona", type: :request do
       end
     end
 
+    context "with inquiry.created" do
+      def created_payload(creator:)
+        {
+          data: {
+            attributes: {
+              name: "inquiry.created",
+              payload: {
+                data: {
+                  id: "inq_dashboard123",
+                  type: "inquiry",
+                  attributes: { status: "created", "reference-id": identity.public_id, creator: creator }
+                }
+              }
+            }
+          }
+        }.to_json
+      end
+
+      def post_signed(body)
+        post "/webhooks/persona",
+          params: body,
+          headers: { "Content-Type" => "application/json", "Persona-Signature" => sign_payload(body) }
+      end
+
+      it "enqueues LinkStaffInquiryJob when a dashboard user created the inquiry" do
+        body = created_payload(creator: "reviewer@hackclub.com")
+
+        expect { post_signed(body) }.to have_enqueued_job(Persona::LinkStaffInquiryJob).with(
+          inquiry_id: "inq_dashboard123", creator: "reviewer@hackclub.com", reference_id: identity.public_id
+        )
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "ignores API-created inquiries" do
+        body = created_payload(creator: "API")
+
+        expect { post_signed(body) }.not_to have_enqueued_job
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "ignores inquiries without a creator" do
+        body = created_payload(creator: nil)
+
+        expect { post_signed(body) }.not_to have_enqueued_job
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
     context "with multiple signatures (key rotation)" do
       it "accepts if any v1 signature is valid" do
         valid_sig = sign_payload(inquiry_completed_payload)

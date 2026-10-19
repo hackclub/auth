@@ -31,7 +31,10 @@ class Persona::VerificationPipelineJob < ApplicationJob
     case verdict
     when :approved
       if !@verification.auto_approvable?
-        @verification.update(issues: @verification.issues + [ "Student ID — requires manual review" ])
+        # staff-created inquiries already carry their own issue
+        unless @verification.try(:staff_created_inquiry?)
+          @verification.update(issues: @verification.issues + [ "Student ID — requires manual review" ])
+        end
         Slack::NotifyReviewQueueJob.perform_later(@verification)
       elsif @record&.birthdate && Identity.calculate_age(@record.birthdate) < 13
         @verification.update(issues: @verification.issues + [ "Under 13 — requires manual review" ])
