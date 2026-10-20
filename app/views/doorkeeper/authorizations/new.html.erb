@@ -82,7 +82,7 @@
     <% end %>
 
     <% auth_label = application&.hq_official? ? t('.authorize_official') : t('.authorize') %>
-    <div class="oauth-actions" x-data="{ countdown: <%= application&.hq_official? ? 0 : 3 %>, ready: <%= application&.hq_official? ? true : false %>, authLabel: '<%= auth_label.gsub("'", "\\'") %>' }" x-init="if (countdown > 0) { let interval = setInterval(() => { countdown--; if (countdown <= 0) { ready = true; clearInterval(interval); } }, 1000); }">
+    <div class="oauth-actions" x-data="oauthCountdown(<%= application&.hq_official? ? 0 : 3 %>)" data-auth-label="<%= auth_label %>">
       <%= form_tag oauth_authorization_path, method: :delete do %>
         <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>
         <%= hidden_field_tag :redirect_uri, @pre_auth.redirect_uri, id: nil %>
@@ -106,7 +106,7 @@
         <%= hidden_field_tag :nonce, @pre_auth.nonce, id: nil %>
         <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
         <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
-        <%= submit_tag auth_label, "x-bind:disabled": "!ready", "x-bind:value": "ready ? authLabel : `Wait ${countdown}s...`", class: "approve" %>
+        <%= submit_tag auth_label, "x-bind:disabled": "!ready", "x-bind:value": "buttonLabel", class: "approve" %>
       <% end %>
     </div>
 

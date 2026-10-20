@@ -67,6 +67,6 @@ module ApplicationHelper
     api_key = ENV["GOOGLE_PLACES_API_KEY"]
     return unless api_key.present?
 
-    tag.script(src: "https://maps.googleapis.com/maps/api/js?key=#{api_key}&loading=async&libraries=places&callback=onGoogleMapsLoaded", async: true, defer: true)
+    tag.script(src: "https://maps.googleapis.com/maps/api/js?key=#{api_key}&loading=async&libraries=places&callback=onGoogleMapsLoaded", async: true, defer: true, nonce: true)
   end
 end

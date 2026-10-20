@@ -7,7 +7,51 @@ import KeyboardShortcuts from '../components/svelte/KeyboardShortcuts.svelte';
 import IdentityPicker from '../components/svelte/IdentityPicker.svelte';
 import NavigableList from '../components/svelte/NavigableList.svelte';
 import ThemeToggle from '../components/svelte/ThemeToggle.svelte';
+import '../js/confirm-dialog.js';
 
+
+// Delegated click handler for backend-specific actions
+document.addEventListener('click', function (e) {
+  const el = e.target.closest('[data-action]')
+  if (!el) return
+  const action = el.dataset.action
+  if (action === 'open-kbar') {
+    e.preventDefault()
+    window.openKbar?.()
+  } else if (action === 'open-hints') {
+    e.preventDefault()
+    window.openHints?.()
+  } else if (action === 'dispatch-key') {
+    e.preventDefault()
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: el.dataset.key, bubbles: true }))
+  } else if (action === 'rotate' || action === 'rotate-case') {
+    const img = document.getElementById(el.dataset.target)
+    const r = parseInt(img.dataset.rotation || 0) + 90
+    img.dataset.rotation = r
+    img.style.transform = 'rotate(' + r + 'deg)'
+  }
+})
+
+// Image load/error handlers for review documents
+function initReviewImages(root) {
+  root.querySelectorAll('.review-doc-image, .case-doc-image').forEach(function (img) {
+    if (img.dataset.initDone) return
+    img.dataset.initDone = '1'
+    function onLoad() {
+      document.getElementById(img.dataset.loader).style.display = 'none'
+      document.getElementById(img.dataset.container).style.display = 'block'
+    }
+    function onError() {
+      document.getElementById(img.dataset.loader).textContent = 'error loading image'
+    }
+    if (img.complete) {
+      if (img.naturalWidth > 0) onLoad(); else onError()
+    } else {
+      img.addEventListener('load', onLoad)
+      img.addEventListener('error', onError)
+    }
+  })
+}
 window.htmx = htmx;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -76,4 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try { tabs = JSON.parse(tabsJson); } catch (e) {}
     mountSvelte(TabView, { target: el, props: { tabs } });
   });
+
+  initReviewImages(document)
 });
+
+document.addEventListener('htmx:afterSwap', function (e) { initReviewImages(e.detail.target) })
