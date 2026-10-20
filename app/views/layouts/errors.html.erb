@@ -7,7 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-    <script>
+    <script nonce="<%= content_security_policy_nonce %>">
       (function() {
         try {
           const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;

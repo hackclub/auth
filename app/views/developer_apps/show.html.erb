@@ -52,15 +52,15 @@
         <h4><%= t(".danger_zone") %></h4>
         <% if policy(@app).rotate_credentials? %>
           <%= button_to t(".rotate_credentials"), rotate_credentials_developer_app_path(@app), method: :post, class: "danger small-btn",
-              form: { onsubmit: "return confirm('#{j t('.rotate_confirm')}')" } %>
+              form: { data: { confirm: t('.rotate_confirm') } } %>
         <% end %>
         <% if policy(@app).revoke_all_authorizations? %>
           <%= button_to t(".revoke_all_authorizations"), revoke_all_authorizations_developer_app_path(@app), method: :post, class: "danger small-btn",
-              form: { onsubmit: "return confirm('#{j t('.revoke_all_authorizations_confirm')}')" } %>
+              form: { data: { confirm: t('.revoke_all_authorizations_confirm') } } %>
         <% end %>
         <% if policy(@app).destroy? %>
           <%= button_to t(".delete_app"), developer_app_path(@app), method: :delete, class: "danger small-btn",
-              form: { onsubmit: "return confirm('#{j t('.delete_confirm')}')" } %>
+              form: { data: { confirm: t('.delete_confirm') } } %>
         <% end %>
       </section>
     <% end %>
@@ -144,7 +144,7 @@
                 <%= button_to t(".remove_collaborator"),
                     developer_app_collaborator_path(@app, collab),
                     method: :delete, class: "danger small-btn",
-                    form: { onsubmit: "return confirm('#{j t('.remove_collaborator_confirm')}')" } %>
+                    form: { data: { confirm: t('.remove_collaborator_confirm') } } %>
               </div>
             <% end %>
           <% else %>

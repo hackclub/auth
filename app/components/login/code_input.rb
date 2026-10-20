@@ -11,7 +11,7 @@ class Components::Login::CodeInput < Components::Base
   end
 
   def view_template
-    div(class: "code-input-container", onclick: safe("document.getElementById('#{@input_id}').focus()")) do
+    div(class: "code-input-container", data_focus_target: @input_id) do
       span(class: "code-prefix") { @prefix } if @prefix
       raw @form.text_field @field_name,
         required: true,
@@ -25,6 +25,16 @@ class Components::Login::CodeInput < Components::Base
         id: @input_id,
         "x-model": @alpine_model,
         data: { behavior: "otp" }
+    end
+    script(nonce: helpers.content_security_policy_nonce) do
+      raw safe <<~JS
+        document.querySelectorAll('[data-focus-target]').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var target = document.getElementById(el.dataset.focusTarget);
+            if (target) target.focus();
+          });
+        });
+      JS
     end
   end
 end
