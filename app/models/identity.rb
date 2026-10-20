@@ -489,6 +489,11 @@ class Identity < ApplicationRecord
       return
     end
 
+    if primary_email.match?(/\A"/)
+      errors.add(:primary_email, I18n.t("errors.attributes.primary_email.invalid_format"))
+      return
+    end
+
     if new_record? && !email_typo_confirmed
       self.suggested_email = EmailDomainSuggester.suggest(primary_email)
       if suggested_email

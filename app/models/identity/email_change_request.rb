@@ -223,6 +223,11 @@ class Identity::EmailChangeRequest < ApplicationRecord
       return
     end
 
+    if new_email.match?(/\A"/)
+      errors.add(:new_email, I18n.t("errors.attributes.new_email.invalid_format", default: "is invalid"))
+      return
+    end
+
     return unless Rails.env.production?
 
     if address.disposable?

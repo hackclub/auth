@@ -269,7 +269,7 @@
           <label style="display: inline-flex; align-items: center; gap: 1ch; font-size: 0.85em; color: var(--foreground2); cursor: pointer; white-space: nowrap;" title="for users who refuse persona — document capture happens via their camera on our page instead">
             <input type="checkbox" name="skip_persona" value="1"> skip persona
           </label>
-          <button type="submit" is-="button" size-="small" onclick="return confirm('Open a manual verification call case and email a single-use link to <%= @identity.primary_email %>?')">+ manual call case</button>
+          <button type="submit" is-="button" size-="small" onclick="return confirm('Open a manual verification call case and email a single-use link to <%= j @identity.primary_email %>?')">+ manual call case</button>
         <% end %>
       <% end %>
     </row>
