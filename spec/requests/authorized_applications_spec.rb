@@ -19,7 +19,9 @@ RSpec.describe "AuthorizedApplications", type: :request do
 
       get authorized_applications_path
       expect(response).to have_http_status(:ok)
-      expect(response.body.scan(program.name).size).to eq(1)
+      # the name also appears in each card's revoke confirmation, so count cards
+      cards = Nokogiri::HTML(response.body).css(".session-device").map { |el| el.text.strip }
+      expect(cards).to eq([ program.name ])
     end
   end
 
