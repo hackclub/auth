@@ -1,91 +1,96 @@
-<% content_for :title, t("directory.import.preview.title") %>
+<% content_for :title, "import preview" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>import preview</h2>
+    <row gap-="2" align-="center">
+      <a href="<%= directory_new_import_path %>" style="color: var(--foreground2);">back to import</a>
+    </row>
+  </row>
 
-<div class="page-header">
-  <h1><%= t("directory.import.preview.heading") %></h1>
-</div>
+  <div is-="separator"></div>
 
-<div class="page-sections">
   <% if @result.errors.any? %>
-    <div class="banner danger"><%= t("directory.import.preview.errors_heading") %></div>
+    <span style="color: var(--red); font-style: italic;">errors</span>
 
-    <section class="section-card">
-      <table>
-        <thead>
+    <table>
+      <thead>
+        <tr>
+          <th>row</th>
+          <th>email</th>
+          <th>error</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @result.errors.each do |error| %>
           <tr>
-            <th><%= t("directory.import.preview.col_row") %></th>
-            <th><%= t("directory.import.preview.col_email") %></th>
-            <th><%= t("directory.import.preview.col_error") %></th>
+            <td><%= error[:row] %></td>
+            <td><%= error[:email] %></td>
+            <td><span is-="badge" variant-="red"><%= error[:message] %></span></td>
           </tr>
-        </thead>
-        <tbody>
-          <% @result.errors.each do |error| %>
-            <tr>
-              <td><%= error[:row] %></td>
-              <td><%= error[:email] %></td>
-              <td><span class="badge danger"><%= error[:message] %></span></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+        <% end %>
+      </tbody>
+    </table>
 
-      <div class="form-actions">
-        <%= link_to t("directory.import.preview.re_upload"), directory_new_import_path, role: "button", class: "button-secondary" %>
-      </div>
-    </section>
+    <div is-="separator"></div>
   <% end %>
 
   <% if @result.changes.any? %>
-    <section class="section-card">
-      <div class="flex-row gap align-center" style="justify-content: space-between;">
-        <h3><%= t("directory.import.preview.changes_heading") %></h3>
-        <small><%= t("directory.import.preview.summary", add_count: @result.created_count, skip_count: @result.skipped_count) %></small>
-      </div>
+    <row align-="center between">
+      <span style="color: var(--foreground2); font-style: italic;">changes</span>
+      <span style="color: var(--foreground2);"><%= @result.created_count %> to add, <%= @result.skipped_count %> to skip</span>
+    </row>
 
-      <table>
-        <thead>
+    <table>
+      <thead>
+        <tr>
+          <th>email</th>
+          <th>collection</th>
+          <th>expires</th>
+          <th>action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @result.changes.each do |change| %>
           <tr>
-            <th><%= t("directory.import.preview.col_email") %></th>
-            <th><%= t("directory.import.preview.col_collection") %></th>
-            <th><%= t("directory.import.preview.col_expires") %></th>
-            <th><%= t("directory.import.preview.col_action") %></th>
+            <td><%= change[:email] %></td>
+            <td><%= change[:collection] %></td>
+            <td style="color: var(--foreground2);"><%= change[:expires_at].presence || "—" %></td>
+            <td>
+              <% if change[:action] == "add" %>
+                <span is-="badge" variant-="green">add</span>
+              <% else %>
+                <span is-="badge" variant-="background2">skip</span>
+              <% end %>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          <% @result.changes.each do |change| %>
-            <tr>
-              <td><%= change[:email] %></td>
-              <td><%= change[:collection] %></td>
-              <td><small><%= change[:expires_at].presence || "—" %></small></td>
-              <td>
-                <% if change[:action] == "add" %>
-                  <span class="badge success"><%= t("directory.import.preview.action_add") %></span>
-                <% else %>
-                  <span class="badge"><%= t("directory.import.preview.action_skip") %></span>
-                <% end %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-
-      <% if @result.errors.empty? %>
-        <hr>
-        <%= form_with url: directory_import_path, method: :post, local: true do |f| %>
-          <%= f.hidden_field :csv_text, value: @csv_string %>
-          <div class="flex-row gap align-center" style="justify-content: space-between;">
-            <%= link_to t("directory.import.preview.back"), directory_new_import_path, class: "button-secondary" %>
-            <%= f.submit t("directory.import.preview.apply_button") %>
-          </div>
         <% end %>
+      </tbody>
+    </table>
+
+    <% if @result.errors.empty? %>
+      <div is-="separator"></div>
+
+      <%= form_with url: directory_import_path, method: :post, local: true do |f| %>
+        <%= f.hidden_field :csv_text, value: @csv_string %>
+        <row gap-="2" align-="center">
+          <a href="<%= directory_new_import_path %>" style="color: var(--foreground2);">back</a>
+          <button type="submit" size-="small">apply import</button>
+        </row>
       <% end %>
-    </section>
+    <% end %>
   <% else %>
     <% if @result.errors.empty? %>
-      <section class="section-card">
-        <div class="empty-state">
-          <p><%= t("directory.import.preview.no_changes") %></p>
-        </div>
-      </section>
+      <column align-="center center" pad-="4 0">
+        <span style="color: var(--foreground2);">no changes to apply</span>
+      </column>
     <% end %>
   <% end %>
-</div>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span> back
+    </row>
+  </row>
+</column>

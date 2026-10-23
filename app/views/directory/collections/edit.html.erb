@@ -1,43 +1,36 @@
-<% content_for :title, t("directory.collections.edit.title") %>
+<% content_for :title, "edit: #{@collection.name}" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>edit: <%= @collection.name %></h2>
+  </row>
 
-<div class="page-header">
-  <h1><%= t("directory.collections.edit.heading", name: @collection.name) %></h1>
-</div>
+  <div is-="separator"></div>
 
-<div class="page-sections">
-  <section class="section-card" style="max-width: 700px;">
-    <%= form_with model: @collection, url: directory_collection_path(@collection.slug), method: :patch, local: true do |f| %>
-      <div>
-        <%= f.label :name, t("directory.collections.form.name") %>
-        <%= f.text_field :name, required: true %>
-      </div>
+  <%= form_with model: @collection, url: directory_collection_path(@collection.slug), method: :patch, local: true do |f| %>
+    <column gap-="1" style="max-width: 600px;">
+      <label style="color: var(--foreground2);">name</label>
+      <%= f.text_field :name, required: true, style: "border: none;" %>
 
-      <div>
-        <label><%= t("directory.collections.form.slug") %></label>
-        <small><%= @collection.slug %></small>
-      </div>
+      <label style="color: var(--foreground2);">slug</label>
+      <span><%= @collection.slug %></span>
 
-      <div>
-        <label><%= t("directory.collections.form.kind") %></label>
-        <span class="badge"><%= @collection.kind %></span>
-      </div>
+      <label style="color: var(--foreground2);">kind</label>
+      <span><span is-="badge" variant-="<%= @collection.group? ? 'blue' : 'green' %>"><%= @collection.kind %></span></span>
 
-      <div>
-        <%= f.label :description, t("directory.collections.form.description") %>
-        <%= f.text_area :description, rows: 3 %>
-      </div>
+      <label style="color: var(--foreground2);">description</label>
+      <%= f.text_area :description, rows: 3, style: "border: none;" %>
 
-      <div>
-        <label>
-          <%= f.check_box :protected %>
-          <%= t("directory.collections.form.protected") %>
-        </label>
-      </div>
+      <row gap-="1" align-="center">
+        <%= f.check_box :protected %>
+        <label style="color: var(--foreground2);">protected <span style="font-size: 0.85em;">(recursive grants can't reach this collection)</span></label>
+      </row>
 
-      <div class="form-actions">
-        <%= f.submit t("directory.collections.edit.submit") %>
-        <%= link_to t("directory.actions.cancel"), directory_collection_path(@collection.slug), class: "button-secondary" %>
-      </div>
-    <% end %>
-  </section>
-</div>
+      <div is-="separator"></div>
+
+      <row gap-="2" align-="center">
+        <button type="submit" size-="small">save changes</button>
+        <a href="<%= directory_collection_path(@collection.slug) %>" style="color: var(--foreground2);">cancel</a>
+      </row>
+    </column>
+  <% end %>
+</column>

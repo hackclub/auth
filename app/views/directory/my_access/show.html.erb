@@ -1,60 +1,58 @@
-<% content_for :title, "My Access" %>
+<% content_for :title, "my access" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>my access</h2>
+  </row>
 
-<div class="page-header">
-  <h1>My Access</h1>
-</div>
+  <div is-="separator"></div>
 
-<div class="page-sections">
   <% if @memberships.any? %>
     <% direct, via = @memberships.partition { |m| m[:direct] } %>
 
     <% if direct.any? %>
-      <section class="section-card">
-        <h3 style="margin: 0 0 1rem;">Direct</h3>
-        <p style="color: var(--pico-muted-color); margin: 0 0 1rem; font-size: 0.9rem;">Collections you're a direct member of.</p>
-        <table>
-          <thead><tr><th>Collection</th><th>Kind</th></tr></thead>
-          <tbody>
-            <% direct.each do |m| %>
-              <tr>
-                <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
-                <td><span class="badge"><%= m[:collection].kind.titleize %></span></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </section>
+      <span style="color: var(--foreground2); font-style: italic;">direct memberships</span>
+      <table>
+        <thead><tr><th>collection</th><th>kind</th></tr></thead>
+        <tbody>
+          <% direct.each do |m| %>
+            <tr>
+              <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+              <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
     <% end %>
 
     <% if via.any? %>
-      <section class="section-card">
-        <h3 style="margin: 0 0 1rem;">Via Nesting</h3>
-        <p style="color: var(--pico-muted-color); margin: 0 0 1rem; font-size: 0.9rem;">Collections you're in through group membership.</p>
-        <table>
-          <thead><tr><th>Collection</th><th>Kind</th><th>Via</th></tr></thead>
-          <tbody>
-            <% via.each do |m| %>
-              <tr>
-                <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
-                <td><span class="badge"><%= m[:collection].kind.titleize %></span></td>
-                <td>
-                  <small style="color: var(--pico-muted-color);">
-                    <% if m[:via_path].present? %>
-                      <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
-                    <% end %>
-                  </small>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </section>
+      <% if direct.any? %><div is-="separator"></div><% end %>
+      <span style="color: var(--foreground2); font-style: italic;">via nesting</span>
+      <table>
+        <thead><tr><th>collection</th><th>kind</th><th>via</th></tr></thead>
+        <tbody>
+          <% via.each do |m| %>
+            <tr>
+              <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+              <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
+              <td style="color: var(--foreground2);">
+                <% if m[:via_path].present? %>
+                  <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
     <% end %>
   <% else %>
-    <div class="empty-state">
-      <div class="empty-icon">🔒</div>
-      <h3>No memberships yet</h3>
-      <p>When you're added to groups or entitlements, they'll show up here.</p>
-    </div>
+    <span style="color: var(--foreground2);">you don't have any directory memberships yet.</span>
   <% end %>
-</div>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span> back
+    </row>
+  </row>
+</column>

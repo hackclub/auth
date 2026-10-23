@@ -1,98 +1,97 @@
-<% content_for :title, t("directory.people.index.title") %>
+<% content_for :title, "people" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>people</h2>
+  </row>
 
-<div class="page-header">
-  <h1><%= t("directory.people.index.heading") %></h1>
-</div>
+  <div is-="separator"></div>
 
-<div class="page-sections">
-  <section class="section-card">
-    <h3><%= t("directory.people.index.bring_in") %></h3>
-    <%= form_with url: directory_people_path, method: :get, local: true do |f| %>
-      <div class="flex-row gap align-center">
-        <%= f.email_field :email, placeholder: t("directory.people.index.email_placeholder"), style: "flex: 1;" %>
-        <button type="submit"><%= t("directory.people.index.search") %></button>
-      </div>
-    <% end %>
+  <%# Bring-in search %>
+  <span style="color: var(--foreground2); font-style: italic;">bring someone in</span>
+  <%= form_with url: directory_people_path, method: :get, local: true do |f| %>
+    <row gap-="1" align-="center">
+      <%= f.email_field :email, placeholder: "search by email…", value: params[:email], style: "flex: 1; border: none;" %>
+      <button type="submit" size-="small">search</button>
+    </row>
+  <% end %>
 
-    <% if @search_results.present? %>
-      <hr>
-      <% @search_results.each do |identity| %>
-        <div class="flex-row gap align-center" style="justify-content: space-between; margin-bottom: 0.5rem;">
-          <span><%= identity.full_name %> &lt;<%= identity.primary_email %>&gt;</span>
-          <% if Directory::Person.exists?(identity: identity) %>
-            <span class="badge"><%= t("directory.people.index.already_in") %></span>
-          <% else %>
-            <%= form_with url: directory_people_path, method: :post, local: true do |f| %>
-              <%= f.hidden_field :identity_id, value: identity.id %>
-              <button type="submit"><%= t("directory.people.index.bring_in_button") %></button>
-            <% end %>
-          <% end %>
-        </div>
-      <% end %>
-    <% end %>
-  </section>
-
-  <section class="section-card">
-    <% if @people.any? %>
-      <table>
-        <thead>
+  <% if @search_results.present? %>
+    <table>
+      <thead><tr><th>name</th><th>email</th><th></th></tr></thead>
+      <tbody>
+        <% @search_results.each do |identity| %>
           <tr>
-            <th><%= t("directory.people.index.col_name") %></th>
-            <th><%= t("directory.people.index.col_email") %></th>
-            <th><%= t("directory.people.index.col_status") %></th>
+            <td><%= identity.full_name %></td>
+            <td style="color: var(--foreground2);"><%= identity.primary_email %></td>
+            <td style="text-align: right;">
+              <% if Directory::Person.exists?(identity: identity) %>
+                <span is-="badge" variant-="background2">already in</span>
+              <% else %>
+                <%= form_with url: directory_people_path, method: :post, local: true do |f| %>
+                  <%= f.hidden_field :identity_id, value: identity.id %>
+                  <button type="submit" size-="small">bring in</button>
+                <% end %>
+              <% end %>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          <% @people.each do |person| %>
-            <tr>
-              <td><%= link_to person.full_name, directory_person_path(person) %></td>
-              <td><small><%= person.primary_email %></small></td>
-              <td>
-                <% if person.locked? %>
-                  <span class="badge danger"><%= t("directory.people.index.locked") %></span>
-                <% end %>
-                <% if person.effective_memberships.empty? %>
-                  <span class="badge"><%= t("directory.people.index.holds_nothing") %></span>
-                <% end %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <div class="empty-state">
-        <p><%= t("directory.people.index.no_people") %></p>
-      </div>
-    <% end %>
-  </section>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <%# All people %>
+  <span style="color: var(--foreground2); font-style: italic;">all people</span>
+  <% if @people.any? %>
+    <table>
+      <thead><tr><th>name</th><th>email</th><th>status</th></tr></thead>
+      <tbody>
+        <% @people.each do |person| %>
+          <tr>
+            <td><%= link_to person.full_name, directory_person_path(person) %></td>
+            <td style="color: var(--foreground2);"><%= person.primary_email %></td>
+            <td>
+              <% if person.locked? %>
+                <span is-="badge" variant-="red">locked</span>
+              <% end %>
+              <% if person.effective_memberships.empty? %>
+                <span is-="badge" variant-="yellow">holds nothing</span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--foreground2);">no people in the directory yet.</span>
+  <% end %>
 
   <% if @holds_nothing.present? && @holds_nothing.any? %>
-    <section class="section-card">
-      <h3><%= t("directory.people.index.holds_nothing_heading") %></h3>
-      <table>
-        <thead>
+    <div is-="separator"></div>
+
+    <span style="color: var(--foreground2); font-style: italic;">holds nothing</span>
+    <table>
+      <thead><tr><th>name</th><th>email</th><th></th></tr></thead>
+      <tbody>
+        <% @holds_nothing.each do |person| %>
           <tr>
-            <th><%= t("directory.people.index.col_name") %></th>
-            <th><%= t("directory.people.index.col_email") %></th>
-            <th></th>
+            <td><%= link_to person.full_name, directory_person_path(person) %></td>
+            <td style="color: var(--foreground2);"><%= person.primary_email %></td>
+            <td style="text-align: right;">
+              <%= button_to "remove", directory_person_path(person), method: :delete, data: { confirm: "remove #{person.full_name}?" }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          <% @holds_nothing.each do |person| %>
-            <tr>
-              <td><%= link_to person.full_name, directory_person_path(person) %></td>
-              <td><small><%= person.primary_email %></small></td>
-              <td>
-                <%= button_to t("directory.people.index.remove"),
-                      directory_person_path(person),
-                      method: :delete,
-                      class: "danger small-btn",
-                      form: { onsubmit: "return confirm('#{j t("directory.people.index.remove_confirm", name: person.full_name)}')" } %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </section>
+        <% end %>
+      </tbody>
+    </table>
   <% end %>
-</div>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span> back
+    </row>
+  </row>
+</column>

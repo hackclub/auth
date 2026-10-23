@@ -1,58 +1,40 @@
-<% content_for :title, "New Collection" %>
+<% content_for :title, "new collection" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>new collection</h2>
+  </row>
 
-<div class="page-header">
-  <h1>New Collection</h1>
-</div>
+  <div is-="separator"></div>
 
-<div class="page-sections">
   <%= form_with model: @collection, url: directory_collections_path, method: :post, local: true do |f| %>
-    <section class="section-card">
-      <div class="field-group">
-        <%= f.label :name, "Name" %>
-        <%= f.text_field :name, required: true, placeholder: "e.g. Fulltimers" %>
-      </div>
+    <column gap-="1" style="max-width: 600px;">
+      <label style="color: var(--foreground2);">name</label>
+      <%= f.text_field :name, required: true, placeholder: "e.g. fulltimers", style: "border: none;" %>
 
-      <div class="field-group">
-        <%= f.label :slug, "Slug" %>
-        <%= f.text_field :slug, required: true, placeholder: "e.g. fulltimers" %>
-        <small style="color: var(--pico-muted-color);">URL-safe identifier. Can't be changed after creation.</small>
-      </div>
+      <label style="color: var(--foreground2);">slug</label>
+      <%= f.text_field :slug, required: true, placeholder: "e.g. fulltimers", style: "border: none;" %>
+      <span style="color: var(--foreground2); font-size: 0.85em;">url-safe identifier. can't be changed after creation.</span>
 
-      <fieldset style="border: none; padding: 0; margin-bottom: 1.25rem;">
-        <legend style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.4rem;">Kind</legend>
-        <label class="checkbox-label">
-          <%= f.radio_button :kind, "group" %>
-          <div>
-            <strong>Group</strong>
-            <small style="display: block; color: var(--pico-muted-color);">A collection of people. Can be nested into other groups or entitlements.</small>
-          </div>
-        </label>
-        <label class="checkbox-label">
-          <%= f.radio_button :kind, "entitlement" %>
-          <div>
-            <strong>Entitlement</strong>
-            <small style="display: block; color: var(--pico-muted-color);">Represents access. Can contain groups and people but can't be nested further.</small>
-          </div>
-        </label>
-      </fieldset>
+      <label style="color: var(--foreground2);">kind</label>
+      <row gap-="2" align-="center">
+        <label><%= f.radio_button :kind, "group" %> group</label>
+        <label><%= f.radio_button :kind, "entitlement" %> entitlement</label>
+      </row>
 
-      <div class="field-group">
-        <%= f.label :description, "Description" %>
-        <%= f.text_area :description, rows: 3, placeholder: "What is this collection for?" %>
-      </div>
+      <label style="color: var(--foreground2);">description</label>
+      <%= f.text_area :description, rows: 3, placeholder: "what is this collection for?", style: "border: none;" %>
 
-      <label class="checkbox-label">
+      <row gap-="1" align-="center">
         <%= f.check_box :protected %>
-        <div>
-          <strong>Protected</strong>
-          <small style="display: block; color: var(--pico-muted-color);">Recursive grants can't reach this collection. Only direct grants apply.</small>
-        </div>
-      </label>
-    </section>
+        <label style="color: var(--foreground2);">protected <span style="font-size: 0.85em;">(recursive grants can't reach this collection)</span></label>
+      </row>
 
-    <div class="form-actions">
-      <%= f.submit "Create Collection" %>
-      <%= link_to "Cancel", directory_root_path, class: "button-secondary" %>
-    </div>
+      <div is-="separator"></div>
+
+      <row gap-="2" align-="center">
+        <button type="submit" size-="small">create collection</button>
+        <a href="<%= directory_root_path %>" style="color: var(--foreground2);">cancel</a>
+      </row>
+    </column>
   <% end %>
-</div>
+</column>

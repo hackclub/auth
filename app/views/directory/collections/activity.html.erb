@@ -1,21 +1,24 @@
-<% content_for :title, t("directory.collections.activity.title", name: @collection.name) %>
+<% content_for :title, "activity: #{@collection.name}" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>activity: <%= @collection.name %></h2>
+    <a href="<%= directory_collection_path(@collection.slug) %>" style="color: var(--foreground2);">← back to collection</a>
+  </row>
 
-<div class="page-header">
-  <h1><%= t("directory.collections.activity.heading", name: @collection.name) %></h1>
-  <div class="header-actions">
-    <%= link_to t("directory.actions.back_to_collection"), directory_collection_path(@collection.slug) %>
-  </div>
-</div>
+  <div is-="separator"></div>
 
-<div class="page-sections">
-  <section class="section-card">
-    <% if @activities.any? %>
-      <%= render "backend/shared/activity_log", activities: @activities %>
-      <%= paginate @activities %>
-    <% else %>
-      <div class="empty-state">
-        <p><%= t("directory.collections.activity.empty") %></p>
-      </div>
-    <% end %>
-  </section>
-</div>
+  <% if @activities.any? %>
+    <%= render "backend/shared/activity_log", activities: @activities %>
+    <%= paginate @activities %>
+  <% else %>
+    <span style="color: var(--foreground2);">no activity recorded.</span>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span> back
+    </row>
+  </row>
+</column>

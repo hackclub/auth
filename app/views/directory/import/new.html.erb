@@ -1,32 +1,43 @@
-<% content_for :title, t("directory.import.new.title") %>
+<% content_for :title, "import" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>import</h2>
+    <row gap-="2" align-="center">
+      <a href="<%= directory_root_path %>" style="color: var(--foreground2);">directory</a>
+    </row>
+  </row>
 
-<div class="page-header">
-  <h1><%= t("directory.import.new.heading") %></h1>
-  <div class="header-actions">
-    <%= link_to t("directory.actions.back_to_directory"), directory_root_path, role: "button", class: "button-secondary" %>
-  </div>
-</div>
+  <div is-="separator"></div>
 
-<div class="page-sections">
-  <section class="section-card">
-    <p><small><%= t("directory.import.new.description") %></small></p>
+  <span style="color: var(--foreground2);">upload a csv or paste csv text to bulk-add memberships. format: <code>email,collection_slug,expires_at</code></span>
 
-    <%= form_with url: directory_import_preview_path, method: :post, multipart: true, local: true do |f| %>
-      <div>
-        <%= f.label :csv_file, t("directory.import.new.file_label") %>
-        <%= f.file_field :csv_file, accept: ".csv" %>
-      </div>
+  <div is-="separator"></div>
 
-      <hr>
+  <%= form_with url: directory_import_preview_path, method: :post, multipart: true, local: true do |f| %>
+    <span style="color: var(--foreground2); font-style: italic;">upload file</span>
 
-      <div>
-        <%= f.label :csv_text, t("directory.import.new.paste_label") %>
-        <%= f.text_area :csv_text, rows: 8, placeholder: "email,collection_slug,expires_at\njane@example.com,engineering,\njohn@example.com,ops,2027-01-01", style: "font-family: monospace;" %>
-      </div>
+    <row gap-="1" align-="center">
+      <%= f.file_field :csv_file, accept: ".csv", style: "flex: 1; border: none;" %>
+    </row>
 
-      <div class="form-actions">
-        <%= f.submit t("directory.import.new.preview_button") %>
-      </div>
-    <% end %>
-  </section>
-</div>
+    <div is-="separator"></div>
+
+    <span style="color: var(--foreground2); font-style: italic;">or paste csv</span>
+
+    <%= f.text_area :csv_text, rows: 8, placeholder: "email,collection_slug,expires_at\njane@example.com,engineering,\njohn@example.com,ops,2027-01-01", style: "font-family: monospace; width: 100%; border: none;" %>
+
+    <div is-="separator"></div>
+
+    <row gap-="1" align-="center">
+      <button type="submit" size-="small">preview</button>
+    </row>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span> back
+    </row>
+  </row>
+</column>

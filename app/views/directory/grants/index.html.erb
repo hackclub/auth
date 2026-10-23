@@ -1,47 +1,54 @@
-<% content_for :title, t("directory.grants.index.title") %>
+<% content_for :title, "all grants" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>all grants</h2>
+    <row gap-="2" align-="center">
+      <a href="<%= directory_root_path %>" style="color: var(--foreground2);">directory</a>
+    </row>
+  </row>
 
-<div class="page-header">
-  <h1><%= t("directory.grants.index.heading") %></h1>
-  <div class="header-actions">
-    <%= link_to t("directory.actions.back_to_directory"), directory_root_path, role: "button", class: "button-secondary" %>
-  </div>
-</div>
+  <div is-="separator"></div>
 
-<div class="page-sections">
-  <section class="section-card">
-    <% if @grants.any? %>
-      <table>
-        <thead>
+  <% if @grants.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>grantee</th>
+          <th>target</th>
+          <th>permission</th>
+          <th>recursive</th>
+          <th>by</th>
+          <th>date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @grants.each do |grant| %>
           <tr>
-            <th><%= t("directory.grants.index.col_grantee") %></th>
-            <th><%= t("directory.grants.index.col_target") %></th>
-            <th><%= t("directory.grants.index.col_permission") %></th>
-            <th><%= t("directory.grants.index.col_recursive") %></th>
-            <th><%= t("directory.grants.index.col_created_by") %></th>
-            <th><%= t("directory.grants.index.col_created_at") %></th>
+            <td><%= link_to grant.grantee_group.name, directory_collection_path(grant.grantee_group.slug) %></td>
+            <td><%= link_to grant.target_collection.name, directory_collection_path(grant.target_collection.slug) %></td>
+            <td><code><%= grant.permission %></code></td>
+            <td>
+              <% if grant.recursive %>
+                <span is-="badge" variant-="blue">recursive</span>
+              <% end %>
+            </td>
+            <td style="color: var(--foreground2);"><%= grant.created_by&.full_name %></td>
+            <td style="color: var(--foreground2);"><%= grant.created_at.strftime("%Y-%m-%d") %></td>
           </tr>
-        </thead>
-        <tbody>
-          <% @grants.each do |grant| %>
-            <tr>
-              <td><%= link_to grant.grantee_group.name, directory_collection_path(grant.grantee_group.slug) %></td>
-              <td><%= link_to grant.target_collection.name, directory_collection_path(grant.target_collection.slug) %></td>
-              <td><%= grant.permission %></td>
-              <td>
-                <% if grant.recursive %>
-                  <span class="badge"><%= t("directory.badges.recursive") %></span>
-                <% end %>
-              </td>
-              <td><small><%= grant.created_by&.full_name %></small></td>
-              <td><small><%= grant.created_at.strftime("%Y-%m-%d") %></small></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <div class="empty-state">
-        <p><%= t("directory.grants.index.empty") %></p>
-      </div>
-    <% end %>
-  </section>
-</div>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <column align-="center center" pad-="4 0">
+      <span style="color: var(--foreground2);">no grants</span>
+    </column>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span> back
+    </row>
+  </row>
+</column>
