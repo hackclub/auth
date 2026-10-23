@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_23_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_23_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -181,6 +181,23 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_000001) do
     t.index ["name_combos"], name: "index_deletions_on_name_combos", using: :gin
   end
 
+  create_table "directory_app_requirements", id: false, force: :cascade do |t|
+    t.bigint "app_id", null: false
+    t.bigint "entitlement_id", null: false
+    t.index ["app_id", "entitlement_id"], name: "index_directory_app_requirements_on_app_id_and_entitlement_id", unique: true
+    t.index ["app_id"], name: "index_directory_app_requirements_on_app_id"
+    t.index ["entitlement_id"], name: "index_directory_app_requirements_on_entitlement_id"
+  end
+
+  create_table "directory_app_revokers", primary_key: "app_id", force: :cascade do |t|
+    t.text "adapter", null: false
+    t.text "config_ciphertext", null: false
+    t.boolean "enabled", default: true, null: false
+    t.timestamptz "last_called_at"
+    t.text "last_result"
+    t.index ["app_id"], name: "index_directory_app_revokers_on_app_id"
+  end
+
   create_table "directory_closure", primary_key: ["ancestor_id", "descendant_id"], force: :cascade do |t|
     t.bigint "ancestor_id", null: false
     t.bigint "descendant_id", null: false
@@ -196,7 +213,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_000001) do
     t.bigint "created_by_identity_id"
     t.datetime "created_at", null: false
     t.index ["slug"], name: "index_directory_collections_on_slug", unique: true
-    t.check_constraint "kind::text = ANY (ARRAY['group'::character varying, 'entitlement'::character varying]::text[])", name: "chk_collection_kind"
+    t.check_constraint "kind::text = ANY (ARRAY['group'::character varying::text, 'entitlement'::character varying::text])", name: "chk_collection_kind"
   end
 
   create_table "directory_effective_grants", primary_key: ["person_id", "target_collection_id", "permission"], force: :cascade do |t|
@@ -211,6 +228,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_000001) do
     t.index ["person_id"], name: "index_directory_effective_memberships_on_person_id"
   end
 
+  create_table "directory_exposures", force: :cascade do |t|
+    t.bigint "app_id", null: false
+    t.bigint "entitlement_id", null: false
+    t.text "claim_name", null: false
+    t.bigint "created_by_identity_id"
+    t.timestamptz "created_at", default: -> { "now()" }, null: false
+    t.index ["app_id", "claim_name"], name: "index_directory_exposures_on_app_id_and_claim_name", unique: true
+    t.index ["app_id", "entitlement_id"], name: "index_directory_exposures_on_app_id_and_entitlement_id", unique: true
+    t.index ["app_id"], name: "index_directory_exposures_on_app_id"
+    t.index ["created_by_identity_id"], name: "index_directory_exposures_on_created_by_identity_id"
+    t.index ["entitlement_id"], name: "index_directory_exposures_on_entitlement_id"
+  end
+
   create_table "directory_grants", force: :cascade do |t|
     t.bigint "grantee_group_id", null: false
     t.bigint "target_collection_id", null: false
@@ -219,7 +249,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_000001) do
     t.bigint "created_by_identity_id"
     t.datetime "created_at", null: false
     t.index ["grantee_group_id", "target_collection_id", "permission"], name: "idx_grants_unique", unique: true
-    t.check_constraint "permission::text = ANY (ARRAY['view'::character varying, 'manage_members'::character varying, 'expose'::character varying]::text[])", name: "chk_grant_permission"
+    t.check_constraint "permission::text = ANY (ARRAY['view'::character varying::text, 'manage_members'::character varying::text, 'expose'::character varying::text])", name: "chk_grant_permission"
   end
 
   create_table "directory_membership_changes", force: :cascade do |t|
@@ -229,7 +259,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_000001) do
     t.text "cause"
     t.datetime "created_at", null: false
     t.index ["created_at"], name: "index_directory_membership_changes_on_created_at"
-    t.check_constraint "op::text = ANY (ARRAY['added'::character varying, 'removed'::character varying]::text[])", name: "chk_membership_change_op"
+    t.check_constraint "op::text = ANY (ARRAY['added'::character varying::text, 'removed'::character varying::text])", name: "chk_membership_change_op"
   end
 
   create_table "directory_memberships", force: :cascade do |t|
@@ -824,6 +854,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_000001) do
   add_foreign_key "backend_organizer_positions", "oauth_applications", column: "program_id"
   add_foreign_key "backend_users", "identities"
   add_foreign_key "break_glass_records", "backend_users"
+  add_foreign_key "directory_app_requirements", "directory_collections", column: "entitlement_id", on_delete: :cascade
+  add_foreign_key "directory_app_requirements", "oauth_applications", column: "app_id", on_delete: :cascade
+  add_foreign_key "directory_app_revokers", "oauth_applications", column: "app_id", on_delete: :cascade
   add_foreign_key "directory_closure", "directory_collections", column: "ancestor_id", on_delete: :cascade
   add_foreign_key "directory_closure", "directory_collections", column: "descendant_id", on_delete: :cascade
   add_foreign_key "directory_collections", "identities", column: "created_by_identity_id", on_delete: :nullify
@@ -831,6 +864,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_000001) do
   add_foreign_key "directory_effective_grants", "directory_people", column: "person_id", on_delete: :cascade
   add_foreign_key "directory_effective_memberships", "directory_collections", column: "collection_id", on_delete: :cascade
   add_foreign_key "directory_effective_memberships", "directory_people", column: "person_id", on_delete: :cascade
+  add_foreign_key "directory_exposures", "directory_collections", column: "entitlement_id", on_delete: :cascade
+  add_foreign_key "directory_exposures", "identities", column: "created_by_identity_id", on_delete: :nullify
+  add_foreign_key "directory_exposures", "oauth_applications", column: "app_id", on_delete: :cascade
   add_foreign_key "directory_grants", "directory_collections", column: "grantee_group_id", on_delete: :cascade
   add_foreign_key "directory_grants", "directory_collections", column: "target_collection_id", on_delete: :cascade
   add_foreign_key "directory_grants", "identities", column: "created_by_identity_id", on_delete: :nullify

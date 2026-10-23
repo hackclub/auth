@@ -1,0 +1,25 @@
+module Directory
+  class Exposure < ApplicationRecord
+    self.table_name = "directory_exposures"
+
+    has_paper_trail
+    include PublicActivity::Model
+
+    belongs_to :app, class_name: "Program"
+    belongs_to :entitlement, class_name: "Directory::Collection"
+    belongs_to :created_by, class_name: "Identity", foreign_key: :created_by_identity_id, optional: true
+
+    validates :claim_name, presence: true
+    validates :app_id, uniqueness: { scope: :entitlement_id }
+    validates :claim_name, uniqueness: { scope: :app_id }
+    validate :entitlement_must_be_entitlement
+
+    private
+
+    def entitlement_must_be_entitlement
+      return unless entitlement
+
+      errors.add(:entitlement, "must be an entitlement") unless entitlement.is_a?(Directory::Entitlement)
+    end
+  end
+end

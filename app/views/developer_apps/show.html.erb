@@ -183,6 +183,60 @@
       </section>
     <% end %>
 
+    <%# Directory %>
+    <section class="section-card">
+      <h3>directory</h3>
+      <% exposures = Directory::Exposure.where(app_id: @app.id).includes(:entitlement) %>
+      <% requirements = Directory::AppRequirement.where(app_id: @app.id).includes(:entitlement) %>
+
+      <% if exposures.any? %>
+        <div class="credential-block">
+          <label>told about</label>
+          <% exposures.each do |exp| %>
+            <div class="collaborator-row">
+              <span><code><%= exp.claim_name %></code> → <%= exp.entitlement.name %></span>
+              <span class="collaborator-email">wired by <%= exp.created_by&.full_name %></span>
+              <%= button_to "Remove", directory_exposure_path(exp), method: :delete, class: "danger small-btn" %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if requirements.any? %>
+        <div class="credential-block">
+          <label>required to log in</label>
+          <% requirements.each do |req| %>
+            <div class="collaborator-row">
+              <span><%= req.entitlement.name %></span>
+              <%= button_to "Remove", directory_app_requirement_path(req), method: :delete, class: "danger small-btn" %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if @app.hq_official? %>
+        <div class="add-collaborator">
+          <span class="label-upper">wire an entitlement</span>
+          <%= form_with url: directory_exposures_path, method: :post, local: true do |f| %>
+            <%= f.hidden_field :app_id, value: @app.id %>
+            <%= f.text_field :entitlement_slug, placeholder: "entitlement slug" %>
+            <%= f.text_field :claim_name, placeholder: "claim name (e.g. staff)" %>
+            <button type="submit">Wire</button>
+          <% end %>
+        </div>
+        <div class="add-collaborator">
+          <span class="label-upper">require an entitlement to log in</span>
+          <%= form_with url: directory_app_requirements_path, method: :post, local: true do |f| %>
+            <%= f.hidden_field :app_id, value: @app.id %>
+            <%= f.text_field :entitlement_slug, placeholder: "entitlement slug" %>
+            <button type="submit">Require</button>
+          <% end %>
+        </div>
+      <% else %>
+        <p style="color: var(--pico-muted-color);">this app isn't told about any groups. only staff can wire that.</p>
+      <% end %>
+    </section>
+
     <%# Activity Log (async) %>
     <section class="section-card">
       <h3><%= t(".activity_log") %></h3>

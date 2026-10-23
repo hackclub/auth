@@ -83,7 +83,11 @@
               <td style="color: var(--foreground2);"><%= m.expires_at ? distance_of_time_in_words_to_now(m.expires_at) : "—" %></td>
               <% if can_manage %>
                 <td style="text-align: right;">
-                  <%= button_to "remove", directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: "remove this person?" }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+                  <% confirm_msg = "remove #{m.member_person.full_name}?" %>
+                  <% if @consequences[m.id] %>
+                    <% confirm_msg += "\n#{@consequences[m.id]}" %>
+                  <% end %>
+                  <%= button_to "remove", directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
                 </td>
               <% end %>
             </tr>
@@ -126,7 +130,12 @@
               <td style="color: var(--foreground2);"><%= m.expires_at ? distance_of_time_in_words_to_now(m.expires_at) : "—" %></td>
               <% if can_manage %>
                 <td style="text-align: right;">
-                  <%= button_to "remove", directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: "remove this member?" }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+                  <% member_name = m.member_person&.full_name || m.member_group&.name %>
+                  <% confirm_msg = "remove #{member_name}?" %>
+                  <% if m.member_person && @consequences[m.id] %>
+                    <% confirm_msg += "\n#{@consequences[m.id]}" %>
+                  <% end %>
+                  <%= button_to "remove", directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
                 </td>
               <% end %>
             </tr>
@@ -216,6 +225,30 @@
 
   <div is-="separator"></div>
 
+  <%# === APPS TOLD ABOUT THIS (entitlements only) === %>
+  <% if @collection.entitlement? %>
+    <% wired_exposures = Directory::Exposure.where(entitlement_id: @collection.id).includes(:app, :created_by) %>
+    <span style="color: var(--foreground2); font-style: italic;">apps told about this</span>
+    <% if wired_exposures.any? %>
+      <table>
+        <thead><tr><th>app</th><th>claim</th><th>wired by</th><th>when</th></tr></thead>
+        <tbody>
+          <% wired_exposures.each do |exp| %>
+            <tr>
+              <td><%= exp.app.name %></td>
+              <td><code><%= exp.claim_name %></code></td>
+              <td style="color: var(--foreground2);"><%= exp.created_by&.full_name || "—" %></td>
+              <td style="color: var(--foreground2);"><%= exp.created_at.strftime("%Y-%m-%d") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <span style="color: var(--foreground2);">no apps wired</span>
+    <% end %>
+    <div is-="separator"></div>
+  <% end %>
+
   <%# === ACTIVITY === %>
   <% if @recent_activities.present? && @recent_activities.any? %>
     <row align-="center between">
@@ -223,6 +256,26 @@
       <a href="<%= activity_directory_collection_path(@collection.slug) %>" style="color: var(--foreground2);">all activity →</a>
     </row>
     <%= render "backend/shared/activity_log", activities: @recent_activities %>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <% if directory_admin? %>
+    <details>
+      <summary style="color: var(--red); cursor: pointer;">danger zone</summary>
+      <column pad-="1 0" gap-="1">
+        <% if @collection.protected %>
+          <%= form_with url: directory_collection_path(@collection.slug), method: :delete, local: true do |f| %>
+            <row gap-="1" align-="center">
+              <input type="text" name="confirm_slug" placeholder="type slug to confirm…" style="flex: 1; border: none;" />
+              <button type="submit" style="all:unset; color:var(--red); text-decoration:underline; cursor:pointer;">delete collection</button>
+            </row>
+          <% end %>
+        <% else %>
+          <%= button_to "delete collection", directory_collection_path(@collection.slug), method: :delete, data: { confirm: "delete #{@collection.name}? this cannot be undone." }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+        <% end %>
+      </column>
+    </details>
   <% end %>
 
   <div is-="separator"></div>

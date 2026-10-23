@@ -305,6 +305,10 @@ Rails.application.routes.draw do
 
     # Admin: all grants flat view
     get "grants", to: "grants#index", as: :all_grants
+
+    resources :exposures, only: [ :create, :destroy ]
+    resources :app_requirements, only: [ :create, :destroy ]
+    get "denied", to: "requirement_denied#show", as: :requirement_denied
   end
 
   root "static_pages#home"

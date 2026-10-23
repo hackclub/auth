@@ -14,7 +14,14 @@ module Directory
       if params[:email].present?
         # Add-by-email: find identity, create directory person if needed
         identity = Identity.find_by("lower(primary_email) = ?", params[:email].strip.downcase)
+
+        Rails.logger.info("[Directory] add-by-email: #{current_identity.primary_email} searched for '#{params[:email]}' on #{@collection.slug} — #{identity ? 'found' : 'miss'}")
+
         unless identity
+          @collection.create_activity :email_lookup_miss,
+            owner: current_identity,
+            parameters: { email: params[:email].strip.downcase, collection_slug: @collection.slug }
+
           redirect_back fallback_location: directory_collection_path(@collection.slug),
             alert: "no hca account with that email."
           return

@@ -117,6 +117,11 @@ class OAuthScope
       includes: %w[email name slack_id phone birthdate verification_status]
     ),
     new(
+      name: "groups",
+      description: "See which directory groups you're in",
+      icon: "admin"
+    ),
+    new(
       name: "set_slack_id",
       description: "Associate Slack IDs with identities",
       icon: "slack"
@@ -125,7 +130,7 @@ class OAuthScope
 
   BY_NAME = ALL.index_by(&:name).freeze
 
-  COMMUNITY_ALLOWED = %w[openid profile email name slack_id verification_status].freeze
+  COMMUNITY_ALLOWED = %w[openid profile email name slack_id verification_status groups].freeze
   HQ_OFFICIAL_SCOPES = (COMMUNITY_ALLOWED + %w[basic_info birthdate phone address]).freeze
   SUPER_ADMIN_SCOPES = (HQ_OFFICIAL_SCOPES + %w[legal_name]).freeze
   # set_slack_id intentionally omitted from all tiers — valid but not assignable via UI

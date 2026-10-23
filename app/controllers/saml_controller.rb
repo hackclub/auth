@@ -21,6 +21,7 @@ class SAMLController < ApplicationController
 
     return unless ensure_sp_configured!(slug: params[:slug])
     return unless check_allowed_emails!
+    return unless check_directory_requirements!
 
     unless @sp_config[:allow_idp_initiated]
       @error = "This SP is not configured for IdP-initiated authentication"
@@ -64,6 +65,7 @@ class SAMLController < ApplicationController
     end
 
     return unless check_allowed_emails!
+    return unless check_directory_requirements!
 
     if @sp_config[:slug] == "slack" && current_identity.disallow_slack
       @error = "Unable to log in right now"
@@ -300,6 +302,37 @@ class SAMLController < ApplicationController
 
     unless @sp_config[:allowed_emails].include?(current_identity.primary_email)
       @error = "You are not authorized to access this service"
+      render :error, status: :forbidden and return false
+    end
+
+    true
+  end
+
+  def check_directory_requirements!
+    required = @sp_config[:required_entitlements]
+    return true if required.blank?
+    return true unless current_identity
+
+    person = Directory::Person.find_by(identity: current_identity)
+
+    entitlements = Directory::Entitlement.where(slug: required)
+    found_slugs = entitlements.pluck(:slug)
+    missing_slugs = required - found_slugs
+
+    if missing_slugs.any?
+      Honeybadger.notify(
+        "SAML required_entitlements references missing entitlement slugs",
+        context: { sp: @sp_config[:slug], missing_slugs: missing_slugs }
+      )
+      @error = "this app is misconfigured — contact an administrator"
+      render :error, status: :forbidden and return false
+    end
+
+    unless person && Directory::EffectiveMembership.where(
+      collection_id: entitlements.select(:id),
+      person_id: person.id
+    ).exists?
+      @error = "this app is for hack club staff"
       render :error, status: :forbidden and return false
     end
 

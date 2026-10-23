@@ -73,9 +73,31 @@ module SAMLHelper
 
     if sp_config[:allowed_attributes].present?
       allowed = sp_config[:allowed_attributes]
-      all_attrs.select { |attr| allowed.include?(attr.name) }
-    else
-      all_attrs
+      all_attrs = all_attrs.select { |attr| allowed.include?(attr.name) }
     end
+
+    groups_values = saml_directory_groups(identity, sp_config)
+    if groups_values.any?
+      attr_name = sp_config[:groups_attribute] || "groups"
+      all_attrs << SAML2::Attribute.new(attr_name, groups_values)
+    end
+
+    all_attrs
+  end
+
+  def saml_directory_groups(identity, sp_config)
+    entitlements_map = sp_config[:entitlements]
+    return [] if entitlements_map.blank?
+
+    person = Directory::Person.find_by(identity: identity)
+    return [] unless person
+
+    slugs = entitlements_map.keys.map(&:to_s)
+    entitled_slugs = Directory::EffectiveMembership
+      .joins(:collection)
+      .where(person_id: person.id, directory_collections: { slug: slugs, kind: "entitlement" })
+      .pluck("directory_collections.slug")
+
+    entitled_slugs.filter_map { |slug| entitlements_map[slug.to_sym] || entitlements_map[slug] }
   end
 end

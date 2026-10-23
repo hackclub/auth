@@ -36,6 +36,16 @@ module Directory
         .where(trackable: @collection)
         .order(created_at: :desc)
         .limit(5)
+
+      # Precompute consequence text for each person membership's remove confirm
+      @consequences = {}
+      person_memberships = @direct_people_memberships.to_a
+      person_memberships += @collection.memberships.includes({ member_person: :identity }).where.not(member_person_id: nil).to_a if @collection.group?
+      person_memberships.uniq(&:id).each do |m|
+        next unless m.member_person
+        summary = Directory::Consequence.removal_summary(person: m.member_person, collection: @collection)
+        @consequences[m.id] = summary if summary
+      end
     end
 
     def new
@@ -81,6 +91,12 @@ module Directory
 
     def destroy
       authorize @collection
+
+      if @collection.protected && params[:confirm_slug] != @collection.slug
+        redirect_back fallback_location: directory_collection_path(@collection.slug),
+          alert: "type the collection slug to confirm deletion."
+        return
+      end
 
       ActiveRecord::Base.transaction do
         @collection.destroy!

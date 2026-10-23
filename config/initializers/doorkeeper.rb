@@ -20,7 +20,13 @@ Doorkeeper.configure do
   # This block will be called to check whether the resource owner is authenticated or not.
   resource_owner_authenticator do
     if current_identity
-      current_identity
+      app = ::Program.find_by(uid: params[:client_id])
+      if app && !Directory::RequirementCheck.passes?(identity: current_identity, app: app)
+        redirect_to "/directory/denied?app=#{CGI.escape(app.name)}"
+        nil
+      else
+        current_identity
+      end
     else
       redirect_to "/oauth/welcome?return_to=#{CGI.escape(request.fullpath)}"
       nil
@@ -555,4 +561,26 @@ Doorkeeper.configure do
   # WWW-Authenticate Realm (default: "Doorkeeper").
   #
   # realm "Doorkeeper"
+end
+
+# Enforce directory requirements on refresh_token grants.
+# Intercepts token creation before doorkeeper processes it;
+# returns access_denied if the identity no longer meets the app's requirements.
+Rails.application.config.to_prepare do
+  Doorkeeper::TokensController.prepend(Module.new do
+    def create
+      if params[:grant_type] == "refresh_token" && params[:refresh_token].present?
+        token = ::OAuthToken.by_refresh_token(params[:refresh_token])
+        if token
+          app = token.application
+          identity = ::Identity.find_by(id: token.resource_owner_id)
+          if app && identity && !Directory::RequirementCheck.passes?(identity: identity, app: app)
+            render json: { error: "access_denied", error_description: "You no longer meet this application's requirements." }, status: :forbidden
+            return
+          end
+        end
+      end
+      super
+    end
+  end)
 end
