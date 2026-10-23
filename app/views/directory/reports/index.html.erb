@@ -1,0 +1,161 @@
+<% content_for :title, t("directory.reports.index.title") %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2><%= t("directory.reports.index.heading") %></h2>
+    <a href="<%= directory_root_path %>"><%= t("directory.actions.back_to_directory") %></a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%# Empty collections %>
+  <h3><%= t("directory.reports.index.empty_collections") %></h3>
+  <% if @empty_collections.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th><%= t("directory.reports.index.col_name") %></th>
+          <th><%= t("directory.reports.index.col_kind") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @empty_collections.each do |collection| %>
+          <tr>
+            <td><a href="<%= directory_collection_path(collection.slug) %>"><%= collection.name %></a></td>
+            <td><span is-="badge" variant-="<%= collection.group? ? 'blue' : 'green' %>"><%= collection.kind %></span></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--foreground2);"><%= t("directory.reports.index.none") %></span>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <%# Unmanaged collections %>
+  <h3><%= t("directory.reports.index.unmanaged_collections") %></h3>
+  <% if @unmanaged_collections.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th><%= t("directory.reports.index.col_name") %></th>
+          <th><%= t("directory.reports.index.col_kind") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @unmanaged_collections.each do |collection| %>
+          <tr>
+            <td><a href="<%= directory_collection_path(collection.slug) %>"><%= collection.name %></a></td>
+            <td><span is-="badge" variant-="<%= collection.group? ? 'blue' : 'green' %>"><%= collection.kind %></span></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--foreground2);"><%= t("directory.reports.index.none") %></span>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <%# People with no memberships %>
+  <h3><%= t("directory.reports.index.orphan_people") %></h3>
+  <% if @orphan_people.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th><%= t("directory.reports.index.col_name") %></th>
+          <th><%= t("directory.reports.index.col_email") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @orphan_people.each do |person| %>
+          <tr>
+            <td><a href="<%= directory_person_path(person) %>"><%= person.full_name %></a></td>
+            <td style="color: var(--foreground2);"><%= person.primary_email %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--foreground2);"><%= t("directory.reports.index.none") %></span>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <%# Locked identities %>
+  <h3><%= t("directory.reports.index.locked_identities") %></h3>
+  <% if @locked_people.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th><%= t("directory.reports.index.col_name") %></th>
+          <th><%= t("directory.reports.index.col_email") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @locked_people.each do |person| %>
+          <tr>
+            <td><a href="<%= directory_person_path(person) %>"><%= person.full_name %></a></td>
+            <td style="color: var(--foreground2);"><%= person.primary_email %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--foreground2);"><%= t("directory.reports.index.none") %></span>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <%# Old memberships %>
+  <h3><%= t("directory.reports.index.old_memberships") %></h3>
+  <% if @old_memberships.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th><%= t("directory.reports.index.col_person") %></th>
+          <th><%= t("directory.reports.index.col_collection") %></th>
+          <th><%= t("directory.reports.index.col_created_at") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @old_memberships.each do |membership| %>
+          <tr>
+            <td><a href="<%= directory_person_path(membership.member_person) %>"><%= membership.member_person.full_name %></a></td>
+            <td><a href="<%= directory_collection_path(membership.collection.slug) %>"><%= membership.collection.name %></a></td>
+            <td style="color: var(--foreground2);"><%= membership.created_at.strftime("%Y-%m-%d") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--foreground2);"><%= t("directory.reports.index.none") %></span>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <%# Expiring memberships %>
+  <h3><%= t("directory.reports.index.expiring_memberships") %></h3>
+  <% if @expiring_memberships.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th><%= t("directory.reports.index.col_person") %></th>
+          <th><%= t("directory.reports.index.col_collection") %></th>
+          <th><%= t("directory.reports.index.col_expires_at") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @expiring_memberships.each do |membership| %>
+          <tr>
+            <td><a href="<%= directory_person_path(membership.member_person) %>"><%= membership.member_person.full_name %></a></td>
+            <td><a href="<%= directory_collection_path(membership.collection.slug) %>"><%= membership.collection.name %></a></td>
+            <td style="color: var(--foreground2);"><%= membership.expires_at.strftime("%Y-%m-%d") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--foreground2);"><%= t("directory.reports.index.none") %></span>
+  <% end %>
+</column>

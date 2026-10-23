@@ -1,0 +1,16 @@
+<% content_for :title, t("directory.activity.index.title") %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2><%= t("directory.activity.index.heading") %></h2>
+    <a href="<%= directory_root_path %>"><%= t("directory.actions.back_to_directory") %></a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <% if @activities.any? %>
+    <%= render "backend/shared/activity_log", activities: @activities %>
+    <%= paginate @activities %>
+  <% else %>
+    <span style="color: var(--foreground2);"><%= t("directory.activity.index.empty") %></span>
+  <% end %>
+</column>

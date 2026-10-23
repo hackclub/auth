@@ -1,0 +1,49 @@
+<% content_for :title, t("directory.collections.new.title") %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <h2><%= t("directory.collections.new.heading") %></h2>
+
+  <div is-="separator"></div>
+
+  <%= form_with model: @collection, url: directory_collections_path, method: :post, local: true do |f| %>
+    <column gap-="2">
+      <label>
+        <%= t("directory.collections.form.name") %>
+        <%= f.text_field :name, required: true %>
+      </label>
+
+      <label>
+        <%= t("directory.collections.form.slug") %>
+        <%= f.text_field :slug, required: true %>
+      </label>
+
+      <fieldset>
+        <legend><%= t("directory.collections.form.kind") %></legend>
+        <row gap-="2">
+          <label>
+            <%= f.radio_button :type, "Directory::Group" %>
+            <%= t("directory.collections.form.kind_group") %>
+          </label>
+          <label>
+            <%= f.radio_button :type, "Directory::Entitlement" %>
+            <%= t("directory.collections.form.kind_entitlement") %>
+          </label>
+        </row>
+      </fieldset>
+
+      <label>
+        <%= t("directory.collections.form.description") %>
+        <%= f.text_area :description, rows: 3 %>
+      </label>
+
+      <label>
+        <%= f.check_box :protected %>
+        <%= t("directory.collections.form.protected") %>
+      </label>
+
+      <row gap-="2">
+        <button type="submit"><%= t("directory.collections.new.submit") %></button>
+        <a href="<%= directory_root_path %>"><%= t("directory.actions.cancel") %></a>
+      </row>
+    </column>
+  <% end %>
+</column>

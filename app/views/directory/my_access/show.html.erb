@@ -1,0 +1,56 @@
+<% content_for :title, t("directory.my_access.show.title") %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <h2><%= t("directory.my_access.show.heading") %></h2>
+
+  <div is-="separator"></div>
+
+  <% if @memberships.any? %>
+    <% direct, via = @memberships.partition { |m| m[:direct] } %>
+
+    <% if direct.any? %>
+      <h3><%= t("directory.my_access.show.direct") %></h3>
+      <table>
+        <thead>
+          <tr>
+            <th><%= t("directory.my_access.show.col_collection") %></th>
+            <th><%= t("directory.my_access.show.col_kind") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% direct.each do |m| %>
+            <tr>
+              <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+              <td><span is-="badge" variant-="background2"><%= m[:collection].kind %></span></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+
+    <% if via.any? %>
+      <h3><%= t("directory.my_access.show.via") %></h3>
+      <table>
+        <thead>
+          <tr>
+            <th><%= t("directory.my_access.show.col_collection") %></th>
+            <th><%= t("directory.my_access.show.col_kind") %></th>
+            <th><%= t("directory.my_access.show.col_via") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% via.each do |m| %>
+            <tr>
+              <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+              <td><span is-="badge" variant-="background2"><%= m[:collection].kind %></span></td>
+              <td style="color: var(--foreground2);">
+                <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  <% else %>
+    <span style="color: var(--foreground2);"><%= t("directory.my_access.show.no_memberships") %></span>
+  <% end %>
+</column>

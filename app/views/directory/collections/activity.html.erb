@@ -1,0 +1,16 @@
+<% content_for :title, t("directory.collections.activity.title", name: @collection.name) %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2><%= t("directory.collections.activity.heading", name: @collection.name) %></h2>
+    <a href="<%= directory_collection_path(@collection.slug) %>"><%= t("directory.actions.back_to_collection") %></a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <% if @activities.any? %>
+    <%= render "backend/shared/activity_log", activities: @activities %>
+    <%= paginate @activities %>
+  <% else %>
+    <span style="color: var(--foreground2);"><%= t("directory.collections.activity.empty") %></span>
+  <% end %>
+</column>

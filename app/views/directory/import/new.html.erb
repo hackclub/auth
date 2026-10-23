@@ -1,0 +1,26 @@
+<% content_for :title, t("directory.import.new.title") %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <h2><%= t("directory.import.new.heading") %></h2>
+
+  <div is-="separator"></div>
+
+  <span style="color: var(--foreground2);"><%= t("directory.import.new.description") %></span>
+
+  <column box-="square">
+    <%= form_with url: directory_import_preview_path, method: :post, multipart: true, local: true do |f| %>
+      <column gap-="1">
+        <label><%= t("directory.import.new.file_label") %></label>
+        <%= f.file_field :file, accept: ".csv" %>
+
+        <div is-="separator"></div>
+
+        <label><%= t("directory.import.new.paste_label") %></label>
+        <%= f.text_area :csv_text, rows: 8, placeholder: "email,collection_slug,expires_at\njane@example.com,engineering,\njohn@example.com,ops,2027-01-01", style: "width: 100%; font-family: monospace;" %>
+
+        <row align-="center end">
+          <button size-="small"><%= t("directory.import.new.preview_button") %></button>
+        </row>
+      </column>
+    <% end %>
+  </column>
+</column>

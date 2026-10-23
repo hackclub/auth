@@ -1,0 +1,40 @@
+<% content_for :title, t("directory.collections.edit.title") %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <h2><%= t("directory.collections.edit.heading", name: @collection.name) %></h2>
+
+  <div is-="separator"></div>
+
+  <%= form_with model: @collection, url: directory_collection_path(@collection.slug), method: :patch, local: true do |f| %>
+    <column gap-="2">
+      <label>
+        <%= t("directory.collections.form.name") %>
+        <%= f.text_field :name, required: true %>
+      </label>
+
+      <label>
+        <%= t("directory.collections.form.slug") %>
+        <span style="color: var(--foreground2);"><%= @collection.slug %></span>
+      </label>
+
+      <label>
+        <%= t("directory.collections.form.kind") %>
+        <span is-="badge" variant-="<%= @collection.group? ? 'blue' : 'green' %>"><%= @collection.kind %></span>
+      </label>
+
+      <label>
+        <%= t("directory.collections.form.description") %>
+        <%= f.text_area :description, rows: 3 %>
+      </label>
+
+      <label>
+        <%= f.check_box :protected %>
+        <%= t("directory.collections.form.protected") %>
+      </label>
+
+      <row gap-="2">
+        <button type="submit"><%= t("directory.collections.edit.submit") %></button>
+        <a href="<%= directory_collection_path(@collection.slug) %>"><%= t("directory.actions.cancel") %></a>
+      </row>
+    </column>
+  <% end %>
+</column>
