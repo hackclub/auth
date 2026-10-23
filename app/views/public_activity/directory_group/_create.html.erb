@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  created group <b><%= activity.trackable&.name || '(deleted)' %></b>.
+<% end %>

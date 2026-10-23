@@ -1,0 +1,11 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  added
+  <% if activity.trackable&.member_person %>
+    <b><%= activity.trackable.member_person.full_name %></b>
+  <% elsif activity.trackable&.member_group %>
+    <b><%= activity.trackable.member_group.name %></b>
+  <% else %>
+    a member
+  <% end %>
+  to <b><%= activity.trackable&.collection&.name || '(deleted)' %></b>.
+<% end %>
