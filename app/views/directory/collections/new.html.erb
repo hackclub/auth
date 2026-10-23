@@ -1,50 +1,58 @@
-<% content_for :title, t("directory.collections.new.title") %>
+<% content_for :title, "New Collection" %>
 
 <div class="page-header">
-  <h1><%= t("directory.collections.new.heading") %></h1>
+  <h1>New Collection</h1>
 </div>
 
 <div class="page-sections">
-  <section class="section-card" style="max-width: 700px;">
-    <%= form_with model: @collection, url: directory_collections_path, method: :post, local: true do |f| %>
-      <div>
-        <%= f.label :name, t("directory.collections.form.name") %>
-        <%= f.text_field :name, required: true %>
+  <%= form_with model: @collection, url: directory_collections_path, method: :post, local: true do |f| %>
+    <section class="section-card">
+      <div class="field-group">
+        <%= f.label :name, "Name" %>
+        <%= f.text_field :name, required: true, placeholder: "e.g. Fulltimers" %>
       </div>
 
-      <div>
-        <%= f.label :slug, t("directory.collections.form.slug") %>
-        <%= f.text_field :slug, required: true %>
+      <div class="field-group">
+        <%= f.label :slug, "Slug" %>
+        <%= f.text_field :slug, required: true, placeholder: "e.g. fulltimers" %>
+        <small style="color: var(--pico-muted-color);">URL-safe identifier. Can't be changed after creation.</small>
       </div>
 
-      <fieldset>
-        <legend><%= t("directory.collections.form.kind") %></legend>
-        <label>
+      <fieldset style="border: none; padding: 0; margin-bottom: 1.25rem;">
+        <legend style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.4rem;">Kind</legend>
+        <label class="checkbox-label">
           <%= f.radio_button :kind, "group" %>
-          <%= t("directory.collections.form.kind_group") %>
+          <div>
+            <strong>Group</strong>
+            <small style="display: block; color: var(--pico-muted-color);">A collection of people. Can be nested into other groups or entitlements.</small>
+          </div>
         </label>
-        <label>
+        <label class="checkbox-label">
           <%= f.radio_button :kind, "entitlement" %>
-          <%= t("directory.collections.form.kind_entitlement") %>
+          <div>
+            <strong>Entitlement</strong>
+            <small style="display: block; color: var(--pico-muted-color);">Represents access. Can contain groups and people but can't be nested further.</small>
+          </div>
         </label>
       </fieldset>
 
-      <div>
-        <%= f.label :description, t("directory.collections.form.description") %>
-        <%= f.text_area :description, rows: 3 %>
+      <div class="field-group">
+        <%= f.label :description, "Description" %>
+        <%= f.text_area :description, rows: 3, placeholder: "What is this collection for?" %>
       </div>
 
-      <div>
-        <label>
-          <%= f.check_box :protected %>
-          <%= t("directory.collections.form.protected") %>
-        </label>
-      </div>
+      <label class="checkbox-label">
+        <%= f.check_box :protected %>
+        <div>
+          <strong>Protected</strong>
+          <small style="display: block; color: var(--pico-muted-color);">Recursive grants can't reach this collection. Only direct grants apply.</small>
+        </div>
+      </label>
+    </section>
 
-      <div class="form-actions">
-        <%= f.submit t("directory.collections.new.submit") %>
-        <%= link_to t("directory.actions.cancel"), directory_root_path, class: "button-secondary" %>
-      </div>
-    <% end %>
-  </section>
+    <div class="form-actions">
+      <%= f.submit "Create Collection" %>
+      <%= link_to "Cancel", directory_root_path, class: "button-secondary" %>
+    </div>
+  <% end %>
 </div>

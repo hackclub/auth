@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html data-webtui-theme="gruvbox-dark-hard">
+  <head>
+    <title><%= [content_for(:title).presence, "Directory"].compact.join(" — ") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%= vite_client_tag %>
+    <%= vite_stylesheet_tag "backend-next.css" %>
+    <%= vite_javascript_tag 'backend' %>
+  </head>
+  <body>
+    <row id="hca-actionbar" align-="center between">
+      <row gap-="1" align-="center">
+        <a href="<%= directory_root_path %>" style="text-decoration: none; color: var(--foreground0);"><b>directory</b></a>
+        <% breadcrumbs.each do |crumb| %>
+          <span style="color: var(--foreground2);">/</span>
+          <% if crumb[:path] %>
+            <a href="<%= crumb[:path] %>" style="color: var(--foreground2); text-decoration: none;"><%= crumb[:label] %></a>
+          <% else %>
+            <span style="color: var(--foreground0);"><%= crumb[:label] %></span>
+          <% end %>
+        <% end %>
+      </row>
+      <row gap-="2" align-="center">
+        <a href="<%= directory_my_access_path %>" style="color: var(--foreground2); text-decoration: none;">my access</a>
+        <span style="color: var(--foreground2);">
+          <%= current_identity.first_name %> <%= current_identity.last_name %>
+        </span>
+        <% if directory_admin? %>
+          <span is-="badge" variant-="yellow">admin</span>
+        <% end %>
+      </row>
+    </row>
+    <column id="hca-body" self-="grow">
+      <% flash.each do |type, message| %>
+        <div pad-="1 2">
+          <div box-="square" style="color: var(--<%= type == 'alert' || type == 'error' ? 'red' : 'green' %>);"><%= message %></div>
+        </div>
+      <% end %>
+      <%= yield %>
+    </column>
+  </body>
+</html>

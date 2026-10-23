@@ -1,67 +1,69 @@
-<% content_for :title, t("directory.collections.index.title") %>
+<% content_for :title, "Directory" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>directory</h2>
+    <row gap-="2" align-="center">
+      <% if directory_admin? %>
+        <a href="<%= directory_reports_path %>" style="color: var(--foreground2);">reports</a>
+        <a href="<%= directory_activity_path %>" style="color: var(--foreground2);">activity</a>
+        <a href="<%= directory_health_path %>" style="color: var(--foreground2);">health</a>
+        <a href="<%= directory_new_import_path %>" style="color: var(--foreground2);">import</a>
+        <a href="<%= new_directory_collection_path %>"><button size-="small">+ new collection</button></a>
+      <% end %>
+    </row>
+  </row>
 
-<div class="page-header">
-  <h1><%= t("directory.collections.index.heading") %></h1>
-  <% if directory_admin? %>
-    <p>
-      <%= link_to t("directory.nav.reports"), directory_reports_path %> ·
-      <%= link_to t("directory.nav.activity"), directory_activity_path %> ·
-      <%= link_to t("directory.nav.health"), directory_health_path %> ·
-      <%= link_to t("directory.nav.import"), directory_new_import_path %>
-    </p>
-    <div class="header-actions">
-      <%= link_to t("directory.collections.index.new_collection"), new_directory_collection_path, role: "button" %>
-    </div>
+  <div is-="separator"></div>
+
+  <%= form_with url: directory_search_path, method: :get, local: true do %>
+    <row gap-="1" align-="center">
+      <span style="color: var(--foreground2);">⌕</span>
+      <%= text_field_tag :q, params[:q], placeholder: "search people and collections…", autofocus: true, style: "flex: 1; border: none;" %>
+      <button type="submit" size-="small">search</button>
+    </row>
   <% end %>
-</div>
 
-<div class="page-sections">
-  <div class="search-bar">
-    <%= form_with url: directory_search_path, method: :get, local: true do %>
-      <%= text_field_tag :q, params[:q], placeholder: t("directory.search.placeholder"), type: "search" %>
-      <button type="submit"><%= t("directory.search.button") %></button>
-    <% end %>
-    <% if @collections.respond_to?(:count) %>
-      <span class="search-results-count"><%= @collections.size %> collections</span>
-    <% end %>
-  </div>
+  <div is-="separator"></div>
 
   <% if @collections.any? %>
-    <% @collections.each do |collection| %>
-      <section class="card app-list-item" style="cursor: pointer;" onclick="window.location='<%= directory_collection_path(collection.slug) %>'">
-        <div class="app-list-item-identity">
-          <div>
-            <h3>
+    <table>
+      <thead>
+        <tr>
+          <th>name</th>
+          <th>kind</th>
+          <th style="text-align: right;">direct</th>
+          <th style="text-align: right;">total</th>
+          <th style="text-align: right;">you can</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @collections.each do |collection| %>
+          <tr>
+            <td>
               <%= link_to collection.name, directory_collection_path(collection.slug) %>
               <% if collection.protected %>
-                <span class="badge warning"><%= t("directory.badges.protected") %></span>
+                <span is-="badge" variant-="yellow">protected</span>
               <% end %>
-            </h3>
-            <small>
-              <span class="badge"><%= collection.kind %></span>
-              · <%= collection.direct_member_count %> direct · <%= collection.effective_member_count %> total
-            </small>
-          </div>
-        </div>
-        <div class="app-list-item-meta">
-          <% permissions = [] %>
-          <% permissions << "view" if pundit_user.can?(:view, collection) %>
-          <% permissions << "manage" if pundit_user.can?(:manage_members, collection) %>
-          <% permissions << "expose" if pundit_user.can?(:expose, collection) %>
-          <% if permissions.any? %>
-            <small><%= permissions.join(", ") %></small>
-          <% end %>
-        </div>
-      </section>
-    <% end %>
+            </td>
+            <td>
+              <span is-="badge" variant-="<%= collection.group? ? 'blue' : 'green' %>"><%= collection.kind %></span>
+            </td>
+            <td style="text-align: right;"><%= collection.direct_member_count %></td>
+            <td style="text-align: right;"><%= collection.effective_member_count %></td>
+            <td style="text-align: right; color: var(--foreground2);">
+              <% perms = [] %>
+              <% perms << "view" if pundit_user.can?(:view, collection) %>
+              <% perms << "manage" if pundit_user.can?(:manage_members, collection) %>
+              <% perms << "expose" if pundit_user.can?(:expose, collection) %>
+              <%= perms.join(", ") %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
   <% else %>
-    <div class="empty-state">
-      <div class="empty-icon">📂</div>
-      <h3><%= t("directory.collections.index.empty") %></h3>
-      <p>groups and entitlements live here. create one to start organizing who has access to what.</p>
-      <% if directory_admin? %>
-        <%= link_to t("directory.collections.index.new_collection"), new_directory_collection_path, role: "button" %>
-      <% end %>
-    </div>
+    <column align-="center center" pad-="4 0">
+      <span style="color: var(--foreground2);">no collections yet. create one to get started.</span>
+    </column>
   <% end %>
-</div>
+</column>

@@ -1,7 +1,7 @@
-<% content_for :title, t("directory.my_access.show.title") %>
+<% content_for :title, "My Access" %>
 
 <div class="page-header">
-  <h1><%= t("directory.my_access.show.heading") %></h1>
+  <h1>My Access</h1>
 </div>
 
 <div class="page-sections">
@@ -10,19 +10,15 @@
 
     <% if direct.any? %>
       <section class="section-card">
-        <h3><%= t("directory.my_access.show.direct") %></h3>
+        <h3 style="margin: 0 0 1rem;">Direct</h3>
+        <p style="color: var(--pico-muted-color); margin: 0 0 1rem; font-size: 0.9rem;">Collections you're a direct member of.</p>
         <table>
-          <thead>
-            <tr>
-              <th><%= t("directory.my_access.show.col_collection") %></th>
-              <th><%= t("directory.my_access.show.col_kind") %></th>
-            </tr>
-          </thead>
+          <thead><tr><th>Collection</th><th>Kind</th></tr></thead>
           <tbody>
             <% direct.each do |m| %>
               <tr>
                 <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
-                <td><span class="badge"><%= m[:collection].kind %></span></td>
+                <td><span class="badge"><%= m[:collection].kind.titleize %></span></td>
               </tr>
             <% end %>
           </tbody>
@@ -32,22 +28,21 @@
 
     <% if via.any? %>
       <section class="section-card">
-        <h3><%= t("directory.my_access.show.via") %></h3>
+        <h3 style="margin: 0 0 1rem;">Via Nesting</h3>
+        <p style="color: var(--pico-muted-color); margin: 0 0 1rem; font-size: 0.9rem;">Collections you're in through group membership.</p>
         <table>
-          <thead>
-            <tr>
-              <th><%= t("directory.my_access.show.col_collection") %></th>
-              <th><%= t("directory.my_access.show.col_kind") %></th>
-              <th><%= t("directory.my_access.show.col_via") %></th>
-            </tr>
-          </thead>
+          <thead><tr><th>Collection</th><th>Kind</th><th>Via</th></tr></thead>
           <tbody>
             <% via.each do |m| %>
               <tr>
                 <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
-                <td><span class="badge"><%= m[:collection].kind %></span></td>
+                <td><span class="badge"><%= m[:collection].kind.titleize %></span></td>
                 <td>
-                  <small><%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %></small>
+                  <small style="color: var(--pico-muted-color);">
+                    <% if m[:via_path].present? %>
+                      <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
+                    <% end %>
+                  </small>
                 </td>
               </tr>
             <% end %>
@@ -57,7 +52,9 @@
     <% end %>
   <% else %>
     <div class="empty-state">
-      <p><%= t("directory.my_access.show.no_memberships") %></p>
+      <div class="empty-icon">🔒</div>
+      <h3>No memberships yet</h3>
+      <p>When you're added to groups or entitlements, they'll show up here.</p>
     </div>
   <% end %>
 </div>
