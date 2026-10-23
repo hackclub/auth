@@ -1,57 +1,59 @@
 <% content_for :title, t("directory.health.show.title") %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <row align-="center between">
-    <h2><%= t("directory.health.show.heading") %></h2>
-    <a href="<%= directory_root_path %>"><%= t("directory.actions.back_to_directory") %></a>
-  </row>
 
-  <div is-="separator"></div>
+<div class="page-header">
+  <h1><%= t("directory.health.show.heading") %></h1>
+  <div class="header-actions">
+    <%= link_to t("directory.actions.back_to_directory"), directory_root_path, role: "button", class: "button-secondary" %>
+  </div>
+</div>
 
-  <% if @result %>
-    <row gap-="2" align-="center">
-      <% if @result.valid? %>
-        <span is-="badge" variant-="green"><%= t("directory.health.show.valid") %></span>
-      <% else %>
-        <span is-="badge" variant-="red"><%= t("directory.health.show.invalid") %></span>
-      <% end %>
-      <% if @validated_at %>
-        <span style="color: var(--foreground2);"><%= t("directory.health.show.last_run", time: time_ago_in_words(@validated_at)) %></span>
-      <% end %>
-    </row>
+<div class="page-sections">
+  <section class="section-card">
+    <% if @result %>
+      <div class="flex-row gap align-center">
+        <% if @result.valid? %>
+          <span class="badge success"><%= t("directory.health.show.valid") %></span>
+        <% else %>
+          <span class="badge danger"><%= t("directory.health.show.invalid") %></span>
+        <% end %>
+        <% if @validated_at %>
+          <small><%= t("directory.health.show.last_run", time: time_ago_in_words(@validated_at)) %></small>
+        <% end %>
+      </div>
 
-    <% unless @result.valid? %>
-      <div is-="separator"></div>
-
-      <h3><%= t("directory.health.show.mismatches_heading") %></h3>
-      <% @result.mismatches.each do |table_name, rows| %>
-        <h4><%= table_name %></h4>
-        <table>
-          <thead>
-            <tr>
-              <th><%= t("directory.health.show.col_record") %></th>
-              <th><%= t("directory.health.show.col_expected") %></th>
-              <th><%= t("directory.health.show.col_actual") %></th>
-            </tr>
-          </thead>
-          <tbody>
-            <% rows.each do |row| %>
+      <% unless @result.valid? %>
+        <hr>
+        <h3><%= t("directory.health.show.mismatches_heading") %></h3>
+        <% @result.mismatches.each do |table_name, rows| %>
+          <h4><%= table_name %></h4>
+          <table>
+            <thead>
               <tr>
-                <td><%= row[:record] %></td>
-                <td style="color: var(--green);"><%= row[:expected] %></td>
-                <td style="color: var(--red);"><%= row[:actual] %></td>
+                <th><%= t("directory.health.show.col_record") %></th>
+                <th><%= t("directory.health.show.col_expected") %></th>
+                <th><%= t("directory.health.show.col_actual") %></th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <% rows.each do |row| %>
+                <tr>
+                  <td><%= row[:record] %></td>
+                  <td style="color: var(--pico-color-green-500);"><%= row[:expected] %></td>
+                  <td style="color: var(--pico-color-red-500);"><%= row[:actual] %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
       <% end %>
+    <% else %>
+      <p><small><%= t("directory.health.show.not_run_yet") %></small></p>
     <% end %>
-  <% else %>
-    <span style="color: var(--foreground2);"><%= t("directory.health.show.not_run_yet") %></span>
-  <% end %>
+  </section>
 
-  <div is-="separator"></div>
-
-  <%= form_with url: directory_health_validate_path, method: :post, local: true do |f| %>
-    <button type="submit"><%= t("directory.health.show.run_now") %></button>
-  <% end %>
-</column>
+  <section class="section-card">
+    <%= form_with url: directory_health_validate_path, method: :post, local: true do |f| %>
+      <%= f.submit t("directory.health.show.run_now") %>
+    <% end %>
+  </section>
+</div>

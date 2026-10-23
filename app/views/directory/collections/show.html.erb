@@ -1,66 +1,279 @@
 <% content_for :title, @collection.name %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <%# Header %>
-  <row align-="center between">
-    <row gap-="2" align-="center">
-      <h2><%= @collection.name %></h2>
-      <span is-="badge" variant-="<%= @collection.group? ? 'blue' : 'green' %>"><%= @collection.kind %></span>
-      <% if @collection.protected %>
-        <span is-="badge" variant-="yellow"><%= t("directory.badges.protected") %></span>
-      <% end %>
-    </row>
-    <row gap-="2" align-="center">
-      <span style="color: var(--foreground2);">
-        <%= t("directory.collections.show.counts",
-              direct: @collection.direct_member_count,
-              effective: @collection.effective_member_count) %>
-      </span>
-      <% if directory_admin? %>
-        <a href="<%= edit_directory_collection_path(@collection.slug) %>"><button size-="small"><%= t("directory.collections.show.edit") %></button></a>
-      <% end %>
-    </row>
-  </row>
 
-  <% if @collection.description.present? %>
-    <p style="color: var(--foreground2);"><%= @collection.description %></p>
-  <% end %>
+<div class="page-header">
+  <div class="flex-row gap align-center">
+    <h1><%= @collection.name %></h1>
+    <span class="badge"><%= @collection.kind %></span>
+    <% if @collection.protected %>
+      <span class="badge"><%= t("directory.badges.protected") %></span>
+    <% end %>
+  </div>
+  <div class="header-actions">
+    <span style="color: var(--pico-muted-color);">
+      <%= t("directory.collections.show.counts",
+            direct: @collection.direct_member_count,
+            effective: @collection.effective_member_count) %>
+    </span>
+    <% if directory_admin? %>
+      <%= link_to t("directory.collections.show.edit"), edit_directory_collection_path(@collection.slug), role: "button" %>
+    <% end %>
+  </div>
+</div>
 
-  <div is-="separator"></div>
+<% if @collection.description.present? %>
+  <p style="color: var(--pico-muted-color);"><%= @collection.description %></p>
+<% end %>
 
+<% can_manage = policy(@collection).manage_members? %>
+
+<div class="page-sections">
   <%# Direct Members %>
-  <% can_manage = policy(@collection).manage_members? %>
-
   <% if @collection.entitlement? %>
     <%# Entitlements: separate groups and people sections %>
-    <h3><%= t("directory.collections.show.member_groups") %></h3>
-    <% group_memberships = @collection.memberships.where.not(member_group_id: nil).includes(:member_group, :created_by) %>
-    <% if group_memberships.any? %>
+    <section class="section-card">
+      <h3><%= t("directory.collections.show.member_groups") %></h3>
+      <% group_memberships = @collection.memberships.where.not(member_group_id: nil).includes(:member_group, :created_by) %>
+      <% if group_memberships.any? %>
+        <table>
+          <thead>
+            <tr>
+              <th><%= t("directory.collections.show.col_name") %></th>
+              <th><%= t("directory.collections.show.col_added") %></th>
+              <th><%= t("directory.collections.show.col_added_by") %></th>
+              <% if directory_admin? %><th></th><% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% group_memberships.each do |membership| %>
+              <tr>
+                <td>
+                  <%= link_to membership.member_group.name, directory_collection_path(membership.member_group.slug) %>
+                  <span class="badge"><%= t("directory.badges.group") %></span>
+                </td>
+                <td><small><%= membership.created_at.strftime("%Y-%m-%d") %></small></td>
+                <td><small><%= membership.created_by&.full_name %></small></td>
+                <% if directory_admin? %>
+                  <td>
+                    <%= button_to t("directory.actions.remove"),
+                          directory_collection_membership_path(@collection.slug, membership),
+                          method: :delete,
+                          class: "danger small-btn",
+                          form: { onsubmit: "return confirm('#{j t("directory.confirmations.remove_member")}')" } %>
+                  </td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <small><%= t("directory.collections.show.no_member_groups") %></small>
+      <% end %>
+
+      <% if directory_admin? %>
+        <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
+          <div class="flex-row gap align-center">
+            <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder") %>
+            <%= f.submit t("directory.collections.show.add_group") %>
+          </div>
+        <% end %>
+      <% end %>
+    </section>
+
+    <section class="section-card">
+      <h3><%= t("directory.collections.show.direct_people") %></h3>
+      <% person_memberships = @collection.memberships.where.not(member_person_id: nil).includes(:member_person, :created_by) %>
+      <% if person_memberships.any? %>
+        <table>
+          <thead>
+            <tr>
+              <th><%= t("directory.collections.show.col_name") %></th>
+              <th><%= t("directory.collections.show.col_added") %></th>
+              <th><%= t("directory.collections.show.col_added_by") %></th>
+              <th><%= t("directory.collections.show.col_expires") %></th>
+              <% if can_manage %><th></th><% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% person_memberships.each do |membership| %>
+              <tr>
+                <td><%= link_to membership.member_person.full_name, directory_person_path(membership.member_person) %></td>
+                <td><small><%= membership.created_at.strftime("%Y-%m-%d") %></small></td>
+                <td><small><%= membership.created_by&.full_name %></small></td>
+                <td>
+                  <% if membership.expires_at %>
+                    <small><%= t("directory.collections.show.expires_in", time: distance_of_time_in_words_to_now(membership.expires_at)) %></small>
+                  <% end %>
+                </td>
+                <% if can_manage %>
+                  <td>
+                    <%= button_to t("directory.actions.remove"),
+                          directory_collection_membership_path(@collection.slug, membership),
+                          method: :delete,
+                          class: "danger small-btn",
+                          form: { onsubmit: "return confirm('#{j t("directory.confirmations.remove_member")}')" } %>
+                  </td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <small><%= t("directory.collections.show.no_direct_people") %></small>
+      <% end %>
+
+      <% if can_manage %>
+        <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
+          <div class="flex-row gap align-center">
+            <%= f.text_field :email, placeholder: t("directory.collections.show.email_placeholder") %>
+            <%= f.submit t("directory.collections.show.add_person") %>
+          </div>
+        <% end %>
+      <% end %>
+    </section>
+
+  <% else %>
+    <%# Groups: single mixed list %>
+    <section class="section-card">
+      <h3><%= t("directory.collections.show.direct_members") %></h3>
+      <% if @collection.memberships.any? %>
+        <table>
+          <thead>
+            <tr>
+              <th><%= t("directory.collections.show.col_name") %></th>
+              <th><%= t("directory.collections.show.col_added") %></th>
+              <th><%= t("directory.collections.show.col_added_by") %></th>
+              <th><%= t("directory.collections.show.col_expires") %></th>
+              <% if can_manage %><th></th><% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% @collection.memberships.includes(:member_person, :member_group, :created_by).each do |membership| %>
+              <tr>
+                <td>
+                  <% if membership.member_person %>
+                    <%= link_to membership.member_person.full_name, directory_person_path(membership.member_person) %>
+                  <% elsif membership.member_group %>
+                    <%= link_to membership.member_group.name, directory_collection_path(membership.member_group.slug) %>
+                    <span class="badge"><%= t("directory.badges.group") %></span>
+                  <% end %>
+                </td>
+                <td><small><%= membership.created_at.strftime("%Y-%m-%d") %></small></td>
+                <td><small><%= membership.created_by&.full_name %></small></td>
+                <td>
+                  <% if membership.expires_at %>
+                    <small><%= t("directory.collections.show.expires_in", time: distance_of_time_in_words_to_now(membership.expires_at)) %></small>
+                  <% end %>
+                </td>
+                <% if can_manage %>
+                  <td>
+                    <%= button_to t("directory.actions.remove"),
+                          directory_collection_membership_path(@collection.slug, membership),
+                          method: :delete,
+                          class: "danger small-btn",
+                          form: { onsubmit: "return confirm('#{j t("directory.confirmations.remove_member")}')" } %>
+                  </td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <small><%= t("directory.collections.show.no_direct_members") %></small>
+      <% end %>
+
+      <% if can_manage %>
+        <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
+          <div class="flex-row gap align-center">
+            <%= f.text_field :email, placeholder: t("directory.collections.show.email_placeholder") %>
+            <%= f.submit t("directory.collections.show.add_person") %>
+          </div>
+        <% end %>
+
+        <% if @collection.group? %>
+          <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
+            <div class="flex-row gap align-center">
+              <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder") %>
+              <%= f.submit t("directory.collections.show.add_group") %>
+            </div>
+          <% end %>
+        <% end %>
+      <% end %>
+    </section>
+  <% end %>
+
+  <%# Effective Members (indirect) %>
+  <section class="section-card">
+    <details>
+      <summary><h3 style="display: inline;"><%= t("directory.collections.show.effective_members") %></h3></summary>
+      <% if @effective_memberships.any? %>
+        <table>
+          <thead>
+            <tr>
+              <th><%= t("directory.collections.show.col_name") %></th>
+              <th><%= t("directory.collections.show.col_via") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @effective_memberships.each do |em| %>
+              <tr>
+                <td><%= link_to em.person.full_name, directory_person_path(em.person) %></td>
+                <td>
+                  <% if em.respond_to?(:via_path) && em.via_path.present? %>
+                    <% visible, hidden = em.via_path.partition { |c| policy(c).show? } %>
+                    <% if visible.any? %>
+                      <small>
+                        <%= t("directory.collections.show.via") %>
+                        <%= visible.map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
+                      </small>
+                    <% end %>
+                    <% if hidden.any? %>
+                      <small><%= t("directory.collections.show.via_hidden", count: hidden.size) %></small>
+                    <% end %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <small><%= t("directory.collections.show.no_effective_members") %></small>
+      <% end %>
+    </details>
+  </section>
+
+  <%# Managed By (Grants) %>
+  <section class="section-card">
+    <h3><%= t("directory.collections.show.managed_by") %></h3>
+    <% grants = @collection.grants_as_target.includes(:grantee_group, :created_by) %>
+    <% if grants.any? %>
       <table>
         <thead>
           <tr>
-            <th><%= t("directory.collections.show.col_name") %></th>
-            <th><%= t("directory.collections.show.col_added") %></th>
+            <th><%= t("directory.collections.show.col_grantee") %></th>
+            <th><%= t("directory.collections.show.col_permission") %></th>
+            <th><%= t("directory.collections.show.col_recursive") %></th>
             <th><%= t("directory.collections.show.col_added_by") %></th>
             <% if directory_admin? %><th></th><% end %>
           </tr>
         </thead>
         <tbody>
-          <% group_memberships.each do |membership| %>
+          <% grants.each do |grant| %>
             <tr>
+              <td><%= link_to grant.grantee_group.name, directory_collection_path(grant.grantee_group.slug) %></td>
+              <td><%= grant.permission %></td>
               <td>
-                <a href="<%= directory_collection_path(membership.member_group.slug) %>" data-navigable-item>
-                  <%= membership.member_group.name %>
-                </a>
-                <span is-="badge" variant-="blue"><%= t("directory.badges.group") %></span>
+                <% if grant.recursive %>
+                  <span class="badge"><%= t("directory.badges.recursive") %></span>
+                <% end %>
               </td>
-              <td style="color: var(--foreground2);"><%= membership.created_at.strftime("%Y-%m-%d") %></td>
-              <td style="color: var(--foreground2);"><%= membership.created_by&.full_name %></td>
+              <td><small><%= grant.created_by&.full_name %></small></td>
               <% if directory_admin? %>
                 <td>
                   <%= button_to t("directory.actions.remove"),
-                        directory_collection_membership_path(@collection.slug, membership),
+                        directory_collection_grant_path(@collection.slug, grant),
                         method: :delete,
-                        data: { confirm: t("directory.confirmations.remove_member") } %>
+                        class: "danger small-btn",
+                        form: { onsubmit: "return confirm('#{j t("directory.confirmations.remove_grant")}')" } %>
                 </td>
               <% end %>
             </tr>
@@ -68,254 +281,31 @@
         </tbody>
       </table>
     <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_member_groups") %></span>
+      <small><%= t("directory.collections.show.no_grants") %></small>
     <% end %>
 
     <% if directory_admin? %>
-      <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
-        <row gap-="2" align-="center">
-          <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder") %>
-          <button type="submit" size-="small"><%= t("directory.collections.show.add_group") %></button>
-        </row>
+      <%= form_with url: directory_collection_grants_path(@collection.slug), method: :post, local: true do |f| %>
+        <div class="flex-row gap align-center">
+          <%= f.text_field :grantee_group_slug, placeholder: t("directory.collections.show.grantee_placeholder") %>
+          <%= f.select :permission, %w[view manage_members expose] %>
+          <label><%= f.check_box :recursive %> <%= t("directory.collections.show.recursive_label") %></label>
+          <%= f.submit t("directory.collections.show.add_grant") %>
+        </div>
       <% end %>
     <% end %>
+  </section>
 
-    <div is-="separator"></div>
-
-    <h3><%= t("directory.collections.show.direct_people") %></h3>
-    <% person_memberships = @collection.memberships.where.not(member_person_id: nil).includes(:member_person, :created_by) %>
-    <% if person_memberships.any? %>
-      <table>
-        <thead>
-          <tr>
-            <th><%= t("directory.collections.show.col_name") %></th>
-            <th><%= t("directory.collections.show.col_added") %></th>
-            <th><%= t("directory.collections.show.col_added_by") %></th>
-            <th><%= t("directory.collections.show.col_expires") %></th>
-            <% if can_manage %><th></th><% end %>
-          </tr>
-        </thead>
-        <tbody>
-          <% person_memberships.each do |membership| %>
-            <tr>
-              <td>
-                <a href="<%= directory_person_path(membership.member_person) %>" data-navigable-item>
-                  <%= membership.member_person.full_name %>
-                </a>
-              </td>
-              <td style="color: var(--foreground2);"><%= membership.created_at.strftime("%Y-%m-%d") %></td>
-              <td style="color: var(--foreground2);"><%= membership.created_by&.full_name %></td>
-              <td style="color: var(--foreground2);">
-                <% if membership.expires_at %>
-                  <%= t("directory.collections.show.expires_in", time: distance_of_time_in_words_to_now(membership.expires_at)) %>
-                <% end %>
-              </td>
-              <% if can_manage %>
-                <td>
-                  <%= button_to t("directory.actions.remove"),
-                        directory_collection_membership_path(@collection.slug, membership),
-                        method: :delete,
-                        data: { confirm: t("directory.confirmations.remove_member") } %>
-                </td>
-              <% end %>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+  <%# Recent Activity %>
+  <section class="section-card">
+    <div class="flex-row gap align-center" style="justify-content: space-between;">
+      <h3><%= t("directory.collections.show.recent_activity") %></h3>
+      <%= link_to t("directory.collections.show.view_all_activity"), activity_directory_collection_path(@collection.slug) %>
+    </div>
+    <% if @recent_activities.present? && @recent_activities.any? %>
+      <%= render "backend/shared/activity_log", activities: @recent_activities %>
     <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_direct_people") %></span>
+      <small><%= t("directory.collections.show.no_activity") %></small>
     <% end %>
-
-    <% if can_manage %>
-      <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
-        <row gap-="2" align-="center">
-          <%= f.text_field :email, placeholder: t("directory.collections.show.email_placeholder") %>
-          <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
-        </row>
-      <% end %>
-    <% end %>
-
-  <% else %>
-    <%# Groups: single mixed list %>
-    <h3><%= t("directory.collections.show.direct_members") %></h3>
-    <% if @collection.memberships.any? %>
-      <table>
-        <thead>
-          <tr>
-            <th><%= t("directory.collections.show.col_name") %></th>
-            <th><%= t("directory.collections.show.col_added") %></th>
-            <th><%= t("directory.collections.show.col_added_by") %></th>
-            <th><%= t("directory.collections.show.col_expires") %></th>
-            <% if can_manage %><th></th><% end %>
-          </tr>
-        </thead>
-        <tbody>
-          <% @collection.memberships.includes(:member_person, :member_group, :created_by).each do |membership| %>
-            <tr>
-              <td>
-                <% if membership.member_person %>
-                  <a href="<%= directory_person_path(membership.member_person) %>" data-navigable-item>
-                    <%= membership.member_person.full_name %>
-                  </a>
-                <% elsif membership.member_group %>
-                  <a href="<%= directory_collection_path(membership.member_group.slug) %>" data-navigable-item>
-                    <%= membership.member_group.name %>
-                  </a>
-                  <span is-="badge" variant-="blue"><%= t("directory.badges.group") %></span>
-                <% end %>
-              </td>
-              <td style="color: var(--foreground2);"><%= membership.created_at.strftime("%Y-%m-%d") %></td>
-              <td style="color: var(--foreground2);"><%= membership.created_by&.full_name %></td>
-              <td style="color: var(--foreground2);">
-                <% if membership.expires_at %>
-                  <%= t("directory.collections.show.expires_in", time: distance_of_time_in_words_to_now(membership.expires_at)) %>
-                <% end %>
-              </td>
-              <% if can_manage %>
-                <td>
-                  <%= button_to t("directory.actions.remove"),
-                        directory_collection_membership_path(@collection.slug, membership),
-                        method: :delete,
-                        data: { confirm: t("directory.confirmations.remove_member") } %>
-                </td>
-              <% end %>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_direct_members") %></span>
-    <% end %>
-
-    <% if can_manage %>
-      <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
-        <row gap-="2" align-="center">
-          <%= f.text_field :email, placeholder: t("directory.collections.show.email_placeholder") %>
-          <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
-        </row>
-      <% end %>
-
-      <% if @collection.group? %>
-        <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
-          <row gap-="2" align-="center">
-            <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder") %>
-            <button type="submit" size-="small"><%= t("directory.collections.show.add_group") %></button>
-          </row>
-        <% end %>
-      <% end %>
-    <% end %>
-  <% end %>
-
-  <div is-="separator"></div>
-
-  <%# Effective Members %>
-  <details>
-    <summary><h3 style="display: inline;"><%= t("directory.collections.show.effective_members") %></h3></summary>
-    <% if @effective_memberships.any? %>
-      <table>
-        <thead>
-          <tr>
-            <th><%= t("directory.collections.show.col_name") %></th>
-            <th><%= t("directory.collections.show.col_via") %></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @effective_memberships.each do |em| %>
-            <tr>
-              <td>
-                <a href="<%= directory_person_path(em.person) %>" data-navigable-item>
-                  <%= em.person.full_name %>
-                </a>
-              </td>
-              <td style="color: var(--foreground2);">
-                <% if em.respond_to?(:via_path) && em.via_path.present? %>
-                  <% visible, hidden = em.via_path.partition { |c| policy(c).show? } %>
-                  <% if visible.any? %>
-                    <%= t("directory.collections.show.via") %>
-                    <%= visible.map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
-                  <% end %>
-                  <% if hidden.any? %>
-                    <%= t("directory.collections.show.via_hidden", count: hidden.size) %>
-                  <% end %>
-                <% end %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_effective_members") %></span>
-    <% end %>
-  </details>
-
-  <div is-="separator"></div>
-
-  <%# Managed By (Grants) %>
-  <h3><%= t("directory.collections.show.managed_by") %></h3>
-  <% grants = @collection.grants_as_target.includes(:grantee_group, :created_by) %>
-  <% if grants.any? %>
-    <table>
-      <thead>
-        <tr>
-          <th><%= t("directory.collections.show.col_grantee") %></th>
-          <th><%= t("directory.collections.show.col_permission") %></th>
-          <th><%= t("directory.collections.show.col_recursive") %></th>
-          <th><%= t("directory.collections.show.col_added_by") %></th>
-          <% if directory_admin? %><th></th><% end %>
-        </tr>
-      </thead>
-      <tbody>
-        <% grants.each do |grant| %>
-          <tr>
-            <td>
-              <a href="<%= directory_collection_path(grant.grantee_group.slug) %>" data-navigable-item>
-                <%= grant.grantee_group.name %>
-              </a>
-            </td>
-            <td><%= grant.permission %></td>
-            <td>
-              <% if grant.recursive %>
-                <span is-="badge" variant-="background2"><%= t("directory.badges.recursive") %></span>
-              <% end %>
-            </td>
-            <td style="color: var(--foreground2);"><%= grant.created_by&.full_name %></td>
-            <% if directory_admin? %>
-              <td>
-                <%= button_to t("directory.actions.remove"),
-                      directory_collection_grant_path(@collection.slug, grant),
-                      method: :delete,
-                      data: { confirm: t("directory.confirmations.remove_grant") } %>
-              </td>
-            <% end %>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_grants") %></span>
-  <% end %>
-
-  <% if directory_admin? %>
-    <%= form_with url: directory_collection_grants_path(@collection.slug), method: :post, local: true do |f| %>
-      <row gap-="2" align-="center">
-        <%= f.text_field :grantee_group_slug, placeholder: t("directory.collections.show.grantee_placeholder") %>
-        <%= f.select :permission, %w[view manage_members expose] %>
-        <label><%= f.check_box :recursive %> <%= t("directory.collections.show.recursive_label") %></label>
-        <button type="submit" size-="small"><%= t("directory.collections.show.add_grant") %></button>
-      </row>
-    <% end %>
-  <% end %>
-
-  <div is-="separator"></div>
-
-  <%# Activity %>
-  <row align-="center between">
-    <h3><%= t("directory.collections.show.recent_activity") %></h3>
-    <a href="<%= activity_directory_collection_path(@collection.slug) %>"><%= t("directory.collections.show.view_all_activity") %></a>
-  </row>
-  <% if @recent_activities.present? && @recent_activities.any? %>
-    <%= render "backend/shared/activity_log", activities: @recent_activities %>
-  <% else %>
-    <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_activity") %></span>
-  <% end %>
-</column>
+  </section>
+</div>

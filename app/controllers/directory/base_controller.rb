@@ -4,7 +4,6 @@ module Directory
   class BaseController < ::ApplicationController
     include Pundit::Authorization
 
-    layout "backend"
 
     before_action :authenticate_identity!
     before_action :ensure_directory_access!

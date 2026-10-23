@@ -13,7 +13,7 @@ module Directory
     def preview
       csv_string = read_csv_from_params
       unless csv_string
-        redirect_to new_directory_import_path, alert: t("directory.import.no_file")
+        redirect_to directory_new_import_path, alert: t("directory.import.no_file")
         return
       end
 
@@ -24,7 +24,7 @@ module Directory
     def create
       csv_string = read_csv_from_params
       unless csv_string
-        redirect_to new_directory_import_path, alert: t("directory.import.no_file")
+        redirect_to directory_new_import_path, alert: t("directory.import.no_file")
         return
       end
 
@@ -34,7 +34,7 @@ module Directory
         redirect_to directory_root_path,
           notice: t("directory.import.success", created: result.created_count, skipped: result.skipped_count)
       else
-        redirect_to new_directory_import_path,
+        redirect_to directory_new_import_path,
           alert: t("directory.import.errors", count: result.errors.size)
       end
     end
@@ -46,7 +46,7 @@ module Directory
     end
 
     def set_breadcrumbs
-      add_breadcrumb(t("directory.import.breadcrumb"), new_directory_import_path)
+      add_breadcrumb(t("directory.import.breadcrumb"), directory_new_import_path)
     end
 
     def read_csv_from_params

@@ -1,56 +1,63 @@
 <% content_for :title, t("directory.my_access.show.title") %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <h2><%= t("directory.my_access.show.heading") %></h2>
 
-  <div is-="separator"></div>
+<div class="page-header">
+  <h1><%= t("directory.my_access.show.heading") %></h1>
+</div>
 
+<div class="page-sections">
   <% if @memberships.any? %>
     <% direct, via = @memberships.partition { |m| m[:direct] } %>
 
     <% if direct.any? %>
-      <h3><%= t("directory.my_access.show.direct") %></h3>
-      <table>
-        <thead>
-          <tr>
-            <th><%= t("directory.my_access.show.col_collection") %></th>
-            <th><%= t("directory.my_access.show.col_kind") %></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% direct.each do |m| %>
+      <section class="section-card">
+        <h3><%= t("directory.my_access.show.direct") %></h3>
+        <table>
+          <thead>
             <tr>
-              <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
-              <td><span is-="badge" variant-="background2"><%= m[:collection].kind %></span></td>
+              <th><%= t("directory.my_access.show.col_collection") %></th>
+              <th><%= t("directory.my_access.show.col_kind") %></th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% direct.each do |m| %>
+              <tr>
+                <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+                <td><span class="badge"><%= m[:collection].kind %></span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </section>
     <% end %>
 
     <% if via.any? %>
-      <h3><%= t("directory.my_access.show.via") %></h3>
-      <table>
-        <thead>
-          <tr>
-            <th><%= t("directory.my_access.show.col_collection") %></th>
-            <th><%= t("directory.my_access.show.col_kind") %></th>
-            <th><%= t("directory.my_access.show.col_via") %></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% via.each do |m| %>
+      <section class="section-card">
+        <h3><%= t("directory.my_access.show.via") %></h3>
+        <table>
+          <thead>
             <tr>
-              <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
-              <td><span is-="badge" variant-="background2"><%= m[:collection].kind %></span></td>
-              <td style="color: var(--foreground2);">
-                <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
-              </td>
+              <th><%= t("directory.my_access.show.col_collection") %></th>
+              <th><%= t("directory.my_access.show.col_kind") %></th>
+              <th><%= t("directory.my_access.show.col_via") %></th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% via.each do |m| %>
+              <tr>
+                <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+                <td><span class="badge"><%= m[:collection].kind %></span></td>
+                <td>
+                  <small><%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %></small>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </section>
     <% end %>
   <% else %>
-    <span style="color: var(--foreground2);"><%= t("directory.my_access.show.no_memberships") %></span>
+    <div class="empty-state">
+      <p><%= t("directory.my_access.show.no_memberships") %></p>
+    </div>
   <% end %>
-</column>
+</div>

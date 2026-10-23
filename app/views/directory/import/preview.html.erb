@@ -1,12 +1,14 @@
 <% content_for :title, t("directory.import.preview.title") %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <h2><%= t("directory.import.preview.heading") %></h2>
 
-  <div is-="separator"></div>
+<div class="page-header">
+  <h1><%= t("directory.import.preview.heading") %></h1>
+</div>
 
-  <% if @errors.any? %>
-    <column box-="square">
-      <h3 style="color: var(--red);"><%= t("directory.import.preview.errors_heading") %></h3>
+<div class="page-sections">
+  <% if @result.errors.any? %>
+    <div class="banner danger"><%= t("directory.import.preview.errors_heading") %></div>
+
+    <section class="section-card">
       <table>
         <thead>
           <tr>
@@ -16,70 +18,74 @@
           </tr>
         </thead>
         <tbody>
-          <% @errors.each do |error| %>
+          <% @result.errors.each do |error| %>
             <tr>
               <td><%= error[:row] %></td>
               <td><%= error[:email] %></td>
-              <td style="color: var(--red);"><%= error[:message] %></td>
+              <td><span class="badge danger"><%= error[:message] %></span></td>
             </tr>
           <% end %>
         </tbody>
       </table>
-    </column>
 
-    <div is-="separator"></div>
-
-    <a href="<%= directory_new_import_path %>"><button size-="small"><%= t("directory.import.preview.re_upload") %></button></a>
+      <div class="form-actions">
+        <%= link_to t("directory.import.preview.re_upload"), directory_new_import_path, role: "button", class: "button-secondary" %>
+      </div>
+    </section>
   <% end %>
 
-  <% if @changes.any? %>
-    <row align-="center between">
-      <h3><%= t("directory.import.preview.changes_heading") %></h3>
-      <span style="color: var(--foreground2);">
-        <%= t("directory.import.preview.summary", add_count: @add_count, skip_count: @skip_count) %>
-      </span>
-    </row>
-    <table>
-      <thead>
-        <tr>
-          <th><%= t("directory.import.preview.col_email") %></th>
-          <th><%= t("directory.import.preview.col_collection") %></th>
-          <th><%= t("directory.import.preview.col_expires") %></th>
-          <th><%= t("directory.import.preview.col_action") %></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @changes.each do |change| %>
+  <% if @result.changes.any? %>
+    <section class="section-card">
+      <div class="flex-row gap align-center" style="justify-content: space-between;">
+        <h3><%= t("directory.import.preview.changes_heading") %></h3>
+        <small><%= t("directory.import.preview.summary", add_count: @result.created_count, skip_count: @result.skipped_count) %></small>
+      </div>
+
+      <table>
+        <thead>
           <tr>
-            <td><%= change[:email] %></td>
-            <td><%= change[:collection] %></td>
-            <td style="color: var(--foreground2);"><%= change[:expires_at].presence || "—" %></td>
-            <td>
-              <% if change[:action] == "add" %>
-                <span is-="badge" variant-="green"><%= t("directory.import.preview.action_add") %></span>
-              <% else %>
-                <span is-="badge" variant-="background2"><%= t("directory.import.preview.action_skip") %></span>
-              <% end %>
-            </td>
+            <th><%= t("directory.import.preview.col_email") %></th>
+            <th><%= t("directory.import.preview.col_collection") %></th>
+            <th><%= t("directory.import.preview.col_expires") %></th>
+            <th><%= t("directory.import.preview.col_action") %></th>
           </tr>
+        </thead>
+        <tbody>
+          <% @result.changes.each do |change| %>
+            <tr>
+              <td><%= change[:email] %></td>
+              <td><%= change[:collection] %></td>
+              <td><small><%= change[:expires_at].presence || "—" %></small></td>
+              <td>
+                <% if change[:action] == "add" %>
+                  <span class="badge success"><%= t("directory.import.preview.action_add") %></span>
+                <% else %>
+                  <span class="badge"><%= t("directory.import.preview.action_skip") %></span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <% if @result.errors.empty? %>
+        <hr>
+        <%= form_with url: directory_import_path, method: :post, local: true do |f| %>
+          <%= f.hidden_field :csv_text, value: @csv_string %>
+          <div class="flex-row gap align-center" style="justify-content: space-between;">
+            <%= link_to t("directory.import.preview.back"), directory_new_import_path, class: "button-secondary" %>
+            <%= f.submit t("directory.import.preview.apply_button") %>
+          </div>
         <% end %>
-      </tbody>
-    </table>
-
-    <% if @errors.empty? %>
-      <div is-="separator"></div>
-
-      <%= form_with url: directory_import_path, method: :post, local: true do |f| %>
-        <%= f.hidden_field :csv_data, value: @csv_data %>
-        <row align-="center between">
-          <a href="<%= directory_new_import_path %>" style="color: var(--foreground2);"><%= t("directory.import.preview.back") %></a>
-          <button size-="small"><%= t("directory.import.preview.apply_button") %></button>
-        </row>
       <% end %>
-    <% end %>
+    </section>
   <% else %>
-    <% if @errors.empty? %>
-      <span style="color: var(--foreground2);"><%= t("directory.import.preview.no_changes") %></span>
+    <% if @result.errors.empty? %>
+      <section class="section-card">
+        <div class="empty-state">
+          <p><%= t("directory.import.preview.no_changes") %></p>
+        </div>
+      </section>
     <% end %>
   <% end %>
-</column>
+</div>

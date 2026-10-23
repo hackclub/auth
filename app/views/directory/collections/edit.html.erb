@@ -1,40 +1,43 @@
 <% content_for :title, t("directory.collections.edit.title") %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <h2><%= t("directory.collections.edit.heading", name: @collection.name) %></h2>
 
-  <div is-="separator"></div>
+<div class="page-header">
+  <h1><%= t("directory.collections.edit.heading", name: @collection.name) %></h1>
+</div>
 
-  <%= form_with model: @collection, url: directory_collection_path(@collection.slug), method: :patch, local: true do |f| %>
-    <column gap-="2">
-      <label>
-        <%= t("directory.collections.form.name") %>
+<div class="page-sections">
+  <section class="section-card" style="max-width: 700px;">
+    <%= form_with model: @collection, url: directory_collection_path(@collection.slug), method: :patch, local: true do |f| %>
+      <div>
+        <%= f.label :name, t("directory.collections.form.name") %>
         <%= f.text_field :name, required: true %>
-      </label>
+      </div>
 
-      <label>
-        <%= t("directory.collections.form.slug") %>
-        <span style="color: var(--foreground2);"><%= @collection.slug %></span>
-      </label>
+      <div>
+        <label><%= t("directory.collections.form.slug") %></label>
+        <small><%= @collection.slug %></small>
+      </div>
 
-      <label>
-        <%= t("directory.collections.form.kind") %>
-        <span is-="badge" variant-="<%= @collection.group? ? 'blue' : 'green' %>"><%= @collection.kind %></span>
-      </label>
+      <div>
+        <label><%= t("directory.collections.form.kind") %></label>
+        <span class="badge"><%= @collection.kind %></span>
+      </div>
 
-      <label>
-        <%= t("directory.collections.form.description") %>
+      <div>
+        <%= f.label :description, t("directory.collections.form.description") %>
         <%= f.text_area :description, rows: 3 %>
-      </label>
+      </div>
 
-      <label>
-        <%= f.check_box :protected %>
-        <%= t("directory.collections.form.protected") %>
-      </label>
+      <div>
+        <label>
+          <%= f.check_box :protected %>
+          <%= t("directory.collections.form.protected") %>
+        </label>
+      </div>
 
-      <row gap-="2">
-        <button type="submit"><%= t("directory.collections.edit.submit") %></button>
-        <a href="<%= directory_collection_path(@collection.slug) %>"><%= t("directory.actions.cancel") %></a>
-      </row>
-    </column>
-  <% end %>
-</column>
+      <div class="form-actions">
+        <%= f.submit t("directory.collections.edit.submit") %>
+        <%= link_to t("directory.actions.cancel"), directory_collection_path(@collection.slug), class: "button-secondary" %>
+      </div>
+    <% end %>
+  </section>
+</div>

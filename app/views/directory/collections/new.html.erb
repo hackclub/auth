@@ -1,49 +1,50 @@
 <% content_for :title, t("directory.collections.new.title") %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <h2><%= t("directory.collections.new.heading") %></h2>
 
-  <div is-="separator"></div>
+<div class="page-header">
+  <h1><%= t("directory.collections.new.heading") %></h1>
+</div>
 
-  <%= form_with model: @collection, url: directory_collections_path, method: :post, local: true do |f| %>
-    <column gap-="2">
-      <label>
-        <%= t("directory.collections.form.name") %>
+<div class="page-sections">
+  <section class="section-card" style="max-width: 700px;">
+    <%= form_with model: @collection, url: directory_collections_path, method: :post, local: true do |f| %>
+      <div>
+        <%= f.label :name, t("directory.collections.form.name") %>
         <%= f.text_field :name, required: true %>
-      </label>
+      </div>
 
-      <label>
-        <%= t("directory.collections.form.slug") %>
+      <div>
+        <%= f.label :slug, t("directory.collections.form.slug") %>
         <%= f.text_field :slug, required: true %>
-      </label>
+      </div>
 
       <fieldset>
         <legend><%= t("directory.collections.form.kind") %></legend>
-        <row gap-="2">
-          <label>
-            <%= f.radio_button :type, "Directory::Group" %>
-            <%= t("directory.collections.form.kind_group") %>
-          </label>
-          <label>
-            <%= f.radio_button :type, "Directory::Entitlement" %>
-            <%= t("directory.collections.form.kind_entitlement") %>
-          </label>
-        </row>
+        <label>
+          <%= f.radio_button :type, "Directory::Group" %>
+          <%= t("directory.collections.form.kind_group") %>
+        </label>
+        <label>
+          <%= f.radio_button :type, "Directory::Entitlement" %>
+          <%= t("directory.collections.form.kind_entitlement") %>
+        </label>
       </fieldset>
 
-      <label>
-        <%= t("directory.collections.form.description") %>
+      <div>
+        <%= f.label :description, t("directory.collections.form.description") %>
         <%= f.text_area :description, rows: 3 %>
-      </label>
+      </div>
 
-      <label>
-        <%= f.check_box :protected %>
-        <%= t("directory.collections.form.protected") %>
-      </label>
+      <div>
+        <label>
+          <%= f.check_box :protected %>
+          <%= t("directory.collections.form.protected") %>
+        </label>
+      </div>
 
-      <row gap-="2">
-        <button type="submit"><%= t("directory.collections.new.submit") %></button>
-        <a href="<%= directory_root_path %>"><%= t("directory.actions.cancel") %></a>
-      </row>
-    </column>
-  <% end %>
-</column>
+      <div class="form-actions">
+        <%= f.submit t("directory.collections.new.submit") %>
+        <%= link_to t("directory.actions.cancel"), directory_root_path, class: "button-secondary" %>
+      </div>
+    <% end %>
+  </section>
+</div>

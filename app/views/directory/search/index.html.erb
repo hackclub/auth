@@ -1,67 +1,68 @@
 <% content_for :title, t("directory.search.title") %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <h2><%= t("directory.search.heading") %></h2>
 
-  <form action="<%= directory_search_path %>" method="get">
-    <row gap-="2" align-="center">
-      <input type="text" name="q" value="<%= params[:q] %>" placeholder="<%= t("directory.search.placeholder") %>" style="flex: 1;" />
-      <button type="submit" size-="small"><%= t("directory.search.button") %></button>
-    </row>
-  </form>
+<div class="page-header">
+  <h1><%= t("directory.search.heading") %></h1>
+</div>
 
-  <div is-="separator"></div>
-
-  <% if params[:q].present? %>
-    <h3><%= t("directory.search.people_heading") %></h3>
-    <% if @people.any? %>
-      <table>
-        <thead>
-          <tr>
-            <th><%= t("directory.search.col_name") %></th>
-            <th><%= t("directory.search.col_email") %></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @people.each do |person| %>
-            <tr>
-              <td><a href="<%= directory_person_path(person) %>" data-navigable-item><%= person.full_name %></a></td>
-              <td style="color: var(--foreground2);"><%= person.primary_email %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.search.no_people") %></span>
-    <% end %>
-
-    <div is-="separator"></div>
-
-    <h3><%= t("directory.search.collections_heading") %></h3>
-    <% if @collections.any? %>
-      <table>
-        <thead>
-          <tr>
-            <th><%= t("directory.search.col_name") %></th>
-            <th><%= t("directory.search.col_kind") %></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @collections.each do |collection| %>
-            <tr>
-              <td>
-                <a href="<%= directory_collection_path(collection.slug) %>" data-navigable-item><%= collection.name %></a>
-              </td>
-              <td>
-                <span is-="badge" variant-="<%= collection.group? ? 'blue' : 'green' %>"><%= collection.kind %></span>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.search.no_collections") %></span>
-    <% end %>
-  <% else %>
-    <span style="color: var(--foreground2);"><%= t("directory.search.prompt") %></span>
+<div class="search-bar">
+  <%= form_with url: directory_search_path, method: :get, local: true do %>
+    <%= text_field_tag :q, params[:q], placeholder: t("directory.search.placeholder"), type: "search" %>
+    <button type="submit"><%= t("directory.search.button") %></button>
   <% end %>
-</column>
+</div>
+
+<div class="page-sections">
+  <% if params[:q].present? %>
+    <section class="section-card">
+      <h3><%= t("directory.search.people_heading") %></h3>
+      <% if @people.any? %>
+        <table>
+          <thead>
+            <tr>
+              <th><%= t("directory.search.col_name") %></th>
+              <th><%= t("directory.search.col_email") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @people.each do |person| %>
+              <tr>
+                <td><%= link_to person.full_name, directory_person_path(person) %></td>
+                <td><small><%= person.primary_email %></small></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p><small><%= t("directory.search.no_people") %></small></p>
+      <% end %>
+    </section>
+
+    <section class="section-card">
+      <h3><%= t("directory.search.collections_heading") %></h3>
+      <% if @collections.any? %>
+        <table>
+          <thead>
+            <tr>
+              <th><%= t("directory.search.col_name") %></th>
+              <th><%= t("directory.search.col_kind") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @collections.each do |collection| %>
+              <tr>
+                <td><%= link_to collection.name, directory_collection_path(collection.slug) %></td>
+                <td><span class="badge"><%= collection.kind %></span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p><small><%= t("directory.search.no_collections") %></small></p>
+      <% end %>
+    </section>
+  <% else %>
+    <section class="section-card">
+      <p><small><%= t("directory.search.prompt") %></small></p>
+    </section>
+  <% end %>
+</div>
