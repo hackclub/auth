@@ -22,6 +22,10 @@ module Directory
       user.admin?
     end
 
+    def manage_members?
+      user.admin? || user.can?(:manage_members, record)
+    end
+
     class Scope < ApplicationPolicy::Scope
       def resolve
         if user.admin?

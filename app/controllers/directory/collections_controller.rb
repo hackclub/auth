@@ -16,11 +16,11 @@ module Directory
       add_breadcrumb @collection.name, directory_collection_path(@collection.slug)
 
       @direct_people_memberships = @collection.member_people_memberships
-        .includes(member_person: :identity)
+        .includes({ member_person: :identity }, :created_by)
         .order("identities.first_name")
 
       @direct_group_memberships = @collection.member_group_memberships
-        .includes(:member_group)
+        .includes(:member_group, :created_by)
         .order("directory_collections.name")
 
       direct_person_ids = @collection.member_people_memberships.select(:member_person_id)
@@ -31,6 +31,11 @@ module Directory
 
       @grants = @collection.grants_as_target
         .includes(:grantee_group, :created_by)
+
+      @recent_activities = PublicActivity::Activity
+        .where(trackable: @collection)
+        .order(created_at: :desc)
+        .limit(5)
     end
 
     def new
@@ -89,7 +94,8 @@ module Directory
       @activities = PublicActivity::Activity
         .where(trackable: @collection)
         .order(created_at: :desc)
-        .limit(50)
+        .page(params[:page])
+        .per(50)
     end
 
     def export

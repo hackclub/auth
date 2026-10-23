@@ -7,6 +7,8 @@ module Directory
     include PublicActivity::Model
     tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) }
 
+    def self.policy_class = Directory::CollectionPolicy
+
     belongs_to :created_by, class_name: "Identity", foreign_key: :created_by_identity_id, optional: true
 
     has_many :memberships, class_name: "Directory::Membership", foreign_key: :collection_id, dependent: :destroy

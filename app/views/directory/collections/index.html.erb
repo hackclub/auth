@@ -2,72 +2,66 @@
 
 <div class="page-header">
   <h1><%= t("directory.collections.index.heading") %></h1>
-  <div class="header-actions">
-    <% if directory_admin? %>
-      <%= link_to t("directory.nav.reports"), directory_reports_path %>
-      <%= link_to t("directory.nav.activity"), directory_activity_path %>
-      <%= link_to t("directory.nav.health"), directory_health_path %>
+  <% if directory_admin? %>
+    <p>
+      <%= link_to t("directory.nav.reports"), directory_reports_path %> ·
+      <%= link_to t("directory.nav.activity"), directory_activity_path %> ·
+      <%= link_to t("directory.nav.health"), directory_health_path %> ·
       <%= link_to t("directory.nav.import"), directory_new_import_path %>
+    </p>
+    <div class="header-actions">
       <%= link_to t("directory.collections.index.new_collection"), new_directory_collection_path, role: "button" %>
-    <% else %>
-      <%= link_to t("directory.nav.activity"), directory_activity_path %>
-    <% end %>
-  </div>
+    </div>
+  <% end %>
 </div>
 
 <div class="page-sections">
-  <section class="section-card">
-    <div class="search-bar">
-      <%= form_with url: directory_search_path, method: :get, local: true do %>
-        <%= text_field_tag :q, params[:q], placeholder: t("directory.search.placeholder"), type: "search" %>
-        <button type="submit"><%= t("directory.search.button") %></button>
+  <div class="search-bar">
+    <%= form_with url: directory_search_path, method: :get, local: true do %>
+      <%= text_field_tag :q, params[:q], placeholder: t("directory.search.placeholder"), type: "search" %>
+      <button type="submit"><%= t("directory.search.button") %></button>
+    <% end %>
+    <% if @collections.respond_to?(:count) %>
+      <span class="search-results-count"><%= @collections.size %> collections</span>
+    <% end %>
+  </div>
+
+  <% if @collections.any? %>
+    <% @collections.each do |collection| %>
+      <section class="card app-list-item" style="cursor: pointer;" onclick="window.location='<%= directory_collection_path(collection.slug) %>'">
+        <div class="app-list-item-identity">
+          <div>
+            <h3>
+              <%= link_to collection.name, directory_collection_path(collection.slug) %>
+              <% if collection.protected %>
+                <span class="badge warning"><%= t("directory.badges.protected") %></span>
+              <% end %>
+            </h3>
+            <small>
+              <span class="badge"><%= collection.kind %></span>
+              · <%= collection.direct_member_count %> direct · <%= collection.effective_member_count %> total
+            </small>
+          </div>
+        </div>
+        <div class="app-list-item-meta">
+          <% permissions = [] %>
+          <% permissions << "view" if pundit_user.can?(:view, collection) %>
+          <% permissions << "manage" if pundit_user.can?(:manage_members, collection) %>
+          <% permissions << "expose" if pundit_user.can?(:expose, collection) %>
+          <% if permissions.any? %>
+            <small><%= permissions.join(", ") %></small>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+  <% else %>
+    <div class="empty-state">
+      <div class="empty-icon">📂</div>
+      <h3><%= t("directory.collections.index.empty") %></h3>
+      <p>groups and entitlements live here. create one to start organizing who has access to what.</p>
+      <% if directory_admin? %>
+        <%= link_to t("directory.collections.index.new_collection"), new_directory_collection_path, role: "button" %>
       <% end %>
     </div>
-  </section>
-
-  <section class="section-card">
-    <% if @collections.any? %>
-      <table>
-        <thead>
-          <tr>
-            <th><%= t("directory.collections.index.col_name") %></th>
-            <th><%= t("directory.collections.index.col_kind") %></th>
-            <th><%= t("directory.collections.index.col_direct") %></th>
-            <th><%= t("directory.collections.index.col_effective") %></th>
-            <th><%= t("directory.collections.index.col_access") %></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @collections.each do |collection| %>
-            <tr>
-              <td>
-                <%= link_to collection.name, directory_collection_path(collection.slug) %>
-                <% if collection.protected %>
-                  <span class="badge"><%= t("directory.badges.protected") %></span>
-                <% end %>
-              </td>
-              <td>
-                <span class="badge"><%= collection.kind %></span>
-              </td>
-              <td><%= collection.direct_member_count %></td>
-              <td><%= collection.effective_member_count %></td>
-              <td>
-                <small>
-                  <% permissions = [] %>
-                  <% permissions << "view" if pundit_user.can?(:view, collection) %>
-                  <% permissions << "manage members" if pundit_user.can?(:manage_members, collection) %>
-                  <% permissions << "expose" if pundit_user.can?(:expose, collection) %>
-                  <%= permissions.join(", ") %>
-                </small>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <div class="empty-state">
-        <p><%= t("directory.collections.index.empty") %></p>
-      </div>
-    <% end %>
-  </section>
+  <% end %>
 </div>

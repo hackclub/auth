@@ -10,6 +10,10 @@ module Directory
       @holds_nothing = Directory::Person
         .left_joins(:effective_memberships)
         .where(directory_effective_memberships: { person_id: nil })
+
+      if params[:email].present?
+        @search_results = Identity.where("email LIKE ?", "%#{params[:email]}%")
+      end
     end
 
     def show
@@ -18,14 +22,33 @@ module Directory
       add_breadcrumb t("directory.people.index.title"), directory_people_path
       add_breadcrumb @person.full_name
 
-      @effective_memberships = @person.effective_memberships
+      all_effective = @person.effective_memberships
         .includes(:collection)
         .order("directory_collections.name")
 
       direct_collection_ids = @person.memberships.pluck(:collection_id).to_set
-      @grouped_memberships = @effective_memberships.group_by do |em|
-        direct_collection_ids.include?(em.collection_id) ? :direct : :via
+
+      @visible_memberships = all_effective.filter_map do |em|
+        next unless policy(em.collection).show?
+
+        {
+          collection: em.collection,
+          direct: direct_collection_ids.include?(em.collection_id),
+          via_path: []
+        }
       end
+
+      @manageable_collections = Directory::Collection
+        .joins("INNER JOIN directory_effective_grants ON directory_effective_grants.target_collection_id = directory_collections.id")
+        .where(directory_effective_grants: { person_id: @person.id, permission: "manage_members" })
+        .distinct
+        .order(:name)
+
+      @activities = PublicActivity::Activity
+        .where(trackable: @person)
+        .or(PublicActivity::Activity.where(owner: @person.identity))
+        .order(created_at: :desc)
+        .limit(20)
     end
 
     def create

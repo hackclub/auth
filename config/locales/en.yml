@@ -907,7 +907,7 @@ en:
         expires_in: "expires in %{time}"
         grantee_placeholder: "grantee group slug"
         group_slug_placeholder: "group slug"
-        managed_by: "managed by %{names}"
+        managed_by: "managed by"
         member_groups: "member groups"
         no_activity: "no activity yet."
         no_direct_members: "no direct members."
@@ -917,7 +917,7 @@ en:
         no_member_groups: "no member groups."
         recent_activity: "recent activity"
         recursive_label: "recursive"
-        via: "via %{path}"
+        via: "via"
         via_hidden: "via %{count} groups you can't view"
         view_all_activity: "view all activity"
       updated: "collection updated."
@@ -1004,7 +1004,7 @@ en:
         heading: "my access"
         no_memberships: "you have no memberships."
         title: "my access"
-        via: "via %{path}"
+        via: "via"
       title: "my access"
     people:
       created: "person added to directory."
@@ -1038,7 +1038,7 @@ en:
         no_memberships: "no memberships."
         remove: "remove from directory"
         remove_confirm: "remove %{name}? they have %{count} memberships that will be removed."
-        via: "via %{path}"
+        via: "via"
     reports:
       index:
         col_collection: "collection"

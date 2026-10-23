@@ -19,9 +19,13 @@ module Directory
 
       direct_collection_ids = @person.memberships.pluck(:collection_id).to_set
 
-      @direct_memberships = all_effective.select { |em| direct_collection_ids.include?(em.collection_id) }
-      @via_memberships = all_effective.reject { |em| direct_collection_ids.include?(em.collection_id) }
-      @apps_told_about = []
+      @memberships = all_effective.map do |em|
+        {
+          collection: em.collection,
+          direct: direct_collection_ids.include?(em.collection_id),
+          via_path: []
+        }
+      end
     end
 
     private

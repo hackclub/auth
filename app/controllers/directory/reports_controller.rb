@@ -11,13 +11,13 @@ module Directory
         .where(directory_memberships: { id: nil })
         .order(:name)
 
-      @no_grant_collections = Directory::Collection
+      @unmanaged_collections = Directory::Collection
         .where.not(
           id: Directory::Grant.where(permission: "manage_members").select(:target_collection_id)
         )
         .order(:name)
 
-      @holds_nothing_people = Directory::Person
+      @orphan_people = Directory::Person
         .left_joins(:effective_memberships)
         .where(directory_effective_memberships: { person_id: nil })
         .includes(:identity)

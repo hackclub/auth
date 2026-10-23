@@ -6,7 +6,11 @@ module Directory
       authorize :directory, :admin?
       add_breadcrumb t("directory.health.title")
 
-      @last_validate_result = Rails.cache.read("directory:last_validate_result")
+      cached = Rails.cache.read("directory:last_validate_result")
+      if cached
+        @result = cached
+        @validated_at = cached.try(:validated_at)
+      end
     end
 
     def validate

@@ -20,11 +20,11 @@
       <fieldset>
         <legend><%= t("directory.collections.form.kind") %></legend>
         <label>
-          <%= f.radio_button :type, "Directory::Group" %>
+          <%= f.radio_button :kind, "group" %>
           <%= t("directory.collections.form.kind_group") %>
         </label>
         <label>
-          <%= f.radio_button :type, "Directory::Entitlement" %>
+          <%= f.radio_button :kind, "entitlement" %>
           <%= t("directory.collections.form.kind_entitlement") %>
         </label>
       </fieldset>
