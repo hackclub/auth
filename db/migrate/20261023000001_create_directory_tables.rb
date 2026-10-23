@@ -45,13 +45,13 @@ class CreateDirectoryTables < ActiveRecord::Migration[8.0]
     execute <<~SQL
       CREATE UNIQUE INDEX idx_membership_person_unique
         ON directory_memberships (collection_id, member_person_id)
-        NULLS NOT DISTINCT
+        WHERE member_person_id IS NOT NULL
     SQL
 
     execute <<~SQL
       CREATE UNIQUE INDEX idx_membership_group_unique
         ON directory_memberships (collection_id, member_group_id)
-        NULLS NOT DISTINCT
+        WHERE member_group_id IS NOT NULL
     SQL
 
     create_table :directory_grants, id: :bigint do |t|

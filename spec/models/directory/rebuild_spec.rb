@@ -71,9 +71,9 @@ RSpec.describe Directory::Rebuild, type: :model do
 
       rebuild!
 
-      # Self-loops at depth 0 + A→C and B→C at depth 1
-      expect(Directory::Closure.where(ancestor_id: group_a.id, descendant_id: group_c.id)).to exist
-      expect(Directory::Closure.where(ancestor_id: group_b.id, descendant_id: group_c.id)).to exist
+      # C is ancestor (parent), A and B are descendants (children/members)
+      expect(Directory::Closure.where(ancestor_id: group_c.id, descendant_id: group_a.id)).to exist
+      expect(Directory::Closure.where(ancestor_id: group_c.id, descendant_id: group_b.id)).to exist
     end
   end
 

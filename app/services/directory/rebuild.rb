@@ -30,6 +30,7 @@ module Directory
     private
 
     def snapshot_old
+      @conn.execute("DROP TABLE IF EXISTS _old_em, _new_closure, _new_em, _new_eg")
       @conn.execute(<<~SQL)
         CREATE TEMP TABLE _old_em ON COMMIT DROP AS
         SELECT collection_id, person_id

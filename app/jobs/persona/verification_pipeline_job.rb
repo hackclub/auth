@@ -26,9 +26,9 @@ class Persona::VerificationPipelineJob < ApplicationJob
   def run_resemblances = ResemblanceNoticerEngine.run(@identity, additional_names: document_names)
 
   def run_decisioning
-    verdict = Internal::Decisioning.run(@verification)
+    result = Internal::Decisioning.run(@verification)
 
-    case verdict
+    case result.verdict
     when :approved
       if !@verification.auto_approvable?
         # staff-created inquiries already carry their own issue
