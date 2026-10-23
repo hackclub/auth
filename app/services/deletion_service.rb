@@ -40,6 +40,13 @@ module DeletionService
       log.call "step 1: locking account..."
       identity.lock_account! unless identity.locked?
 
+      log.call "step 1b: removing from directory (if present)..."
+      if (dir_person = Directory::Person.find_by(identity: identity))
+        dir_person.destroy!
+        Directory::Rebuild.call(cause: "person_removed:#{dir_person.id}")
+        log.call "  removed directory person #{dir_person.id}"
+      end
+
       log.call "step 2: destroying auth data..."
       counts = {
         v2_login_codes: identity.v2_login_codes.destroy_all.size,

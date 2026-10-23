@@ -13,17 +13,27 @@ module Directory
 
     def create
       @collection = Directory::Collection.find_by!(slug: params[:collection_slug])
-      grant = @collection.grants_as_target.new(grant_params)
-      grant.created_by_identity_id = current_identity.id
-      authorize grant
+      authorize Directory::Grant
+
+      grantee = Directory::Collection.groups.find_by!(slug: params[:grantee_group_slug].strip)
+
+      grant = @collection.grants_as_target.new(
+        grantee_group: grantee,
+        permission: params[:permission],
+        recursive: params[:recursive] == "1",
+        created_by_identity_id: current_identity.id
+      )
 
       ActiveRecord::Base.transaction do
         grant.save!
-        Directory::Rebuild.call(cause: "grant_created:#{grant.id}")
+        Directory::Rebuild.call(cause: "grant:#{grant.id}")
       end
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
-        notice: t("directory.grants.created")
+        notice: "grant added."
+    rescue ActiveRecord::RecordNotFound => e
+      redirect_back fallback_location: directory_collection_path(@collection.slug),
+        alert: e.message
     rescue ActiveRecord::RecordInvalid => e
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         alert: e.record.errors.full_messages.to_sentence
@@ -36,17 +46,11 @@ module Directory
 
       ActiveRecord::Base.transaction do
         grant.destroy!
-        Directory::Rebuild.call(cause: "grant_deleted:#{grant.id}")
+        Directory::Rebuild.call(cause: "grant_removed:#{grant.id}")
       end
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
-        notice: t("directory.grants.destroyed")
-    end
-
-    private
-
-    def grant_params
-      params.require(:grant).permit(:grantee_group_id, :permission, :recursive)
+        notice: "grant removed."
     end
   end
 end

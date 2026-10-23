@@ -8,33 +8,55 @@ module Directory
 
       membership = @collection.memberships.new(
         created_by_identity_id: current_identity.id,
-        expires_at: membership_params[:expires_at].presence
+        expires_at: params[:expires_at].presence
       )
 
-      if membership_params[:email].present?
-        identity = Identity.find_by!(primary_email: membership_params[:email])
+      if params[:email].present?
+        # Add-by-email: find identity, create directory person if needed
+        identity = Identity.find_by("lower(primary_email) = ?", params[:email].strip.downcase)
+        unless identity
+          redirect_back fallback_location: directory_collection_path(@collection.slug),
+            alert: "no hca account with that email."
+          return
+        end
         person = Directory::Person.find_or_create_by!(identity: identity) do |p|
           p.created_by_identity_id = current_identity.id
         end
         membership.member_person = person
-      elsif membership_params[:member_group_id].present?
+
+      elsif params[:group_slug].present?
+        # Add group by slug
+        group = Directory::Collection.groups.find_by!(slug: params[:group_slug].strip)
         if @collection.entitlement? && !directory_admin?
           redirect_back fallback_location: directory_collection_path(@collection.slug),
-            alert: t("directory.memberships.admin_only_group_on_entitlement")
+            alert: "only admins can add member groups to entitlements."
           return
         end
-        membership.member_group_id = membership_params[:member_group_id]
+        membership.member_group = group
+
+      elsif params[:member_person_id].present?
+        membership.member_person_id = params[:member_person_id]
+
+      elsif params[:member_group_id].present?
+        membership.member_group_id = params[:member_group_id]
+
       else
-        membership.member_person_id = membership_params[:member_person_id]
+        redirect_back fallback_location: directory_collection_path(@collection.slug),
+          alert: "provide an email or group slug."
+        return
       end
 
       ActiveRecord::Base.transaction do
         membership.save!
-        Directory::Rebuild.call(cause: "membership_created:#{membership.id}")
+        Directory::Rebuild.call(cause: "membership:#{membership.id}")
       end
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
-        notice: t("directory.memberships.created")
+        notice: "member added."
+
+    rescue ActiveRecord::RecordNotFound => e
+      redirect_back fallback_location: directory_collection_path(@collection.slug),
+        alert: e.message
     rescue ActiveRecord::RecordInvalid => e
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         alert: e.record.errors.full_messages.to_sentence
@@ -47,17 +69,11 @@ module Directory
 
       ActiveRecord::Base.transaction do
         membership.destroy!
-        Directory::Rebuild.call(cause: "membership_deleted:#{membership.id}")
+        Directory::Rebuild.call(cause: "membership_removed:#{membership.id}")
       end
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
-        notice: t("directory.memberships.destroyed")
-    end
-
-    private
-
-    def membership_params
-      params.require(:membership).permit(:member_person_id, :member_group_id, :email, :expires_at)
+        notice: "member removed."
     end
   end
 end

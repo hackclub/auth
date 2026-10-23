@@ -44,6 +44,20 @@ module Backend
     def can_ban? = can_ban
     def directory_services_admin? = directory_services_admin
 
+    after_save :ensure_directory_person_exists, if: -> { saved_change_to_directory_services_admin? && directory_services_admin? && identity_id.present? }
+    before_save :prevent_last_admin_removal, if: -> { saved_change_to_directory_services_admin? && !directory_services_admin? }
+
+    private def prevent_last_admin_removal
+      if Backend::User.where(directory_services_admin: true).where.not(id: id).none?
+        errors.add(:directory_services_admin, "can't remove the last directory services admin")
+        throw :abort
+      end
+    end
+
+    private def ensure_directory_person_exists
+      Directory::Person.find_or_create_by!(identity_id: identity_id)
+    end
+
 
     # Returns a human-readable string of the user's roles
     def pretty_roles

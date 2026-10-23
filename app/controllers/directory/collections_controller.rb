@@ -45,14 +45,18 @@ module Directory
     end
 
     def create
-      @collection = Directory::Collection.new(collection_params_for_create)
+      klass = case params.dig(:collection, :kind)
+              when "entitlement" then Directory::Entitlement
+              else Directory::Group
+              end
+      @collection = klass.new(collection_params_for_create.except(:kind))
       @collection.created_by_identity_id = current_identity.id
       authorize @collection
 
       if @collection.save
-        redirect_to directory_collection_path(@collection.slug), notice: t("directory.collections.created")
+        redirect_to directory_collection_path(@collection.slug), notice: "collection created."
       else
-        add_breadcrumb t("directory.collections.new.title")
+        add_breadcrumb "new collection"
         render :new, status: :unprocessable_entity
       end
     end
