@@ -42,6 +42,8 @@ module Backend
     def can_break_glass? = can_break_glass
     def can_process_deletions? = can_process_deletions
     def can_ban? = can_ban
+    def directory_services_admin? = directory_services_admin
+
 
     # Returns a human-readable string of the user's roles
     def pretty_roles
@@ -52,6 +54,7 @@ module Backend
       roles << "Human Endorser" if human_endorser?
       roles << "All Fields Access" if all_fields_access?
       roles << "Ban" if can_ban?
+      roles << "Directory Services Admin" if directory_services_admin?
       roles.presence&.join(", ") || "None"
     end
 
