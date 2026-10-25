@@ -127,20 +127,15 @@ class VerificationCase < ApplicationRecord
 
     event :approve do
       transitions from: :call_held, to: :approved
-      after { close_out! }
     end
 
     event :deny do
       transitions from: :call_held, to: :denied
-      after { close_out! }
     end
 
     event :withdraw do
       transitions from: [ :requested, :link_sent, :docs_submitted, :call_scheduled, :call_held ], to: :withdrawn
-      after do
-        close_out!
-        invalidate_access_token!
-      end
+      after { invalidate_access_token! }
     end
   end
 
@@ -161,8 +156,10 @@ class VerificationCase < ApplicationRecord
 
   # -- feature flag ------------------------------------------------------
 
-  def enable_flag! = Flipper.enable(FLIPPER_FLAG, identity)
-  def revoke_flag! = Flipper.disable(FLIPPER_FLAG, identity)
+  # access to the flow is computed, not stored: FLIPPER_FLAG is enabled for
+  # the :has_open_verification_case group (config/initializers/flipper.rb),
+  # which matches any identity with an open case — so opening a case grants
+  # the flow and closing it (approve / deny / withdraw) revokes it.
 
   # -- single-use access link (mirrors Identity::V2LoginCode) -------------
 
@@ -305,10 +302,4 @@ class VerificationCase < ApplicationRecord
   def reset_capture!
     update!(persona_inquiry_id: nil, persona_session_token: nil)
   end
-
-  private
-
-  # decision time: drop the flag. documents are retained (break-glass
-  # gated) — the ManualVerificationCall itself is created by the decision flow.
-  def close_out! = revoke_flag!
 end

@@ -12,8 +12,10 @@ RSpec.describe "Backend verification cases", type: :request do
   after { Flipper.disable(VerificationCase::FLIPPER_FLAG) }
 
   describe "POST /backend/verification_cases" do
-    it "opens a case, enables the flag, and emails the single-use link" do
+    it "opens a case (which grants the flag via the group) and emails the single-use link" do
+      Flipper.enable_group(VerificationCase::FLIPPER_FLAG, :has_open_verification_case)
       target = create(:identity)
+      expect(Flipper.enabled?(VerificationCase::FLIPPER_FLAG, target)).to be(false)
 
       expect {
         post backend_verification_cases_path, params: { identity_id: target.public_id }
@@ -318,7 +320,8 @@ RSpec.describe "Backend verification cases", type: :request do
     it "closes the case, revokes the flag, invalidates the link, and logs the reason" do
       kase = create(:verification_case, :call_scheduled)
       token = kase.access_token
-      Flipper.enable(VerificationCase::FLIPPER_FLAG, kase.identity)
+      Flipper.enable_group(VerificationCase::FLIPPER_FLAG, :has_open_verification_case)
+      expect(Flipper.enabled?(VerificationCase::FLIPPER_FLAG, kase.identity)).to be(true)
 
       post withdraw_backend_verification_case_path(kase), params: { reason: "opened on the wrong account" }
 

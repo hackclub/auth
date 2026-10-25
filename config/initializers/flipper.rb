@@ -1,3 +1,12 @@
+# the actor side of manual_verification_call_* is computed, not stored:
+# membership follows the open case, so opening a case grants the flow and
+# closing it revokes it — nothing per-actor to enable, revoke, or leak.
+# (storing one actor per case hit flipper's 100-actor limit, and every
+# enabled? check loads the whole stored set.)
+Flipper.register(:has_open_verification_case) do |actor|
+  actor.respond_to?(:verification_cases) && actor.verification_cases.open_cases.exists?
+end
+
 Rails.application.configure do
   config.flipper.memoize = true
   config.flipper.preload = true
