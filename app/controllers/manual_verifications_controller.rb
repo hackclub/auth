@@ -1,5 +1,5 @@
 # the user side of a manual verification call case. gated three ways:
-# logged in (ApplicationController), flipper flag on the identity, and
+# logged in (ApplicationController), an open case on the identity, and
 # a single-use emailed link consumed on first visit.
 class ManualVerificationsController < ApplicationController
   before_action :set_case
@@ -175,11 +175,6 @@ class ManualVerificationsController < ApplicationController
   private
 
   def set_case
-    unless Flipper.enabled?(VerificationCase::FLIPPER_FLAG, current_identity)
-      render(:link_invalid, status: :forbidden) and return if params[:token].present?
-      redirect_to root_path and return
-    end
-
     @case = current_identity.verification_cases.open_cases.order(created_at: :desc).first
     return if @case
 

@@ -9,13 +9,9 @@ RSpec.describe "Backend verification cases", type: :request do
     allow_any_instance_of(Backend::ApplicationController).to receive(:require_2fa!).and_return(true)
   end
 
-  after { Flipper.disable(VerificationCase::FLIPPER_FLAG) }
-
   describe "POST /backend/verification_cases" do
-    it "opens a case (which grants the flag via the group) and emails the single-use link" do
-      Flipper.enable_group(VerificationCase::FLIPPER_FLAG, :has_open_verification_case)
+    it "opens a case and emails the single-use link" do
       target = create(:identity)
-      expect(Flipper.enabled?(VerificationCase::FLIPPER_FLAG, target)).to be(false)
 
       expect {
         post backend_verification_cases_path, params: { identity_id: target.public_id }
@@ -24,7 +20,6 @@ RSpec.describe "Backend verification cases", type: :request do
       kase = target.verification_cases.sole
       expect(kase).to be_link_sent
       expect(kase.skip_persona).to be(false)
-      expect(Flipper.enabled?(VerificationCase::FLIPPER_FLAG, target)).to be(true)
     end
 
     it "opens a skip-persona case when asked" do
@@ -317,11 +312,9 @@ RSpec.describe "Backend verification cases", type: :request do
   end
 
   describe "POST /backend/verification_cases/:id/withdraw" do
-    it "closes the case, revokes the flag, invalidates the link, and logs the reason" do
+    it "closes the case, invalidates the link, and logs the reason" do
       kase = create(:verification_case, :call_scheduled)
       token = kase.access_token
-      Flipper.enable_group(VerificationCase::FLIPPER_FLAG, :has_open_verification_case)
-      expect(Flipper.enabled?(VerificationCase::FLIPPER_FLAG, kase.identity)).to be(true)
 
       post withdraw_backend_verification_case_path(kase), params: { reason: "opened on the wrong account" }
 
@@ -330,7 +323,6 @@ RSpec.describe "Backend verification cases", type: :request do
       expect(kase.verification).to be_nil
       expect(kase.access_token).to be_nil
       expect(kase.consume_access_token!(token)).to be(false)
-      expect(Flipper.enabled?(VerificationCase::FLIPPER_FLAG, kase.identity)).to be(false)
 
       event = kase.events.find_by(key: "case_withdrawn")
       expect(event.actor).to eq(verifier)

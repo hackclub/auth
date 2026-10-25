@@ -13,25 +13,10 @@ RSpec.describe "Manual verifications", type: :request do
     allow_any_instance_of(ApplicationController).to receive(:current_identity).and_return(identity)
     allow_any_instance_of(ApplicationController).to receive(:current_session).and_return(session)
     allow_any_instance_of(ApplicationController).to receive(:identity_signed_in?).and_return(true)
-
-    # production state: the feature is on for the has_open_verification_case
-    # group, so having an open case is what grants access
-    Flipper.enable_group(VerificationCase::FLIPPER_FLAG, :has_open_verification_case)
   end
 
-  after { Flipper.disable(VerificationCase::FLIPPER_FLAG) }
-
   describe "gating" do
-    it "bounces users when the feature is off, open case or not" do
-      create(:verification_case, identity: identity, status: :link_sent, access_token_used_at: Time.current)
-      Flipper.disable(VerificationCase::FLIPPER_FLAG)
-
-      get manual_verification_path
-      expect(response).to redirect_to(root_path)
-    end
-
-    it "bounces users with no open case, even manually flagged ones" do
-      Flipper.enable(VerificationCase::FLIPPER_FLAG, identity)
+    it "bounces users with no open case" do
       get manual_verification_path
       expect(response).to redirect_to(root_path)
     end

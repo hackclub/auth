@@ -48,7 +48,6 @@ class ApplicationController < ActionController::Base
   # verification flows — controllers serving those flows use this as a
   # before_action so users land on their case instead of a legacy page
   def redirect_to_open_manual_case
-    return unless Flipper.enabled?(VerificationCase::FLIPPER_FLAG, current_identity)
     return unless current_identity.verification_cases.open_cases.exists?
 
     redirect_to manual_verification_path

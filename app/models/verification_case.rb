@@ -14,7 +14,6 @@ class VerificationCase < ApplicationRecord
   include PublicIdentifiable
   set_public_id_prefix "vcase"
 
-  FLIPPER_FLAG = :manual_verification_call_2026_07_03
   ACCESS_TOKEN_TTL = 7.days
 
   belongs_to :identity
@@ -153,13 +152,6 @@ class VerificationCase < ApplicationRecord
     raise ActiveRecord::ReadOnlyRecord, "verification cases are never hard-deleted; use DeletionService to scrub"
   end
   def decided? = approved? || denied?
-
-  # -- feature flag ------------------------------------------------------
-
-  # access to the flow is computed, not stored: FLIPPER_FLAG is enabled for
-  # the :has_open_verification_case group (config/initializers/flipper.rb),
-  # which matches any identity with an open case — so opening a case grants
-  # the flow and closing it (approve / deny / withdraw) revokes it.
 
   # -- single-use access link (mirrors Identity::V2LoginCode) -------------
 
