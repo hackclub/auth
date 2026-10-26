@@ -15,16 +15,14 @@ module Directory
     end
 
     def call
-      # Must run inside a transaction so temp tables survive across statements
-      ActiveRecord::Base.transaction do
-        compute_expected
-        mismatches = {
-          "directory_closure" => diff_closure,
-          "directory_effective_memberships" => diff_effective_memberships,
-          "directory_effective_grants" => diff_effective_grants
-        }
-        Result.new(mismatches:)
-      end
+      drop_temp_tables # clean slate
+      compute_expected
+      mismatches = {
+        "directory_closure" => diff_closure,
+        "directory_effective_memberships" => diff_effective_memberships,
+        "directory_effective_grants" => diff_effective_grants
+      }
+      Result.new(mismatches:)
     ensure
       drop_temp_tables
     end
@@ -33,7 +31,7 @@ module Directory
 
     def compute_expected
       @conn.execute(<<~SQL)
-        CREATE TEMP TABLE _expected_closure ON COMMIT DROP AS
+        CREATE TEMP TABLE _expected_closure AS
         WITH RECURSIVE closure(ancestor_id, descendant_id, depth) AS (
           SELECT id, id, 0
           FROM directory_collections
@@ -50,7 +48,7 @@ module Directory
       SQL
 
       @conn.execute(<<~SQL)
-        CREATE TEMP TABLE _expected_em ON COMMIT DROP AS
+        CREATE TEMP TABLE _expected_em AS
         SELECT DISTINCT c.ancestor_id AS collection_id, m.member_person_id AS person_id
         FROM directory_memberships m
         INNER JOIN _expected_closure c ON c.descendant_id = m.collection_id
@@ -58,7 +56,7 @@ module Directory
       SQL
 
       @conn.execute(<<~SQL)
-        CREATE TEMP TABLE _expected_eg ON COMMIT DROP AS
+        CREATE TEMP TABLE _expected_eg AS
         SELECT DISTINCT em.person_id,
                CASE WHEN g.recursive THEN expanded.descendant_id ELSE g.target_collection_id END AS target_collection_id,
                g.permission
