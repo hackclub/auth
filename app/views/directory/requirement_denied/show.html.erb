@@ -1,37 +1,8 @@
 <% content_for :title, "Not Available" %>
-<style>
-  .error-page {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 2rem;
-    text-align: center;
-  }
-  .error-page-content {
-    max-width: 600px;
-  }
-  .error-icon {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 1.5rem;
-    color: var(--pico-primary);
-  }
-  .error-title {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-  .error-description {
-    margin-bottom: 2rem;
-    opacity: 0.8;
-  }
-</style>
 
 <div class="error-page">
   <div class="error-page-content">
-    <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v.01M12 12a1.5 1.5 0 10-1.5-1.5M18.364 5.636a9 9 0 11-12.728 12.728 9 9 0 0112.728-12.728z"></path>
-    </svg>
+    <div class="error-icon"><%= inline_icon("private", size: 80) %></div>
 
     <h1 class="error-title">You don't have access to this app.</h1>
     <p class="error-description">If you think this is wrong, ask whoever runs it.</p>
