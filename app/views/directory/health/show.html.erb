@@ -61,6 +61,28 @@
 
   <div is-="separator"></div>
 
+  <span style="color: var(--foreground2); font-style: italic;">revokers</span>
+  <% if @revokers.any? %>
+    <table>
+      <thead><tr><th>app</th><th>adapter</th><th>enabled</th><th>last called</th><th>result</th></tr></thead>
+      <tbody>
+        <% @revokers.each do |r| %>
+          <tr>
+            <td><%= r.app.name %></td>
+            <td><code><%= r.adapter %></code></td>
+            <td><%= r.enabled ? "✓" : "—" %></td>
+            <td style="color: var(--foreground2);"><%= r.last_called_at&.strftime("%Y-%m-%d %H:%M") || "never" %></td>
+            <td><%= r.last_result || "—" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--foreground2);">no revokers configured</span>
+  <% end %>
+
+  <div is-="separator"></div>
+
   <row gap-="2" align-="center" style="color: var(--foreground2);">
     <row gap-="1" align-="center">
       <span is-="badge" variant-="background2">Bksp</span> back

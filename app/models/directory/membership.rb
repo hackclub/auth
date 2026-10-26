@@ -4,7 +4,11 @@ module Directory
 
     has_paper_trail
     include PublicActivity::Model
-    tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) }
+    tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) },
+           recipient: ->(_, model) { model.collection }
+
+    after_create :track_on_person_and_collection
+    after_destroy :track_removal_on_person_and_collection
 
     belongs_to :collection, class_name: "Directory::Collection"
     belongs_to :member_person, class_name: "Directory::Person", optional: true
@@ -99,6 +103,21 @@ module Directory
       if expires_at <= Time.current
         errors.add(:expires_at, "must be in the future")
       end
+    end
+
+    def track_on_person_and_collection
+      return unless member_person
+      collection.create_activity :member_added, owner: created_by, recipient: member_person
+    rescue => e
+      Rails.logger.warn("[Directory] Activity tracking failed: #{e.message}")
+    end
+
+    def track_removal_on_person_and_collection
+      return unless member_person_id
+      # person may already be destroyed in cascades, so rescue
+      collection&.create_activity :member_removed, owner: nil
+    rescue => e
+      Rails.logger.warn("[Directory] Activity tracking failed: #{e.message}")
     end
   end
 end

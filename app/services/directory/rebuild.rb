@@ -71,31 +71,31 @@ module Directory
     end
 
     def compute_effective_grants
-      # For each person who is an effective member of a grantee_group,
-      # expand the grant's target through the closure (if recursive).
-      # Protected collections stop recursive expansion (but the direct target is always included).
+      # For each grant, expand targets. For recursive grants, walk the closure
+      # but STOP at protected nodes — don't just exclude them, stop traversal.
+      # We use a recursive CTE instead of the pre-computed closure because the
+      # closure doesn't know about path-blocked nodes.
       @conn.execute(<<~SQL)
         CREATE TEMP TABLE _new_eg ON COMMIT DROP AS
-        SELECT DISTINCT em.person_id,
-               CASE WHEN g.recursive THEN expanded.descendant_id ELSE g.target_collection_id END AS target_collection_id,
-               g.permission
-        FROM directory_grants g
-        INNER JOIN _new_em em ON em.collection_id = g.grantee_group_id
-        LEFT JOIN LATERAL (
-          SELECT cl.descendant_id
-          FROM _new_closure cl
-          WHERE cl.ancestor_id = g.target_collection_id
-            AND g.recursive = true
-            AND (
-              cl.descendant_id = g.target_collection_id
-              OR NOT EXISTS (
-                SELECT 1 FROM directory_collections dc
-                WHERE dc.id = cl.descendant_id AND dc.protected = true
-              )
+        WITH RECURSIVE grant_targets AS (
+          SELECT g.id AS grant_id, g.target_collection_id AS collection_id, g.permission,
+                 g.grantee_group_id
+          FROM directory_grants g
+          UNION ALL
+          SELECT gt.grant_id, m.member_group_id, gt.permission, gt.grantee_group_id
+          FROM grant_targets gt
+          INNER JOIN directory_grants g2 ON g2.id = gt.grant_id
+          INNER JOIN directory_memberships m ON m.collection_id = gt.collection_id
+          WHERE m.member_group_id IS NOT NULL
+            AND g2.recursive = true
+            AND NOT EXISTS (
+              SELECT 1 FROM directory_collections dc
+              WHERE dc.id = m.member_group_id AND dc.protected = true
             )
-        ) expanded ON g.recursive = true
-        WHERE g.recursive = false
-           OR expanded.descendant_id IS NOT NULL
+        )
+        SELECT DISTINCT em.person_id, gt.collection_id AS target_collection_id, gt.permission
+        FROM grant_targets gt
+        INNER JOIN _new_em em ON em.collection_id = gt.grantee_group_id
       SQL
     end
 

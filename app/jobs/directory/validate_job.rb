@@ -6,6 +6,7 @@ module Directory
 
     def perform
       result = Directory::Validate.call
+      Rails.cache.write("directory:validate_result", { result: result, at: Time.current })
 
       if result.valid?
         Rails.logger.info("[Directory] Validate: OK")
