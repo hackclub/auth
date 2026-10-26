@@ -69,9 +69,17 @@ module Directory
       @person = Directory::Person.find(params[:id])
       authorize @person
 
+      # Capture revocation data BEFORE destroy wipes effective_memberships
+      revocations = capture_revocations_for_person(@person)
+
       ActiveRecord::Base.transaction do
         @person.destroy!
-        Directory::Rebuild.call(cause: "person_deleted:#{@person.id}")
+        Directory::Rebuild.call(cause: "person_removed:#{@person.id}")
+      end
+
+      # Enqueue revocations directly since the rebuild diff won't find them
+      if revocations.any?
+        Directory::AfterChangeJob.perform_later(change_ids: [], revocations: revocations)
       end
 
       redirect_to directory_people_path, notice: t("directory.people.destroyed")
@@ -89,6 +97,24 @@ module Directory
 
       child = Directory::Collection.find_by(id: link.descendant_id)
       child ? [child] : []
+    end
+
+    def capture_revocations_for_person(person)
+      entitlement_ids = person.effective_memberships
+        .joins("INNER JOIN directory_collections ON directory_collections.id = directory_effective_memberships.collection_id")
+        .where(directory_collections: { kind: "entitlement" })
+        .pluck(:collection_id)
+
+      return [] if entitlement_ids.empty?
+
+      app_ids = (
+        Directory::Exposure.where(entitlement_id: entitlement_ids).pluck(:app_id) +
+        Directory::AppRequirement.where(entitlement_id: entitlement_ids).pluck(:app_id)
+      ).uniq
+
+      return [] if app_ids.empty?
+
+      [{ identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids }]
     end
   end
 end

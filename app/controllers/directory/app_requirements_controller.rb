@@ -61,28 +61,33 @@ module Directory
     end
 
     # §3.7: revoke tokens for every token holder who isn't an effective member
-    def revoke_tokens_for_non_members(app, entitlement)
-      member_identity_ids = Directory::EffectiveMembership
-        .where(collection_id: entitlement.id)
+    def revoke_tokens_for_non_members(app, _entitlement)
+      # Requirements are any-of: revoke tokens for people who aren't a member
+      # of ANY required entitlement (not just the one being added)
+      all_required_ids = Directory::AppRequirement.where(app_id: app.id).pluck(:entitlement_id)
+
+      # Find identity_ids of people who pass the requirement (member of any)
+      passing_identity_ids = Directory::EffectiveMembership
+        .where(collection_id: all_required_ids)
         .joins("INNER JOIN directory_people ON directory_people.id = directory_effective_memberships.person_id")
         .pluck("directory_people.identity_id")
+        .uniq
 
+      # Revoke tokens for token holders who don't pass
       OAuthToken.where(application_id: app.id)
-        .where.not(resource_owner_id: member_identity_ids)
+        .where.not(resource_owner_id: passing_identity_ids)
         .where(revoked_at: nil)
         .update_all(revoked_at: Time.current)
 
-      # Call revokers for non-members who had tokens
       revoker = Directory::AppRevoker.find_by(app_id: app.id, enabled: true)
       if revoker
-        non_member_emails = Identity.where(id: OAuthToken.where(application_id: app.id).select(:resource_owner_id))
-          .where.not(id: member_identity_ids)
+        non_passing_emails = Identity
+          .where(id: OAuthToken.where(application_id: app.id).select(:resource_owner_id))
+          .where.not(id: passing_identity_ids)
           .pluck(:primary_email)
 
-        non_member_emails.each do |email|
-          Directory::Revokers.for(revoker).call(email: email)
-        rescue => e
-          Rails.logger.error("[Directory] Revoker failed for #{email}: #{e.message}")
+        non_passing_emails.each do |email|
+          Directory::RevokeSessionJob.perform_later(app_id: app.id, email: email)
         end
       end
     end

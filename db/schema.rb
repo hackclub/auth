@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_23_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_26_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -213,7 +213,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_000002) do
     t.bigint "created_by_identity_id"
     t.datetime "created_at", null: false
     t.index ["slug"], name: "index_directory_collections_on_slug", unique: true
-    t.check_constraint "kind::text = ANY (ARRAY['group'::character varying, 'entitlement'::character varying]::text[])", name: "chk_collection_kind"
+    t.check_constraint "kind::text = ANY (ARRAY['group'::character varying::text, 'entitlement'::character varying::text])", name: "chk_collection_kind"
   end
 
   create_table "directory_effective_grants", primary_key: ["person_id", "target_collection_id", "permission"], force: :cascade do |t|
@@ -249,7 +249,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_000002) do
     t.bigint "created_by_identity_id"
     t.datetime "created_at", null: false
     t.index ["grantee_group_id", "target_collection_id", "permission"], name: "idx_grants_unique", unique: true
-    t.check_constraint "permission::text = ANY (ARRAY['view'::character varying, 'manage_members'::character varying, 'expose'::character varying]::text[])", name: "chk_grant_permission"
+    t.check_constraint "permission::text = ANY (ARRAY['view'::character varying::text, 'manage_members'::character varying::text, 'expose'::character varying::text])", name: "chk_grant_permission"
   end
 
   create_table "directory_membership_changes", force: :cascade do |t|
@@ -259,7 +259,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_000002) do
     t.text "cause"
     t.datetime "created_at", null: false
     t.index ["created_at"], name: "index_directory_membership_changes_on_created_at"
-    t.check_constraint "op::text = ANY (ARRAY['added'::character varying, 'removed'::character varying]::text[])", name: "chk_membership_change_op"
+    t.check_constraint "op::text = ANY (ARRAY['added'::character varying::text, 'removed'::character varying::text])", name: "chk_membership_change_op"
   end
 
   create_table "directory_memberships", force: :cascade do |t|
@@ -854,7 +854,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_000002) do
   add_foreign_key "backend_organizer_positions", "oauth_applications", column: "program_id"
   add_foreign_key "backend_users", "identities"
   add_foreign_key "break_glass_records", "backend_users"
-  add_foreign_key "directory_app_requirements", "directory_collections", column: "entitlement_id", on_delete: :cascade
+  add_foreign_key "directory_app_requirements", "directory_collections", column: "entitlement_id", on_delete: :restrict
   add_foreign_key "directory_app_requirements", "oauth_applications", column: "app_id", on_delete: :cascade
   add_foreign_key "directory_app_revokers", "oauth_applications", column: "app_id", on_delete: :cascade
   add_foreign_key "directory_closure", "directory_collections", column: "ancestor_id", on_delete: :cascade

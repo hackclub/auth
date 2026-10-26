@@ -106,13 +106,33 @@ module Directory
 
       if @collection.protected && params[:confirm_slug] != @collection.slug
         redirect_back fallback_location: directory_collection_path(@collection.slug),
-          alert: "type the collection slug to confirm deletion."
+          alert: t("directory.flash.type_slug_to_confirm")
         return
+      end
+
+      # Capture revocation data BEFORE destroy wipes effective_memberships
+      revocations = []
+      if @collection.entitlement?
+        app_ids = (
+          Directory::Exposure.where(entitlement_id: @collection.id).pluck(:app_id) +
+          Directory::AppRequirement.where(entitlement_id: @collection.id).pluck(:app_id)
+        ).uniq
+
+        if app_ids.any?
+          @collection.effective_people.each do |person|
+            revocations << { identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids }
+          end
+        end
       end
 
       ActiveRecord::Base.transaction do
         @collection.destroy!
         Directory::Rebuild.call(cause: "collection_deleted:#{@collection.id}")
+      end
+
+      # Enqueue revocations directly since the rebuild diff won't find them
+      if revocations.any?
+        Directory::AfterChangeJob.perform_later(change_ids: [], revocations: revocations)
       end
 
       redirect_to directory_root_path, notice: t("directory.collections.destroyed")
