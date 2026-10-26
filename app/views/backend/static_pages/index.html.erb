@@ -37,6 +37,13 @@
         </ul>
       <% end %>
 
+      <% if current_user&.directory_services_admin? %>
+        <span style="color: var(--foreground2); padding: 0 1ch;">Directory services</span>
+        <ul>
+          <%= render_nav_item directory_root_path, "Directory", "ADUC" %>
+        </ul>
+      <% end %>
+
       <div is-="separator"></div>
 
       <%= render_nav_item backend_identities_path, "Identities", "IDNT" %>

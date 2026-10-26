@@ -18,7 +18,7 @@
   <body>
     <row id="hca-actionbar" align-="center between">
       <row gap-="1" align-="center">
-        <a href="<%= directory_root_path %>" style="text-decoration: none; color: var(--foreground0);"><b>directory</b></a>
+        <a href="<%= directory_root_path %>" style="text-decoration: none; color: var(--foreground0);" title="hacktive directory users and computers"><b>directory</b></a>
         <% breadcrumbs.each do |crumb| %>
           <span style="color: var(--foreground2);">/</span>
           <% if crumb[:path] %>
