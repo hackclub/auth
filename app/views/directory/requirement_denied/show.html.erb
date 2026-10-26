@@ -1,14 +1,5 @@
-<% content_for :title, "access denied" %>
-<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
-  <row align-="center" pad-="0 0 1 0">
-    <h2 style="margin: 0;">access denied</h2>
-  </row>
-  <column is-="card" pad-="1">
-    <p>
-      <strong><%= @app_name || "this application" %></strong> requires membership in specific directory groups that you don't currently belong to.
-    </p>
-    <p style="color: var(--foreground2);">
-      if you think this is wrong, ask the app's administrator to check your directory membership.
-    </p>
-  </column>
-</column>
+<% content_for :title, "Not Available" %>
+
+<div style="max-width: 480px; margin: 4rem auto; text-align: center;">
+  <h2><%= @app_name || "This app" %> is for Hack Club staff.</h2>
+</div>
