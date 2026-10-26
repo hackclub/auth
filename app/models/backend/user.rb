@@ -45,7 +45,7 @@ module Backend
     def directory_services_admin? = directory_services_admin
 
     after_save :ensure_directory_person_exists, if: -> { saved_change_to_directory_services_admin? && directory_services_admin? && identity_id.present? }
-    before_save :prevent_last_admin_removal, if: -> { saved_change_to_directory_services_admin? && !directory_services_admin? }
+    before_save :prevent_last_admin_removal, if: -> { will_save_change_to_directory_services_admin? && !directory_services_admin }
 
     private def prevent_last_admin_removal
       if Backend::User.where(directory_services_admin: true).where.not(id: id).none?

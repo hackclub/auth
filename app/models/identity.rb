@@ -356,6 +356,13 @@ class Identity < ApplicationRecord
     update!(locked_at: Time.current)
     sessions.update_all(expires_at: Time.current)
     all_access_tokens.update_all(revoked_at: Time.current)
+
+    # §9.1 trigger 4: fire directory revokers for locked identity
+    if (dir_person = Directory::Person.find_by(identity: self))
+      Directory::AppRevoker.where(enabled: true).find_each do |revoker|
+        Directory::RevokeSessionJob.perform_later(app_id: revoker.app_id, email: primary_email)
+      end
+    end
   end
 
   def self.calculate_age(birthday)

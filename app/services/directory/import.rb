@@ -80,7 +80,7 @@ module Directory
       emails = @rows.map { |r| r[:email] }.uniq
       slugs = @rows.map { |r| r[:slug] }.uniq
 
-      identities_by_email = Identity.where(email: emails).index_by { |i| i.email.downcase }
+      identities_by_email = Identity.where("lower(primary_email) IN (?)", emails).index_by { |i| i.primary_email.downcase }
       collections_by_slug = Directory::Collection.where(slug: slugs).index_by(&:slug)
 
       @resolved = []
@@ -137,18 +137,15 @@ module Directory
             next
           end
 
-          person = entry[:person] || Directory::Person.create!(
-            identity: entry[:identity],
-            full_name: entry[:identity].display_name.presence || entry[:email],
-            primary_email: entry[:email],
-            created_by: @created_by
-          )
+          person = entry[:person] || Directory::Person.find_or_create_by!(identity: entry[:identity]) do |p|
+            p.created_by_identity_id = @created_by.id
+          end
 
           Directory::Membership.create!(
             collection: entry[:collection],
             member_person: person,
             expires_at: entry[:expires_at],
-            created_by: @created_by
+            created_by_identity_id: @created_by.id
           )
 
           created_count += 1

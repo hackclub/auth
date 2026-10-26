@@ -13,15 +13,11 @@ module Directory
 
       if params[:email].present?
         # Add-by-email: find identity, create directory person if needed
+        Rails.logger.info("[Directory] add-by-email: #{current_identity.primary_email} searched for '#{params[:email]}' on #{@collection.slug}")
         identity = Identity.find_by("lower(primary_email) = ?", params[:email].strip.downcase)
-
-        Rails.logger.info("[Directory] add-by-email: #{current_identity.primary_email} searched for '#{params[:email]}' on #{@collection.slug} — #{identity ? 'found' : 'miss'}")
-
         unless identity
-          @collection.create_activity :email_lookup_miss,
-            owner: current_identity,
-            parameters: { email: params[:email].strip.downcase, collection_slug: @collection.slug }
-
+          Rails.logger.info("[Directory] add-by-email: miss for '#{params[:email]}'")
+          @collection.create_activity :email_lookup_miss, owner: current_identity, params: { email: params[:email] }
           redirect_back fallback_location: directory_collection_path(@collection.slug),
             alert: "no hca account with that email."
           return
@@ -32,7 +28,7 @@ module Directory
         membership.member_person = person
 
       elsif params[:group_slug].present?
-        # Add group by slug
+        # Add group by slug — admin only on entitlements (§3.2/§4)
         group = Directory::Collection.groups.find_by!(slug: params[:group_slug].strip)
         if @collection.entitlement? && !directory_admin?
           redirect_back fallback_location: directory_collection_path(@collection.slug),
@@ -45,6 +41,12 @@ module Directory
         membership.member_person_id = params[:member_person_id]
 
       elsif params[:member_group_id].present?
+        # Enforce entitlement admin-only rule on ALL group-add paths (§3.2)
+        if @collection.entitlement? && !directory_admin?
+          redirect_back fallback_location: directory_collection_path(@collection.slug),
+            alert: "only admins can add member groups to entitlements."
+          return
+        end
         membership.member_group_id = params[:member_group_id]
 
       else
@@ -73,6 +75,13 @@ module Directory
       membership = Directory::Membership.find(params[:id])
       @collection = membership.collection
       authorize membership
+
+      # Admin only for removing member groups from entitlements (§4)
+      if membership.member_group_id.present? && @collection.entitlement? && !directory_admin?
+        redirect_back fallback_location: directory_collection_path(@collection.slug),
+          alert: "only admins can remove member groups from entitlements."
+        return
+      end
 
       ActiveRecord::Base.transaction do
         membership.destroy!

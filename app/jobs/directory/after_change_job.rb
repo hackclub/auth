@@ -4,7 +4,21 @@ module Directory
   class AfterChangeJob < ApplicationJob
     queue_as :default
 
-    def perform(change_ids:)
+    # revocations: optional array of { identity_id:, email:, app_ids: [] }
+    # pre-resolved for cases where the person/collection is already deleted
+    def perform(change_ids:, revocations: nil)
+      if revocations.present?
+        # Pre-resolved: person/collection already deleted, use captured data
+        revocations.each do |rev|
+          rev = rev.symbolize_keys
+          rev[:app_ids].each do |app_id|
+            revoke_tokens(rev[:identity_id], app_id)
+            call_revoker(app_id, rev[:email])
+          end
+        end
+      end
+
+      # Also process any change rows where the entities still exist
       changes = Directory::MembershipChange.where(id: change_ids, op: "removed")
       changes.each do |change|
         collection = Directory::Collection.find_by(id: change.collection_id)
@@ -15,7 +29,7 @@ module Directory
         app_ids = app_ids_affected_by(collection)
 
         app_ids.each do |app_id|
-          revoke_tokens(identity, app_id)
+          revoke_tokens(identity.id, app_id)
           call_revoker(app_id, identity.primary_email)
         end
       end
@@ -29,11 +43,11 @@ module Directory
       (exposure_apps + requirement_apps).uniq
     end
 
-    def revoke_tokens(identity, app_id)
-      OAuthToken.where(resource_owner_id: identity.id, application_id: app_id)
+    def revoke_tokens(identity_id, app_id)
+      OAuthToken.where(resource_owner_id: identity_id, application_id: app_id)
         .where(revoked_at: nil)
         .update_all(revoked_at: Time.current)
-      Doorkeeper::AccessGrant.where(resource_owner_id: identity.id, application_id: app_id)
+      Doorkeeper::AccessGrant.where(resource_owner_id: identity_id, application_id: app_id)
         .where(revoked_at: nil)
         .update_all(revoked_at: Time.current)
     end
@@ -42,11 +56,24 @@ module Directory
       revoker = Directory::AppRevoker.find_by(app_id: app_id, enabled: true)
       return unless revoker
 
+      Directory::RevokeSessionJob.perform_later(app_id: app_id, email: email)
+    end
+  end
+
+  # Separate job for revoker calls so they get good_job retry
+  class RevokeSessionJob < ApplicationJob
+    queue_as :default
+    retry_on StandardError, wait: :polynomially_longer, attempts: 5
+
+    def perform(app_id:, email:)
+      revoker = Directory::AppRevoker.find_by(app_id: app_id, enabled: true)
+      return unless revoker
+
       Directory::Revokers.for(revoker).call(email: email)
       revoker.update(last_called_at: Time.current, last_result: "ok")
     rescue => e
-      revoker.update(last_called_at: Time.current, last_result: "failed: #{e.message}")
-      Rails.logger.error("[Directory] Revoker failed for app #{app_id}: #{e.message}")
+      revoker&.update(last_called_at: Time.current, last_result: "failed: #{e.message}")
+      raise # re-raise so good_job retries
     end
   end
 end

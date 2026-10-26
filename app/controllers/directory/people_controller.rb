@@ -12,7 +12,7 @@ module Directory
         .where(directory_effective_memberships: { person_id: nil })
 
       if params[:email].present?
-        @search_results = Identity.where("email LIKE ?", "%#{params[:email]}%")
+        @search_results = Identity.where("lower(primary_email) LIKE ?", "%#{params[:email].strip.downcase}%").limit(20)
       end
     end
 

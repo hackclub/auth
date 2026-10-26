@@ -15,13 +15,16 @@ module Directory
     end
 
     def call
-      compute_expected
-      mismatches = {
-        "directory_closure" => diff_closure,
-        "directory_effective_memberships" => diff_effective_memberships,
-        "directory_effective_grants" => diff_effective_grants
-      }
-      Result.new(mismatches:)
+      # Must run inside a transaction so temp tables survive across statements
+      ActiveRecord::Base.transaction do
+        compute_expected
+        mismatches = {
+          "directory_closure" => diff_closure,
+          "directory_effective_memberships" => diff_effective_memberships,
+          "directory_effective_grants" => diff_effective_grants
+        }
+        Result.new(mismatches:)
+      end
     ensure
       drop_temp_tables
     end

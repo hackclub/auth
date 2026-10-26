@@ -200,9 +200,36 @@ module Directory
 
     def register_after_commit(change_ids)
       ids = change_ids.dup
+      # Pre-resolve revocation data while entities still exist (before commit might cascade-delete them)
+      revocations = pre_resolve_revocations(ids)
       @conn.current_transaction.after_commit do
-        Directory::AfterChangeJob.perform_later(change_ids: ids)
+        Directory::AfterChangeJob.perform_later(change_ids: ids, revocations: revocations)
       end
+    end
+
+    def pre_resolve_revocations(change_ids)
+      rows = @conn.execute(<<~SQL)
+        SELECT mc.person_id, mc.collection_id
+        FROM directory_membership_changes mc
+        WHERE mc.id = ANY(ARRAY[#{change_ids.join(',')}])
+          AND mc.op = 'removed'
+      SQL
+
+      revocations = []
+      rows.each do |row|
+        person = Directory::Person.find_by(id: row["person_id"])
+        collection = Directory::Collection.find_by(id: row["collection_id"])
+        next unless person && collection&.entitlement?
+
+        app_ids = (
+          Directory::Exposure.where(entitlement_id: collection.id).pluck(:app_id) +
+          Directory::AppRequirement.where(entitlement_id: collection.id).pluck(:app_id)
+        ).uniq
+        next if app_ids.empty?
+
+        revocations << { identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids }
+      end
+      revocations
     end
   end
 end
