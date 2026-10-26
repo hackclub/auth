@@ -28,12 +28,21 @@ module Directory
         membership.member_person = person
 
       elsif params[:group_slug].present?
-        # Add group by slug — admin only on entitlements (§3.2/§4)
         group = Directory::Collection.groups.find_by!(slug: params[:group_slug].strip)
         if @collection.entitlement? && !directory_admin?
           redirect_back fallback_location: directory_collection_path(@collection.slug),
             alert: t("directory.flash.admin_only_group_on_entitlement")
           return
+        end
+        # §3.5 escalation prevention: nesting group X under group G with a recursive
+        # grant on G gives manage_members on X. require permission on BOTH sides.
+        if @collection.group? && !directory_admin?
+          ctx = pundit_user
+          unless ctx.can?(:manage_members, group)
+            redirect_back fallback_location: directory_collection_path(@collection.slug),
+              alert: t("directory.flash.need_manage_on_child_group")
+            return
+          end
         end
         membership.member_group = group
 
@@ -41,11 +50,20 @@ module Directory
         membership.member_person_id = params[:member_person_id]
 
       elsif params[:member_group_id].present?
-        # Enforce entitlement admin-only rule on ALL group-add paths (§3.2)
         if @collection.entitlement? && !directory_admin?
           redirect_back fallback_location: directory_collection_path(@collection.slug),
             alert: t("directory.flash.admin_only_group_on_entitlement")
           return
+        end
+        # Same bilateral check for raw member_group_id path
+        if @collection.group? && !directory_admin?
+          child = Directory::Collection.find(params[:member_group_id])
+          ctx = pundit_user
+          unless ctx.can?(:manage_members, child)
+            redirect_back fallback_location: directory_collection_path(@collection.slug),
+              alert: t("directory.flash.need_manage_on_child_group")
+            return
+          end
         end
         membership.member_group_id = params[:member_group_id]
 
@@ -81,6 +99,16 @@ module Directory
         redirect_back fallback_location: directory_collection_path(@collection.slug),
           alert: t("directory.flash.admin_only_remove_group")
         return
+      end
+
+      # Bilateral check: removing a group from a group requires permission on both
+      if membership.member_group_id.present? && @collection.group? && !directory_admin?
+        child = Directory::Collection.find_by(id: membership.member_group_id)
+        if child && !pundit_user.can?(:manage_members, child)
+          redirect_back fallback_location: directory_collection_path(@collection.slug),
+            alert: t("directory.flash.need_manage_on_child_group")
+          return
+        end
       end
 
       ActiveRecord::Base.transaction do
