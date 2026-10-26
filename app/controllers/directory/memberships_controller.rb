@@ -19,7 +19,7 @@ module Directory
           Rails.logger.info("[Directory] add-by-email: miss for '#{params[:email]}'")
           @collection.create_activity :email_lookup_miss, owner: current_identity, params: { email: params[:email] }
           redirect_back fallback_location: directory_collection_path(@collection.slug),
-            alert: "no hca account with that email."
+            alert: t("directory.flash.email_not_found")
           return
         end
         person = Directory::Person.find_or_create_by!(identity: identity) do |p|
@@ -32,7 +32,7 @@ module Directory
         group = Directory::Collection.groups.find_by!(slug: params[:group_slug].strip)
         if @collection.entitlement? && !directory_admin?
           redirect_back fallback_location: directory_collection_path(@collection.slug),
-            alert: "only admins can add member groups to entitlements."
+            alert: t("directory.flash.admin_only_group_on_entitlement")
           return
         end
         membership.member_group = group
@@ -44,14 +44,14 @@ module Directory
         # Enforce entitlement admin-only rule on ALL group-add paths (§3.2)
         if @collection.entitlement? && !directory_admin?
           redirect_back fallback_location: directory_collection_path(@collection.slug),
-            alert: "only admins can add member groups to entitlements."
+            alert: t("directory.flash.admin_only_group_on_entitlement")
           return
         end
         membership.member_group_id = params[:member_group_id]
 
       else
         redirect_back fallback_location: directory_collection_path(@collection.slug),
-          alert: "provide an email or group slug."
+          alert: t("directory.flash.provide_email_or_slug")
         return
       end
 
@@ -61,7 +61,7 @@ module Directory
       end
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
-        notice: "member added."
+        notice: t("directory.flash.member_added")
 
     rescue ActiveRecord::RecordNotFound => e
       redirect_back fallback_location: directory_collection_path(@collection.slug),
@@ -79,7 +79,7 @@ module Directory
       # Admin only for removing member groups from entitlements (§4)
       if membership.member_group_id.present? && @collection.entitlement? && !directory_admin?
         redirect_back fallback_location: directory_collection_path(@collection.slug),
-          alert: "only admins can remove member groups from entitlements."
+          alert: t("directory.flash.admin_only_remove_group")
         return
       end
 
@@ -89,7 +89,7 @@ module Directory
       end
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
-        notice: "member removed."
+        notice: t("directory.flash.member_removed")
     end
   end
 end

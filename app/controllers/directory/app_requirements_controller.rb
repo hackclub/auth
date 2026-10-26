@@ -15,11 +15,11 @@ module Directory
       # §3.7: writing a requirement revokes tokens for non-members
       revoke_tokens_for_non_members(app, entitlement)
 
-      redirect_back fallback_location: developer_app_path(app), notice: "requirement added."
+      redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.requirement_added")
     rescue ActiveRecord::RecordInvalid => e
       redirect_back fallback_location: developer_app_path(app), alert: e.record.errors.full_messages.to_sentence
     rescue ActiveRecord::RecordNotUnique
-      redirect_back fallback_location: developer_app_path(app), alert: "requirement already exists."
+      redirect_back fallback_location: developer_app_path(app), alert: t("directory.flash.requirement_already_exists")
     end
 
     def destroy
@@ -30,7 +30,7 @@ module Directory
       authorize_unwire!(app, entitlement)
       req.destroy!
 
-      redirect_back fallback_location: developer_app_path(app), notice: "requirement removed."
+      redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.requirement_removed")
     end
 
     private

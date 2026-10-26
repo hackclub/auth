@@ -30,7 +30,7 @@ module Directory
       end
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
-        notice: "grant added."
+        notice: t("directory.flash.grant_added")
     rescue ActiveRecord::RecordNotFound => e
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         alert: e.message
@@ -50,7 +50,7 @@ module Directory
       end
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
-        notice: "grant removed."
+        notice: t("directory.flash.grant_removed")
     end
   end
 end

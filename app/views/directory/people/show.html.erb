@@ -5,12 +5,12 @@
       <h2><%= @person.full_name %></h2>
       <span style="color: var(--foreground2);"><%= @person.primary_email %></span>
       <% if @person.locked? %>
-        <span is-="badge" variant-="red">locked</span>
+        <span is-="badge" variant-="red"><%= t("directory.people.show.locked") %></span>
       <% end %>
     </row>
     <% if directory_admin? %>
       <row gap-="2" align-="center">
-        <%= button_to "remove from directory", directory_person_path(@person), method: :delete, data: { confirm: "remove #{@person.full_name}? they have #{@visible_memberships.size} visible memberships." }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+        <%= button_to t("directory.people.show.remove"), directory_person_path(@person), method: :delete, data: { confirm: t("directory.people.show.remove_confirm", name: @person.full_name, count: @visible_memberships.size) }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
       </row>
     <% end %>
   </row>
@@ -20,9 +20,9 @@
   <% direct, via = @visible_memberships.partition { |m| m[:direct] } %>
 
   <% if direct.any? %>
-    <span style="color: var(--foreground2); font-style: italic;">direct memberships</span>
+    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.people.show.direct_memberships") %></span>
     <table>
-      <thead><tr><th>collection</th><th>kind</th></tr></thead>
+      <thead><tr><th><%= t("directory.people.show.col_collection") %></th><th><%= t("directory.people.show.col_kind") %></th></tr></thead>
       <tbody>
         <% direct.each do |m| %>
           <tr>
@@ -36,9 +36,9 @@
 
   <% if via.any? %>
     <% if direct.any? %><div is-="separator"></div><% end %>
-    <span style="color: var(--foreground2); font-style: italic;">via nesting</span>
+    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.people.show.via_nesting") %></span>
     <table>
-      <thead><tr><th>collection</th><th>kind</th><th>via</th></tr></thead>
+      <thead><tr><th><%= t("directory.people.show.col_collection") %></th><th><%= t("directory.people.show.col_kind") %></th><th><%= t("directory.people.show.col_via") %></th></tr></thead>
       <tbody>
         <% via.each do |m| %>
           <tr>
@@ -56,15 +56,15 @@
   <% end %>
 
   <% if direct.empty? && via.empty? %>
-    <span style="color: var(--foreground2);">no visible memberships.</span>
+    <span style="color: var(--foreground2);"><%= t("directory.people.show.no_visible_memberships") %></span>
   <% end %>
 
   <% if @manageable_collections.present? && @manageable_collections.any? %>
     <div is-="separator"></div>
 
-    <span style="color: var(--foreground2); font-style: italic;">can manage</span>
+    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.people.show.can_manage") %></span>
     <table>
-      <thead><tr><th>collection</th><th>kind</th></tr></thead>
+      <thead><tr><th><%= t("directory.people.show.col_collection") %></th><th><%= t("directory.people.show.col_kind") %></th></tr></thead>
       <tbody>
         <% @manageable_collections.each do |collection| %>
           <tr>
@@ -79,7 +79,7 @@
   <% if @activities.present? && @activities.any? %>
     <div is-="separator"></div>
 
-    <span style="color: var(--foreground2); font-style: italic;">recent activity</span>
+    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.people.show.recent_activity") %></span>
     <%= render "backend/shared/activity_log", activities: @activities %>
   <% end %>
 
@@ -87,7 +87,7 @@
 
   <row gap-="2" align-="center" style="color: var(--foreground2);">
     <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">Bksp</span> back
+      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
     </row>
   </row>
 </column>

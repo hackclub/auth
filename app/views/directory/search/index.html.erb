@@ -1,7 +1,7 @@
-<% content_for :title, "search" %>
+<% content_for :title, t("directory.search.title") %>
 <column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
   <row align-="center between">
-    <h2>search</h2>
+    <h2><%= t("directory.search.heading") %></h2>
   </row>
 
   <div is-="separator"></div>
@@ -9,22 +9,22 @@
   <%= form_with url: directory_search_path, method: :get, local: true do %>
     <row gap-="1" align-="center">
       <span style="color: var(--foreground2);">⌕</span>
-      <%= text_field_tag :q, params[:q], placeholder: "search people and collections…", autofocus: true, style: "flex: 1; border: none;" %>
-      <button type="submit" size-="small">search</button>
+      <%= text_field_tag :q, params[:q], placeholder: t("directory.search.placeholder"), autofocus: true, style: "flex: 1; border: none;" %>
+      <button type="submit" size-="small"><%= t("directory.search.button") %></button>
     </row>
   <% end %>
 
   <% if params[:q].present? %>
     <div is-="separator"></div>
 
-    <span style="color: var(--foreground2); font-style: italic;">people</span>
+    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.search.people") %></span>
 
     <% if @people.any? %>
       <table>
         <thead>
           <tr>
-            <th>name</th>
-            <th>email</th>
+            <th><%= t("directory.search.col_name") %></th>
+            <th><%= t("directory.search.col_email") %></th>
           </tr>
         </thead>
         <tbody>
@@ -37,19 +37,19 @@
         </tbody>
       </table>
     <% else %>
-      <span style="color: var(--foreground2);">no results</span>
+      <span style="color: var(--foreground2);"><%= t("directory.search.no_results") %></span>
     <% end %>
 
     <div is-="separator"></div>
 
-    <span style="color: var(--foreground2); font-style: italic;">collections</span>
+    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.search.collections") %></span>
 
     <% if @collections.any? %>
       <table>
         <thead>
           <tr>
-            <th>name</th>
-            <th>kind</th>
+            <th><%= t("directory.search.col_name") %></th>
+            <th><%= t("directory.search.col_kind") %></th>
           </tr>
         </thead>
         <tbody>
@@ -62,13 +62,13 @@
         </tbody>
       </table>
     <% else %>
-      <span style="color: var(--foreground2);">no results</span>
+      <span style="color: var(--foreground2);"><%= t("directory.search.no_results") %></span>
     <% end %>
   <% else %>
     <div is-="separator"></div>
 
     <column align-="center center" pad-="4 0">
-      <span style="color: var(--foreground2);">enter a query to search people and collections</span>
+      <span style="color: var(--foreground2);"><%= t("directory.search.prompt") %></span>
     </column>
   <% end %>
 
@@ -76,7 +76,7 @@
 
   <row gap-="2" align-="center" style="color: var(--foreground2);">
     <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">Bksp</span> back
+      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
     </row>
   </row>
 </column>

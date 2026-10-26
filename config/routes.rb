@@ -309,6 +309,8 @@ Rails.application.routes.draw do
     resources :exposures, only: [ :create, :destroy ]
     resources :app_requirements, only: [ :create, :destroy ]
     get "denied", to: "requirement_denied#show", as: :requirement_denied
+
+    get "view_as", to: "view_as#show", as: :view_as
   end
 
   root "static_pages#home"

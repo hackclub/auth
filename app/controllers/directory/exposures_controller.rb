@@ -17,11 +17,11 @@ module Directory
         created_by_identity_id: current_identity.id
       )
 
-      redirect_back fallback_location: developer_app_path(app), notice: "exposure added."
+      redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.exposure_added")
     rescue ActiveRecord::RecordInvalid => e
       redirect_back fallback_location: developer_app_path(app), alert: e.record.errors.full_messages.to_sentence
     rescue ActiveRecord::RecordNotUnique
-      redirect_back fallback_location: developer_app_path(app), alert: "already wired."
+      redirect_back fallback_location: developer_app_path(app), alert: t("directory.flash.already_wired")
     end
 
     def destroy
@@ -31,7 +31,7 @@ module Directory
       authorize_unwire!(exposure)
       exposure.destroy!
 
-      redirect_back fallback_location: developer_app_path(app), notice: "exposure removed."
+      redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.exposure_removed")
     end
 
     private

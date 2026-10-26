@@ -1,20 +1,20 @@
-<% content_for :title, "import" %>
+<% content_for :title, t("directory.import.new.title") %>
 <column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
   <row align-="center between">
-    <h2>import</h2>
+    <h2><%= t("directory.import.new.heading") %></h2>
     <row gap-="2" align-="center">
-      <a href="<%= directory_root_path %>" style="color: var(--foreground2);">directory</a>
+      <a href="<%= directory_root_path %>" style="color: var(--foreground2);"><%= t("directory.layout.title") %></a>
     </row>
   </row>
 
   <div is-="separator"></div>
 
-  <span style="color: var(--foreground2);">upload a csv or paste csv text to bulk-add memberships. format: <code>email,collection_slug,expires_at</code></span>
+  <span style="color: var(--foreground2);"><%= t("directory.import.new.description_html") %></span>
 
   <div is-="separator"></div>
 
   <%= form_with url: directory_import_preview_path, method: :post, multipart: true, local: true do |f| %>
-    <span style="color: var(--foreground2); font-style: italic;">upload file</span>
+    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.import.new.file_label") %></span>
 
     <row gap-="1" align-="center">
       <%= f.file_field :csv_file, accept: ".csv", style: "flex: 1; border: none;" %>
@@ -22,14 +22,14 @@
 
     <div is-="separator"></div>
 
-    <span style="color: var(--foreground2); font-style: italic;">or paste csv</span>
+    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.import.new.paste_label") %></span>
 
     <%= f.text_area :csv_text, rows: 8, placeholder: "email,collection_slug,expires_at\njane@example.com,engineering,\njohn@example.com,ops,2027-01-01", style: "font-family: monospace; width: 100%; border: none;" %>
 
     <div is-="separator"></div>
 
     <row gap-="1" align-="center">
-      <button type="submit" size-="small">preview</button>
+      <button type="submit" size-="small"><%= t("directory.import.new.preview_button") %></button>
     </row>
   <% end %>
 
@@ -37,7 +37,7 @@
 
   <row gap-="2" align-="center" style="color: var(--foreground2);">
     <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">Bksp</span> back
+      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
     </row>
   </row>
 </column>

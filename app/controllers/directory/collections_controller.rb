@@ -24,10 +24,22 @@ module Directory
         .order("directory_collections.name")
 
       direct_person_ids = @collection.member_people_memberships.select(:member_person_id)
-      @effective_people = @collection.effective_people
+      effective_people = @collection.effective_people
         .where.not(id: direct_person_ids)
         .includes(:identity)
         .order("identities.first_name")
+
+      # Compute via paths: which direct member group does each person come through?
+      direct_group_ids = @collection.member_group_memberships.pluck(:member_group_id)
+      @effective_people_with_paths = effective_people.map do |person|
+        # Find which direct groups this person is an effective member of
+        via_groups = Directory::EffectiveMembership
+          .where(person_id: person.id, collection_id: direct_group_ids)
+          .includes(:collection)
+          .map(&:collection)
+          .select { |c| policy(c).show? rescue false }
+        { person: person, via: via_groups }
+      end
 
       @grants = @collection.grants_as_target
         .includes(:grantee_group, :created_by)
@@ -64,9 +76,9 @@ module Directory
       authorize @collection
 
       if @collection.save
-        redirect_to directory_collection_path(@collection.slug), notice: "collection created."
+        redirect_to directory_collection_path(@collection.slug), notice: t("directory.collections.created")
       else
-        add_breadcrumb "new collection"
+        add_breadcrumb t("directory.collections.new.heading")
         render :new, status: :unprocessable_entity
       end
     end
@@ -74,7 +86,7 @@ module Directory
     def edit
       authorize @collection
       add_breadcrumb @collection.name, directory_collection_path(@collection.slug)
-      add_breadcrumb t("directory.collections.edit.title")
+      add_breadcrumb t("directory.collections.edit.heading", name: @collection.name)
     end
 
     def update

@@ -4,7 +4,7 @@ module Directory
   class HealthController < BaseController
     def show
       authorize :directory, :admin?
-      add_breadcrumb "health"
+      add_breadcrumb t("directory.health.show.heading")
 
       cached = Rails.cache.read("directory:validate_result")
       if cached
@@ -22,9 +22,9 @@ module Directory
       Rails.cache.write("directory:validate_result", { result: result, at: Time.current })
 
       if result.valid?
-        redirect_to directory_health_path, notice: "valid — no drift detected."
+        redirect_to directory_health_path, notice: t("directory.flash.health_valid")
       else
-        redirect_to directory_health_path, alert: "drift detected!"
+        redirect_to directory_health_path, alert: t("directory.flash.health_drift")
       end
     end
   end

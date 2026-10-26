@@ -1,22 +1,22 @@
-<% content_for :title, "reports" %>
+<% content_for :title, t("directory.reports.index.title") %>
 <column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
   <row align-="center between">
-    <h2>reports</h2>
+    <h2><%= t("directory.reports.index.heading") %></h2>
     <row gap-="2" align-="center">
-      <a href="<%= directory_root_path %>" style="color: var(--foreground2);">directory</a>
+      <a href="<%= directory_root_path %>" style="color: var(--foreground2);"><%= t("directory.layout.title") %></a>
     </row>
   </row>
 
   <div is-="separator"></div>
 
-  <span style="color: var(--foreground2); font-style: italic;">empty collections</span>
+  <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.reports.index.empty_collections") %></span>
 
   <% if @empty_collections.any? %>
     <table>
       <thead>
         <tr>
-          <th>name</th>
-          <th>kind</th>
+          <th><%= t("directory.reports.index.col_name") %></th>
+          <th><%= t("directory.reports.index.col_kind") %></th>
         </tr>
       </thead>
       <tbody>
@@ -29,19 +29,19 @@
       </tbody>
     </table>
   <% else %>
-    <span style="color: var(--foreground2);">none</span>
+    <span style="color: var(--foreground2);"><%= t("directory.reports.index.none") %></span>
   <% end %>
 
   <div is-="separator"></div>
 
-  <span style="color: var(--foreground2); font-style: italic;">collections with no manage_members grant</span>
+  <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.reports.index.unmanaged_collections") %></span>
 
   <% if @unmanaged_collections.any? %>
     <table>
       <thead>
         <tr>
-          <th>name</th>
-          <th>kind</th>
+          <th><%= t("directory.reports.index.col_name") %></th>
+          <th><%= t("directory.reports.index.col_kind") %></th>
         </tr>
       </thead>
       <tbody>
@@ -54,19 +54,19 @@
       </tbody>
     </table>
   <% else %>
-    <span style="color: var(--foreground2);">none</span>
+    <span style="color: var(--foreground2);"><%= t("directory.reports.index.none") %></span>
   <% end %>
 
   <div is-="separator"></div>
 
-  <span style="color: var(--foreground2); font-style: italic;">people holding nothing</span>
+  <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.reports.index.orphan_people") %></span>
 
   <% if @orphan_people.any? %>
     <table>
       <thead>
         <tr>
-          <th>name</th>
-          <th>email</th>
+          <th><%= t("directory.reports.index.col_name") %></th>
+          <th><%= t("directory.reports.index.col_email") %></th>
         </tr>
       </thead>
       <tbody>
@@ -79,19 +79,19 @@
       </tbody>
     </table>
   <% else %>
-    <span style="color: var(--foreground2);">none</span>
+    <span style="color: var(--foreground2);"><%= t("directory.reports.index.none") %></span>
   <% end %>
 
   <div is-="separator"></div>
 
-  <span style="color: var(--foreground2); font-style: italic;">locked identities in directory</span>
+  <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.reports.index.locked_identities") %></span>
 
   <% if @locked_people.any? %>
     <table>
       <thead>
         <tr>
-          <th>name</th>
-          <th>email</th>
+          <th><%= t("directory.reports.index.col_name") %></th>
+          <th><%= t("directory.reports.index.col_email") %></th>
           <th></th>
         </tr>
       </thead>
@@ -100,26 +100,26 @@
           <tr>
             <td><%= link_to person.full_name, directory_person_path(person) %></td>
             <td style="color: var(--foreground2);"><%= person.primary_email %></td>
-            <td><span is-="badge" variant-="red">locked</span></td>
+            <td><span is-="badge" variant-="red"><%= t("directory.badges.locked") %></span></td>
           </tr>
         <% end %>
       </tbody>
     </table>
   <% else %>
-    <span style="color: var(--foreground2);">none</span>
+    <span style="color: var(--foreground2);"><%= t("directory.reports.index.none") %></span>
   <% end %>
 
   <div is-="separator"></div>
 
-  <span style="color: var(--foreground2); font-style: italic;">memberships older than 1 year</span>
+  <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.reports.index.old_memberships") %></span>
 
   <% if @old_memberships.any? %>
     <table>
       <thead>
         <tr>
-          <th>person</th>
-          <th>collection</th>
-          <th>created</th>
+          <th><%= t("directory.reports.index.col_person") %></th>
+          <th><%= t("directory.reports.index.col_collection") %></th>
+          <th><%= t("directory.reports.index.col_created") %></th>
         </tr>
       </thead>
       <tbody>
@@ -133,20 +133,20 @@
       </tbody>
     </table>
   <% else %>
-    <span style="color: var(--foreground2);">none</span>
+    <span style="color: var(--foreground2);"><%= t("directory.reports.index.none") %></span>
   <% end %>
 
   <div is-="separator"></div>
 
-  <span style="color: var(--foreground2); font-style: italic;">memberships expiring in 30 days</span>
+  <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.reports.index.expiring_memberships") %></span>
 
   <% if @expiring_memberships.any? %>
     <table>
       <thead>
         <tr>
-          <th>person</th>
-          <th>collection</th>
-          <th>expires</th>
+          <th><%= t("directory.reports.index.col_person") %></th>
+          <th><%= t("directory.reports.index.col_collection") %></th>
+          <th><%= t("directory.reports.index.col_expires") %></th>
         </tr>
       </thead>
       <tbody>
@@ -160,14 +160,14 @@
       </tbody>
     </table>
   <% else %>
-    <span style="color: var(--foreground2);">none</span>
+    <span style="color: var(--foreground2);"><%= t("directory.reports.index.none") %></span>
   <% end %>
 
   <div is-="separator"></div>
 
   <row gap-="2" align-="center" style="color: var(--foreground2);">
     <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">Bksp</span> back
+      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
     </row>
   </row>
 </column>

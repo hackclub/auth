@@ -1,16 +1,16 @@
-<% content_for :title, "Directory" %>
+<% content_for :title, t("directory.collections.index.title") %>
 <% groups = @collections.select(&:group?) %>
 <% entitlements = @collections.select(&:entitlement?) %>
 <column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
   <row align-="center between">
-    <h2>directory</h2>
+    <h2><%= t("directory.collections.index.heading") %></h2>
     <row gap-="2" align-="center">
       <% if directory_admin? %>
-        <a href="<%= directory_reports_path %>" style="color: var(--foreground2);">reports</a>
-        <a href="<%= directory_activity_path %>" style="color: var(--foreground2);">activity</a>
-        <a href="<%= directory_health_path %>" style="color: var(--foreground2);">health</a>
-        <a href="<%= directory_new_import_path %>" style="color: var(--foreground2);">import</a>
-        <a href="<%= new_directory_collection_path %>"><button size-="small">+ new</button></a>
+        <a href="<%= directory_reports_path %>" style="color: var(--foreground2);"><%= t("directory.nav.reports") %></a>
+        <a href="<%= directory_activity_path %>" style="color: var(--foreground2);"><%= t("directory.nav.activity") %></a>
+        <a href="<%= directory_health_path %>" style="color: var(--foreground2);"><%= t("directory.nav.health") %></a>
+        <a href="<%= directory_new_import_path %>" style="color: var(--foreground2);"><%= t("directory.nav.import") %></a>
+        <a href="<%= new_directory_collection_path %>"><button size-="small"><%= t("directory.collections.index.new_button") %></button></a>
       <% end %>
     </row>
   </row>
@@ -20,23 +20,23 @@
   <%= form_with url: directory_search_path, method: :get, local: true do %>
     <row gap-="1" align-="center">
       <span style="color: var(--foreground2);">⌕</span>
-      <%= text_field_tag :q, params[:q], placeholder: "search people and groups…", autofocus: true, style: "flex: 1; border: none;" %>
-      <button type="submit" size-="small">search</button>
+      <%= text_field_tag :q, params[:q], placeholder: t("directory.collections.index.search_placeholder"), autofocus: true, style: "flex: 1; border: none;" %>
+      <button type="submit" size-="small"><%= t("directory.collections.index.search_button") %></button>
     </row>
   <% end %>
 
   <div is-="separator"></div>
 
   <%# === GROUPS === %>
-  <span style="color: var(--foreground2); font-style: italic;">groups</span>
+  <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.collections.index.groups") %></span>
   <% if groups.any? %>
     <table>
       <thead>
         <tr>
-          <th>name</th>
-          <th style="text-align: right;">direct</th>
-          <th style="text-align: right;">total</th>
-          <th style="text-align: right;">you can</th>
+          <th><%= t("directory.collections.index.col_name") %></th>
+          <th style="text-align: right;"><%= t("directory.collections.index.col_direct") %></th>
+          <th style="text-align: right;"><%= t("directory.collections.index.col_total") %></th>
+          <th style="text-align: right;"><%= t("directory.collections.index.col_you_can") %></th>
         </tr>
       </thead>
       <tbody>
@@ -45,7 +45,7 @@
             <td>
               <%= link_to g.name, directory_collection_path(g.slug) %>
               <% if g.protected %>
-                <span is-="badge" variant-="yellow">protected</span>
+                <span is-="badge" variant-="yellow"><%= t("directory.badges.protected") %></span>
               <% end %>
             </td>
             <td style="text-align: right;"><%= g.direct_member_count %></td>
@@ -61,22 +61,22 @@
       </tbody>
     </table>
   <% else %>
-    <span style="color: var(--foreground2);">no groups yet</span>
+    <span style="color: var(--foreground2);"><%= t("directory.collections.index.no_groups") %></span>
   <% end %>
 
   <div is-="separator"></div>
 
   <%# === ENTITLEMENTS === %>
-  <span style="color: var(--foreground2); font-style: italic;">entitlements</span>
+  <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.collections.index.entitlements") %></span>
   <% if entitlements.any? %>
     <table>
       <thead>
         <tr>
-          <th>name</th>
-          <th style="text-align: right;">direct</th>
-          <th style="text-align: right;">total</th>
-          <th style="text-align: right;">apps</th>
-          <th style="text-align: right;">you can</th>
+          <th><%= t("directory.collections.index.col_name") %></th>
+          <th style="text-align: right;"><%= t("directory.collections.index.col_direct") %></th>
+          <th style="text-align: right;"><%= t("directory.collections.index.col_total") %></th>
+          <th style="text-align: right;"><%= t("directory.collections.index.col_apps") %></th>
+          <th style="text-align: right;"><%= t("directory.collections.index.col_you_can") %></th>
         </tr>
       </thead>
       <tbody>
@@ -85,7 +85,7 @@
             <td>
               <%= link_to e.name, directory_collection_path(e.slug) %>
               <% if e.protected %>
-                <span is-="badge" variant-="yellow">protected</span>
+                <span is-="badge" variant-="yellow"><%= t("directory.badges.protected") %></span>
               <% end %>
             </td>
             <td style="text-align: right;"><%= e.direct_member_count %></td>
@@ -103,13 +103,13 @@
       </tbody>
     </table>
   <% else %>
-    <span style="color: var(--foreground2);">no entitlements yet</span>
+    <span style="color: var(--foreground2);"><%= t("directory.collections.index.no_entitlements") %></span>
   <% end %>
 
   <% unless @collections.any? %>
     <div is-="separator"></div>
     <column align-="center center" pad-="2 0">
-      <span style="color: var(--foreground2);">nothing here yet. create a group or entitlement to get started.</span>
+      <span style="color: var(--foreground2);"><%= t("directory.collections.index.empty_message") %></span>
       <!-- hacktive directory users and computers -->
       <span style="color: var(--foreground2); font-size: 0.75em; margin-top: 2ch; opacity: 0.4;">hduc</span>
     </column>

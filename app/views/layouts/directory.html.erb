@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html data-webtui-theme="gruvbox-dark-hard">
   <head>
-    <title><%= [content_for(:title).presence, "Directory"].compact.join(" — ") %></title>
+    <title><%= [content_for(:title).presence, t("directory.layout.page_title")].compact.join(" — ") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -18,7 +18,7 @@
   <body>
     <row id="hca-actionbar" align-="center between">
       <row gap-="1" align-="center">
-        <a href="<%= directory_root_path %>" style="text-decoration: none; color: var(--foreground0);" title="hacktive directory users and computers"><b>directory</b></a>
+        <a href="<%= directory_root_path %>" style="text-decoration: none; color: var(--foreground0);" title="hacktive directory users and computers"><b><%= t("directory.layout.title") %></b></a>
         <% breadcrumbs.each do |crumb| %>
           <span style="color: var(--foreground2);">/</span>
           <% if crumb[:path] %>
@@ -29,12 +29,12 @@
         <% end %>
       </row>
       <row gap-="2" align-="center">
-        <a href="<%= directory_my_access_path %>" style="color: var(--foreground2); text-decoration: none;">my access</a>
+        <a href="<%= directory_my_access_path %>" style="color: var(--foreground2); text-decoration: none;"><%= t("directory.layout.my_access") %></a>
         <span style="color: var(--foreground2);">
           <%= current_identity.first_name %> <%= current_identity.last_name %>
         </span>
         <% if directory_admin? %>
-          <span is-="badge" variant-="yellow">admin</span>
+          <span is-="badge" variant-="yellow"><%= t("directory.layout.admin") %></span>
         <% end %>
       </row>
     </row>

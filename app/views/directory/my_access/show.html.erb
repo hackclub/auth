@@ -1,7 +1,7 @@
-<% content_for :title, "my access" %>
+<% content_for :title, t("directory.my_access.show.title") %>
 <column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
   <row align-="center between">
-    <h2>my access</h2>
+    <h2><%= t("directory.my_access.show.heading") %></h2>
   </row>
 
   <div is-="separator"></div>
@@ -10,9 +10,9 @@
     <% direct, via = @memberships.partition { |m| m[:direct] } %>
 
     <% if direct.any? %>
-      <span style="color: var(--foreground2); font-style: italic;">direct memberships</span>
+      <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.my_access.show.direct_memberships") %></span>
       <table>
-        <thead><tr><th>collection</th><th>kind</th></tr></thead>
+        <thead><tr><th><%= t("directory.my_access.show.col_collection") %></th><th><%= t("directory.my_access.show.col_kind") %></th></tr></thead>
         <tbody>
           <% direct.each do |m| %>
             <tr>
@@ -26,9 +26,9 @@
 
     <% if via.any? %>
       <% if direct.any? %><div is-="separator"></div><% end %>
-      <span style="color: var(--foreground2); font-style: italic;">via nesting</span>
+      <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.my_access.show.via_nesting") %></span>
       <table>
-        <thead><tr><th>collection</th><th>kind</th><th>via</th></tr></thead>
+        <thead><tr><th><%= t("directory.my_access.show.col_collection") %></th><th><%= t("directory.my_access.show.col_kind") %></th><th><%= t("directory.my_access.show.col_via") %></th></tr></thead>
         <tbody>
           <% via.each do |m| %>
             <tr>
@@ -45,14 +45,14 @@
       </table>
     <% end %>
   <% else %>
-    <span style="color: var(--foreground2);">you don't have any directory memberships yet.</span>
+    <span style="color: var(--foreground2);"><%= t("directory.my_access.show.no_memberships") %></span>
   <% end %>
 
   <div is-="separator"></div>
 
   <row gap-="2" align-="center" style="color: var(--foreground2);">
     <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">Bksp</span> back
+      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
     </row>
   </row>
 </column>

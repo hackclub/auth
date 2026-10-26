@@ -1,9 +1,9 @@
-<% content_for :title, "all grants" %>
+<% content_for :title, t("directory.grants.index.title") %>
 <column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
   <row align-="center between">
-    <h2>all grants</h2>
+    <h2><%= t("directory.grants.index.heading") %></h2>
     <row gap-="2" align-="center">
-      <a href="<%= directory_root_path %>" style="color: var(--foreground2);">directory</a>
+      <a href="<%= directory_root_path %>" style="color: var(--foreground2);"><%= t("directory.layout.title") %></a>
     </row>
   </row>
 
@@ -13,12 +13,12 @@
     <table>
       <thead>
         <tr>
-          <th>grantee</th>
-          <th>target</th>
-          <th>permission</th>
-          <th>recursive</th>
-          <th>by</th>
-          <th>date</th>
+          <th><%= t("directory.grants.index.col_grantee") %></th>
+          <th><%= t("directory.grants.index.col_target") %></th>
+          <th><%= t("directory.grants.index.col_permission") %></th>
+          <th><%= t("directory.grants.index.col_recursive") %></th>
+          <th><%= t("directory.grants.index.col_by") %></th>
+          <th><%= t("directory.grants.index.col_date") %></th>
         </tr>
       </thead>
       <tbody>
@@ -29,7 +29,7 @@
             <td><code><%= grant.permission %></code></td>
             <td>
               <% if grant.recursive %>
-                <span is-="badge" variant-="blue">recursive</span>
+                <span is-="badge" variant-="blue"><%= t("directory.badges.recursive") %></span>
               <% end %>
             </td>
             <td style="color: var(--foreground2);"><%= grant.created_by&.full_name %></td>
@@ -40,7 +40,7 @@
     </table>
   <% else %>
     <column align-="center center" pad-="4 0">
-      <span style="color: var(--foreground2);">no grants</span>
+      <span style="color: var(--foreground2);"><%= t("directory.grants.index.empty") %></span>
     </column>
   <% end %>
 
@@ -48,7 +48,7 @@
 
   <row gap-="2" align-="center" style="color: var(--foreground2);">
     <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">Bksp</span> back
+      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
     </row>
   </row>
 </column>

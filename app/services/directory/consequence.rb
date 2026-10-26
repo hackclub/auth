@@ -2,35 +2,47 @@
 
 module Directory
   class Consequence
-    # Given a person and the collection they're being removed from,
-    # returns a human sentence describing what they'll lose — or nil
-    # if the removal has no downstream effect.
+    # Preview what would change if this membership were removed.
+    # Runs the actual rebuild inside a rolled-back transaction so the
+    # result is authoritative, not heuristic.
+    def self.removal(person:, collection:)
+      before = Directory::EffectiveMembership.where(person_id: person.id).pluck(:collection_id).to_set
+
+      result = nil
+      ActiveRecord::Base.transaction do
+        membership = Directory::Membership.find_by(
+          collection: collection,
+          member_person: person
+        ) || Directory::Membership.find_by(
+          collection: collection,
+          member_group_id: Directory::Membership.where(member_person: person).select(:collection_id)
+        )
+        membership&.destroy!
+        Directory::Rebuild.call(cause: "preview")
+
+        after = Directory::EffectiveMembership.where(person_id: person.id).pluck(:collection_id).to_set
+        lost_ids = before - after
+        kept_ids = after
+
+        lost = Directory::Collection.where(id: lost_ids).pluck(:name)
+        result = { loses: lost, keeps_count: kept_ids.size }
+
+        raise ActiveRecord::Rollback
+      end
+
+      result || { loses: [], keeps_count: 0 }
+    end
+
+    # Human-readable summary
     def self.removal_summary(person:, collection:)
-      # Count effective memberships that flow through this collection.
-      # A person who is a direct member of collection C, and C is nested
-      # inside parent P, would lose their effective membership in P if
-      # they have no other path to P.
-      #
-      # For v1 we show a simpler metric: how many *other* collections
-      # include this person effectively through this one. We count
-      # parent collections that contain `collection` as a member group,
-      # then check which of those the person would still reach via
-      # another membership.
+      data = removal(person: person, collection: collection)
+      return nil if data[:loses].empty?
 
-      parent_collection_ids = collection.parent_collections.pluck(:id)
-      return nil if parent_collection_ids.empty?
-
-      # Collections the person reaches effectively (excluding the one being removed)
-      still_effective_ids = Directory::EffectiveMembership
-        .where(person_id: person.id)
-        .where.not(collection_id: collection.id)
-        .pluck(:collection_id)
-
-      lost_ids = parent_collection_ids - still_effective_ids
-      return nil if lost_ids.empty?
-
-      count = lost_ids.size
-      "they are an effective member of #{count} other #{'collection'.pluralize(count)} through this one."
+      if data[:loses].size <= 3
+        "will lose: #{data[:loses].join(', ')}"
+      else
+        "will lose #{data[:loses].size} memberships including #{data[:loses].first(2).join(', ')}"
+      end
     end
   end
 end

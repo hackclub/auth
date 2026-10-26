@@ -1,9 +1,9 @@
-<% content_for :title, "activity" %>
+<% content_for :title, t("directory.activity.index.title") %>
 <column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
   <row align-="center between">
-    <h2>activity</h2>
+    <h2><%= t("directory.activity.index.heading") %></h2>
     <row gap-="2" align-="center">
-      <a href="<%= directory_root_path %>" style="color: var(--foreground2);">directory</a>
+      <a href="<%= directory_root_path %>" style="color: var(--foreground2);"><%= t("directory.layout.title") %></a>
     </row>
   </row>
 
@@ -14,7 +14,7 @@
     <%= paginate @activities %>
   <% else %>
     <column align-="center center" pad-="4 0">
-      <span style="color: var(--foreground2);">no activity</span>
+      <span style="color: var(--foreground2);"><%= t("directory.activity.index.empty") %></span>
     </column>
   <% end %>
 
@@ -22,7 +22,7 @@
 
   <row gap-="2" align-="center" style="color: var(--foreground2);">
     <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">Bksp</span> back
+      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
     </row>
   </row>
 </column>

@@ -81,6 +81,21 @@
       <% end %>
     <% end %>
 
+    <%# Directory groups disclosure (§8.5) %>
+    <% if application %>
+      <% dir_person = Directory::Person.find_by(identity: current_identity) rescue nil %>
+      <% if dir_person %>
+        <% dir_exposures = Directory::Exposure.where(app_id: application.id) rescue nil %>
+        <% if dir_exposures&.exists? %>
+          <% member_ids = Directory::EffectiveMembership.where(person_id: dir_person.id, collection_id: dir_exposures.select(:entitlement_id)).pluck(:collection_id) %>
+          <% names = dir_exposures.where(entitlement_id: member_ids).pluck(:claim_name) %>
+          <% if names.any? %>
+            <p style="margin: 1rem 0; color: var(--pico-muted-color);">this app will be told you're in: <strong><%= names.join(', ') %></strong></p>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+
     <% auth_label = application&.hq_official? ? t('.authorize_official') : t('.authorize') %>
     <div class="oauth-actions" x-data="{ countdown: <%= application&.hq_official? ? 0 : 3 %>, ready: <%= application&.hq_official? ? true : false %>, authLabel: '<%= auth_label.gsub("'", "\\'") %>' }" x-init="if (countdown > 0) { let interval = setInterval(() => { countdown--; if (countdown <= 0) { ready = true; clearInterval(interval); } }, 1000); }">
       <%= form_tag oauth_authorization_path, method: :delete do %>
