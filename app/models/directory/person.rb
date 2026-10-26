@@ -1,6 +1,5 @@
 module Directory
   class Person < ApplicationRecord
-    self.table_name = "directory_people"
 
     include PublicActivity::Model
 

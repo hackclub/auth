@@ -1,20 +1,22 @@
 FactoryBot.define do
-  factory :directory_person, class: 'Directory::Person' do
+  factory :directory_person, class: "Directory::Person" do
     identity { association :identity }
     created_by { identity }
   end
 
-  factory :directory_group, class: 'Directory::Group' do
+  factory :directory_group, class: "Directory::Collection" do
     sequence(:slug) { |n| "group-#{n}" }
     sequence(:name) { |n| "Group #{n}" }
+    kind { "group" }
   end
 
-  factory :directory_entitlement, class: 'Directory::Entitlement' do
+  factory :directory_entitlement, class: "Directory::Collection" do
     sequence(:slug) { |n| "entitlement-#{n}" }
     sequence(:name) { |n| "Entitlement #{n}" }
+    kind { "entitlement" }
   end
 
-  factory :directory_membership, class: 'Directory::Membership' do
+  factory :directory_membership, class: "Directory::Membership" do
     collection { association :directory_group }
 
     trait :person do
@@ -26,9 +28,9 @@ FactoryBot.define do
     end
   end
 
-  factory :directory_grant, class: 'Directory::Grant' do
+  factory :directory_grant, class: "Directory::Grant" do
     grantee_group { association :directory_group }
     target_collection { association :directory_group }
-    permission { 'view' }
+    permission { "view" }
   end
 end

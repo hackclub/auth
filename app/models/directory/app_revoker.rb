@@ -1,6 +1,5 @@
 module Directory
   class AppRevoker < ApplicationRecord
-    self.table_name = "directory_app_revokers"
     self.primary_key = :app_id
 
     ADAPTERS = %w[cloudflare_access webhook].freeze

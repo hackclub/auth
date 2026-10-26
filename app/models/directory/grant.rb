@@ -1,6 +1,5 @@
 module Directory
   class Grant < ApplicationRecord
-    self.table_name = "directory_grants"
 
     has_paper_trail
     include PublicActivity::Model

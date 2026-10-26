@@ -72,9 +72,8 @@ module Directory
       # Capture revocation data BEFORE destroy wipes effective_memberships
       revocations = capture_revocations_for_person(@person)
 
-      ActiveRecord::Base.transaction do
+      Directory.mutate!(cause: "person_removed:#{@person.id}") do
         @person.destroy!
-        Directory::Rebuild.call(cause: "person_removed:#{@person.id}")
       end
 
       # Enqueue revocations directly since the rebuild diff won't find them

@@ -42,8 +42,7 @@ module DeletionService
 
       log.call "step 1b: removing from directory (if present)..."
       if (dir_person = Directory::Person.find_by(identity: identity))
-        dir_person.destroy!
-        Directory::Rebuild.call(cause: "person_removed:#{dir_person.id}")
+        Directory.mutate!(cause: "person_removed:#{dir_person.id}") { dir_person.destroy! }
         log.call "  removed directory person #{dir_person.id}"
       end
 

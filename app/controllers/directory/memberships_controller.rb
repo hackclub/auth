@@ -73,9 +73,8 @@ module Directory
         return
       end
 
-      ActiveRecord::Base.transaction do
+      Directory.mutate!(cause: "membership:#{membership.id}") do
         membership.save!
-        Directory::Rebuild.call(cause: "membership:#{membership.id}")
       end
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
@@ -111,9 +110,8 @@ module Directory
         end
       end
 
-      ActiveRecord::Base.transaction do
+      Directory.mutate!(cause: "membership_removed:#{membership.id}") do
         membership.destroy!
-        Directory::Rebuild.call(cause: "membership_removed:#{membership.id}")
       end
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),

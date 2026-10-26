@@ -8,10 +8,7 @@ module Directory
       expired = Directory::Membership.where("expires_at <= ?", Time.current)
       return if expired.none?
 
-      ActiveRecord::Base.transaction do
-        expired.destroy_all
-        Directory::Rebuild.call(cause: "sweeper")
-      end
+      Directory.mutate!(cause: "sweeper") { expired.destroy_all }
     end
   end
 end

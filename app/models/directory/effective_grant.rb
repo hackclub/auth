@@ -1,6 +1,5 @@
 module Directory
   class EffectiveGrant < ApplicationRecord
-    self.table_name = "directory_effective_grants"
     self.primary_key = [:person_id, :target_collection_id, :permission]
 
     belongs_to :person, class_name: "Directory::Person"

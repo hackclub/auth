@@ -1,6 +1,5 @@
 module Directory
   class Membership < ApplicationRecord
-    self.table_name = "directory_memberships"
 
     has_paper_trail
     include PublicActivity::Model
@@ -94,7 +93,7 @@ module Directory
         )
       SQL
 
-      if max_depth.to_i > 6
+      if max_depth.to_i > Directory::MAX_DEPTH
         errors.add(:base, "would exceed maximum nesting depth of 6")
       end
     end

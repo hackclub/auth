@@ -1,6 +1,5 @@
 module Directory
   class Exposure < ApplicationRecord
-    self.table_name = "directory_exposures"
 
     has_paper_trail
     include PublicActivity::Model
@@ -20,7 +19,7 @@ module Directory
     def entitlement_must_be_entitlement
       return unless entitlement
 
-      errors.add(:entitlement, "must be an entitlement") unless entitlement.is_a?(Directory::Entitlement)
+      errors.add(:entitlement, "must be an entitlement") unless entitlement&.entitlement?
     end
   end
 end

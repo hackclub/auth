@@ -40,7 +40,7 @@ module Directory
           FROM closure c
           INNER JOIN directory_memberships m ON m.collection_id = c.descendant_id
           WHERE m.member_group_id IS NOT NULL
-            AND c.depth < 6
+            AND c.depth < #{Directory::MAX_DEPTH}
         )
         SELECT DISTINCT ancestor_id, descendant_id, min(depth) AS depth
         FROM closure

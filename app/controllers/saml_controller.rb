@@ -315,7 +315,7 @@ class SAMLController < ApplicationController
 
     person = Directory::Person.find_by(identity: current_identity)
 
-    entitlements = Directory::Entitlement.where(slug: required)
+    entitlements = Directory::Collection.entitlements.where(slug: required)
     found_slugs = entitlements.pluck(:slug)
     missing_slugs = required - found_slugs
 

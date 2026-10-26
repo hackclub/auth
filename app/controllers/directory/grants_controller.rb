@@ -24,10 +24,7 @@ module Directory
         created_by_identity_id: current_identity.id
       )
 
-      ActiveRecord::Base.transaction do
-        grant.save!
-        Directory::Rebuild.call(cause: "grant:#{grant.id}")
-      end
+      Directory.mutate!(cause: "grant:#{grant.id}") { grant.save! }
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         notice: t("directory.flash.grant_added")
@@ -44,10 +41,7 @@ module Directory
       @collection = grant.target_collection
       authorize grant
 
-      ActiveRecord::Base.transaction do
-        grant.destroy!
-        Directory::Rebuild.call(cause: "grant_removed:#{grant.id}")
-      end
+      Directory.mutate!(cause: "grant_removed:#{grant.id}") { grant.destroy! }
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         notice: t("directory.flash.grant_removed")

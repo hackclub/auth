@@ -67,16 +67,12 @@ module Directory
     end
 
     def create
-      klass = case params.dig(:collection, :kind)
-              when "entitlement" then Directory::Entitlement
-              else Directory::Group
-              end
-      @collection = klass.new(collection_params_for_create.except(:kind))
+      @collection = Directory::Collection.new(collection_params_for_create)
       @collection.created_by_identity_id = current_identity.id
       authorize @collection
 
       if @collection.save
-        redirect_to directory_collection_path(@collection.slug), notice: t("directory.collections.created")
+        redirect_to directory_collection_path(@collection), notice: t("directory.collections.created")
       else
         add_breadcrumb t("directory.collections.new.heading")
         render :new, status: :unprocessable_entity
@@ -125,9 +121,8 @@ module Directory
         end
       end
 
-      ActiveRecord::Base.transaction do
+      Directory.mutate!(cause: "collection_deleted:#{@collection.id}") do
         @collection.destroy!
-        Directory::Rebuild.call(cause: "collection_deleted:#{@collection.id}")
       end
 
       # Enqueue revocations directly since the rebuild diff won't find them

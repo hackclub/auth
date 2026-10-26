@@ -2,13 +2,6 @@
 
 module Directory
   module Revokers
-    def self.for(app_revoker)
-      case app_revoker.adapter
-      when "cloudflare_access" then CloudflareAccess.new(app_revoker)
-      else raise "unknown revoker adapter: #{app_revoker.adapter}"
-      end
-    end
-
     class Base
       def initialize(app_revoker)
         @app_revoker = app_revoker

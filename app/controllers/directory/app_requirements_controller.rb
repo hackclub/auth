@@ -6,7 +6,7 @@ module Directory
 
     def create
       app = Program.find(params[:app_id])
-      entitlement = Directory::Entitlement.find_by!(slug: params[:entitlement_slug])
+      entitlement = Directory::Collection.entitlements.find_by!(slug: params[:entitlement_slug])
 
       authorize_requirement!(app, entitlement)
 
