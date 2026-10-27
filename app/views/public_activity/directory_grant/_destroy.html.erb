@@ -1,3 +1,3 @@
 <%= render Components::PublicActivity::Snippet.new(activity) do %>
-  removed a grant.
+  revoked <code><%= activity.parameters["permission"] || "grant" %></code> from <b><%= activity.parameters["grantee_name"] || "(unknown)" %></b> on <b><%= activity.parameters["target_name"] || "(deleted)" %></b>.
 <% end %>

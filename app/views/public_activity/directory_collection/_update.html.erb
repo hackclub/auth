@@ -1,0 +1,6 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  updated <%= activity.parameters["kind"] || activity.trackable&.kind %> <b><%= activity.trackable&.name || activity.parameters["name"] || "(deleted)" %></b><% if activity.parameters["changes"].present? %>:
+  <% activity.parameters["changes"].each do |field, (old_val, new_val)| %>
+    <code><%= field %></code> <span style="color: var(--foreground2);"><%= old_val %></span> &rarr; <b><%= new_val %></b><%= "," unless field == activity.parameters["changes"].keys.last %>
+  <% end %><% else %>.<% end %>
+<% end %>

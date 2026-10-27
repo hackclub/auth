@@ -1,3 +1,3 @@
 <%= render Components::PublicActivity::Snippet.new(activity) do %>
-  removed someone from the directory.
+  removed <b><%= activity.parameters["name"] || "(unknown)" %></b> (<%= activity.parameters["email"] || "?" %>) from the directory.
 <% end %>

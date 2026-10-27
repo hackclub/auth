@@ -2,7 +2,16 @@ module Directory
   class Collection < ApplicationRecord
     has_paper_trail
     include PublicActivity::Model
-    tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) }
+    tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) },
+            params: {
+              name: ->(_c, model) { model.name },
+              kind: ->(_c, model) { model.kind },
+              slug: ->(_c, model) { model.slug },
+              changes: ->(_c, model) {
+                c = model.saved_changes.except("created_at")
+                c.present? ? c.to_h { |k, v| [k, v.map(&:to_s)] } : nil
+              }
+            }
 
     def self.policy_class = Directory::CollectionPolicy
 

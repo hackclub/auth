@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  added <b><%= activity.parameters["member_name"] || "someone" %></b> to <b><%= activity.trackable&.name || "(deleted)" %></b>.
+<% end %>

@@ -4,7 +4,19 @@ module Directory
     has_paper_trail
     include PublicActivity::Model
     tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) },
-           recipient: ->(_, model) { model.collection }
+           recipient: ->(_, model) { model.collection },
+           params: {
+             collection_name: ->(_c, model) { model.collection&.name },
+             member_name: ->(_c, model) {
+               if model.member_person_id
+                 (model.member_person&.full_name rescue nil) || "(deleted)"
+               elsif model.member_group_id
+                 (model.member_group&.name rescue nil) || "(deleted)"
+               end
+             },
+             member_type: ->(_c, model) { model.member_person_id ? "person" : "group" },
+             expires_at: ->(_c, model) { model.expires_at&.iso8601 }
+           }
 
     after_create :track_on_person_and_collection
     after_destroy :track_removal_on_person_and_collection
@@ -106,15 +118,21 @@ module Directory
 
     def track_on_person_and_collection
       return unless member_person
-      collection.create_activity :member_added, owner: created_by, recipient: member_person
+      collection.create_activity :member_added,
+        owner: created_by,
+        recipient: member_person,
+        params: { member_name: member_person.full_name, member_email: member_person.primary_email }
     rescue => e
       Rails.logger.warn("[Directory] Activity tracking failed: #{e.message}")
     end
 
     def track_removal_on_person_and_collection
       return unless member_person_id
-      # person may already be destroyed in cascades, so rescue
-      collection&.create_activity :member_removed, owner: nil
+      expired = expires_at.present? && expires_at <= Time.current
+      name = begin; member_person&.full_name; rescue; nil; end || "(deleted)"
+      collection&.create_activity :member_removed,
+        owner: nil,
+        params: { member_name: name, reason: expired ? "expired" : "removed" }
     rescue => e
       Rails.logger.warn("[Directory] Activity tracking failed: #{e.message}")
     end

@@ -3,7 +3,12 @@ module Directory
 
     has_paper_trail
     include PublicActivity::Model
-    tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) }
+    tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) },
+            params: {
+              grantee_name: ->(_c, model) { model.grantee_group&.name },
+              target_name: ->(_c, model) { model.target_collection&.name },
+              permission: ->(_c, model) { model.permission }
+            }
 
     belongs_to :grantee_group, class_name: "Directory::Collection"
     belongs_to :target_collection, class_name: "Directory::Collection"

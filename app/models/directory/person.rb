@@ -3,7 +3,11 @@ module Directory
 
     include PublicActivity::Model
 
-    tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) }
+    tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) },
+            params: {
+              name: ->(_c, model) { model.identity&.full_name },
+              email: ->(_c, model) { model.identity&.primary_email }
+            }
 
     belongs_to :identity
     belongs_to :created_by, class_name: "Identity", foreign_key: :created_by_identity_id, optional: true

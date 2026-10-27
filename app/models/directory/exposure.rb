@@ -3,7 +3,12 @@ module Directory
 
     has_paper_trail
     include PublicActivity::Model
-    tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) || controller&.try(:current_identity) }
+    tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) || controller&.try(:current_identity) },
+            params: {
+              app_name: ->(_c, model) { model.app&.name },
+              entitlement_name: ->(_c, model) { model.entitlement&.name },
+              claim_name: ->(_c, model) { model.claim_name }
+            }
 
     belongs_to :app, class_name: "Program"
     belongs_to :entitlement, class_name: "Directory::Collection"
