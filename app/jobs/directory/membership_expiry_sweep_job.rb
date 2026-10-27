@@ -5,10 +5,14 @@ module Directory
     queue_as :default
 
     def perform
-      expired = Directory::Membership.where("expires_at <= ?", Time.current)
-      return if expired.none?
+      expired_ids = Directory::Membership.where("expires_at <= ?", Time.current).pluck(:id)
+      return if expired_ids.empty?
 
-      Directory.mutate!(cause: "sweeper") { expired.destroy_all }
+      expired_ids.each_slice(100) do |batch_ids|
+        Directory.mutate!(cause: "sweeper") do
+          Directory::Membership.where(id: batch_ids).destroy_all
+        end
+      end
     end
   end
 end
