@@ -73,20 +73,17 @@ module Directory
         .pluck("directory_people.identity_id")
         .uniq
 
-      # Revoke tokens for token holders who don't pass
-      OAuthToken.where(application_id: app.id)
+      # Identify non-passing token holders, then revoke
+      tokens_to_revoke = OAuthToken.where(application_id: app.id)
         .where.not(resource_owner_id: passing_identity_ids)
         .where(revoked_at: nil)
-        .update_all(revoked_at: Time.current)
+
+      revoked_identity_ids = tokens_to_revoke.pluck(:resource_owner_id).uniq
+      tokens_to_revoke.update_all(revoked_at: Time.current)
 
       revoker = Directory::AppRevoker.find_by(app_id: app.id, enabled: true)
-      if revoker
-        non_passing_emails = Identity
-          .where(id: OAuthToken.where(application_id: app.id).select(:resource_owner_id))
-          .where.not(id: passing_identity_ids)
-          .pluck(:primary_email)
-
-        non_passing_emails.each do |email|
+      if revoker && revoked_identity_ids.any?
+        Identity.where(id: revoked_identity_ids).pluck(:primary_email).each do |email|
           Directory::RevokeSessionJob.perform_later(app_id: app.id, email: email)
         end
       end

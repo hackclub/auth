@@ -12,7 +12,8 @@ module Directory
         .where(directory_effective_memberships: { person_id: nil })
 
       if params[:email].present?
-        @search_results = Identity.where("lower(primary_email) LIKE ?", "%#{params[:email].strip.downcase}%").limit(20)
+        term = ActiveRecord::Base.sanitize_sql_like(params[:email].strip.downcase)
+        @search_results = Identity.where("lower(primary_email) LIKE ?", "%#{term}%").limit(20)
       end
     end
 

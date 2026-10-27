@@ -89,7 +89,15 @@ module Directory
     def update
       authorize @collection
 
-      if @collection.update(collection_params_for_update)
+      @collection.assign_attributes(collection_params_for_update)
+
+      saved = if @collection.protected_changed?
+        @collection.valid? && Directory.mutate!(cause: "collection_updated:#{@collection.id}") { @collection.save!(validate: false) }
+      else
+        @collection.save
+      end
+
+      if saved
         redirect_to directory_collection_path(@collection.slug), notice: t("directory.collections.updated")
       else
         add_breadcrumb @collection.name, directory_collection_path(@collection.slug)

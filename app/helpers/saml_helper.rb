@@ -79,7 +79,9 @@ module SAMLHelper
     groups_values = saml_directory_groups(identity, sp_config)
     if groups_values.any?
       attr_name = sp_config[:groups_attribute] || "groups"
-      all_attrs << SAML2::Attribute.new(attr_name, groups_values)
+      if sp_config[:allowed_attributes].blank? || sp_config[:allowed_attributes].include?(attr_name)
+        all_attrs << SAML2::Attribute.new(attr_name, groups_values)
+      end
     end
 
     all_attrs

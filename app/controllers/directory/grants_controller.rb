@@ -24,7 +24,7 @@ module Directory
         created_by_identity_id: current_identity.id
       )
 
-      Directory.mutate!(cause: "grant:#{grant.id}") { grant.save! }
+      Directory.mutate!(cause: "grant_created") { grant.save! }
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         notice: t("directory.flash.grant_added")

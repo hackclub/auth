@@ -73,7 +73,7 @@ module Directory
         return
       end
 
-      Directory.mutate!(cause: "membership:#{membership.id}") do
+      Directory.mutate!(cause: "membership_created") do
         membership.save!
       end
 

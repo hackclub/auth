@@ -25,7 +25,7 @@ module Directory
             .first if descendant_ids.any?
         end
         membership&.destroy!
-        Directory::Rebuild.call(cause: "preview")
+        Directory::Rebuild.call(cause: "preview", skip_lock: true)
 
         after = Directory::EffectiveMembership.where(person_id: person.id).pluck(:collection_id).to_set
         lost_ids = before - after

@@ -35,6 +35,7 @@ module DeletionService
     log.call ""
 
     deferred_attachments = []
+    dir_revocations = []
 
     ActiveRecord::Base.transaction do
       log.call "step 1: locking account..."
@@ -42,6 +43,7 @@ module DeletionService
 
       log.call "step 1b: removing from directory (if present)..."
       if (dir_person = Directory::Person.find_by(identity: identity))
+        dir_revocations = capture_directory_revocations(dir_person)
         Directory.mutate!(cause: "person_removed:#{dir_person.id}") { dir_person.destroy! }
         log.call "  removed directory person #{dir_person.id}"
       end
@@ -178,6 +180,10 @@ module DeletionService
         key: "identity.deletion_request",
         parameters: { tombstoned_at: Time.current.iso8601 }
       )
+    end
+
+    if dir_revocations.any?
+      Directory::AfterChangeJob.perform_later(change_ids: [], revocations: dir_revocations)
     end
 
     if deferred_attachments.any?
@@ -442,8 +448,26 @@ module DeletionService
     scope.where.not(parameters: nil).where.not(safe_sql).update_all(parameters: nil)
   end
 
+  def self.capture_directory_revocations(person)
+    entitlement_ids = person.effective_memberships
+      .joins("INNER JOIN directory_collections ON directory_collections.id = directory_effective_memberships.collection_id")
+      .where(directory_collections: { kind: "entitlement" })
+      .pluck(:collection_id)
+
+    return [] if entitlement_ids.empty?
+
+    app_ids = (
+      Directory::Exposure.where(entitlement_id: entitlement_ids).pluck(:app_id) +
+      Directory::AppRequirement.where(entitlement_id: entitlement_ids).pluck(:app_id)
+    ).uniq
+
+    return [] if app_ids.empty?
+
+    [{ identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids }]
+  end
+
   private_class_method :collect_version_items, :collect_activity_trackables, :purge_attachments,
                        :purge_or_detach, :delete_versions, :discard_pending_jobs, :scrub_activities,
                        :collect_attachments, :detach_attachments, :scrub_manual_call_checklists,
-                       :scrub_verification_cases, :scrub_event_data
+                       :scrub_verification_cases, :scrub_event_data, :capture_directory_revocations
 end

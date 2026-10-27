@@ -4,17 +4,18 @@ module Directory
   class Rebuild
     LOCK_KEY = 8_675_309
 
-    def self.call(cause:)
-      new(cause:).call
+    def self.call(cause:, skip_lock: false)
+      new(cause:, skip_lock:).call
     end
 
-    def initialize(cause:)
+    def initialize(cause:, skip_lock: false)
       @cause = cause
+      @skip_lock = skip_lock
       @conn = ActiveRecord::Base.connection
     end
 
     def call
-      @conn.execute("SELECT pg_advisory_xact_lock(#{LOCK_KEY})")
+      @conn.execute("SELECT pg_advisory_xact_lock(#{LOCK_KEY})") unless @skip_lock
       snapshot_old
       compute_closure
       compute_effective_memberships
