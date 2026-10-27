@@ -13,10 +13,17 @@ module Directory
         membership = Directory::Membership.find_by(
           collection: collection,
           member_person: person
-        ) || Directory::Membership.find_by(
-          collection: collection,
-          member_group_id: Directory::Membership.where(member_person: person).select(:collection_id)
         )
+        unless membership
+          descendant_ids = Directory::Closure
+            .where(ancestor_id: collection.id)
+            .where.not(depth: 0)
+            .order(:depth)
+            .pluck(:descendant_id)
+          membership = Directory::Membership
+            .where(collection_id: descendant_ids, member_person: person)
+            .first if descendant_ids.any?
+        end
         membership&.destroy!
         Directory::Rebuild.call(cause: "preview")
 
