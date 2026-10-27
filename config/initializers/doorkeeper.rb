@@ -23,7 +23,7 @@ Doorkeeper.configure do
       app = ::Program.find_by(uid: params[:client_id])
       has_requirements = app && Directory::AppRequirement.where(app_id: app.id).exists?
       if has_requirements && !Directory::RequirementCheck.passes?(identity: current_identity, app: app)
-        redirect_to "/directory/denied?app=#{CGI.escape(app.name)}"
+        redirect_to "/directory/denied"
         nil
       else
         current_identity

@@ -5,7 +5,6 @@ module Directory
     layout "minimal"
 
     def show
-      @app_name = params[:app]
     end
   end
 end
