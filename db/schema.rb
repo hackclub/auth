@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_26_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_27_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -213,7 +213,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_26_000001) do
     t.bigint "created_by_identity_id"
     t.datetime "created_at", null: false
     t.index ["slug"], name: "index_directory_collections_on_slug", unique: true
-    t.check_constraint "kind::text = ANY (ARRAY['group'::character varying::text, 'entitlement'::character varying::text])", name: "chk_collection_kind"
+    t.check_constraint "kind::text = ANY (ARRAY['group'::character varying, 'entitlement'::character varying]::text[])", name: "chk_collection_kind"
   end
 
   create_table "directory_effective_grants", primary_key: ["person_id", "target_collection_id", "permission"], force: :cascade do |t|
@@ -249,7 +249,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_26_000001) do
     t.bigint "created_by_identity_id"
     t.datetime "created_at", null: false
     t.index ["grantee_group_id", "target_collection_id", "permission"], name: "idx_grants_unique", unique: true
-    t.check_constraint "permission::text = ANY (ARRAY['view'::character varying::text, 'manage_members'::character varying::text, 'expose'::character varying::text])", name: "chk_grant_permission"
+    t.index ["target_collection_id"], name: "index_directory_grants_on_target_collection_id"
+    t.check_constraint "permission::text = ANY (ARRAY['view'::character varying, 'manage_members'::character varying, 'expose'::character varying]::text[])", name: "chk_grant_permission"
   end
 
   create_table "directory_membership_changes", force: :cascade do |t|
@@ -259,7 +260,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_26_000001) do
     t.text "cause"
     t.datetime "created_at", null: false
     t.index ["created_at"], name: "index_directory_membership_changes_on_created_at"
-    t.check_constraint "op::text = ANY (ARRAY['added'::character varying::text, 'removed'::character varying::text])", name: "chk_membership_change_op"
+    t.check_constraint "op::text = ANY (ARRAY['added'::character varying, 'removed'::character varying]::text[])", name: "chk_membership_change_op"
   end
 
   create_table "directory_memberships", force: :cascade do |t|
@@ -271,6 +272,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_26_000001) do
     t.datetime "created_at", null: false
     t.index ["collection_id", "member_group_id"], name: "idx_membership_group_unique", unique: true, where: "(member_group_id IS NOT NULL)"
     t.index ["collection_id", "member_person_id"], name: "idx_membership_person_unique", unique: true, where: "(member_person_id IS NOT NULL)"
+    t.index ["member_group_id"], name: "index_directory_memberships_on_member_group_id", where: "(member_group_id IS NOT NULL)"
+    t.index ["member_person_id"], name: "index_directory_memberships_on_member_person_id", where: "(member_person_id IS NOT NULL)"
     t.check_constraint "member_group_id <> collection_id", name: "chk_membership_no_self_reference"
     t.check_constraint "member_person_id IS NOT NULL AND member_group_id IS NULL OR member_person_id IS NULL AND member_group_id IS NOT NULL", name: "chk_membership_exactly_one_member"
   end
