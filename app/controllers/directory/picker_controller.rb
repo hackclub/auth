@@ -3,7 +3,7 @@
 module Directory
   class PickerController < BaseController
     def search
-      skip_authorization
+      authorize Directory::Person, :picker?
 
       query = params[:q].to_s.strip
       scope = params[:scope].to_s.presence || "all"
@@ -25,10 +25,6 @@ module Directory
     end
 
     private
-
-    def skip_authorization?
-      action_name == "search"
-    end
 
     def search_people(query)
       results = []
@@ -71,7 +67,7 @@ module Directory
     def search_collections(query, kind)
       return [] if query.length < 3
 
-      Directory::Collection
+      policy_scope(Directory::Collection)
         .where(kind: kind)
         .where("name ILIKE :q OR slug ILIKE :q", q: "%#{sanitize_sql_like(query)}%")
         .limit(20)
