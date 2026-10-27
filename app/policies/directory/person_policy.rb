@@ -24,5 +24,33 @@ module Directory
     def destroy?
       user.admin?
     end
+
+    def picker?
+      user.admin? || Directory::EffectiveGrant.where(
+        person_id: user.person&.id,
+        permission: "manage_members"
+      ).exists?
+    end
+
+    class Scope < ApplicationPolicy::Scope
+      def resolve
+        if user.admin?
+          scope.all
+        elsif user.person
+          visible_collection_ids = Directory::EffectiveGrant.where(
+            person_id: user.person.id,
+            permission: %w[view manage_members expose]
+          ).select(:target_collection_id)
+
+          visible_person_ids = Directory::EffectiveMembership.where(
+            collection_id: visible_collection_ids
+          ).select(:person_id)
+
+          scope.where(id: visible_person_ids)
+        else
+          scope.none
+        end
+      end
+    end
   end
 end

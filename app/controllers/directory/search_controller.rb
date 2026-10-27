@@ -16,7 +16,7 @@ module Directory
         .order(:name)
         .limit(50)
 
-      @people = Directory::Person
+      @people = policy_scope(Directory::Person)
         .joins(:identity)
         .where(
           "identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR identities.primary_email ILIKE :q",
