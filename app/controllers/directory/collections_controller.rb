@@ -71,7 +71,8 @@ module Directory
       @collection.created_by_identity_id = current_identity.id
       authorize @collection
 
-      if @collection.save
+      if @collection.valid?
+        Directory.mutate!(cause: "collection_created") { @collection.save! }
         redirect_to directory_collection_path(@collection), notice: t("directory.collections.created")
       else
         add_breadcrumb t("directory.collections.new.heading")
