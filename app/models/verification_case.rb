@@ -14,7 +14,6 @@ class VerificationCase < ApplicationRecord
   include PublicIdentifiable
   set_public_id_prefix "vcase"
 
-  FLIPPER_FLAG = :manual_verification_call_2026_07_03
   ACCESS_TOKEN_TTL = 7.days
 
   belongs_to :identity
@@ -127,20 +126,15 @@ class VerificationCase < ApplicationRecord
 
     event :approve do
       transitions from: :call_held, to: :approved
-      after { close_out! }
     end
 
     event :deny do
       transitions from: :call_held, to: :denied
-      after { close_out! }
     end
 
     event :withdraw do
       transitions from: [ :requested, :link_sent, :docs_submitted, :call_scheduled, :call_held ], to: :withdrawn
-      after do
-        close_out!
-        invalidate_access_token!
-      end
+      after { invalidate_access_token! }
     end
   end
 
@@ -158,11 +152,6 @@ class VerificationCase < ApplicationRecord
     raise ActiveRecord::ReadOnlyRecord, "verification cases are never hard-deleted; use DeletionService to scrub"
   end
   def decided? = approved? || denied?
-
-  # -- feature flag ------------------------------------------------------
-
-  def enable_flag! = Flipper.enable(FLIPPER_FLAG, identity)
-  def revoke_flag! = Flipper.disable(FLIPPER_FLAG, identity)
 
   # -- single-use access link (mirrors Identity::V2LoginCode) -------------
 
@@ -305,10 +294,4 @@ class VerificationCase < ApplicationRecord
   def reset_capture!
     update!(persona_inquiry_id: nil, persona_session_token: nil)
   end
-
-  private
-
-  # decision time: drop the flag. documents are retained (break-glass
-  # gated) — the ManualVerificationCall itself is created by the decision flow.
-  def close_out! = revoke_flag!
 end

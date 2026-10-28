@@ -57,7 +57,8 @@ module Backend
     end
 
     # staff entry point: user emailed identity@, staff opens a case.
-    # enables the flipper flag + sends the single-use link.
+    # the open case itself grants the flipper flag (group gate), so all
+    # that's left is sending the single-use link.
     def create
       authorize VerificationCase
 
@@ -73,7 +74,6 @@ module Backend
         opened_by: current_user,
         skip_persona: params[:skip_persona] == "1"
       )
-      @case.enable_flag!
       deliver_link!
 
       @case.log_event!(:case_opened, actor: current_user, request: request,
