@@ -78,7 +78,7 @@ Doorkeeper::OpenidConnect.configure do
     normal_claim(:ysws_eligible, scope: :verification_status, response: [ :id_token, :user_info ]) { |ident| ident.ysws_eligible }
 
     # Directory groups claim — array of claim_names for exposed entitlements the user belongs to
-    normal_claim :groups, scope: :openid, response: [ :id_token, :user_info ] do |resource_owner, _scopes, access_token|
+    normal_claim :groups, scope: :groups, response: [ :id_token, :user_info ] do |resource_owner, _scopes, access_token|
       app = access_token&.application
       next nil unless app
 
