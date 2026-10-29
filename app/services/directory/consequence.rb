@@ -31,7 +31,7 @@ module Directory
         lost_ids = before - after
         kept_ids = after
 
-        lost = Directory::Collection.where(id: lost_ids).pluck(:name)
+        lost = Directory::Collection.where(id: lost_ids).pluck(:name).sort
         result = { loses: lost, keeps_count: kept_ids.size }
 
         raise ActiveRecord::Rollback
@@ -62,12 +62,12 @@ module Directory
       target_set = target_ancestor_ids.to_set
 
       rows = Directory::Membership
-        .joins("INNER JOIN directory_closures ON directory_closures.descendant_id = directory_memberships.collection_id")
+        .joins("INNER JOIN directory_closure ON directory_closure.descendant_id = directory_memberships.collection_id")
         .where(member_person_id: person_ids)
         .where.not(collection_id: collection.id)
-        .where(directory_closures: { ancestor_id: target_ancestor_ids })
+        .where(directory_closure: { ancestor_id: target_ancestor_ids })
         .distinct
-        .pluck(:member_person_id, "directory_closures.ancestor_id")
+        .pluck(:member_person_id, "directory_closure.ancestor_id")
 
       still_reachable = {}
       rows.each do |pid, aid|
