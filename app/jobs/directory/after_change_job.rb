@@ -8,17 +8,17 @@ module Directory
     # pre-resolved for cases where the person/collection is already deleted
     def perform(change_ids:, revocations: nil)
       if revocations.present?
-        # Pre-resolved: person/collection already deleted, use captured data
         revocations.each do |rev|
           rev = rev.symbolize_keys
+          person = Directory::Person.find_by(identity_id: rev[:identity_id])
           rev[:app_ids].each do |app_id|
+            next if person && still_has_access?(person, app_id)
             revoke_tokens(rev[:identity_id], app_id)
             call_revoker(app_id, rev[:email])
           end
         end
       end
 
-      # Also process any change rows where the entities still exist
       changes = Directory::MembershipChange.where(id: change_ids, op: "removed")
       changes.each do |change|
         collection = Directory::Collection.find_by(id: change.collection_id)
@@ -29,6 +29,7 @@ module Directory
         app_ids = app_ids_affected_by(collection)
 
         app_ids.each do |app_id|
+          next if still_has_access?(person, app_id)
           revoke_tokens(identity.id, app_id)
           call_revoker(app_id, identity.primary_email)
         end
@@ -36,6 +37,14 @@ module Directory
     end
 
     private
+
+    def still_has_access?(person, app_id)
+      entitlement_ids = (
+        Directory::Exposure.where(app_id: app_id).pluck(:entitlement_id) +
+        Directory::AppRequirement.where(app_id: app_id).pluck(:entitlement_id)
+      ).uniq
+      Directory::EffectiveMembership.where(person_id: person.id, collection_id: entitlement_ids).exists?
+    end
 
     def app_ids_affected_by(entitlement)
       exposure_apps = Directory::Exposure.where(entitlement_id: entitlement.id).pluck(:app_id)
