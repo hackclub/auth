@@ -8,10 +8,8 @@ module Directory
       expired_ids = Directory::Membership.where("expires_at <= ?", Time.current).pluck(:id)
       return if expired_ids.empty?
 
-      expired_ids.each_slice(100) do |batch_ids|
-        Directory.mutate!(cause: "sweeper") do
-          Directory::Membership.where(id: batch_ids).destroy_all
-        end
+      Directory.mutate!(cause: "sweeper") do
+        Directory::Membership.where(id: expired_ids).destroy_all
       end
     end
   end
