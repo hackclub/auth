@@ -55,7 +55,7 @@
               <% if person.locked? %>
                 <span is-="badge" variant-="red"><%= t("directory.badges.locked") %></span>
               <% end %>
-              <% if person.effective_memberships.empty? %>
+              <% if @holds_nothing_ids.include?(person.id) %>
                 <span is-="badge" variant-="yellow"><%= t("directory.badges.holds_nothing") %></span>
               <% end %>
             </td>

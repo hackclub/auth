@@ -7,9 +7,12 @@ module Directory
       add_breadcrumb t("directory.people.index.title")
 
       @people = Directory::Person.includes(:identity).order("identities.first_name")
-      @holds_nothing = Directory::Person
+      @holds_nothing_ids = Directory::Person
         .left_joins(:effective_memberships)
         .where(directory_effective_memberships: { person_id: nil })
+        .pluck(:id)
+        .to_set
+      @holds_nothing = Directory::Person.where(id: @holds_nothing_ids)
 
       if params[:email].present?
         term = ActiveRecord::Base.sanitize_sql_like(params[:email].strip.downcase)
