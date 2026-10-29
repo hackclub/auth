@@ -82,18 +82,17 @@ Doorkeeper::OpenidConnect.configure do
       app = access_token&.application
       next nil unless app
 
-      exposures = Directory::Exposure.where(app_id: app.id)
-      next nil unless exposures.exists?
-
       person = Directory::Person.find_by(identity: resource_owner)
       next [] unless person
 
-      exposed_entitlement_ids = exposures.pluck(:entitlement_id)
-      member_entitlement_ids = Directory::EffectiveMembership
-        .where(person_id: person.id, collection_id: exposed_entitlement_ids)
-        .pluck(:collection_id)
-
-      exposures.where(entitlement_id: member_entitlement_ids).pluck(:claim_name)
+      Directory::Exposure
+        .where(app_id: app.id)
+        .where(
+          entitlement_id: Directory::EffectiveMembership
+            .where(person_id: person.id)
+            .select(:collection_id)
+        )
+        .pluck(:claim_name)
     end
   end
 end
