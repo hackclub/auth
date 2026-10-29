@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_27_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_29_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -202,6 +202,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_27_000001) do
     t.bigint "ancestor_id", null: false
     t.bigint "descendant_id", null: false
     t.integer "depth", null: false
+    t.index ["descendant_id"], name: "index_directory_closure_on_descendant_id"
   end
 
   create_table "directory_collections", force: :cascade do |t|
