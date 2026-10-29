@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Directory::Consequence, type: :model do
@@ -5,17 +7,15 @@ RSpec.describe Directory::Consequence, type: :model do
     Directory::Rebuild.call(cause: 'test')
   end
 
-  describe '.batch_removal_summaries vs .removal_summary' do
+  describe '.batch_removal_summaries' do
     it 'single direct member loses the collection' do
       person = create(:directory_person)
       group = create(:directory_group, name: 'Alpha')
       m = create(:directory_membership, :person, collection: group, member_person: person)
       rebuild!
 
-      single = Directory::Consequence.removal_summary(person: person, collection: group)
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [m], collection: group)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: group)
 
-      expect(batch[m.id]).to eq(single)
       expect(batch[m.id]).to include('Alpha')
     end
 
@@ -27,10 +27,8 @@ RSpec.describe Directory::Consequence, type: :model do
       m = create(:directory_membership, :person, collection: group_a, member_person: person)
       rebuild!
 
-      single = Directory::Consequence.removal_summary(person: person, collection: group_a)
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [m], collection: group_a)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: group_a)
 
-      expect(batch[m.id]).to eq(single)
       expect(batch[m.id]).to include('A')
       expect(batch[m.id]).to include('B')
     end
@@ -46,11 +44,8 @@ RSpec.describe Directory::Consequence, type: :model do
       create(:directory_membership, :person, collection: group_b, member_person: person)
       rebuild!
 
-      single = Directory::Consequence.removal_summary(person: person, collection: group_a)
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [m_a], collection: group_a)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m_a ], collection: group_a)
 
-      expect(batch[m_a.id]).to eq(single)
-      # Should only lose A, not C (still reachable via B)
       expect(batch[m_a.id]).to include('A')
       expect(batch[m_a.id]).not_to include('C')
     end
@@ -64,11 +59,9 @@ RSpec.describe Directory::Consequence, type: :model do
       create(:directory_membership, :person, collection: subgroup, member_person: person)
       rebuild!
 
-      single = Directory::Consequence.removal_summary(person: person, collection: group)
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [m_direct], collection: group)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m_direct ], collection: group)
 
       # Person still reaches group via subgroup → group closure
-      expect(single).to be_nil
       expect(batch[m_direct.id]).to be_nil
     end
 
@@ -83,12 +76,12 @@ RSpec.describe Directory::Consequence, type: :model do
       m2 = create(:directory_membership, :person, collection: group, member_person: p2)
       rebuild!
 
-      s1 = Directory::Consequence.removal_summary(person: p1, collection: group)
-      s2 = Directory::Consequence.removal_summary(person: p2, collection: group)
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [m1, m2], collection: group)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m1, m2 ], collection: group)
 
-      expect(batch[m1.id]).to eq(s1)
-      expect(batch[m2.id]).to eq(s2)
+      expect(batch[m1.id]).to include('Team')
+      expect(batch[m1.id]).to include('Org')
+      expect(batch[m2.id]).to include('Team')
+      expect(batch[m2.id]).to include('Org')
     end
 
     it 'deep nesting: A → B → C → D, removing from A loses all' do
@@ -103,10 +96,12 @@ RSpec.describe Directory::Consequence, type: :model do
       m = create(:directory_membership, :person, collection: a, member_person: person)
       rebuild!
 
-      single = Directory::Consequence.removal_summary(person: person, collection: a)
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [m], collection: a)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: a)
 
-      expect(batch[m.id]).to eq(single)
+      # format_losses truncates to first 2 names when >3 losses
+      expect(batch[m.id]).to include('4 memberships')
+      expect(batch[m.id]).to include('A')
+      expect(batch[m.id]).to include('B')
     end
 
     it 'entitlement: group in entitlement, removing person from group loses both' do
@@ -117,10 +112,8 @@ RSpec.describe Directory::Consequence, type: :model do
       m = create(:directory_membership, :person, collection: group, member_person: person)
       rebuild!
 
-      single = Directory::Consequence.removal_summary(person: person, collection: group)
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [m], collection: group)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: group)
 
-      expect(batch[m.id]).to eq(single)
       expect(batch[m.id]).to include('Engineers')
       expect(batch[m.id]).to include('ProdAccess')
     end
