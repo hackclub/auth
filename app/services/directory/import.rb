@@ -131,6 +131,8 @@ module Directory
                            created_count: 0, skipped_count: 0)
         end
 
+        ActiveRecord::Base.connection.execute("SELECT pg_advisory_xact_lock(#{Directory::Rebuild::LOCK_KEY})")
+
         @resolved.each do |entry|
           if entry[:existing]
             skipped_count += 1
@@ -151,7 +153,7 @@ module Directory
           created_count += 1
         end
 
-        Directory::Rebuild.call(cause: "import:#{Time.current.iso8601}") if created_count > 0
+        Directory::Rebuild.call(cause: "import:#{Time.current.iso8601}", skip_lock: true) if created_count > 0
       end
 
       Result.new(valid?: true, changes: @changes, errors: @errors,
