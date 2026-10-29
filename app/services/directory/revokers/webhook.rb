@@ -4,7 +4,7 @@ module Directory
   module Revokers
     class Webhook < Base
       def call(email:)
-        response = HTTP.post(
+        response = HTTP.timeout(connect: 5, write: 5, read: 10).post(
           @config["url"],
           json: { email: email },
           headers: webhook_headers

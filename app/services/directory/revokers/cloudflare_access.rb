@@ -4,7 +4,8 @@ module Directory
   module Revokers
     class CloudflareAccess < Base
       def call(email:)
-        response = HTTP.auth("Bearer #{@config['api_token']}")
+        response = HTTP.timeout(connect: 5, write: 5, read: 10)
+          .auth("Bearer #{@config['api_token']}")
           .post(
             "https://api.cloudflare.com/client/v4/accounts/#{@config['account_id']}/access/organizations/revoke_user",
             json: { email: email }
