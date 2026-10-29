@@ -2,53 +2,6 @@
 
 module Directory
   class Consequence
-    # Preview what would change if this membership were removed.
-    # Runs the actual rebuild inside a rolled-back transaction so the
-    # result is authoritative, not heuristic.
-    def self.removal(person:, collection:)
-      before = Directory::EffectiveMembership.where(person_id: person.id).pluck(:collection_id).to_set
-
-      result = nil
-      ActiveRecord::Base.transaction do
-        ActiveRecord::Base.connection.execute("SELECT pg_advisory_xact_lock(#{Directory::Rebuild::LOCK_KEY})")
-        membership = Directory::Membership.find_by(
-          collection: collection,
-          member_person: person
-        )
-        unless membership
-          descendant_ids = Directory::Closure
-            .where(ancestor_id: collection.id)
-            .where.not(depth: 0)
-            .order(:depth)
-            .pluck(:descendant_id)
-          membership = Directory::Membership
-            .where(collection_id: descendant_ids, member_person: person)
-            .first if descendant_ids.any?
-        end
-        membership&.destroy!
-        Directory::Rebuild.call(cause: "preview", skip_lock: true)
-
-        after = Directory::EffectiveMembership.where(person_id: person.id).pluck(:collection_id).to_set
-        lost_ids = before - after
-        kept_ids = after
-
-        lost = Directory::Collection.where(id: lost_ids).pluck(:name).sort
-        result = { loses: lost, keeps_count: kept_ids.size }
-
-        raise ActiveRecord::Rollback
-      end
-
-      result || { loses: [], keeps_count: 0 }
-    end
-
-    # Human-readable summary
-    def self.removal_summary(person:, collection:)
-      data = removal(person: person, collection: collection)
-      return nil if data[:loses].empty?
-
-      format_losses(data[:loses])
-    end
-
     # Batch-compute removal summaries from the closure table directly,
     # avoiding N full rebuilds. Returns { membership_id => summary_string }.
     def self.batch_removal_summaries(memberships:, collection:)
