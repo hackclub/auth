@@ -127,6 +127,14 @@ module Directory
             AND dc.descendant_id = nc.descendant_id
         )
       SQL
+
+      @conn.execute(<<~SQL)
+        UPDATE directory_closure SET depth = nc.depth
+        FROM _new_closure nc
+        WHERE directory_closure.ancestor_id = nc.ancestor_id
+          AND directory_closure.descendant_id = nc.descendant_id
+          AND directory_closure.depth != nc.depth
+      SQL
     end
 
     def apply_membership_diff
