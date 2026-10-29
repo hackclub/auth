@@ -29,18 +29,25 @@ module Directory
         .includes(:identity)
         .order("identities.first_name")
 
-      # Compute via paths: which direct member group does each person come through?
       direct_group_ids = @collection.member_group_memberships.pluck(:member_group_id)
-      @effective_people_with_paths = effective_people.map do |person|
-        via_groups = Directory::EffectiveMembership
-          .where(person_id: person.id, collection_id: direct_group_ids)
+      effective_person_ids = effective_people.map(&:id)
+
+      via_map = {}
+      if effective_person_ids.any? && direct_group_ids.any?
+        Directory::EffectiveMembership
+          .where(person_id: effective_person_ids, collection_id: direct_group_ids)
           .includes(:collection)
-          .map(&:collection)
-          .select do |c|
-            policy(c).show?
-          rescue Pundit::NotAuthorizedError
-            false
+          .each do |em|
+            (via_map[em.person_id] ||= []) << em.collection
           end
+      end
+
+      @effective_people_with_paths = effective_people.map do |person|
+        via_groups = (via_map[person.id] || []).uniq.select do |c|
+          policy(c).show?
+        rescue Pundit::NotAuthorizedError
+          false
+        end
         { person: person, via: via_groups }
       end
 
