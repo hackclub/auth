@@ -20,7 +20,8 @@ class OAuthScope
     verification_status: "check",
     ysws_eligible: "check",
     slack_id: "slack",
-    legal_name: "card-id"
+    legal_name: "card-id",
+    groups: "admin"
   }.freeze
 
   ALL = [
@@ -119,7 +120,15 @@ class OAuthScope
     new(
       name: "groups",
       description: "See which directory groups you're in",
-      icon: "admin"
+      icon: "admin",
+      consent_fields: [
+        { key: :groups, value: ->(ident) {
+          person = ident.directory_person
+          next "none" unless person
+          names = person.effective_memberships.joins(:collection).where(directory_collections: { kind: "group" }).pluck("directory_collections.name")
+          names.any? ? names.sort.join(", ") : "none"
+        } }
+      ]
     ),
     new(
       name: "set_slack_id",
