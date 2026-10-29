@@ -33,7 +33,7 @@ module Directory
 
       # Exact email match — always works, even below 3 chars
       if query.include?("@")
-        identity = Identity.find_by(primary_email: query)
+        identity = Identity.find_by("lower(primary_email) = ?", query.downcase)
         if identity
           person = Directory::Person.find_by(identity: identity)
           if person
