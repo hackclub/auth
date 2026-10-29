@@ -208,7 +208,7 @@
           <% requirements.each do |req| %>
             <div class="collaborator-row">
               <span><%= req.entitlement.name %></span>
-              <%= button_to t("directory.developer_apps.remove"), directory_app_requirement_path(req.entitlement_id, app_id: @app.id), method: :delete, class: "danger small-btn" %>
+              <%= button_to t("directory.developer_apps.remove"), directory_app_requirement_path(req.entitlement.slug, app_id: @app.id), method: :delete, class: "danger small-btn" %>
             </div>
           <% end %>
         </div>
