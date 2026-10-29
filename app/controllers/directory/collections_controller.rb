@@ -99,7 +99,7 @@ module Directory
       @collection.assign_attributes(collection_params_for_update)
 
       saved = if @collection.protected_changed?
-        @collection.valid? && Directory.mutate!(cause: "collection_updated:#{@collection.id}") { @collection.save!(validate: false) }
+        @collection.valid? && Directory.mutate!(cause: "collection_updated:#{@collection.id}") { @collection.save! }
       else
         @collection.save
       end
