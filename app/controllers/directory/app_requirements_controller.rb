@@ -45,7 +45,8 @@ module Directory
 
     def authorize_unwire!(app, entitlement)
       ctx = directory_context
-      unless app_owner?(app) && (ctx.can?(:expose, entitlement) || ctx.admin?)
+      return if ctx.admin?
+      unless app_owner?(app) && ctx.can?(:expose, entitlement)
         raise Pundit::NotAuthorizedError
       end
     end
