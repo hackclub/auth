@@ -26,6 +26,8 @@ module Directory
 
     private
 
+    # Intentionally unscoped — the directory only contains affiliated people,
+    # and the picker needs to find them regardless of collection visibility.
     def search_people(query)
       results = []
 
