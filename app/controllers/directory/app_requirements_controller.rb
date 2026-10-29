@@ -64,13 +64,12 @@ module Directory
         .pluck("directory_people.identity_id")
         .uniq
 
-      # Identify non-passing token holders, then revoke
-      tokens_to_revoke = OAuthToken.where(application_id: app.id)
-        .where.not(resource_owner_id: passing_identity_ids)
-        .where(revoked_at: nil)
+      non_passing = ->(scope) { scope.where(application_id: app.id).where.not(resource_owner_id: passing_identity_ids).where(revoked_at: nil) }
 
+      tokens_to_revoke = non_passing.call(OAuthToken)
       revoked_identity_ids = tokens_to_revoke.pluck(:resource_owner_id).uniq
       tokens_to_revoke.update_all(revoked_at: Time.current)
+      non_passing.call(Doorkeeper::AccessGrant).update_all(revoked_at: Time.current)
 
       revoker = Directory::AppRevoker.find_by(app_id: app.id, enabled: true)
       if revoker && revoked_identity_ids.any?
