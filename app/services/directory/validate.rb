@@ -15,15 +15,17 @@ module Directory
     end
 
     def call
-      @conn.execute("SELECT pg_advisory_xact_lock(#{Directory::Rebuild::LOCK_KEY})")
-      drop_temp_tables # clean slate
-      compute_expected
-      mismatches = {
-        "directory_closure" => diff_closure,
-        "directory_effective_memberships" => diff_effective_memberships,
-        "directory_effective_grants" => diff_effective_grants
-      }
-      Result.new(mismatches:)
+      ActiveRecord::Base.transaction do
+        @conn.execute("SELECT pg_advisory_xact_lock(#{Directory::Rebuild::LOCK_KEY})")
+        drop_temp_tables # clean slate
+        compute_expected
+        mismatches = {
+          "directory_closure" => diff_closure,
+          "directory_effective_memberships" => diff_effective_memberships,
+          "directory_effective_grants" => diff_effective_grants
+        }
+        Result.new(mismatches:)
+      end
     ensure
       drop_temp_tables
     end
