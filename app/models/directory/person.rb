@@ -29,12 +29,14 @@ module Directory
       all_effective = effective_memberships.includes(:collection).order("directory_collections.name")
       direct_ids = memberships.pluck(:collection_id).to_set
 
+      indirect_ids = all_effective.reject { |em| direct_ids.include?(em.collection_id) }.map(&:collection_id)
+      via_paths = Directory::Closure.batch_via_paths(direct_ids, indirect_ids)
+
       all_effective.map do |em|
         if direct_ids.include?(em.collection_id)
           { collection: em.collection, direct: true, via_path: [] }
         else
-          via = Directory::Closure.via_path(direct_ids, em.collection_id)
-          { collection: em.collection, direct: false, via_path: via }
+          { collection: em.collection, direct: false, via_path: via_paths[em.collection_id] || [] }
         end
       end
     end
