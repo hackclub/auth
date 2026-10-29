@@ -572,22 +572,24 @@ end
 # Enforce directory requirements on refresh_token grants.
 # Intercepts token creation before doorkeeper processes it;
 # returns access_denied if the identity no longer meets the app's requirements.
-Rails.application.config.to_prepare do
-  Doorkeeper::TokensController.prepend(Module.new do
-    def create
-      if params[:grant_type] == "refresh_token" && params[:refresh_token].present?
-        token = ::OAuthToken.by_refresh_token(params[:refresh_token])
-        if token
-          app = token.application
-          identity = ::Identity.find_by(id: token.resource_owner_id)
-          has_requirements = app && identity && Directory::AppRequirement.where(app_id: app.id).exists?
-          if has_requirements && !Directory::RequirementCheck.passes?(identity: identity, app: app)
-            render json: { error: "invalid_grant", error_description: "You no longer meet this application's requirements." }, status: :bad_request
-            return
-          end
+module DoorkeeperRequirementEnforcement
+  def create
+    if params[:grant_type] == "refresh_token" && params[:refresh_token].present?
+      token = ::OAuthToken.by_refresh_token(params[:refresh_token])
+      if token
+        app = token.application
+        identity = ::Identity.find_by(id: token.resource_owner_id)
+        has_requirements = app && identity && Directory::AppRequirement.where(app_id: app.id).exists?
+        if has_requirements && !Directory::RequirementCheck.passes?(identity: identity, app: app)
+          render json: { error: "invalid_grant", error_description: "You no longer meet this application's requirements." }, status: :bad_request
+          return
         end
       end
-      super
     end
-  end)
+    super
+  end
+end
+
+Rails.application.config.to_prepare do
+  Doorkeeper::TokensController.prepend(DoorkeeperRequirementEnforcement) unless Doorkeeper::TokensController < DoorkeeperRequirementEnforcement
 end
