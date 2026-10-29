@@ -43,7 +43,7 @@ module Directory
     end
 
     def authorize_unwire!(exposure)
-      unless app_owner?(exposure.app) || directory_context.can?(:expose, exposure.entitlement) || directory_context.admin?
+      unless app_owner?(exposure.app) && (directory_context.can?(:expose, exposure.entitlement) || directory_context.admin?)
         raise Pundit::NotAuthorizedError
       end
     end
