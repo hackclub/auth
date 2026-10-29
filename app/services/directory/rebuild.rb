@@ -179,20 +179,29 @@ module Directory
           change_ids
         ])
       )
+      return [] if rows.empty?
+
+      person_ids = rows.map { |r| r["person_id"] }.uniq
+      collection_ids = rows.map { |r| r["collection_id"] }.uniq
+
+      people_by_id = Directory::Person.where(id: person_ids).index_by(&:id)
+      entitlements_by_id = Directory::Collection.where(id: collection_ids, kind: "entitlement").index_by(&:id)
+
+      entitlement_ids = entitlements_by_id.keys
+      exposure_apps = Directory::Exposure.where(entitlement_id: entitlement_ids).pluck(:entitlement_id, :app_id)
+      requirement_apps = Directory::AppRequirement.where(entitlement_id: entitlement_ids).pluck(:entitlement_id, :app_id)
+      app_ids_by_entitlement = Hash.new { |h, k| h[k] = Set.new }
+      (exposure_apps + requirement_apps).each { |eid, aid| app_ids_by_entitlement[eid] << aid }
 
       revocations = []
       rows.each do |row|
-        person = Directory::Person.find_by(id: row["person_id"])
-        collection = Directory::Collection.find_by(id: row["collection_id"])
-        next unless person && collection&.entitlement?
+        person = people_by_id[row["person_id"]]
+        next unless person && entitlements_by_id.key?(row["collection_id"])
 
-        app_ids = (
-          Directory::Exposure.where(entitlement_id: collection.id).pluck(:app_id) +
-          Directory::AppRequirement.where(entitlement_id: collection.id).pluck(:app_id)
-        ).uniq
+        app_ids = app_ids_by_entitlement[row["collection_id"]]
         next if app_ids.empty?
 
-        revocations << { identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids }
+        revocations << { identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids.to_a }
       end
       revocations
     end
