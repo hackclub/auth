@@ -18,7 +18,8 @@ module Directory
     private
 
     def current_directory_person
-      @current_directory_person ||= Directory::Person.find_by(identity: current_identity)
+      return @current_directory_person if instance_variable_defined?(:@current_directory_person)
+      @current_directory_person = Directory::Person.find_by(identity: current_identity)
     end
 
     def directory_admin?
