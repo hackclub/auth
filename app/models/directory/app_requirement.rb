@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Directory
   class AppRequirement < ApplicationRecord
     self.primary_key = %i[app_id entitlement_id]

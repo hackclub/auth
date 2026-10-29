@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Directory
   class Closure < ApplicationRecord
     self.table_name = "directory_closure"
@@ -17,7 +19,7 @@ module Directory
       return [] unless link
 
       child = Directory::Collection.find_by(id: link.descendant_id)
-      child ? [child] : []
+      child ? [ child ] : []
     end
   end
 end

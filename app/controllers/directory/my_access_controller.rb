@@ -35,6 +35,5 @@ module Directory
     def skip_authorization?
       action_name == "show"
     end
-
   end
 end

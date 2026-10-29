@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Directory
   class Collection < ApplicationRecord
     has_paper_trail

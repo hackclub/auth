@@ -86,6 +86,5 @@ module Directory
     end
 
     private
-
   end
 end

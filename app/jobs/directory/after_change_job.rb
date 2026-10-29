@@ -15,7 +15,7 @@ module Directory
           person = Directory::Person.find_by(identity_id: rev[:identity_id])
           rev[:app_ids].each do |app_id|
             next if person && still_has_access?(person, app_id)
-            key = [rev[:identity_id], app_id]
+            key = [ rev[:identity_id], app_id ]
             next if processed.include?(key)
             processed << key
             revoke_tokens(rev[:identity_id], app_id)
@@ -34,7 +34,7 @@ module Directory
         app_ids = app_ids_affected_by(collection)
 
         app_ids.each do |app_id|
-          key = [identity.id, app_id]
+          key = [ identity.id, app_id ]
           next if processed.include?(key)
           next if still_has_access?(person, app_id)
           processed << key

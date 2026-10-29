@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Directory
   class EffectiveGrant < ApplicationRecord
     self.primary_key = [ :person_id, :target_collection_id, :permission ]

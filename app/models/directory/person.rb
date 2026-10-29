@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Directory
   class Person < ApplicationRecord
     include PublicActivity::Model
@@ -36,7 +38,7 @@ module Directory
       ).uniq
       return [] if app_ids.empty?
 
-      [{ identity_id: identity_id, email: primary_email, app_ids: app_ids }]
+      [ { identity_id: identity_id, email: primary_email, app_ids: app_ids } ]
     end
   end
 end

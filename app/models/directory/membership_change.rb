@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Directory
   class MembershipChange < ApplicationRecord
     belongs_to :collection, class_name: "Directory::Collection", optional: true

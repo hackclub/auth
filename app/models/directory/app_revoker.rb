@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Directory
   class AppRevoker < ApplicationRecord
     self.primary_key = :app_id
