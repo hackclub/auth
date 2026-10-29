@@ -3,6 +3,9 @@
 module Directory
   class AppRequirementsController < ::ApplicationController
     include DirectoryAppAuthorization
+    rescue_from Pundit::NotAuthorizedError do
+      redirect_back fallback_location: root_path, alert: t("directory.flash.not_authorized")
+    end
     before_action :authenticate_identity!
 
     def create

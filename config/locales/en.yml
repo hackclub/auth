@@ -992,6 +992,7 @@ en:
       requirement_added: "requirement added."
       requirement_removed: "requirement removed."
       requirement_already_exists: "requirement already exists."
+      not_authorized: "you don't have permission to do that."
       health_valid: "valid — no drift detected."
       health_drift: "drift detected!"
     grants:

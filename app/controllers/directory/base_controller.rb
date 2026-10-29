@@ -5,6 +5,10 @@ module Directory
     include Pundit::Authorization
     layout "directory"
 
+    rescue_from Pundit::NotAuthorizedError do
+      redirect_back fallback_location: directory_root_path, alert: t("directory.flash.not_authorized")
+    end
+
     before_action :authenticate_identity!
     before_action :ensure_directory_access!
     after_action :verify_authorized, unless: :skip_authorization?
