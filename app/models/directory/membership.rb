@@ -123,18 +123,18 @@ module Directory
         owner: created_by,
         recipient: member_person,
         params: { member_name: member_person.full_name, member_email: member_person.primary_email }
-    rescue => e
+    rescue StandardError => e
       Rails.logger.warn("[Directory] Activity tracking failed: #{e.message}")
     end
 
     def track_removal_on_person_and_collection
       return unless member_person_id
       expired = expires_at.present? && expires_at <= Time.current
-      name = begin; member_person&.full_name; rescue; nil; end || "(deleted)"
+      name = begin; member_person&.full_name; rescue StandardError; nil; end || "(deleted)"
       collection&.create_activity :member_removed,
         owner: nil,
         params: { member_name: name, reason: expired ? "expired" : "removed" }
-    rescue => e
+    rescue StandardError => e
       Rails.logger.warn("[Directory] Activity tracking failed: #{e.message}")
     end
   end
