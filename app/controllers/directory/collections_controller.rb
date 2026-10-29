@@ -7,7 +7,14 @@ module Directory
     before_action :set_collection, only: %i[show edit update destroy activity export]
 
     def index
-      @collections = policy_scope(Directory::Collection).order(:name)
+      @collections = policy_scope(Directory::Collection)
+        .select(
+          "directory_collections.*",
+          "(SELECT COUNT(*) FROM directory_memberships WHERE directory_memberships.collection_id = directory_collections.id) AS preloaded_direct_count",
+          "(SELECT COUNT(*) FROM directory_effective_memberships WHERE directory_effective_memberships.collection_id = directory_collections.id) AS preloaded_effective_count",
+          "(SELECT COUNT(*) FROM directory_exposures WHERE directory_exposures.entitlement_id = directory_collections.id) AS preloaded_exposure_count"
+        )
+        .order(:name)
       authorize Directory::Collection
     end
 

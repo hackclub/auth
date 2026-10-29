@@ -49,7 +49,16 @@ module Directory
     def group? = kind == "group"
     def entitlement? = kind == "entitlement"
     def to_param = slug
-    def direct_member_count = memberships.count
-    def effective_member_count = effective_memberships.count
+    def direct_member_count
+      has_attribute?(:preloaded_direct_count) ? preloaded_direct_count : memberships.count
+    end
+
+    def effective_member_count
+      has_attribute?(:preloaded_effective_count) ? preloaded_effective_count : effective_memberships.count
+    end
+
+    def exposure_count
+      has_attribute?(:preloaded_exposure_count) ? preloaded_exposure_count : Directory::Exposure.where(entitlement_id: id).count
+    end
   end
 end

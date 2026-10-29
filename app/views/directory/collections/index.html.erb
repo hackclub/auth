@@ -90,7 +90,7 @@
             </td>
             <td style="text-align: right;"><%= e.direct_member_count %></td>
             <td style="text-align: right;"><%= e.effective_member_count %></td>
-            <td style="text-align: right;"><%= Directory::Exposure.where(entitlement_id: e.id).count %></td>
+            <td style="text-align: right;"><%= e.exposure_count %></td>
             <td style="text-align: right; color: var(--foreground2);">
               <% perms = [] %>
               <% perms << "view" if pundit_user.can?(:view, e) %>
