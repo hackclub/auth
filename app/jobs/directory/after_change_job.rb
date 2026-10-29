@@ -47,11 +47,9 @@ module Directory
     private
 
     def still_has_access?(person, app_id)
-      entitlement_ids = (
-        Directory::Exposure.where(app_id: app_id).pluck(:entitlement_id) +
-        Directory::AppRequirement.where(app_id: app_id).pluck(:entitlement_id)
-      ).uniq
-      Directory::EffectiveMembership.where(person_id: person.id, collection_id: entitlement_ids).exists?
+      requirement_ids = Directory::AppRequirement.where(app_id: app_id).pluck(:entitlement_id)
+      return true if requirement_ids.empty?
+      Directory::EffectiveMembership.where(person_id: person.id, collection_id: requirement_ids).exists?
     end
 
     def app_ids_affected_by(entitlement)
