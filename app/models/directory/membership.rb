@@ -29,8 +29,7 @@ module Directory
 
     validate :exactly_one_member
     validate :member_group_must_be_group, if: -> { member_group_id.present? }
-    validate :no_cycles, if: -> { member_group_id.present? }
-    validate :depth_within_limit, if: -> { member_group_id.present? }
+    validate :no_cycles_and_depth_within_limit, if: -> { member_group_id.present? }
     validate :expires_at_in_future, if: -> { expires_at.present? && expires_at_changed? }
 
     private
@@ -52,61 +51,45 @@ module Directory
       end
     end
 
-    # Walk upward from collection_id through parent memberships.
-    # If we reach member_group_id, adding this edge would create a cycle.
-    def no_cycles
+    # Single CTE that walks ancestors (up from collection) and descendants (down from member_group)
+    # to check for cycles and enforce MAX_DEPTH in one round trip.
+    def no_cycles_and_depth_within_limit
       return if collection_id.blank? || member_group_id.blank?
 
-      cycle_found = self.class.connection.select_value(<<~SQL.squish)
-        WITH RECURSIVE ancestors AS (
-          SELECT #{self.class.connection.quote(collection_id)}::bigint AS id
-          UNION
-          SELECT m.collection_id
-          FROM directory_memberships m
-          INNER JOIN ancestors a ON a.id = m.member_group_id
-          WHERE m.member_group_id IS NOT NULL
-        )
-        SELECT EXISTS (
-          SELECT 1 FROM ancestors WHERE id = #{self.class.connection.quote(member_group_id)}
-        )
-      SQL
+      conn = self.class.connection
+      quoted_collection = conn.quote(collection_id)
+      quoted_member_group = conn.quote(member_group_id)
+      max_depth = Directory::MAX_DEPTH
 
-      errors.add(:base, "would create a cycle") if cycle_found
-    end
-
-    # Compute the longest path from any person up through this new edge to a root.
-    # The depth is measured as the longest chain of group nesting from a leaf person to a root group.
-    # We walk downward from member_group through all descendants, tracking depth,
-    # then add the depth from collection upward to a root.
-    def depth_within_limit
-      return if collection_id.blank? || member_group_id.blank?
-
-      max_depth = self.class.connection.select_value(<<~SQL)
+      result = conn.select_one(<<~SQL)
         WITH RECURSIVE
-        descendants AS (
-          SELECT #{self.class.connection.quote(member_group_id)}::bigint AS id, 0 AS depth
-          UNION ALL
-          SELECT m.member_group_id, d.depth + 1
-          FROM directory_memberships m
-          INNER JOIN descendants d ON d.id = m.collection_id
-          WHERE m.member_group_id IS NOT NULL
-        ),
         ancestors AS (
-          SELECT #{self.class.connection.quote(collection_id)}::bigint AS id, 1 AS depth
+          SELECT #{quoted_collection}::bigint AS id, 1 AS depth
           UNION ALL
           SELECT m.collection_id, a.depth + 1
           FROM directory_memberships m
           INNER JOIN ancestors a ON a.id = m.member_group_id
           WHERE m.member_group_id IS NOT NULL
+            AND a.depth <= #{max_depth + 1}
+        ),
+        descendants AS (
+          SELECT #{quoted_member_group}::bigint AS id, 0 AS depth
+          UNION ALL
+          SELECT m.member_group_id, d.depth + 1
+          FROM directory_memberships m
+          INNER JOIN descendants d ON d.id = m.collection_id
+          WHERE m.member_group_id IS NOT NULL
+            AND d.depth <= #{max_depth + 1}
         )
-        SELECT COALESCE(
-          (SELECT MAX(d.depth) FROM descendants d) +
-          (SELECT MAX(a.depth) FROM ancestors a),
-          0
-        )
+        SELECT
+          EXISTS(SELECT 1 FROM ancestors WHERE id = #{quoted_member_group}) AS has_cycle,
+          COALESCE((SELECT MAX(depth) FROM ancestors), 0) +
+          COALESCE((SELECT MAX(depth) FROM descendants), 0) AS total_depth
       SQL
 
-      if max_depth.to_i > Directory::MAX_DEPTH
+      if result["has_cycle"]
+        errors.add(:base, "would create a cycle")
+      elsif result["total_depth"].to_i > max_depth
         errors.add(:base, "would exceed maximum nesting depth of 6")
       end
     end
