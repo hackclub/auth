@@ -7,12 +7,17 @@ module Directory
     # revocations: optional array of { identity_id:, email:, app_ids: [] }
     # pre-resolved for cases where the person/collection is already deleted
     def perform(change_ids:, revocations: nil)
+      processed = Set.new
+
       if revocations.present?
         revocations.each do |rev|
           rev = rev.symbolize_keys
           person = Directory::Person.find_by(identity_id: rev[:identity_id])
           rev[:app_ids].each do |app_id|
             next if person && still_has_access?(person, app_id)
+            key = [rev[:identity_id], app_id]
+            next if processed.include?(key)
+            processed << key
             revoke_tokens(rev[:identity_id], app_id)
             call_revoker(app_id, rev[:email])
           end
@@ -29,7 +34,10 @@ module Directory
         app_ids = app_ids_affected_by(collection)
 
         app_ids.each do |app_id|
+          key = [identity.id, app_id]
+          next if processed.include?(key)
           next if still_has_access?(person, app_id)
+          processed << key
           revoke_tokens(identity.id, app_id)
           call_revoker(app_id, identity.primary_email)
         end
