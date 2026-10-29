@@ -26,23 +26,28 @@
 
       <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.health.show.mismatches") %></span>
 
-      <% @result.mismatches.each do |table_name, rows| %>
+      <% @result.mismatches.each do |table_name, diff| %>
+        <% next if diff[:missing].empty? && diff[:extra].empty? %>
         <span style="color: var(--foreground2); font-style: italic;"><%= table_name %></span>
 
         <table>
           <thead>
             <tr>
+              <th><%= t("directory.health.show.col_status") %></th>
               <th><%= t("directory.health.show.col_record") %></th>
-              <th><%= t("directory.health.show.col_expected") %></th>
-              <th><%= t("directory.health.show.col_actual") %></th>
             </tr>
           </thead>
           <tbody>
-            <% rows.each do |row| %>
+            <% diff[:missing].each do |row| %>
               <tr>
-                <td><%= row[:record] %></td>
-                <td style="color: var(--green);"><%= row[:expected] %></td>
-                <td style="color: var(--red);"><%= row[:actual] %></td>
+                <td style="color: var(--green);"><%= t("directory.health.show.missing") %></td>
+                <td><code><%= row.to_json %></code></td>
+              </tr>
+            <% end %>
+            <% diff[:extra].each do |row| %>
+              <tr>
+                <td style="color: var(--red);"><%= t("directory.health.show.extra") %></td>
+                <td><code><%= row.to_json %></code></td>
               </tr>
             <% end %>
           </tbody>
