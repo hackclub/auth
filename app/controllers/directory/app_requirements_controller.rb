@@ -28,7 +28,7 @@ module Directory
 
     def destroy
       app = Program.find(params[:app_id])
-      entitlement = Directory::Collection.find(params[:id])
+      entitlement = Directory::Collection.find_by!(slug: params[:id])
       req = Directory::AppRequirement.find_by!(app_id: app.id, entitlement_id: entitlement.id)
 
       authorize_unwire!(app, entitlement)

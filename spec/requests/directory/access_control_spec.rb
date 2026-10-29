@@ -44,13 +44,15 @@ RSpec.describe "Directory access control", type: :request do
     grant!(@staff_person, group, "view")
   end
 
-  # RoutingError and Pundit::NotAuthorizedError are both rescued by
-  # ApplicationController's rescue_from StandardError → redirect_to root_path.
-  # So auth failures show up as redirects, not raised exceptions.
+  # RoutingError → ApplicationController's rescue_from StandardError → root_path.
+  # Pundit::NotAuthorizedError → BaseController's rescue_from → directory_root_path.
+  # ExposuresController/AppRequirementsController (not under BaseController) → root_path.
 
   def expect_denied(method, path, **opts)
     send(method, path, **opts)
-    expect(response).to redirect_to(root_path).or redirect_to(%r{/welcome})
+    expect(response).to redirect_to(root_path)
+      .or(redirect_to(directory_root_path))
+      .or(redirect_to(%r{/welcome}))
   end
 
   # ═══════════════════════════════════════════════════════════════
@@ -401,7 +403,7 @@ RSpec.describe "Directory access control", type: :request do
     end
 
     it "denies when app is community trust level" do
-      community_app = create(:program, trust_level: :community_untrusted, owner_identity: admin_identity)
+      community_app = create(:program, trust_level: :community_untrusted, owner_identity: admin_identity, scopes: "openid profile")
       sign_in admin_identity
       expect_denied(:post, directory_exposures_path, params: {
         app_id: community_app.id, entitlement_slug: entitlement.slug, claim_name: "test"
