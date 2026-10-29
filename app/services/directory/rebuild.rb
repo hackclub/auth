@@ -209,12 +209,12 @@ module Directory
     end
 
     def pre_resolve_revocations(change_ids)
-      rows = @conn.execute(<<~SQL)
-        SELECT mc.person_id, mc.collection_id
-        FROM directory_membership_changes mc
-        WHERE mc.id = ANY(ARRAY[#{change_ids.join(',')}])
-          AND mc.op = 'removed'
-      SQL
+      rows = @conn.exec_query(
+        ActiveRecord::Base.sanitize_sql_array([
+          "SELECT mc.person_id, mc.collection_id FROM directory_membership_changes mc WHERE mc.id IN (?) AND mc.op = 'removed'",
+          change_ids
+        ])
+      )
 
       revocations = []
       rows.each do |row|
