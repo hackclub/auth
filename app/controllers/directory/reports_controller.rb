@@ -26,11 +26,13 @@ module Directory
       @locked_people = Directory::Person.locked.includes(:identity).order("identities.first_name")
 
       @old_memberships = Directory::Membership
+        .where.not(member_person_id: nil)
         .where("directory_memberships.created_at < ?", 1.year.ago)
         .includes(:collection, member_person: :identity)
         .order(:created_at)
 
       @expiring_memberships = Directory::Membership
+        .where.not(member_person_id: nil)
         .where(expires_at: ..30.days.from_now)
         .where("expires_at > ?", Time.current)
         .includes(:collection, member_person: :identity)
