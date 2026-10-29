@@ -20,22 +20,26 @@ Doorkeeper.configure do
   # This block will be called to check whether the resource owner is authenticated or not.
   resource_owner_authenticator do
     if current_identity
-      app = ::Program.find_by(uid: params[:client_id])
-      has_requirements = app && Directory::AppRequirement.where(app_id: app.id).exists?
-      if has_requirements && !Directory::RequirementCheck.passes?(identity: current_identity, app: app)
-        client_redirect = params[:redirect_uri].presence
-        registered = app.redirect_uris
-        client_redirect = registered.first unless client_redirect.present? && registered.include?(client_redirect)
-        error_params = { error: "access_denied", error_description: "You do not meet this application's access requirements." }
-        error_params[:state] = params[:state] if params[:state].present?
-        uri = URI.parse(client_redirect)
-        existing = URI.decode_www_form(uri.query || "")
-        uri.query = URI.encode_www_form(existing + error_params.to_a)
-        redirect_to uri.to_s, allow_other_host: true
-        nil
-      else
-        current_identity
+      has_requirements = Directory::AppRequirement
+        .where(app_id: ::Program.where(uid: params[:client_id]).select(:id))
+        .exists?
+
+      if has_requirements
+        app = ::Program.find_by!(uid: params[:client_id])
+        unless Directory::RequirementCheck.passes?(identity: current_identity, app: app)
+          client_redirect = params[:redirect_uri].presence
+          registered = app.redirect_uris
+          client_redirect = registered.first unless client_redirect.present? && registered.include?(client_redirect)
+          error_params = { error: "access_denied", error_description: "You do not meet this application's access requirements." }
+          error_params[:state] = params[:state] if params[:state].present?
+          uri = URI.parse(client_redirect)
+          existing = URI.decode_www_form(uri.query || "")
+          uri.query = URI.encode_www_form(existing + error_params.to_a)
+          redirect_to uri.to_s, allow_other_host: true
+          return nil
+        end
       end
+      current_identity
     else
       redirect_to "/oauth/welcome?return_to=#{CGI.escape(request.fullpath)}"
       nil
