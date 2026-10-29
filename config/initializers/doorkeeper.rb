@@ -586,8 +586,7 @@ module DoorkeeperRequirementEnforcement
       if token
         app = token.application
         identity = ::Identity.find_by(id: token.resource_owner_id)
-        has_requirements = app && identity && Directory::AppRequirement.where(app_id: app.id).exists?
-        if has_requirements && !Directory::RequirementCheck.passes?(identity: identity, app: app)
+        if app && identity && !Directory::RequirementCheck.passes?(identity: identity, app: app)
           render json: { error: "invalid_grant", error_description: "You no longer meet this application's requirements." }, status: :bad_request
           return
         end
