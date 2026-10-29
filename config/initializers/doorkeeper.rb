@@ -21,7 +21,7 @@ Doorkeeper.configure do
   resource_owner_authenticator do
     if current_identity
       app = ::Program.find_by(uid: params[:client_id])
-      has_requirements = app && Directory::AppRequirement.where(app_id: app.id).exists?
+      has_requirements = app && Directory::AppRequirement.table_exists? && Directory::AppRequirement.where(app_id: app.id).exists?
       if has_requirements && !Directory::RequirementCheck.passes?(identity: current_identity, app: app)
         redirect_to "/directory/denied"
         nil
@@ -575,7 +575,7 @@ Rails.application.config.to_prepare do
         if token
           app = token.application
           identity = ::Identity.find_by(id: token.resource_owner_id)
-          has_requirements = app && identity && Directory::AppRequirement.where(app_id: app.id).exists?
+          has_requirements = app && identity && Directory::AppRequirement.table_exists? && Directory::AppRequirement.where(app_id: app.id).exists?
           if has_requirements && !Directory::RequirementCheck.passes?(identity: identity, app: app)
             render json: { error: "access_denied", error_description: "You no longer meet this application's requirements." }, status: :forbidden
             return
