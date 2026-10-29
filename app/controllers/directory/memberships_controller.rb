@@ -96,6 +96,62 @@ module Directory
         alert: t("directory.flash.member_not_found")
     end
 
+    def batch_create
+      @collection = Directory::Collection.find_by!(slug: params[:collection_slug])
+      authorize @collection, policy_class: Directory::MembershipPolicy
+
+      identifiers = Array(params[:identifiers]).map(&:strip).reject(&:blank?).uniq
+      if identifiers.empty?
+        redirect_back fallback_location: directory_collection_path(@collection.slug),
+          alert: t("directory.flash.provide_email_or_slug")
+        return
+      end
+
+      added = []
+      skipped = []
+      not_found = []
+
+      Directory.mutate!(cause: "batch_membership_created") do
+        identifiers.each do |identifier|
+          identity = if identifier.start_with?("ident!")
+            Identity.find_by_public_id(identifier)
+          else
+            Identity.find_by("lower(primary_email) = ?", identifier.downcase)
+          end
+
+          unless identity
+            not_found << identifier
+            next
+          end
+
+          person = Directory::Person.find_or_create_by!(identity: identity) do |p|
+            p.created_by_identity_id = current_identity.id
+          end
+
+          if Directory::Membership.exists?(collection: @collection, member_person: person)
+            skipped << identifier
+            next
+          end
+
+          Directory::Membership.create!(
+            collection: @collection,
+            member_person: person,
+            expires_at: params[:expires_at].presence,
+            created_by_identity_id: current_identity.id
+          )
+          added << identifier
+        end
+      end
+
+      parts = []
+      parts << t("directory.flash.batch_added", count: added.size) if added.any?
+      parts << t("directory.flash.batch_skipped", count: skipped.size) if skipped.any?
+      parts << t("directory.flash.batch_not_found", count: not_found.size, items: not_found.first(3).join(", ")) if not_found.any?
+
+      redirect_back fallback_location: directory_collection_path(@collection.slug),
+        notice: parts.join(". ")
+    end
+
     def destroy
       membership = Directory::Membership.find(params[:id])
       @collection = membership.collection

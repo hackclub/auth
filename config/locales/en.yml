@@ -995,6 +995,15 @@ en:
       not_authorized: "you don't have permission to do that."
       health_valid: "valid — no drift detected."
       health_drift: "drift detected!"
+      batch_added:
+        one: "added %{count} person."
+        other: "added %{count} people."
+      batch_skipped:
+        one: "%{count} already a member."
+        other: "%{count} already members."
+      batch_not_found:
+        one: "%{count} not found: %{items}"
+        other: "%{count} not found: %{items}"
     grants:
       created: "grant added."
       destroyed: "grant removed."

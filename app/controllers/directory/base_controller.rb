@@ -28,7 +28,7 @@ module Directory
 
     def ensure_directory_access!
       return if directory_admin?
-      return if controller_name == "my_access"
+      return if current_directory_person && controller_name == "my_access"
       return if current_directory_person && Directory::EffectiveGrant.where(person_id: current_directory_person.id).exists?
 
       raise ActionController::RoutingError, "Not Found"

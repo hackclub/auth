@@ -99,9 +99,11 @@
     <% end %>
 
     <% if can_manage %>
-      <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
-        <row gap-="1" align-="center">
-          <%= f.text_field :email, placeholder: t("directory.collections.show.email_placeholder"), style: "flex: 1; border: none;", data: { directory_picker: true, scope: "people", url: directory_picker_search_path } %>
+      <%= form_with url: batch_create_directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
+        <div data-directory-member-picker>
+          <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
+        </div>
+        <row gap-="1" align-="center" style="margin-top: 4px;">
           <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
         </row>
       <% end %>
@@ -148,9 +150,11 @@
 
     <% if can_manage %>
       <row gap-="2">
-        <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true, style: "flex: 1;" do |f| %>
-          <row gap-="1" align-="center">
-            <%= f.text_field :email, placeholder: t("directory.collections.show.email_placeholder"), style: "flex: 1; border: none;", data: { directory_picker: true, scope: "people", url: directory_picker_search_path } %>
+        <%= form_with url: batch_create_directory_collection_memberships_path(@collection.slug), method: :post, local: true, style: "flex: 1;" do |f| %>
+          <div data-directory-member-picker>
+            <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
+          </div>
+          <row gap-="1" align-="center" style="margin-top: 4px;">
             <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
           </row>
         <% end %>

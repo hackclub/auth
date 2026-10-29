@@ -8,6 +8,7 @@ import KeyboardShortcuts from '../components/svelte/KeyboardShortcuts.svelte';
 import IdentityPicker from '../components/svelte/IdentityPicker.svelte';
 import NavigableList from '../components/svelte/NavigableList.svelte';
 import ThemeToggle from '../components/svelte/ThemeToggle.svelte';
+import DirectoryMemberPicker from '../components/svelte/DirectoryMemberPicker.svelte';
 
 window.htmx = htmx;
 
@@ -47,6 +48,15 @@ document.addEventListener('DOMContentLoaded', () => {
       try { props = JSON.parse(dataEl.textContent); } catch (e) {}
     }
     mount(IdentityPicker, { target: el, props });
+  });
+
+  document.querySelectorAll('[data-directory-member-picker]').forEach((el) => {
+    const dataEl = el.querySelector('.picker-initial-data');
+    let props = {};
+    if (dataEl) {
+      try { props = JSON.parse(dataEl.textContent); } catch (e) {}
+    }
+    mount(DirectoryMemberPicker, { target: el, props });
   });
 
   document.querySelectorAll('[data-navigable-list]').forEach((el) => {

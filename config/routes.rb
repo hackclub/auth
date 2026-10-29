@@ -289,7 +289,11 @@ Rails.application.routes.draw do
         get :activity
         get :export
       end
-      resources :memberships, only: [ :create, :destroy ]
+      resources :memberships, only: [ :create, :destroy ] do
+        collection do
+          post :batch_create
+        end
+      end
       resources :grants, only: [ :create, :destroy ]
     end
 
