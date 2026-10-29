@@ -51,8 +51,11 @@ class Components::Sidebar < Components::Base
     items << { label: t("sidebar.security"), path: security_path, icon: "private" }
 
     if current_identity.present?
-      if current_identity.backend_user&.directory_services_admin? || current_identity.directory_person.present?
+      if current_identity.backend_user&.directory_services_admin?
         items << { label: t("sidebar.directory"), path: directory_root_path, icon: "admin" }
+      elsif current_identity.directory_person.present?
+        has_grants = Directory::EffectiveGrant.where(person_id: current_identity.directory_person.id).exists?
+        items << { label: t("sidebar.directory"), path: has_grants ? directory_root_path : directory_my_access_path, icon: "admin" }
       end
     end
 

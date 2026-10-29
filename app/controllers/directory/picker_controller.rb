@@ -29,31 +29,19 @@ module Directory
     # Intentionally unscoped — the directory only contains affiliated people,
     # and the picker needs to find them regardless of collection visibility.
     def search_people(query)
-      results = []
+      # Public IDs bypass the picker — they're submitted directly via the form
+      # to avoid exposing profile data for the 50k identities outside the directory.
+      return [] if query.start_with?("ident!")
 
       # Exact email match — always works, even below 3 chars
       if query.include?("@")
         identity = Identity.find_by("lower(primary_email) = ?", query.downcase)
-        if identity
-          person = Directory::Person.find_by(identity: identity)
-          if person
-            results << person_result(person)
-          else
-            results << {
-              id: identity.id,
-              label: identity.full_name,
-              sublabel: identity.primary_email,
-              type: "person",
-              new_directory_person: true
-            }
-          end
-        end
-        return results
+        return identity ? [ identity_to_picker_result(identity) ] : []
       end
 
-      return results if query.length < 3
+      return [] if query.length < 3
 
-      people = Directory::Person
+      Directory::Person
         .joins(:identity)
         .where(
           "identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR identities.primary_email ILIKE :q",
@@ -61,9 +49,7 @@ module Directory
         )
         .includes(:identity)
         .limit(20)
-
-      people.each { |p| results << person_result(p) }
-      results
+        .map { |p| person_result(p) }
     end
 
     def search_collections(query, kind)
@@ -90,6 +76,16 @@ module Directory
         sublabel: person.primary_email,
         type: "person"
       }
+    end
+
+    def identity_to_picker_result(identity)
+      person = Directory::Person.find_by(identity: identity)
+      if person
+        person_result(person)
+      else
+        { id: identity.id, label: identity.full_name, sublabel: identity.primary_email,
+          type: "person", new_directory_person: true }
+      end
     end
 
     def sanitize_sql_like(string)

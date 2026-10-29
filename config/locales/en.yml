@@ -946,7 +946,7 @@ en:
         delete_confirm: "delete %{name}? this cannot be undone."
         direct_people: "direct people"
         edit: "edit"
-        email_placeholder: "email address…"
+        email_placeholder: "email or ident!…"
         group_slug_placeholder: "group slug…"
         grantee_placeholder: "grantee group slug…"
         also_includes: "also includes %{count} via nesting"

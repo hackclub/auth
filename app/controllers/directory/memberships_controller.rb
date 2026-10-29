@@ -12,12 +12,17 @@ module Directory
       )
 
       if params[:email].present?
-        # Add-by-email: find identity, create directory person if needed
-        Rails.logger.info("[Directory] add-by-email: #{current_identity.primary_email} searched for '#{params[:email]}' on #{@collection.slug}")
-        identity = Identity.find_by("lower(primary_email) = ?", params[:email].strip.downcase)
+        # Add by email or public ID — find identity, create directory person if needed
+        input = params[:email].strip
+        Rails.logger.info("[Directory] add-by-identifier: #{current_identity.primary_email} searched for '#{input}' on #{@collection.slug}")
+        identity = if input.start_with?("ident!")
+          Identity.find_by_public_id(input)
+        else
+          Identity.find_by("lower(primary_email) = ?", input.downcase)
+        end
         unless identity
-          Rails.logger.info("[Directory] add-by-email: miss for '#{params[:email]}'")
-          @collection.create_activity :email_lookup_miss, owner: current_identity, params: { email: params[:email] }
+          Rails.logger.info("[Directory] add-by-identifier: miss for '#{input}'")
+          @collection.create_activity :email_lookup_miss, owner: current_identity, params: { email: input }
           redirect_back fallback_location: directory_collection_path(@collection.slug),
             alert: t("directory.flash.email_not_found")
           return

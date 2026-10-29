@@ -53,6 +53,9 @@ module Directory
       else
         redirect_to directory_people_path, alert: person.errors.full_messages.to_sentence
       end
+    rescue ActiveRecord::RecordNotUnique
+      existing = Directory::Person.find_by!(identity: identity)
+      redirect_to directory_person_path(existing), notice: t("directory.people.created")
     end
 
     def destroy

@@ -11,7 +11,7 @@ module Directory
         )
 
         unless response.status.success?
-          raise "webhook revocation failed: #{response.status} #{response.body}"
+          raise Directory::RevokeSessionJob::RevocationFailed, "webhook revocation failed: #{response.status} #{response.body}"
         end
 
         :ok

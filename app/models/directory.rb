@@ -13,7 +13,7 @@ module Directory
       conn.execute("SELECT pg_advisory_xact_lock(#{Rebuild::LOCK_KEY})")
       Rebuild.snapshot_old(conn)
       yield
-      Rebuild.call(cause: cause, skip_snapshot: true)
+      Rebuild.call(cause: cause, skip_lock: true, skip_snapshot: true)
     end
   end
 end

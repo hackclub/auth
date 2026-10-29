@@ -34,7 +34,7 @@ module Directory
     has_many :grants_as_grantee, class_name: "Directory::Grant", foreign_key: :grantee_group_id, dependent: :destroy
 
     has_many :parent_memberships, -> { where.not(member_group_id: nil) },
-             class_name: "Directory::Membership", foreign_key: :member_group_id
+             class_name: "Directory::Membership", foreign_key: :member_group_id, dependent: :destroy
     has_many :parent_collections, through: :parent_memberships, source: :collection
 
     enum :kind, { group: "group", entitlement: "entitlement" }, scopes: false, instance_methods: false

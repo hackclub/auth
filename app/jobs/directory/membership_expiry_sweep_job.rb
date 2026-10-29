@@ -5,21 +5,24 @@ module Directory
     queue_as :default
 
     def perform
-      expired = Directory::Membership
-        .where("expires_at <= ?", Time.current)
-        .includes(:collection, :member_person)
-
-      expired_records = expired.to_a
-      return if expired_records.empty?
-
-      expired_ids = expired_records.map(&:id)
-      summary = expired_records.map { |m|
-        { id: m.id, collection: m.collection&.name, member: m.member_person&.full_name }
-      }
+      summary = []
 
       Directory.mutate!(cause: "sweeper") do
-        Directory::Membership.where(id: expired_ids).delete_all
+        expired = Directory::Membership
+          .where("expires_at <= ?", Time.current)
+          .includes(:collection, :member_person)
+          .to_a
+
+        next if expired.empty?
+
+        summary = expired.map { |m|
+          { id: m.id, collection: m.collection&.name, member: m.member_person&.full_name }
+        }
+
+        Directory::Membership.where(id: expired.map(&:id)).delete_all
       end
+
+      return if summary.empty?
 
       PublicActivity::Activity.create!(
         trackable_type: "Directory::Membership",

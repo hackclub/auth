@@ -119,13 +119,13 @@ class OAuthScope
     ),
     new(
       name: "groups",
-      description: "See which directory groups you're in",
+      description: "See which directory entitlements you hold",
       icon: "admin",
       consent_fields: [
         { key: :groups, value: ->(ident) {
           person = ident.directory_person
           next "none" unless person
-          names = person.effective_memberships.joins(:collection).where(directory_collections: { kind: "group" }).pluck("directory_collections.name")
+          names = person.effective_memberships.joins(:collection).where(directory_collections: { kind: "entitlement" }).pluck("directory_collections.name")
           names.any? ? names.sort.join(", ") : "none"
         } }
       ]

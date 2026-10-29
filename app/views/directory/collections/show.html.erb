@@ -101,7 +101,7 @@
     <% if can_manage %>
       <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
         <row gap-="1" align-="center">
-          <%= f.email_field :email, placeholder: t("directory.collections.show.email_placeholder"), style: "flex: 1; border: none;", data: { directory_picker: true, scope: "people", url: directory_picker_search_path } %>
+          <%= f.text_field :email, placeholder: t("directory.collections.show.email_placeholder"), style: "flex: 1; border: none;", data: { directory_picker: true, scope: "people", url: directory_picker_search_path } %>
           <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
         </row>
       <% end %>
@@ -150,7 +150,7 @@
       <row gap-="2">
         <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true, style: "flex: 1;" do |f| %>
           <row gap-="1" align-="center">
-            <%= f.email_field :email, placeholder: t("directory.collections.show.email_placeholder"), style: "flex: 1; border: none;", data: { directory_picker: true, scope: "people", url: directory_picker_search_path } %>
+            <%= f.text_field :email, placeholder: t("directory.collections.show.email_placeholder"), style: "flex: 1; border: none;", data: { directory_picker: true, scope: "people", url: directory_picker_search_path } %>
             <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
           </row>
         <% end %>
