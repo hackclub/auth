@@ -47,9 +47,14 @@ module Directory
     private
 
     def still_has_access?(person, app_id)
-      requirement_ids = Directory::AppRequirement.where(app_id: app_id).pluck(:entitlement_id)
+      requirement_ids = requirements_for_app(app_id)
       return true if requirement_ids.empty?
       Directory::EffectiveMembership.where(person_id: person.id, collection_id: requirement_ids).exists?
+    end
+
+    def requirements_for_app(app_id)
+      @requirements_cache ||= {}
+      @requirements_cache[app_id] ||= Directory::AppRequirement.where(app_id: app_id).pluck(:entitlement_id)
     end
 
     def app_ids_affected_by(entitlement)
