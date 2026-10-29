@@ -984,6 +984,7 @@ en:
       admin_only_group_on_entitlement: "only admins can add member groups to entitlements."
       need_manage_on_child_group: "you need manage_members on both groups to nest them."
       admin_only_remove_group: "only admins can remove member groups from entitlements."
+      member_not_found: "that person or group doesn't exist."
       provide_email_or_slug: "provide an email or group slug."
       exposure_added: "exposure added."
       exposure_removed: "exposure removed."

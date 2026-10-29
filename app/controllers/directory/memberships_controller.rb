@@ -86,6 +86,9 @@ module Directory
     rescue ActiveRecord::RecordInvalid => e
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         alert: e.record.errors.full_messages.to_sentence
+    rescue ActiveRecord::InvalidForeignKey
+      redirect_back fallback_location: directory_collection_path(@collection.slug),
+        alert: t("directory.flash.member_not_found")
     end
 
     def destroy
