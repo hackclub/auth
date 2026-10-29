@@ -23,7 +23,12 @@ Doorkeeper.configure do
       app = ::Program.find_by(uid: params[:client_id])
       has_requirements = app && Directory::AppRequirement.table_exists? && Directory::AppRequirement.where(app_id: app.id).exists?
       if has_requirements && !Directory::RequirementCheck.passes?(identity: current_identity, app: app)
-        redirect_to "/directory/denied"
+        client_redirect = params[:redirect_uri].presence
+        registered = app.redirect_uris
+        client_redirect = registered.first unless client_redirect.present? && registered.include?(client_redirect)
+        error_params = { error: "access_denied", error_description: "You do not meet this application's access requirements." }
+        error_params[:state] = params[:state] if params[:state].present?
+        redirect_to "#{client_redirect}#{client_redirect.include?('?') ? '&' : '?'}#{error_params.to_query}", allow_other_host: true
         nil
       else
         current_identity
