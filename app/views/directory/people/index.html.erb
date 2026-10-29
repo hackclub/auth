@@ -63,18 +63,20 @@
         <% end %>
       </tbody>
     </table>
+    <%= paginate @people %>
   <% else %>
     <span style="color: var(--foreground2);"><%= t("directory.people.index.no_people") %></span>
   <% end %>
 
-  <% if @holds_nothing.present? && @holds_nothing.any? %>
+  <% holds_nothing_people = @people.select { |p| @holds_nothing_ids.include?(p.id) } %>
+  <% if holds_nothing_people.any? %>
     <div is-="separator"></div>
 
     <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.people.index.holds_nothing_heading") %></span>
     <table>
       <thead><tr><th><%= t("directory.people.index.col_name") %></th><th><%= t("directory.people.index.col_email") %></th><th></th></tr></thead>
       <tbody>
-        <% @holds_nothing.each do |person| %>
+        <% holds_nothing_people.each do |person| %>
           <tr>
             <td><%= link_to person.full_name, directory_person_path(person) %></td>
             <td style="color: var(--foreground2);"><%= person.primary_email %></td>

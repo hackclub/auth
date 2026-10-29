@@ -6,13 +6,14 @@ module Directory
       authorize Directory::Person, :create? # admin only
       add_breadcrumb t("directory.people.index.title")
 
-      @people = Directory::Person.includes(:identity).order("identities.first_name")
+      @people = Directory::Person.includes(:identity).order("identities.first_name").page(params[:page]).per(50)
+      page_ids = @people.map(&:id)
       @holds_nothing_ids = Directory::Person
+        .where(id: page_ids)
         .left_joins(:effective_memberships)
         .where(directory_effective_memberships: { person_id: nil })
         .pluck(:id)
         .to_set
-      @holds_nothing = Directory::Person.where(id: @holds_nothing_ids)
 
       if params[:email].present?
         term = ActiveRecord::Base.sanitize_sql_like(params[:email].strip.downcase)
