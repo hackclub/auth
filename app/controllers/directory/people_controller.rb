@@ -71,7 +71,7 @@ module Directory
       authorize @person
 
       # Capture revocation data BEFORE destroy wipes effective_memberships
-      revocations = capture_revocations_for_person(@person)
+      revocations = @person.revocation_data
 
       Directory.mutate!(cause: "person_removed:#{@person.id}") do
         @person.destroy!
@@ -99,22 +99,5 @@ module Directory
       child ? [ child ] : []
     end
 
-    def capture_revocations_for_person(person)
-      entitlement_ids = person.effective_memberships
-        .joins("INNER JOIN directory_collections ON directory_collections.id = directory_effective_memberships.collection_id")
-        .where(directory_collections: { kind: "entitlement" })
-        .pluck(:collection_id)
-
-      return [] if entitlement_ids.empty?
-
-      app_ids = (
-        Directory::Exposure.where(entitlement_id: entitlement_ids).pluck(:app_id) +
-        Directory::AppRequirement.where(entitlement_id: entitlement_ids).pluck(:app_id)
-      ).uniq
-
-      return [] if app_ids.empty?
-
-      [ { identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids } ]
-    end
   end
 end

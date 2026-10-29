@@ -360,8 +360,11 @@ class Identity < ApplicationRecord
 
     # §9.1 trigger 4: fire directory revokers for locked identity
     if (dir_person = Directory::Person.find_by(identity: self))
-      Directory::AppRevoker.where(enabled: true).find_each do |revoker|
-        Directory::RevokeSessionJob.perform_later(app_id: revoker.app_id, email: primary_email)
+      dir_person.revocation_data.each do |rev|
+        rev[:app_ids].each do |app_id|
+          revoker = Directory::AppRevoker.find_by(app_id: app_id, enabled: true)
+          Directory::RevokeSessionJob.perform_later(app_id: app_id, email: primary_email) if revoker
+        end
       end
     end
   end
