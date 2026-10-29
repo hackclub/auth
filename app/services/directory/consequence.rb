@@ -10,6 +10,7 @@ module Directory
 
       result = nil
       ActiveRecord::Base.transaction do
+        ActiveRecord::Base.connection.execute("SELECT pg_advisory_xact_lock(#{Directory::Rebuild::LOCK_KEY})")
         membership = Directory::Membership.find_by(
           collection: collection,
           member_person: person
