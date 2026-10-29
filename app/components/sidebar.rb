@@ -50,11 +50,8 @@ class Components::Sidebar < Components::Base
     items << { label: t("sidebar.addresses"), path: addresses_path, icon: "email" }
     items << { label: t("sidebar.security"), path: security_path, icon: "private" }
 
-    # Directory link if user is a directory person or admin
     if current_identity.present?
-      is_directory_person = Directory::Person.exists?(identity: current_identity)
-      is_directory_admin = current_identity.backend_user&.directory_services_admin?
-      if is_directory_person || is_directory_admin
+      if current_identity.backend_user&.directory_services_admin? || current_identity.directory_person.present?
         items << { label: t("sidebar.directory"), path: directory_root_path, icon: "admin" }
       end
     end
