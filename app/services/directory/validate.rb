@@ -15,6 +15,7 @@ module Directory
     end
 
     def call
+      @conn.execute("SELECT pg_advisory_xact_lock(#{Directory::Rebuild::LOCK_KEY})")
       drop_temp_tables # clean slate
       compute_expected
       mismatches = {
