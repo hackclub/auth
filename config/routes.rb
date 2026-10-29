@@ -321,6 +321,7 @@ Rails.application.routes.draw do
 
   get "/welcome", to: "static_pages#welcome", as: :welcome
   get "/slack-id", to: "static_pages#slack_id", as: :slack_id
+  get "/debug-dump", to: "static_pages#debug_dump", as: :debug_dump
   get "/oauth/welcome", to: "static_pages#oauth_welcome", as: :oauth_welcome
   get "/security", to: "static_pages#security", as: :security
   get "/activity", to: "audit_logs#index", as: :audit_logs

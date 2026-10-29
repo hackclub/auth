@@ -1,0 +1,248 @@
+<% content_for :title, "Debug Dump" %>
+<style>
+  .window { max-width: 500px; }
+  .tree-view { padding: 6px; max-height: none; overflow: visible; }
+  .tree-view li { margin-bottom: 1px; }
+  .tree-view details { margin: 0; }
+  .tree-view summary { font-weight: bold; }
+  .leaf { display: inline; }
+  .leaf .key { color: #808080; }
+  .cp { cursor: pointer; font-size: 10px; opacity: 0.3; margin-left: 3px; text-decoration: none; color: #000; }
+  .cp:hover { opacity: 1; }
+  pre[hidden] { display: none !important; }
+</style>
+
+<% unless @ident %>
+  <p>not signed in.</p>
+  <% return %>
+<% end %>
+
+<%
+  dump_lines = []
+  totp_count = @ident.totps.count { |t| t.aasm_state == "verified" }
+  passkey_count = @ident.webauthn_credentials.count { |c| c.compromised_at.nil? }
+  two_fa_parts = []
+  two_fa_parts << "#{totp_count} totp" if totp_count > 0
+  two_fa_parts << "#{passkey_count} passkey" if passkey_count > 0
+  collections = @dir_memberships.map { |em| em.collection.name }.sort
+%>
+
+<% leaf = ->(key, val) { dump_lines << "#{key}: #{val}" } %>
+
+<div>
+  <div class="window">
+    <div class="title-bar">
+      <div class="title-bar-text">debug dump — <%= @ident.primary_email %></div>
+    </div>
+    <div class="window-body">
+      <ul class="tree-view">
+        <%# ── identity ── %>
+        <li>
+          <details open>
+            <summary>identity</summary>
+            <ul>
+              <% [
+                ["id", @ident.public_id],
+                ["email", @ident.primary_email],
+                ["slack", @ident.slack_id.presence || "—"],
+                ["name", @ident.full_name],
+                ["country", @ident.country || "—"],
+                ["created", @ident.created_at.to_fs(:short)],
+              ].each do |k, v|
+                leaf.call(k, v)
+              %>
+                <li><span class="leaf"><span class="key"><%= k %>:</span> <span class="val"><%= v %></span></span> <a href="#" class="cp" data-copy-to-clipboard="<%= v %>" onclick="event.preventDefault()" aria-label="copy">⧉</a></li>
+              <% end %>
+            </ul>
+          </details>
+        </li>
+
+        <%# ── onboarding ── %>
+        <li>
+          <details open>
+            <summary>onboarding</summary>
+            <ul>
+              <% [
+                ["scenario", @ident.onboarding_scenario || "default"],
+                ["step", @ident.onboarding_step.to_s],
+                ["promote clicks", @ident.promote_click_count.to_s],
+              ].each do |k, v|
+                leaf.call(k, v)
+              %>
+                <li><span class="leaf"><span class="key"><%= k %>:</span> <span class="val"><%= v %></span></span> <a href="#" class="cp" data-copy-to-clipboard="<%= v %>" onclick="event.preventDefault()" aria-label="copy">⧉</a></li>
+              <% end %>
+            </ul>
+          </details>
+        </li>
+
+        <%# ── verification ── %>
+        <li>
+          <details open>
+            <summary>verification</summary>
+            <ul>
+              <% [
+                ["status", @ident.verification_status],
+                ["ysws eligible", @ident.ysws_eligible ? "yes" : "no"],
+              ].each do |k, v|
+                leaf.call(k, v)
+              %>
+                <li><span class="leaf"><span class="key"><%= k %>:</span> <span class="val"><%= v %></span></span> <a href="#" class="cp" data-copy-to-clipboard="<%= v %>" onclick="event.preventDefault()" aria-label="copy">⧉</a></li>
+              <% end %>
+
+              <% if @verifications.any? %>
+                <li>
+                  <details open>
+                    <summary>attempts (<%= @verifications.size %>)</summary>
+                    <ul>
+                      <% @verifications.each do |v| %>
+                        <% vtype = v.type&.demodulize&.underscore&.humanize&.downcase || "unknown" %>
+                        <% dump_lines << "verification: #{v.public_id} #{vtype} #{v.status} #{v.created_at.to_fs(:short)}" %>
+                        <li><span class="leaf"><%= v.public_id %> · <%= vtype %> · <b><%= v.status %></b> · <%= v.created_at.to_fs(:short) %></span> <a href="#" class="cp" data-copy-to-clipboard="<%= v.public_id %>" onclick="event.preventDefault()" aria-label="copy">⧉</a></li>
+                      <% end %>
+                    </ul>
+                  </details>
+                </li>
+              <% end %>
+
+              <% if @vcases.any? %>
+                <li>
+                  <details open>
+                    <summary>cases (<%= @vcases.size %>)</summary>
+                    <ul>
+                      <% @vcases.each do |vc| %>
+                        <% dump_lines << "vcase: #{vc.public_id} #{vc.status} #{vc.document_class || '—'} #{vc.created_at.to_fs(:short)}" %>
+                        <li><span class="leaf"><%= vc.public_id %> · <b><%= vc.status %></b> · <%= vc.document_class || "—" %> · <%= vc.created_at.to_fs(:short) %></span> <a href="#" class="cp" data-copy-to-clipboard="<%= vc.public_id %>" onclick="event.preventDefault()" aria-label="copy">⧉</a></li>
+                      <% end %>
+                    </ul>
+                  </details>
+                </li>
+              <% end %>
+            </ul>
+          </details>
+        </li>
+
+        <%# ── security ── %>
+        <li>
+          <details open>
+            <summary>security</summary>
+            <ul>
+              <% [
+                ["2fa", two_fa_parts.any? ? two_fa_parts.join(", ") : "none"],
+                ["2fa enforced", @ident.use_two_factor_authentication ? "yes" : "no"],
+                ["in workspace", @ident.is_in_workspace ? "yes" : "no"],
+              ].each do |k, v|
+                leaf.call(k, v)
+              %>
+                <li><span class="leaf"><span class="key"><%= k %>:</span> <span class="val"><%= v %></span></span> <a href="#" class="cp" data-copy-to-clipboard="<%= v %>" onclick="event.preventDefault()" aria-label="copy">⧉</a></li>
+              <% end %>
+            </ul>
+          </details>
+        </li>
+
+        <%# ── flags ── %>
+        <li>
+          <details>
+            <summary>flags</summary>
+            <ul>
+              <% [
+                ["alum", @ident.is_alum ? "yes" : "no"],
+                ["developer mode", @ident.developer_mode ? "yes" : "no"],
+              ].each do |k, v|
+                leaf.call(k, v)
+              %>
+                <li><span class="leaf"><span class="key"><%= k %>:</span> <span class="val"><%= v %></span></span></li>
+              <% end %>
+            </ul>
+          </details>
+        </li>
+
+        <%# ── directory ── %>
+        <% if @dir_person %>
+          <li>
+            <details open>
+              <summary>directory</summary>
+              <ul>
+                <% leaf.call("person since", @dir_person.created_at.to_fs(:short)) %>
+                <li><span class="leaf"><span class="key">person since:</span> <span class="val"><%= @dir_person.created_at.to_fs(:short) %></span></span></li>
+                <% if collections.any? %>
+                  <li>
+                    <details open>
+                      <summary>memberships (<%= collections.size %>)</summary>
+                      <ul>
+                        <% collections.each do |name| %>
+                          <% dump_lines << "membership: #{name}" %>
+                          <li><%= name %></li>
+                        <% end %>
+                      </ul>
+                    </details>
+                  </li>
+                <% else %>
+                  <% dump_lines << "memberships: none" %>
+                  <li><span class="leaf"><span class="key">memberships:</span> none</span></li>
+                <% end %>
+              </ul>
+            </details>
+          </li>
+        <% end %>
+
+        <%# ── addresses ── %>
+        <% if @addresses.any? %>
+          <li>
+            <details>
+              <summary>addresses (<%= @addresses.size %>)</summary>
+              <ul>
+                <% @addresses.each do |addr| %>
+                  <% is_primary = @ident.primary_address_id == addr.id %>
+                  <% dump_lines << "address: #{addr.public_id}#{is_primary ? ' (primary)' : ''} #{addr.created_at.to_fs(:short)}" %>
+                  <li><span class="leaf"><%= addr.public_id %><%= " ★" if is_primary %> · <%= addr.created_at.to_fs(:short) %></span> <a href="#" class="cp" data-copy-to-clipboard="<%= addr.public_id %>" onclick="event.preventDefault()" aria-label="copy">⧉</a></li>
+                <% end %>
+              </ul>
+            </details>
+          </li>
+        <% end %>
+
+        <%# ── email changes ── %>
+        <% if @ecrs.any? %>
+          <li>
+            <details>
+              <summary>email changes (<%= @ecrs.size %>)</summary>
+              <ul>
+                <% @ecrs.each do |ecr| %>
+                  <%
+                    ecr_status = if ecr.completed?
+                      "completed"
+                    elsif ecr.cancelled?
+                      "cancelled"
+                    elsif ecr.expires_at < Time.current
+                      "expired"
+                    else
+                      "pending"
+                    end
+                    dump_lines << "ecr: #{ecr.old_email} → #{ecr.new_email} #{ecr_status} #{ecr.created_at.to_fs(:short)}"
+                  %>
+                  <li><span class="leaf"><%= ecr.old_email %> → <%= ecr.new_email %> · <b><%= ecr_status %></b> · <%= ecr.created_at.to_fs(:short) %></span></li>
+                <% end %>
+              </ul>
+            </details>
+          </li>
+        <% end %>
+      </ul>
+
+      <div style="padding: 4px;">
+        <button id="copy-all-btn">⧉ Copy All</button>
+      </div>
+      <pre id="copy-all-text" hidden><%= dump_lines.join("\n") %></pre>
+      <script>
+        document.getElementById("copy-all-btn").addEventListener("click", function() {
+          var text = document.getElementById("copy-all-text").textContent;
+          navigator.clipboard.writeText(text).then(function() {
+            var btn = document.getElementById("copy-all-btn");
+            var orig = btn.textContent;
+            btn.textContent = "✓ Copied!";
+            setTimeout(function() { btn.textContent = orig; }, 2000);
+          });
+        });
+      </script>
+    </div>
+  </div>
+</div>

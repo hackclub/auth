@@ -37,4 +37,21 @@ class StaticPagesController < ApplicationController
   end
 
   def slack_id = render layout: "minimal"
+
+  def debug_dump
+    if current_identity
+      @ident = Identity
+        .includes(:totps, :webauthn_credentials, :addresses, :email_change_requests, :verification_cases,
+                  directory_person: { effective_memberships: :collection })
+        .preload(:verifications) # not_ignored scope applied after load
+        .find(current_identity.id)
+      @dir_person = @ident.directory_person
+      @ecrs = @ident.email_change_requests.sort_by(&:created_at).reverse.first(10)
+      @verifications = @ident.verifications.select { |v| v.ignored_at.nil? }.sort_by(&:created_at).reverse.first(10)
+      @vcases = @ident.verification_cases.sort_by(&:created_at).reverse.first(10)
+      @addresses = @ident.addresses.sort_by(&:created_at).reverse
+      @dir_memberships = @dir_person&.effective_memberships || []
+    end
+    render layout: "win98"
+  end
 end
