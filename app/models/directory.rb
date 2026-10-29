@@ -7,9 +7,11 @@ module Directory
   # (so validations like cycle/depth run under serialization), yields, then rebuilds.
   def self.mutate!(cause:, &block)
     ActiveRecord::Base.transaction do
-      ActiveRecord::Base.connection.execute("SELECT pg_advisory_xact_lock(#{Rebuild::LOCK_KEY})")
+      conn = ActiveRecord::Base.connection
+      conn.execute("SELECT pg_advisory_xact_lock(#{Rebuild::LOCK_KEY})")
+      Rebuild.snapshot_old(conn)
       yield
-      Rebuild.call(cause: cause)
+      Rebuild.call(cause: cause, skip_snapshot: true)
     end
   end
 end

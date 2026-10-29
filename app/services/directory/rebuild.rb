@@ -4,19 +4,29 @@ module Directory
   class Rebuild
     LOCK_KEY = 8_675_309
 
-    def self.call(cause:, skip_lock: false)
-      new(cause:, skip_lock:).call
+    def self.call(cause:, skip_lock: false, skip_snapshot: false)
+      new(cause:, skip_lock:, skip_snapshot:).call
     end
 
-    def initialize(cause:, skip_lock: false)
+    def self.snapshot_old(conn)
+      conn.execute("DROP TABLE IF EXISTS _old_em, _new_closure, _new_em, _new_eg")
+      conn.execute(<<~SQL)
+        CREATE TEMP TABLE _old_em ON COMMIT DROP AS
+        SELECT collection_id, person_id
+        FROM directory_effective_memberships
+      SQL
+    end
+
+    def initialize(cause:, skip_lock: false, skip_snapshot: false)
       @cause = cause
       @skip_lock = skip_lock
+      @skip_snapshot = skip_snapshot
       @conn = ActiveRecord::Base.connection
     end
 
     def call
       @conn.execute("SELECT pg_advisory_xact_lock(#{LOCK_KEY})") unless @skip_lock
-      snapshot_old
+      snapshot_old unless @skip_snapshot
       compute_closure
       compute_effective_memberships
       compute_effective_grants
@@ -31,12 +41,7 @@ module Directory
     private
 
     def snapshot_old
-      @conn.execute("DROP TABLE IF EXISTS _old_em, _new_closure, _new_em, _new_eg")
-      @conn.execute(<<~SQL)
-        CREATE TEMP TABLE _old_em ON COMMIT DROP AS
-        SELECT collection_id, person_id
-        FROM directory_effective_memberships
-      SQL
+      self.class.snapshot_old(@conn)
     end
 
     def compute_closure
