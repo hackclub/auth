@@ -47,7 +47,7 @@ module Directory
       return [] unless link
 
       child = Directory::Collection.find_by(id: link.descendant_id)
-      child ? [child] : []
+      child ? [ child ] : []
     end
   end
 end

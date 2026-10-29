@@ -9,7 +9,7 @@ module Directory
               slug: ->(_c, model) { model.slug },
               changes: ->(_c, model) {
                 c = model.saved_changes.except("created_at")
-                c.present? ? c.to_h { |k, v| [k, v.map(&:to_s)] } : nil
+                c.present? ? c.to_h { |k, v| [ k, v.map(&:to_s) ] } : nil
               }
             }
 

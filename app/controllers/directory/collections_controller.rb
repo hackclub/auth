@@ -173,7 +173,7 @@ module Directory
         effective.each do |em|
           person = em.person
           membership_type = direct_person_ids.include?(person.id) ? "direct" : "via"
-          csv << [person.full_name, person.primary_email, membership_type]
+          csv << [ person.full_name, person.primary_email, membership_type ]
         end
       end
 

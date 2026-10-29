@@ -1,6 +1,5 @@
 module Directory
   class Membership < ApplicationRecord
-
     has_paper_trail
     include PublicActivity::Model
     tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) },

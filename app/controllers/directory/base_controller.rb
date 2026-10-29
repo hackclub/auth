@@ -38,12 +38,12 @@ module Directory
     end
 
     def add_breadcrumb(label, path = nil)
-      @_breadcrumbs ||= [{ label: "directory", path: directory_root_path }]
+      @_breadcrumbs ||= [ { label: "directory", path: directory_root_path } ]
       @_breadcrumbs << { label:, path: }
     end
 
     def breadcrumbs
-      @_breadcrumbs || [{ label: "directory", path: directory_root_path }]
+      @_breadcrumbs || [ { label: "directory", path: directory_root_path } ]
     end
 
     def user_for_public_activity

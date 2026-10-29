@@ -96,7 +96,7 @@ module Directory
       return [] unless link
 
       child = Directory::Collection.find_by(id: link.descendant_id)
-      child ? [child] : []
+      child ? [ child ] : []
     end
 
     def capture_revocations_for_person(person)
@@ -114,7 +114,7 @@ module Directory
 
       return [] if app_ids.empty?
 
-      [{ identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids }]
+      [ { identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids } ]
     end
   end
 end

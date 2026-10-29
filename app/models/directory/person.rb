@@ -1,6 +1,5 @@
 module Directory
   class Person < ApplicationRecord
-
     include PublicActivity::Model
 
     tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) },
