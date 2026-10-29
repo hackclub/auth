@@ -132,10 +132,7 @@ module Directory
       # Capture revocation data BEFORE destroy wipes effective_memberships
       revocations = []
       if @collection.entitlement?
-        app_ids = (
-          Directory::Exposure.where(entitlement_id: @collection.id).pluck(:app_id) +
-          Directory::AppRequirement.where(entitlement_id: @collection.id).pluck(:app_id)
-        ).uniq
+        app_ids = @collection.affected_app_ids
 
         if app_ids.any?
           @collection.effective_people.each do |person|

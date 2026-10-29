@@ -60,5 +60,16 @@ module Directory
     def exposure_count
       has_attribute?(:preloaded_exposure_count) ? preloaded_exposure_count : Directory::Exposure.where(entitlement_id: id).count
     end
+
+    def self.affected_app_ids(entitlement_ids)
+      (
+        Directory::Exposure.where(entitlement_id: entitlement_ids).pluck(:app_id) +
+        Directory::AppRequirement.where(entitlement_id: entitlement_ids).pluck(:app_id)
+      ).uniq
+    end
+
+    def affected_app_ids
+      self.class.affected_app_ids(id)
+    end
   end
 end

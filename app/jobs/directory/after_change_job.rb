@@ -53,9 +53,7 @@ module Directory
     end
 
     def app_ids_affected_by(entitlement)
-      exposure_apps = Directory::Exposure.where(entitlement_id: entitlement.id).pluck(:app_id)
-      requirement_apps = Directory::AppRequirement.where(entitlement_id: entitlement.id).pluck(:app_id)
-      (exposure_apps + requirement_apps).uniq
+      entitlement.affected_app_ids
     end
 
     def revoke_tokens(identity_id, app_id)

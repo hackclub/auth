@@ -32,10 +32,7 @@ module Directory
         .pluck(:collection_id)
       return [] if entitlement_ids.empty?
 
-      app_ids = (
-        Directory::Exposure.where(entitlement_id: entitlement_ids).pluck(:app_id) +
-        Directory::AppRequirement.where(entitlement_id: entitlement_ids).pluck(:app_id)
-      ).uniq
+      app_ids = Directory::Collection.affected_app_ids(entitlement_ids)
       return [] if app_ids.empty?
 
       [ { identity_id: identity_id, email: primary_email, app_ids: app_ids } ]
