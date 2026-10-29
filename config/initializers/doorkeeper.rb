@@ -28,7 +28,10 @@ Doorkeeper.configure do
         client_redirect = registered.first unless client_redirect.present? && registered.include?(client_redirect)
         error_params = { error: "access_denied", error_description: "You do not meet this application's access requirements." }
         error_params[:state] = params[:state] if params[:state].present?
-        redirect_to "#{client_redirect}#{client_redirect.include?('?') ? '&' : '?'}#{error_params.to_query}", allow_other_host: true
+        uri = URI.parse(client_redirect)
+        existing = URI.decode_www_form(uri.query || "")
+        uri.query = URI.encode_www_form(existing + error_params.to_a)
+        redirect_to uri.to_s, allow_other_host: true
         nil
       else
         current_identity
