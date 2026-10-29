@@ -145,6 +145,7 @@ en:
     verification: ID Verification
     addresses: Mailing Addresses
     security: Security
+    developer: Developer
     directory: Directory
     docs: Docs
     logout: Sign out
