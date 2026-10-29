@@ -35,7 +35,7 @@ module Directory
         if direct_collection_ids.include?(em.collection_id)
           { collection: em.collection, direct: true, via_path: [] }
         else
-          via = find_via_path(direct_collection_ids, em.collection_id)
+          via = Directory::Closure.via_path(direct_collection_ids, em.collection_id)
           { collection: em.collection, direct: false, via_path: via }
         end
       end
@@ -86,18 +86,6 @@ module Directory
     end
 
     private
-
-    def find_via_path(direct_collection_ids, ancestor_id)
-      link = Directory::Closure.where(ancestor_id: ancestor_id)
-        .where(descendant_id: direct_collection_ids.to_a)
-        .where.not(descendant_id: ancestor_id)
-        .order(:depth)
-        .first
-      return [] unless link
-
-      child = Directory::Collection.find_by(id: link.descendant_id)
-      child ? [ child ] : []
-    end
 
   end
 end
