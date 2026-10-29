@@ -85,15 +85,17 @@ module Directory
         CREATE TEMP TABLE _new_eg ON COMMIT DROP AS
         WITH RECURSIVE grant_targets AS (
           SELECT g.id AS grant_id, g.target_collection_id AS collection_id, g.permission,
-                 g.grantee_group_id
+                 g.grantee_group_id, 0 AS depth
           FROM directory_grants g
           UNION ALL
-          SELECT gt.grant_id, m.member_group_id, gt.permission, gt.grantee_group_id
+          SELECT gt.grant_id, m.member_group_id, gt.permission, gt.grantee_group_id,
+                 gt.depth + 1
           FROM grant_targets gt
           INNER JOIN directory_grants g2 ON g2.id = gt.grant_id
           INNER JOIN directory_memberships m ON m.collection_id = gt.collection_id
           WHERE m.member_group_id IS NOT NULL
             AND g2.recursive = true
+            AND gt.depth < #{Directory::MAX_DEPTH}
             AND NOT EXISTS (
               SELECT 1 FROM directory_collections dc
               WHERE dc.id = m.member_group_id AND dc.protected = true
