@@ -65,18 +65,21 @@ module Directory
 
     # §3.7: revoke tokens for every token holder who isn't an effective member
     def revoke_tokens_for_non_members(app, _entitlement)
-      # Requirements are any-of: revoke tokens for people who aren't a member
-      # of ANY required entitlement (not just the one being added)
-      all_required_ids = Directory::AppRequirement.where(app_id: app.id).pluck(:entitlement_id)
-
-      # Find identity_ids of people who pass the requirement (member of any)
+      # Subselect of identity_ids who pass the requirement (member of any
+      # required entitlement). Kept as a relation so Rails generates
+      # WHERE NOT IN (SELECT …) instead of materialising 50k+ ids.
       passing_identity_ids = Directory::EffectiveMembership
-        .where(collection_id: all_required_ids)
+        .where(
+          collection_id: Directory::AppRequirement.where(app_id: app.id).select(:entitlement_id)
+        )
         .joins("INNER JOIN directory_people ON directory_people.id = directory_effective_memberships.person_id")
-        .pluck("directory_people.identity_id")
-        .uniq
+        .select("directory_people.identity_id")
 
-      non_passing = ->(scope) { scope.where(application_id: app.id).where.not(resource_owner_id: passing_identity_ids).where(revoked_at: nil) }
+      non_passing = ->(scope) {
+        scope
+          .where(application_id: app.id, revoked_at: nil)
+          .where.not(resource_owner_id: passing_identity_ids)
+      }
 
       tokens_to_revoke = non_passing.call(OAuthToken)
       revoked_identity_ids = tokens_to_revoke.pluck(:resource_owner_id).uniq
