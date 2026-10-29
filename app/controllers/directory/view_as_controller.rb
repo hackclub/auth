@@ -19,15 +19,7 @@ module Directory
         @visible_collections = Directory::Collection.where(id: grant_ids).order(:name)
       end
 
-      direct_collection_ids = @target_person.memberships.pluck(:collection_id).to_set
-
-      @memberships = @target_person.effective_memberships.includes(:collection).order("directory_collections.name").map do |em|
-        {
-          collection: em.collection,
-          direct: direct_collection_ids.include?(em.collection_id),
-          via_path: []
-        }
-      end
+      @memberships = @target_person.memberships_with_via_path
 
       @grants = Directory::EffectiveGrant.where(person_id: @target_person.id)
         .includes(:target_collection)

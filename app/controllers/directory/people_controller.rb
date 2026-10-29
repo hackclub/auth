@@ -26,22 +26,7 @@ module Directory
       add_breadcrumb t("directory.people.index.title"), directory_people_path
       add_breadcrumb @person.full_name
 
-      all_effective = @person.effective_memberships
-        .includes(:collection)
-        .order("directory_collections.name")
-
-      direct_collection_ids = @person.memberships.pluck(:collection_id).to_set
-
-      @visible_memberships = all_effective.filter_map do |em|
-        next unless policy(em.collection).show?
-
-        if direct_collection_ids.include?(em.collection_id)
-          { collection: em.collection, direct: true, via_path: [] }
-        else
-          via = Directory::Closure.via_path(direct_collection_ids, em.collection_id)
-          { collection: em.collection, direct: false, via_path: via }
-        end
-      end
+      @visible_memberships = @person.memberships_with_via_path.select { |m| policy(m[:collection]).show? }
 
       @manageable_collections = Directory::Collection
         .joins("INNER JOIN directory_effective_grants ON directory_effective_grants.target_collection_id = directory_collections.id")

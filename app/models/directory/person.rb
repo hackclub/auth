@@ -25,6 +25,20 @@ module Directory
     scope :locked, -> { joins(:identity).where.not(identities: { locked_at: nil }) }
     scope :active, -> { joins(:identity).where(identities: { locked_at: nil, deleted_at: nil }) }
 
+    def memberships_with_via_path
+      all_effective = effective_memberships.includes(:collection).order("directory_collections.name")
+      direct_ids = memberships.pluck(:collection_id).to_set
+
+      all_effective.map do |em|
+        if direct_ids.include?(em.collection_id)
+          { collection: em.collection, direct: true, via_path: [] }
+        else
+          via = Directory::Closure.via_path(direct_ids, em.collection_id)
+          { collection: em.collection, direct: false, via_path: via }
+        end
+      end
+    end
+
     def revocation_data
       entitlement_ids = effective_memberships
         .joins(:collection)
