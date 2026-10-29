@@ -49,11 +49,24 @@ module Directory
           end
       end
 
+      # Preload current user's viewable collection IDs for in-memory policy check
+      viewable_collection_ids = if directory_admin?
+        nil # admin can see everything
+      else
+        person = current_directory_person
+        if person
+          Directory::EffectiveGrant
+            .where(person_id: person.id, permission: %w[view manage_members expose])
+            .pluck(:target_collection_id)
+            .to_set
+        else
+          Set.new
+        end
+      end
+
       @effective_people_with_paths = effective_people.map do |person|
         via_groups = (via_map[person.id] || []).uniq.select do |c|
-          policy(c).show?
-        rescue Pundit::NotAuthorizedError
-          false
+          viewable_collection_ids.nil? || viewable_collection_ids.include?(c.id)
         end
         { person: person, via: via_groups }
       end
