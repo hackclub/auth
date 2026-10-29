@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
 module Directory
+  # Manages login requirements (must be in entitlement X to use app Y).
+  #
+  # Inherits from ::ApplicationController, not Directory::BaseController,
+  # because these actions live on the app page (/developer_apps/:id) and
+  # must be reachable by app owners who are not directory people.
   class AppRequirementsController < ::ApplicationController
     include DirectoryAppAuthorization
     rescue_from Pundit::NotAuthorizedError do
@@ -46,6 +51,9 @@ module Directory
       end
     end
 
+    # Unwire auth: admin can always remove a requirement. Non-admins
+    # need BOTH app ownership AND the expose grant — removing a login
+    # gate opens the app to more people, so both sides must agree.
     def authorize_unwire!(app, entitlement)
       ctx = directory_context
       return if ctx.admin?

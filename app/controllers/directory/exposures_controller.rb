@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
 module Directory
+  # Manages exposure wiring (telling an app about an entitlement).
+  #
+  # Inherits from ::ApplicationController, not Directory::BaseController,
+  # because these actions live on the app page (/developer_apps/:id) and
+  # must be reachable by app owners who are not directory people.
   class ExposuresController < ::ApplicationController
     include DirectoryAppAuthorization
     rescue_from Pundit::NotAuthorizedError do
@@ -46,12 +51,18 @@ module Directory
       end
     end
 
+    # Unwire auth: admin can always sever an exposure (the directory
+    # controls what it discloses, regardless of app owner preference).
+    # Non-admins need BOTH app ownership AND the expose grant.
+    #
+    # This can break an app (claim disappears) but cannot open access —
+    # exposures control what the token says, not who can log in.
+    # Requirements (which gate login) use the same AND pattern.
     def authorize_unwire!(exposure)
       return if directory_context.admin?
       unless app_owner?(exposure.app) && directory_context.can?(:expose, exposure.entitlement)
         raise Pundit::NotAuthorizedError
       end
     end
-
   end
 end
