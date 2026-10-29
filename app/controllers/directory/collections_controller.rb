@@ -32,12 +32,15 @@ module Directory
       # Compute via paths: which direct member group does each person come through?
       direct_group_ids = @collection.member_group_memberships.pluck(:member_group_id)
       @effective_people_with_paths = effective_people.map do |person|
-        # Find which direct groups this person is an effective member of
         via_groups = Directory::EffectiveMembership
           .where(person_id: person.id, collection_id: direct_group_ids)
           .includes(:collection)
           .map(&:collection)
-          .select { |c| policy(c).show? rescue false }
+          .select do |c|
+            policy(c).show?
+          rescue Pundit::NotAuthorizedError
+            false
+          end
         { person: person, via: via_groups }
       end
 
