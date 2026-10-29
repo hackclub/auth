@@ -582,7 +582,7 @@ Rails.application.config.to_prepare do
           identity = ::Identity.find_by(id: token.resource_owner_id)
           has_requirements = app && identity && Directory::AppRequirement.table_exists? && Directory::AppRequirement.where(app_id: app.id).exists?
           if has_requirements && !Directory::RequirementCheck.passes?(identity: identity, app: app)
-            render json: { error: "access_denied", error_description: "You no longer meet this application's requirements." }, status: :forbidden
+            render json: { error: "invalid_grant", error_description: "You no longer meet this application's requirements." }, status: :bad_request
             return
           end
         end
