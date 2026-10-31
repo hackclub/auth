@@ -8,7 +8,9 @@ require "rails_helper"
 #
 # also: the sad path (declined), resume flow, and idempotency.
 RSpec.describe "Persona verification lifecycle", type: :request do
-  let(:identity) { create(:identity, persona_account_id: nil, legal_first_name: nil, legal_last_name: nil, birthday: Date.parse("2008-06-15")) }
+  # reload: prod loads the identity fresh each request, and the create-time
+  # before_commit leaves the in-memory record dirty, which with_lock refuses
+  let(:identity) { create(:identity, persona_account_id: nil, legal_first_name: nil, legal_last_name: nil, birthday: Date.parse("2008-06-15")).reload }
   let(:session) do
     identity.sessions.create!(
       session_token: SecureRandom.hex(32),
