@@ -1,9 +1,4 @@
-<div class="totp-setup-verify" x-data="{
-  codeValue: '',
-  get isComplete() {
-    return this.codeValue.replace(/\D/g, '').length === 6;
-  }
-}">
+<div class="totp-setup-verify" x-data="codeInput">
   <div class="totp-setup-header">
     <h3><%= t(".heading") %></h3>
     <p class="step-indicator"><%= t(".step_indicator") %></p>

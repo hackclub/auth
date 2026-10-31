@@ -4,31 +4,28 @@
 # See the Securing Rails Applications Guide for more information:
 # https://guides.rubyonrails.org/security.html#content-security-policy-header
 
-# Rails.application.configure do
-#   config.content_security_policy do |policy|
-#     policy.default_src :self, :https
-#     policy.font_src    :self, :https, :data
-#     policy.img_src     :self, :https, :data
-#     policy.object_src  :none
-#     policy.script_src  :self, :https
-# Allow @vite/client to hot reload javascript changes in development
-#    policy.script_src *policy.script_src, :unsafe_eval, "http://#{ ViteRuby.config.host_with_port }" if Rails.env.development?
+Rails.application.configure do
+  config.content_security_policy do |policy|
+    policy.default_src :self
+    policy.font_src    :self, "https://cdn.jsdelivr.net"
+    policy.img_src     :self, :data, :blob, "https://cdn.hackclub.com", "https://hc-cdn.hel1.your-objectstorage.com", "https://user-cdn.hackclub-assets.com"
+    policy.object_src  :none
+    policy.script_src  :self, "https://maps.googleapis.com"
+    policy.style_src   :self
+    policy.frame_src   :self, "https://are-we-there-yet.hackclub.com", "https://*.withpersona.com"
+    policy.connect_src :self, "https://maps.googleapis.com", "https://*.withpersona.com"
 
-# You may need to enable this in production as well depending on your setup.
-#    policy.script_src *policy.script_src, :blob if Rails.env.test?
+    if Rails.env.development?
+      policy.script_src *policy.script_src, "http://#{ViteRuby.config.host_with_port}"
+      policy.style_src  *policy.style_src, :unsafe_inline
+      policy.connect_src *policy.connect_src, "ws://#{ViteRuby.config.host_with_port}"
+    end
 
-#     policy.style_src   :self, :https
-# Allow @vite/client to hot reload style changes in development
-#    policy.style_src *policy.style_src, :unsafe_inline if Rails.env.development?
+    if Rails.env.test?
+      policy.script_src *policy.script_src, :blob
+    end
+  end
 
-#     # Specify URI for violation reports
-#     # policy.report_uri "/csp-violation-report-endpoint"
-#   end
-#
-#   # Generate session nonces for permitted importmap, inline scripts, and inline styles.
-#   config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
-#   config.content_security_policy_nonce_directives = %w(script-src style-src)
-#
-#   # Report violations without enforcing the policy.
-#   # config.content_security_policy_report_only = true
-# end
+  config.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
+  config.content_security_policy_nonce_directives = %w[script-src style-src]
+end

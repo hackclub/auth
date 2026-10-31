@@ -28,9 +28,22 @@
   <h1>Your Slack ID is:</h1>
 
   <% if current_identity&.slack_id.present? %>
-    <code class="slack-id" onclick="navigator.clipboard.writeText(this.textContent.trim());var c=this.nextElementSibling;c.textContent='Copied!';setTimeout(()=>c.textContent='Click to copy',2000)"><%= current_identity.slack_id %></code>
+    <code class="slack-id" data-action="copy-text"><%= current_identity.slack_id %></code>
     <small class="slack-id-hint usn">Click to copy</small>
   <% else %>
     <p>No Slack ID linked to your account.</p>
   <% end %>
 </div>
+
+<script nonce="<%= content_security_policy_nonce %>">
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest('[data-action="copy-text"]');
+    if (!el) return;
+    navigator.clipboard.writeText(el.textContent.trim());
+    var hint = el.nextElementSibling;
+    if (hint) {
+      hint.textContent = 'Copied!';
+      setTimeout(function() { hint.textContent = 'Click to copy'; }, 2000);
+    }
+  });
+</script>

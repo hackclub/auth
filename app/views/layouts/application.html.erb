@@ -8,7 +8,7 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= yield :head %>
-    <script>
+    <script nonce="<%= content_security_policy_nonce %>">
       (function() {
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const defaultTheme = systemPrefersDark ? "dark" : "light";

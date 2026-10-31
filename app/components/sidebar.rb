@@ -22,8 +22,22 @@ class Components::Sidebar < Components::Base
       render_navigation
       render_user_section if signed_in?
     end
-
     render_toggle_script
+  end
+
+  def render_toggle_script
+    script(nonce: helpers.content_security_policy_nonce) do
+      raw safe <<~JS
+        document.querySelectorAll('[data-action="toggle-sidebar"]').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var sidebar = document.getElementById('sidebar');
+            var overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+          });
+        });
+      JS
+    end
   end
 
   private
@@ -66,7 +80,7 @@ class Components::Sidebar < Components::Base
   end
 
   def render_mobile_toggle
-    button(class: "sidebar-toggle", onclick: safe("toggleSidebar()"), "aria-label": "Toggle sidebar") do
+    button(class: "sidebar-toggle", data_action: "toggle-sidebar", data_target: "sidebar", "aria-label": "Toggle sidebar") do
       svg(
         width: "24",
         height: "24",
@@ -84,7 +98,7 @@ class Components::Sidebar < Components::Base
     end
   end
 
-  def render_overlay = div(class: "sidebar-overlay", onclick: safe("toggleSidebar()"))
+  def render_overlay = div(class: "sidebar-overlay", data_action: "toggle-sidebar", data_target: "sidebar")
 
   def render_navigation
     div(class: "sidebar-nav") do
@@ -154,18 +168,5 @@ class Components::Sidebar < Components::Base
       end
     end
     render Components::EnvironmentBanner.new
-  end
-
-  def render_toggle_script
-    script do
-      raw safe <<~JS
-        function toggleSidebar() {
-          const sidebar = document.getElementById('sidebar');
-          const overlay = document.querySelector('.sidebar-overlay');
-          sidebar.classList.toggle('mobile-open');
-          overlay.classList.toggle('active');
-        }
-      JS
-    end
   end
 end
