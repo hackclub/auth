@@ -3,7 +3,7 @@ class IdentityMailer < ApplicationMailer
     @login_code = login_code
     @identity = login_code.identity
     @first_name = @identity.first_name
-    @code = login_code.pretty
+    @code = login_code.code
     @env_prefix = env_prefix
     @preview_text = "Your code is #{@code}"
 
