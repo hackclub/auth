@@ -4,7 +4,7 @@ module Directory
   class MyAccessController < BaseController
     def show
       skip_authorization
-      add_breadcrumb t("directory.my_access.title")
+      add_breadcrumb t("directory.my_access.show.title")
 
       @person = current_directory_person
 
