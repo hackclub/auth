@@ -15,11 +15,7 @@ module Directory
         # Add by email or public ID — find identity, create directory person if needed
         input = params[:email].strip
         Rails.logger.info("[Directory] add-by-identifier: #{current_identity.primary_email} searched for '#{input}' on #{@collection.slug}")
-        identity = if input.start_with?("ident!")
-          Identity.find_by_public_id(input)
-        else
-          Identity.find_by("lower(primary_email) = ?", input.downcase)
-        end
+        identity = resolve_identifier(input)
         unless identity
           Rails.logger.info("[Directory] add-by-identifier: miss for '#{input}'")
           @collection.create_activity :email_lookup_miss, owner: current_identity, params: { email: input }
@@ -115,11 +111,7 @@ module Directory
       resolved = []
 
       identifiers.each do |identifier|
-        identity = if identifier.start_with?("ident!")
-          Identity.find_by_public_id(identifier)
-        else
-          Identity.find_by("lower(primary_email) = ?", identifier.downcase)
-        end
+        identity = resolve_identifier(identifier)
 
         unless identity
           not_found << identifier
@@ -191,6 +183,22 @@ module Directory
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         notice: t("directory.flash.member_removed")
+    end
+
+    private
+
+    # Turns an add-by-identifier input into an identity, or nil for a miss. An exact email
+    # may bring a new identity into the directory (SPEC §3.1). Public IDs are guessable
+    # (unsalted hashids over sequential ids), so for non-admins an ident! only reaches
+    # people already in the directory, the same reach the picker has; any other identity
+    # is a miss, indistinguishable from one that doesn't exist.
+    def resolve_identifier(input)
+      return Identity.find_by("lower(primary_email) = ?", input.downcase) unless input.start_with?("ident!")
+
+      identity = Identity.find_by_public_id(input)
+      return identity if identity.nil? || directory_admin?
+
+      identity if Directory::Person.exists?(identity_id: identity.id)
     end
   end
 end
