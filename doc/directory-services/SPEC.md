@@ -338,9 +338,15 @@ saml service providers stay in `config/saml.yml` and are reviewed through pull r
   entitlements:
     airtable-users: "airtable"          # claim/attribute value the SP sees
     fulltimers-apps: "staff"
+  attribute_consuming_services:
+    - name: Airtable User Profile
+      requested_attributes:
+        - name: groups                  # the saml2 gem only sends attributes the SP requests
 ```
 
 the saml controller treats `required_entitlements` as `directory_app_requirements` and `entitlements` as exposures, read from yaml rather than the table. the attribute carrying the values is named by an optional `groups_attribute:` key per SP (default `groups`), because saml has no standard attribute name for this. `allowed_emails:` is deprecated and removed once each SP that uses it has an entitlement. the entitlement page's "apps told about this" lists yaml SPs alongside oidc apps so the view is complete.
+
+the loader (`SAMLService::Entities`) refuses an SP entry it can't load as written: an unknown key, an empty `required_entitlements` or `allowed_emails`, or `entitlements` whose attribute `allowed_attributes` filters out or no `attribute_consuming_services` requests. `spec/services/saml_service/entities_spec.rb` loads every environment in `config/saml.yml`, so run it after editing the file.
 
 a slug named in yaml that no longer exists **fails closed**: a `required_entitlements` entry that doesn't resolve means nobody can log in to that SP, with a sentry alert and an error page that says why. the delete confirmation for an entitlement lists every yaml SP that references its slug.
 
