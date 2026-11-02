@@ -425,6 +425,11 @@ class LoginsController < ApplicationController
         )
 
         render_saml_response(saml_response: response, sp_config: sp_config)
+    rescue SAMLHelper::AccessDenied => e
+        # they're logged in to HCA now; it's only the hop into the SP that's refused, so show
+        # the same page SAMLController would and let them carry on from there
+        @error = e.message
+        render "saml/error", layout: "application", status: :forbidden
     end
 
     def scenario_for_identity(identity)
