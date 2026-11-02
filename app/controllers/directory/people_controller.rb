@@ -36,11 +36,7 @@ module Directory
         .distinct
         .order(:name)
 
-      @activities = PublicActivity::Activity
-        .where(trackable: @person)
-        .or(PublicActivity::Activity.where(owner: @person.identity))
-        .order(created_at: :desc)
-        .limit(20)
+      @activities = directory_activities_for(@person)
     end
 
     def create
@@ -79,5 +75,36 @@ module Directory
     end
 
     private
+
+    # Directory activity about this person: rows where they're the subject (trackable, or
+    # recipient of "added to x") plus directory rows they wrote as a manager. Never the
+    # identity's account-wide audit log (logins, legal name, email changes, oauth grants).
+    # Non-admins only get rows that belong to a collection they can see.
+    def directory_activities_for(person)
+      activities = PublicActivity::Activity
+      about_person = activities.where(trackable: person)
+        .or(activities.where(recipient: person))
+        .or(activities.where(owner: person.identity))
+
+      scope = activities.where(trackable_type: Directory::ActivityController::TRACKABLE_TYPES).and(about_person)
+      scope = scope.and(activities_in_visible_collections) unless directory_admin?
+      scope.order(created_at: :desc).limit(20)
+    end
+
+    # Keeps directory activity that belongs to a collection the viewer can see, in SQL so the
+    # 20-row window is filled with rows they may see. Membership rows name their collection as
+    # the recipient, which outlives the membership. Grant and exposure rows are placed through
+    # their live record, and person rows count when the viewer can see that person; once the
+    # record is deleted there's nothing to place the row by, so it stays hidden.
+    def activities_in_visible_collections
+      activities = PublicActivity::Activity
+      visible = policy_scope(Directory::Collection).select(:id)
+
+      activities.where(trackable_type: "Directory::Collection", trackable_id: visible)
+        .or(activities.where(trackable_type: "Directory::Membership", recipient_type: "Directory::Collection", recipient_id: visible))
+        .or(activities.where(trackable_type: "Directory::Grant", trackable_id: Directory::Grant.where(target_collection_id: visible).select(:id)))
+        .or(activities.where(trackable_type: "Directory::Exposure", trackable_id: Directory::Exposure.where(entitlement_id: visible).select(:id)))
+        .or(activities.where(trackable_type: "Directory::Person", trackable_id: policy_scope(Directory::Person).select(:id)))
+    end
   end
 end

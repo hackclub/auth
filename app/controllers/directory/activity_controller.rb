@@ -7,6 +7,7 @@ module Directory
       Directory::Person
       Directory::Membership
       Directory::Grant
+      Directory::Exposure
     ].freeze
 
     def index
