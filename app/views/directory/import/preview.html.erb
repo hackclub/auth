@@ -54,7 +54,7 @@
           <tr>
             <td><%= change[:email] %></td>
             <td><%= change[:collection] %></td>
-            <td style="color: var(--foreground2);"><%= change[:expires_at].presence || "—" %></td>
+            <td style="color: var(--foreground2);"><%= change[:expires_at]&.strftime("%Y-%m-%d %H:%M %Z") || t("directory.import.preview.never") %></td>
             <td>
               <% if change[:action] == "add" %>
                 <span is-="badge" variant-="green"><%= t("directory.badges.add") %></span>

@@ -9,6 +9,9 @@ module Directory
   class Import
     Result = Struct.new(:valid?, :changes, :errors, :created_count, :skipped_count, keyword_init: true)
 
+    # YYYY-MM-DD, optionally followed by a time (after T or a space) and a Z or ±HH:MM offset.
+    EXPIRES_AT_FORMAT = /\A(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-](?:[01]\d|2[0-3])(?::?[0-5]\d)?)?)?\z/i
+
     def self.call(csv_string:, dry_run: false, created_by:)
       new(csv_string:, dry_run:, created_by:).call
     end
@@ -66,16 +69,34 @@ module Directory
 
         expires_at = nil
         if expires_at_raw
-          begin
-            expires_at = Time.zone.parse(expires_at_raw)
-          rescue ArgumentError
-            @errors << { row: idx + 1, email:, message: "invalid expires_at: #{expires_at_raw}" }
+          expires_at = parse_expires_at(expires_at_raw)
+          if expires_at.nil?
+            @errors << { row: idx + 1, email:, message: "invalid expires_at: #{expires_at_raw} (use YYYY-MM-DD or an ISO 8601 datetime)" }
+            next
+          end
+          # Membership validates this too, but on apply that's a RecordInvalid mid-import, after
+          # a dry run that looked clean. Checking it here makes it a row error in both.
+          if expires_at <= Time.current
+            @errors << { row: idx + 1, email:, message: "expires_at must be in the future: #{expires_at_raw}" }
             next
           end
         end
 
         @rows << { email:, slug:, expires_at:, row_num: idx + 1 }
       end
+    end
+
+    # Strict on purpose, because Time.zone.parse guesses: nil for "tomorrow" (a membership that
+    # never expires), today's midnight for "next friday", Feb 1 for "1/2/2027", and March 2 for
+    # "2027-02-30". For an access expiry a wrong guess is worse than a row error, so anything but
+    # unambiguous ISO 8601 returns nil. A bare date means midnight in Time.zone (UTC).
+    def parse_expires_at(raw)
+      date = EXPIRES_AT_FORMAT.match(raw)&.captures&.map(&:to_i)
+      return unless date && Date.valid_date?(*date)
+
+      Time.zone.iso8601(raw.sub(" ", "T"))
+    rescue ArgumentError # out-of-range time, e.g. hour 25
+      nil
     end
 
     def resolve_rows
@@ -114,9 +135,9 @@ module Directory
         end
 
         if existing
-          @changes << { email: entry[:email], collection: entry[:collection].slug, action: "skip_existing" }
+          @changes << { email: entry[:email], collection: entry[:collection].slug, expires_at: entry[:expires_at], action: "skip_existing" }
         else
-          @changes << { email: entry[:email], collection: entry[:collection].slug, action: "add" }
+          @changes << { email: entry[:email], collection: entry[:collection].slug, expires_at: entry[:expires_at], action: "add" }
         end
 
         entry[:existing] = existing
