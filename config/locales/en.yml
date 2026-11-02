@@ -1010,6 +1010,8 @@ en:
       batch_not_found:
         one: "%{count} not found: %{items}"
         other: "%{count} not found: %{items}"
+      batch_too_many: "that's more than %{max} at once. split it into smaller batches."
+      add_rate_limited: "too many adds in a short time. wait a few minutes and try again."
     grants:
       created: "grant added."
       destroyed: "grant removed."

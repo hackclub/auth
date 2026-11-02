@@ -2,6 +2,22 @@
 
 module Directory
   class MembershipsController < BaseController
+    # Adding by email answers "does this address have an hca account?", so SPEC §3.1 has
+    # every lookup audited and each person rate limited. One budget covers both add
+    # actions, and since a batch is one request its size is capped too. Admins are exempt:
+    # the admin people page already searches every identity.
+    ADD_RATE_LIMIT = 20
+    ADD_RATE_WINDOW = 10.minutes
+    MAX_BATCH_IDENTIFIERS = 100
+
+    # rate_limit captures its store when the class loads, and the test env's :null_store
+    # never counts, so the limit goes through a delegator specs can point at a real store.
+    ADD_RATE_STORE = SimpleDelegator.new(Rails.cache)
+
+    rate_limit to: ADD_RATE_LIMIT, within: ADD_RATE_WINDOW, store: ADD_RATE_STORE, name: "add-member",
+      by: -> { current_identity.id }, with: -> { refuse_rate_limited },
+      only: %i[create batch_create], unless: :directory_admin?
+
     def create
       @collection = Directory::Collection.find_by!(slug: params[:collection_slug])
       authorize @collection, policy_class: Directory::MembershipPolicy
@@ -13,12 +29,8 @@ module Directory
 
       if params[:email].present?
         # Add by email or public ID — find identity, create directory person if needed
-        input = params[:email].strip
-        Rails.logger.info("[Directory] add-by-identifier: #{current_identity.primary_email} searched for '#{input}' on #{@collection.slug}")
-        identity = resolve_identifier(input)
+        identity = lookup_identity(params[:email].strip)
         unless identity
-          Rails.logger.info("[Directory] add-by-identifier: miss for '#{input}'")
-          @collection.create_activity :email_lookup_miss, owner: current_identity, params: { email: input }
           redirect_back fallback_location: directory_collection_path(@collection.slug),
             alert: t("directory.flash.email_not_found")
           return
@@ -94,10 +106,15 @@ module Directory
       # pundit would otherwise ask the policy for batch_create?, which doesn't exist.
       authorize @collection, :create?, policy_class: Directory::MembershipPolicy
 
-      identifiers = Array(params[:identifiers]).map(&:strip).reject(&:blank?).uniq
+      identifiers = Array(params[:identifiers]).grep(String).map(&:strip).reject(&:blank?).uniq
       if identifiers.empty?
         redirect_back fallback_location: directory_collection_path(@collection.slug),
           alert: t("directory.flash.provide_email_or_slug")
+        return
+      end
+      if identifiers.size > MAX_BATCH_IDENTIFIERS
+        redirect_back fallback_location: directory_collection_path(@collection.slug),
+          alert: t("directory.flash.batch_too_many", max: MAX_BATCH_IDENTIFIERS)
         return
       end
 
@@ -107,7 +124,7 @@ module Directory
       resolved = []
 
       identifiers.each do |identifier|
-        identity = resolve_identifier(identifier)
+        identity = lookup_identity(identifier)
 
         unless identity
           not_found << identifier
@@ -182,6 +199,25 @@ module Directory
     end
 
     private
+
+    def refuse_rate_limited
+      Rails.logger.warn("[Directory] add-by-identifier: #{current_identity.primary_email} rate limited on #{params[:collection_slug]}")
+      redirect_back fallback_location: directory_collection_path(params[:collection_slug]),
+        alert: t("directory.flash.add_rate_limited")
+    end
+
+    # resolve_identifier plus the audit trail SPEC §3.1 promises, for single and batch adds
+    # alike: every lookup is logged with who typed what, and every miss is recorded for
+    # the reports page.
+    def lookup_identity(input)
+      Rails.logger.info("[Directory] add-by-identifier: #{current_identity.primary_email} searched for '#{input}' on #{@collection.slug}")
+      identity = resolve_identifier(input)
+      unless identity
+        Rails.logger.info("[Directory] add-by-identifier: miss for '#{input}'")
+        @collection.create_activity :email_lookup_miss, owner: current_identity, params: { email: input }
+      end
+      identity
+    end
 
     # Turns an add-by-identifier input into an identity, or nil for a miss. An exact email
     # may bring a new identity into the directory (SPEC §3.1). Public IDs are guessable
