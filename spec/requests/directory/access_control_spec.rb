@@ -101,9 +101,13 @@ RSpec.describe "Directory access control", type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    it "rejects a community identity" do
+    it "shows a community identity the not-in-directory page, and nothing else" do
       sign_in community_identity
-      expect_denied(:get, directory_my_access_path)
+      get directory_my_access_path
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(ERB::Util.html_escape(I18n.t("directory.my_access.not_in_directory.message")))
+      expect(response.body).not_to include("Engineers")
+      expect(Directory::Person.where(identity: community_identity)).not_to exist
     end
   end
 
