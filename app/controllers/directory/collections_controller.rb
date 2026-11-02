@@ -25,6 +25,7 @@ module Directory
       @direct_people_memberships = @collection.member_people_memberships
         .includes({ member_person: :identity }, :created_by)
         .order("identities.first_name")
+        .page(params[:page]).per(100)
 
       @direct_group_memberships = @collection.member_group_memberships
         .includes(:member_group, :created_by)
@@ -35,6 +36,7 @@ module Directory
         .where.not(id: direct_person_ids)
         .includes(:identity)
         .order("identities.first_name")
+        .page(params[:effective_page]).per(100)
 
       direct_group_ids = @collection.member_group_memberships.pluck(:member_group_id)
       effective_person_ids = effective_people.map(&:id)
@@ -49,24 +51,12 @@ module Directory
           end
       end
 
-      # Preload current user's viewable collection IDs for in-memory policy check
-      viewable_collection_ids = if directory_admin?
-        nil # admin can see everything
-      else
-        person = current_directory_person
-        if person
-          Directory::EffectiveGrant
-            .where(person_id: person.id, permission: %w[view manage_members expose])
-            .pluck(:target_collection_id)
-            .to_set
-        else
-          Set.new
-        end
-      end
+      ctx = pundit_user
 
+      @effective_people_paginated = effective_people
       @effective_people_with_paths = effective_people.map do |person|
         via_groups = (via_map[person.id] || []).uniq.select do |c|
-          viewable_collection_ids.nil? || viewable_collection_ids.include?(c.id)
+          ctx.can_any?(%w[view manage_members expose], c)
         end
         { person: person, via: via_groups }
       end
@@ -74,17 +64,29 @@ module Directory
       @grants = @collection.grants_as_target
         .includes(:grantee_group, :created_by)
 
+      if @collection.group?
+        @all_memberships = @collection.memberships
+          .includes(:member_person, :member_group, :created_by)
+          .order(:created_at)
+          .page(params[:page]).per(100)
+      end
+
+      if @collection.entitlement?
+        @wired_exposures = Directory::Exposure.where(entitlement_id: @collection.id).includes(:app, :created_by)
+      end
+
       @recent_activities = PublicActivity::Activity
         .where(trackable: @collection)
         .order(created_at: :desc)
         .limit(5)
 
-      person_memberships = @direct_people_memberships.to_a
-      person_memberships += @collection.memberships.includes({ member_person: :identity }).where.not(member_person_id: nil).to_a if @collection.group?
-      person_memberships.uniq!(&:id)
-      @consequences = Directory::Consequence.batch_removal_summaries(
-        memberships: person_memberships, collection: @collection
-      )
+      @consequences = if policy(@collection).manage_members? && Directory::Closure.where(descendant_id: @collection.id).where.not(ancestor_id: @collection.id).exists?
+        Directory::Consequence.batch_removal_summaries(
+          memberships: @direct_people_memberships.to_a, collection: @collection
+        )
+      else
+        {}
+      end
     end
 
     def new
@@ -99,7 +101,7 @@ module Directory
       authorize @collection
 
       if @collection.valid?
-        Directory.mutate!(cause: "collection_created") { @collection.save! }
+        Directory.mutate!(cause: Directory.cause("collection_created", actor: current_identity.id)) { @collection.save! }
         redirect_to directory_collection_path(@collection), notice: t("directory.collections.created")
       else
         add_breadcrumb t("directory.collections.new.heading")
@@ -119,7 +121,7 @@ module Directory
       @collection.assign_attributes(collection_params_for_update)
 
       saved = if @collection.protected_changed?
-        @collection.valid? && Directory.mutate!(cause: "collection_updated:#{@collection.id}") { @collection.save! }
+        @collection.valid? && Directory.mutate!(cause: Directory.cause("collection_updated", target: @collection.id, actor: current_identity.id)) { @collection.save! }
       else
         @collection.save
       end
@@ -136,7 +138,7 @@ module Directory
     def destroy
       authorize @collection
 
-      if @collection.protected && params[:confirm_slug] != @collection.slug
+      if @collection.confirm_destroy && params[:confirm_slug] != @collection.slug
         redirect_back fallback_location: directory_collection_path(@collection.slug),
           alert: t("directory.flash.type_slug_to_confirm")
         return
@@ -154,7 +156,7 @@ module Directory
         end
       end
 
-      Directory.mutate!(cause: "collection_deleted:#{@collection.id}") do
+      Directory.mutate!(cause: Directory.cause("collection_deleted", target: @collection.id, actor: current_identity.id)) do
         @collection.destroy!
       end
 
@@ -181,30 +183,28 @@ module Directory
     def export
       authorize @collection, :show?
 
-      effective = @collection.effective_memberships
-        .includes(person: :identity)
-        .order("identities.first_name")
-
       direct_person_ids = @collection.member_people_memberships.pluck(:member_person_id).to_set
+      filename = "#{@collection.slug}-members-#{Date.current.iso8601}.csv"
 
-      csv_data = CSV.generate do |csv|
-        csv << [
+      headers["Content-Disposition"] = "attachment; filename=\"#{filename}\""
+      headers["Content-Type"] = "text/csv; charset=utf-8"
+      headers["Cache-Control"] = "no-cache"
+      self.response_body = Enumerator.new do |yielder|
+        yielder << CSV.generate_line([
           t("directory.export.name"),
           t("directory.export.email"),
           t("directory.export.membership_type")
-        ]
+        ])
 
-        effective.each do |em|
-          person = em.person
-          membership_type = direct_person_ids.include?(person.id) ? "direct" : "via"
-          csv << [ person.full_name, person.primary_email, membership_type ]
-        end
+        @collection.effective_memberships
+          .includes(person: :identity)
+          .order("identities.first_name")
+          .find_each(batch_size: 500) do |em|
+            person = em.person
+            membership_type = direct_person_ids.include?(person.id) ? "direct" : "via"
+            yielder << CSV.generate_line([ person.full_name, person.primary_email, membership_type ])
+          end
       end
-
-      send_data csv_data,
-        filename: "#{@collection.slug}-members-#{Date.current.iso8601}.csv",
-        type: "text/csv; charset=utf-8",
-        disposition: "attachment"
     end
 
     private
@@ -214,11 +214,11 @@ module Directory
     end
 
     def collection_params_for_create
-      params.require(:collection).permit(:name, :slug, :kind, :description, :protected)
+      params.require(:collection).permit(:name, :slug, :kind, :description, :protected, :confirm_destroy)
     end
 
     def collection_params_for_update
-      params.require(:collection).permit(:name, :description, :protected)
+      params.require(:collection).permit(:name, :description, :protected, :confirm_destroy)
     end
   end
 end

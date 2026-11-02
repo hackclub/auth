@@ -32,7 +32,7 @@
       <%
         scopes = @pre_auth.scopes.map(&:to_s)
         not_set = t('.data.not_set')
-        scope_data = OAuthScope.consent_data_by_scope(scopes, current_identity)
+        scope_data = OAuthScope.consent_data_by_scope(scopes, current_identity, app: application)
         unknown_scopes = scopes.reject { |s| OAuthScope.known?(s) }
       %>
 
@@ -77,21 +77,6 @@
           <div class="oauth-permissions">
             <%= permissions_content %>
           </div>
-        <% end %>
-      <% end %>
-    <% end %>
-
-    <%# Directory groups disclosure (§8.5) %>
-    <% if application %>
-      <% dir_person = Directory::Person.find_by(identity: current_identity) rescue nil %>
-      <% if dir_person %>
-        <% dir_exposures = Directory::Exposure.where(app_id: application.id) rescue nil %>
-        <% if dir_exposures&.exists? %>
-          <% member_ids = Directory::EffectiveMembership.where(person_id: dir_person.id, collection_id: dir_exposures.select(:entitlement_id)).pluck(:collection_id) %>
-          <% names = dir_exposures.where(entitlement_id: member_ids).pluck(:claim_name) %>
-          <% if names.any? %>
-            <p style="margin: 1rem 0; color: var(--pico-muted-color);">this app will be told you're in: <strong><%= names.join(', ') %></strong></p>
-          <% end %>
         <% end %>
       <% end %>
     <% end %>

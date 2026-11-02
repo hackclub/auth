@@ -63,35 +63,8 @@ module Directory
     end
 
 
-    # §3.7: revoke tokens for every token holder who isn't an effective member
     def revoke_tokens_for_non_members(app, _entitlement)
-      # Subselect of identity_ids who pass the requirement (member of any
-      # required entitlement). Kept as a relation so Rails generates
-      # WHERE NOT IN (SELECT …) instead of materialising 50k+ ids.
-      passing_identity_ids = Directory::EffectiveMembership
-        .where(
-          collection_id: Directory::AppRequirement.where(app_id: app.id).select(:entitlement_id)
-        )
-        .joins("INNER JOIN directory_people ON directory_people.id = directory_effective_memberships.person_id")
-        .select("directory_people.identity_id")
-
-      non_passing = ->(scope) {
-        scope
-          .where(application_id: app.id, revoked_at: nil)
-          .where.not(resource_owner_id: passing_identity_ids)
-      }
-
-      tokens_to_revoke = non_passing.call(OAuthToken)
-      revoked_identity_ids = tokens_to_revoke.pluck(:resource_owner_id).uniq
-      tokens_to_revoke.update_all(revoked_at: Time.current)
-      non_passing.call(Doorkeeper::AccessGrant).update_all(revoked_at: Time.current)
-
-      revoker = Directory::AppRevoker.find_by(app_id: app.id, enabled: true)
-      if revoker && revoked_identity_ids.any?
-        Identity.where(id: revoked_identity_ids).pluck(:primary_email).each do |email|
-          Directory::RevokeSessionJob.perform_later(app_id: app.id, email: email)
-        end
-      end
+      Directory::RevokeAccess.bulk_revoke_non_passing(app: app)
     end
   end
 end

@@ -1,11 +1,16 @@
 # frozen_string_literal: true
 
 module Directory
+  # Runs after a rebuild commits. Processes "removed" effective membership changes:
+  # for each person who lost an entitlement, checks if they still qualify for each affected
+  # app (via another entitlement), and revokes access if not. Deduplicates across the two
+  # input sources (pre-resolved revocations + change records) to avoid double-revoking.
   class AfterChangeJob < ApplicationJob
     queue_as :default
 
-    # revocations: optional array of { identity_id:, email:, app_ids: [] }
-    # pre-resolved for cases where the person/collection is already deleted
+    # revocations: pre-resolved { identity_id, email, app_ids } for entities that may be
+    #   deleted by the time this job runs (person removed, collection deleted).
+    # change_ids: IDs in membership_changes table for the rebuild diff.
     def perform(change_ids:, revocations: nil)
       processed = Set.new
 
@@ -18,8 +23,7 @@ module Directory
             key = [ rev[:identity_id], app_id ]
             next if processed.include?(key)
             processed << key
-            revoke_tokens(rev[:identity_id], app_id)
-            call_revoker(app_id, rev[:email])
+            revoke_access(rev[:identity_id], app_id, rev[:email])
           end
         end
       end
@@ -38,18 +42,19 @@ module Directory
           next if processed.include?(key)
           next if still_has_access?(person, app_id)
           processed << key
-          revoke_tokens(identity.id, app_id)
-          call_revoker(app_id, identity.primary_email)
+          revoke_access(identity.id, app_id, identity.primary_email)
         end
       end
     end
 
     private
 
+    # Does this person still meet the app's requirements via a different entitlement?
+    # True if the app has no requirements, or the person holds at least one required entitlement.
     def still_has_access?(person, app_id)
       requirement_ids = requirements_for_app(app_id)
       return true if requirement_ids.empty?
-      Directory::EffectiveMembership.where(person_id: person.id, collection_id: requirement_ids).exists?
+      person_entitlement_ids(person).intersect?(requirement_ids.to_set)
     end
 
     def requirements_for_app(app_id)
@@ -57,24 +62,17 @@ module Directory
       @requirements_cache[app_id] ||= Directory::AppRequirement.where(app_id: app_id).pluck(:entitlement_id)
     end
 
+    def person_entitlement_ids(person)
+      @person_entitlements_cache ||= {}
+      @person_entitlements_cache[person.id] ||= Directory::EffectiveMembership.where(person_id: person.id).pluck(:collection_id).to_set
+    end
+
     def app_ids_affected_by(entitlement)
       entitlement.affected_app_ids
     end
 
-    def revoke_tokens(identity_id, app_id)
-      OAuthToken.where(resource_owner_id: identity_id, application_id: app_id)
-        .where(revoked_at: nil)
-        .update_all(revoked_at: Time.current)
-      Doorkeeper::AccessGrant.where(resource_owner_id: identity_id, application_id: app_id)
-        .where(revoked_at: nil)
-        .update_all(revoked_at: Time.current)
-    end
-
-    def call_revoker(app_id, email)
-      revoker = Directory::AppRevoker.find_by(app_id: app_id, enabled: true)
-      return unless revoker
-
-      Directory::RevokeSessionJob.perform_later(app_id: app_id, email: email)
+    def revoke_access(identity_id, app_id, email)
+      Directory::RevokeAccess.call(identity_id: identity_id, app_id: app_id, email: email)
     end
   end
 end

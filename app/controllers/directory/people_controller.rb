@@ -18,6 +18,7 @@ module Directory
       if params[:email].present?
         term = ActiveRecord::Base.sanitize_sql_like(params[:email].strip.downcase)
         @search_results = Identity.where("lower(primary_email) LIKE ?", "%#{term}%").limit(20)
+        @existing_person_identity_ids = Directory::Person.where(identity_id: @search_results.select(:id)).pluck(:identity_id).to_set
       end
     end
 
@@ -65,7 +66,7 @@ module Directory
       # Capture revocation data BEFORE destroy wipes effective_memberships
       revocations = @person.revocation_data
 
-      Directory.mutate!(cause: "person_removed:#{@person.id}") do
+      Directory.mutate!(cause: Directory.cause("person_removed", target: @person.id, actor: current_identity.id)) do
         @person.destroy!
       end
 

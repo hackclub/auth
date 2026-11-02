@@ -122,11 +122,24 @@ class OAuthScope
       description: "See which directory entitlements you hold",
       icon: "admin",
       consent_fields: [
-        { key: :groups, value: ->(ident) {
+        { key: :groups, value: ->(ident, app) {
           person = ident.directory_person
           next "none" unless person
-          names = person.effective_memberships.joins(:collection).where(directory_collections: { kind: "entitlement" }).pluck("directory_collections.name")
-          names.any? ? names.sort.join(", ") : "none"
+
+          if app
+            claim_names = Directory::Exposure
+              .where(app_id: app.id)
+              .where(
+                entitlement_id: Directory::EffectiveMembership
+                  .where(person_id: person.id)
+                  .select(:collection_id)
+              )
+              .pluck(:claim_name)
+            claim_names.any? ? claim_names.sort.join(", ") : "none"
+          else
+            names = person.effective_memberships.joins(:collection).where(directory_collections: { kind: "entitlement" }).pluck("directory_collections.name")
+            names.any? ? names.sort.join(", ") : "none"
+          end
         } }
       ]
     ),
@@ -152,7 +165,7 @@ class OAuthScope
     BY_NAME.key?(name.to_s)
   end
 
-  def self.consent_fields_for(scope_names, identity)
+  def self.consent_fields_for(scope_names, identity, app: nil)
     seen_keys = Set.new
     fields = []
 
@@ -162,7 +175,7 @@ class OAuthScope
         seen_keys << field[:key]
         fields << {
           key: field[:key],
-          value: field[:value].call(identity),
+          value: call_consent_field(field[:value], identity, app),
           icon: FIELD_ICONS[field[:key]]
         }
       end
@@ -171,7 +184,7 @@ class OAuthScope
     fields
   end
 
-  def self.consent_data_by_scope(scope_names, identity)
+  def self.consent_data_by_scope(scope_names, identity, app: nil)
     result = {}
     seen_field_keys = Set.new
 
@@ -181,14 +194,14 @@ class OAuthScope
       next if scope.name == "openid"
 
       fields = scope.consent_fields.map do |field|
-        { key: field[:key], value: field[:value].call(identity) }
+        { key: field[:key], value: call_consent_field(field[:value], identity, app) }
       end
 
       scope.includes.each do |included_name|
         included_scope = find(included_name)
         next unless included_scope
         included_scope.consent_fields.each do |field|
-          fields << { key: field[:key], value: field[:value].call(identity) }
+          fields << { key: field[:key], value: call_consent_field(field[:value], identity, app) }
         end
       end
 
@@ -208,6 +221,11 @@ class OAuthScope
 
     result
   end
+
+  def self.call_consent_field(callable, identity, app)
+    callable.arity == 1 ? callable.call(identity) : callable.call(identity, app)
+  end
+  private_class_method :call_consent_field
 
   def self.expanded_scopes(scope_names)
     scope_names.flat_map do |name|

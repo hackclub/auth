@@ -320,10 +320,8 @@ class SAMLController < ApplicationController
     missing_slugs = required - found_slugs
 
     if missing_slugs.any?
-      Honeybadger.notify(
-        "SAML required_entitlements references missing entitlement slugs",
-        context: { sp: @sp_config[:slug], missing_slugs: missing_slugs }
-      )
+      Rails.logger.error("[SAML] required_entitlements references missing slugs: #{missing_slugs.join(', ')} for SP #{@sp_config[:slug]}")
+      Sentry.capture_message("SAML requirement references missing entitlement", level: :error, extra: { sp: @sp_config[:slug], missing_slugs: missing_slugs }) if defined?(Sentry)
       @error = "this app is misconfigured — contact an administrator"
       render :error, status: :forbidden and return false
     end

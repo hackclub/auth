@@ -24,7 +24,7 @@ module Directory
         created_by_identity_id: current_identity.id
       )
 
-      Directory.mutate!(cause: "grant_created") { grant.save! }
+      Directory.mutate!(cause: Directory.cause("grant_created", actor: current_identity.id)) { grant.save! }
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         notice: t("directory.flash.grant_added")
@@ -41,7 +41,7 @@ module Directory
       @collection = grant.target_collection
       authorize grant
 
-      Directory.mutate!(cause: "grant_removed:#{grant.id}") { grant.destroy! }
+      Directory.mutate!(cause: Directory.cause("grant_removed", target: grant.id, actor: current_identity.id)) { grant.destroy! }
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         notice: t("directory.flash.grant_removed")

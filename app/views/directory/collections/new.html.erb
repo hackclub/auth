@@ -8,6 +8,13 @@
 
   <%= form_with model: @collection, url: directory_collections_path, method: :post, local: true do |f| %>
     <column gap-="1" style="max-width: 600px;">
+      <% if @collection.errors.any? %>
+        <div style="color: var(--red); padding: 0.5rem 0;">
+          <% @collection.errors.full_messages.each do |msg| %>
+            <div><%= msg %></div>
+          <% end %>
+        </div>
+      <% end %>
       <label style="color: var(--foreground2);"><%= t("directory.collections.new.name") %></label>
       <%= f.text_field :name, required: true, placeholder: t("directory.collections.new.name_placeholder"), style: "border: none;" %>
 
@@ -27,6 +34,11 @@
       <row gap-="1" align-="center">
         <%= f.check_box :protected %>
         <label style="color: var(--foreground2);"><%= t("directory.collections.new.protected") %> <span style="font-size: 0.85em;">(<%= t("directory.collections.new.protected_hint") %>)</span></label>
+      </row>
+
+      <row gap-="1" align-="center">
+        <%= f.check_box :confirm_destroy %>
+        <label style="color: var(--foreground2);"><%= t("directory.collections.new.confirm_destroy") %></label>
       </row>
 
       <div is-="separator"></div>

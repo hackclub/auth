@@ -43,7 +43,7 @@
               <td style="color: var(--foreground2);"><%= m.created_by&.full_name || "—" %></td>
               <% if directory_admin? %>
                 <td style="text-align: right;">
-                  <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: t("directory.collections.show.remove_group_confirm") }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+                  <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: t("directory.collections.show.remove_group_confirm") }, class: "btn-destructive" %>
                 </td>
               <% end %>
             </tr>
@@ -87,13 +87,14 @@
                   <% if @consequences[m.id] %>
                     <% confirm_msg += "\n#{@consequences[m.id]}" %>
                   <% end %>
-                  <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+                  <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, class: "btn-destructive" %>
                 </td>
               <% end %>
             </tr>
           <% end %>
         </tbody>
       </table>
+      <%= paginate @direct_people_memberships, param_name: :page %>
     <% else %>
       <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_direct_people") %></span>
     <% end %>
@@ -112,12 +113,11 @@
   <% else %>
     <%# Groups: unified member list %>
     <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.collections.show.members") %></span>
-    <% all_memberships = @collection.memberships.includes(:member_person, :member_group, :created_by).order(:created_at) %>
-    <% if all_memberships.any? %>
+    <% if @all_memberships.any? %>
       <table>
         <thead><tr><th><%= t("directory.collections.show.col_member") %></th><th><%= t("directory.collections.show.col_added") %></th><th><%= t("directory.collections.show.col_by") %></th><th><%= t("directory.collections.show.col_expires") %></th><% if can_manage %><th></th><% end %></tr></thead>
         <tbody>
-          <% all_memberships.each do |m| %>
+          <% @all_memberships.each do |m| %>
             <tr>
               <td>
                 <% if m.member_person %>
@@ -137,13 +137,14 @@
                   <% if m.member_person && @consequences[m.id] %>
                     <% confirm_msg += "\n#{@consequences[m.id]}" %>
                   <% end %>
-                  <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+                  <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, class: "btn-destructive" %>
                 </td>
               <% end %>
             </tr>
           <% end %>
         </tbody>
       </table>
+      <%= paginate @all_memberships, param_name: :page %>
     <% else %>
       <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_members") %></span>
     <% end %>
@@ -175,7 +176,7 @@
   <%# === ALSO INCLUDES === %>
   <% if @effective_people_with_paths.present? && @effective_people_with_paths.any? %>
     <details>
-      <summary style="color: var(--foreground2); cursor: pointer;"><%= t("directory.collections.show.also_includes", count: @effective_people_with_paths.size) %></summary>
+      <summary style="color: var(--foreground2); cursor: pointer;"><%= t("directory.collections.show.also_includes", count: @effective_people_paginated.total_count) %></summary>
       <table>
         <thead><tr><th><%= t("directory.collections.show.col_person") %></th><th><%= t("directory.collections.show.col_email") %></th><th><%= t("directory.collections.show.col_via") %></th></tr></thead>
         <tbody>
@@ -194,6 +195,7 @@
           <% end %>
         </tbody>
       </table>
+      <%= paginate @effective_people_paginated, param_name: :effective_page %>
     </details>
     <div is-="separator"></div>
   <% end %>
@@ -212,7 +214,7 @@
             <td style="color: var(--foreground2);"><%= grant.created_by&.full_name || "—" %></td>
             <% if directory_admin? %>
               <td style="text-align: right;">
-                <%= button_to t("directory.actions.remove"), directory_collection_grant_path(@collection.slug, grant), method: :delete, data: { confirm: t("directory.collections.show.remove_grant_confirm") }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+                <%= button_to t("directory.actions.remove"), directory_collection_grant_path(@collection.slug, grant), method: :delete, data: { confirm: t("directory.collections.show.remove_grant_confirm") }, class: "btn-destructive" %>
               </td>
             <% end %>
           </tr>
@@ -238,13 +240,12 @@
 
   <%# === APPS TOLD ABOUT THIS (entitlements only) === %>
   <% if @collection.entitlement? %>
-    <% wired_exposures = Directory::Exposure.where(entitlement_id: @collection.id).includes(:app, :created_by) %>
     <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.collections.show.apps_told_about") %></span>
-    <% if wired_exposures.any? %>
+    <% if @wired_exposures.any? %>
       <table>
         <thead><tr><th><%= t("directory.collections.show.col_app") %></th><th><%= t("directory.collections.show.col_claim") %></th><th><%= t("directory.collections.show.col_wired_by") %></th><th><%= t("directory.collections.show.col_when") %></th></tr></thead>
         <tbody>
-          <% wired_exposures.each do |exp| %>
+          <% @wired_exposures.each do |exp| %>
             <tr>
               <td><%= exp.app.name %></td>
               <td><code><%= exp.claim_name %></code></td>
@@ -275,15 +276,15 @@
     <details>
       <summary style="color: var(--red); cursor: pointer;"><%= t("directory.collections.show.danger_zone") %></summary>
       <column pad-="1 0" gap-="1">
-        <% if @collection.protected %>
+        <% if @collection.confirm_destroy %>
           <%= form_with url: directory_collection_path(@collection.slug), method: :delete, local: true do |f| %>
             <row gap-="1" align-="center">
               <input type="text" name="confirm_slug" placeholder="<%= t("directory.collections.show.type_slug_confirm") %>" style="flex: 1; border: none;" />
-              <button type="submit" style="all:unset; color:var(--red); text-decoration:underline; cursor:pointer;"><%= t("directory.collections.show.delete_collection") %></button>
+              <button type="submit" class="btn-destructive"><%= t("directory.collections.show.delete_collection") %></button>
             </row>
           <% end %>
         <% else %>
-          <%= button_to t("directory.collections.show.delete_collection"), directory_collection_path(@collection.slug), method: :delete, data: { confirm: t("directory.collections.show.delete_confirm", name: @collection.name) }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+          <%= button_to t("directory.collections.show.delete_collection"), directory_collection_path(@collection.slug), method: :delete, data: { confirm: t("directory.collections.show.delete_confirm", name: @collection.name) }, class: "btn-destructive" %>
         <% end %>
       </column>
     </details>

@@ -2,16 +2,15 @@
 
 module Directory
   class RequirementCheck
-    # Returns true if the identity meets the app's directory requirements.
-    # Returns true if the app has no requirements configured.
+    # Can this identity use this app? Checks the app's AppRequirement records (if any)
+    # against the identity's effective entitlement memberships.
     #
-    # IMPORTANT: if a required entitlement was deleted (CASCADE), the requirement
-    # row disappears and this returns true — opening the app to everyone.
-    # Mitigation: the entitlement FK should be RESTRICT (not CASCADE) so you
-    # can't delete an entitlement that has requirements. As defense in depth,
-    # we also check if the app has any exposures — an app that was wired to
-    # the directory but has zero requirements AND zero exposures is treated
-    # as "requirements were removed, not never set."
+    # Returns true if:
+    #   - The app has no requirements (most apps — cheap early return)
+    #   - The identity is in at least one required entitlement (any-of semantics)
+    #
+    # Fails closed if a required entitlement is missing from the DB (logs + blocks everyone).
+    # Called on every OAuth authorize, every API request, and every token refresh.
     def self.passes?(identity:, app:)
       requirements = Directory::AppRequirement.where(app_id: app.id)
 

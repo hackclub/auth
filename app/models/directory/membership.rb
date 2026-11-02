@@ -10,9 +10,9 @@ module Directory
              collection_name: ->(_c, model) { model.collection&.name },
              member_name: ->(_c, model) {
                if model.member_person_id
-                 (model.member_person&.full_name rescue nil) || "(deleted)"
+                 model.member_person&.full_name || "(deleted)"
                elsif model.member_group_id
-                 (model.member_group&.name rescue nil) || "(deleted)"
+                 model.member_group&.name || "(deleted)"
                end
              },
              member_type: ->(_c, model) { model.member_person_id ? "person" : "group" },
@@ -107,18 +107,20 @@ module Directory
         recipient: member_person,
         params: { member_name: member_person.full_name, member_email: member_person.primary_email }
     rescue StandardError => e
-      Rails.logger.warn("[Directory] Activity tracking failed: #{e.message}")
+      Rails.logger.error("[Directory] Activity tracking failed: #{e.message}")
+      Sentry.capture_exception(e) if defined?(Sentry)
     end
 
     def track_removal_on_person_and_collection
       return unless member_person_id
       expired = expires_at.present? && expires_at <= Time.current
-      name = begin; member_person&.full_name; rescue StandardError; nil; end || "(deleted)"
+      name = begin; member_person&.full_name; rescue ActiveRecord::RecordNotFound; nil; end || "(deleted)"
       collection&.create_activity :member_removed,
         owner: nil,
         params: { member_name: name, reason: expired ? "expired" : "removed" }
     rescue StandardError => e
-      Rails.logger.warn("[Directory] Activity tracking failed: #{e.message}")
+      Rails.logger.error("[Directory] Activity tracking failed: #{e.message}")
+      Sentry.capture_exception(e) if defined?(Sentry)
     end
   end
 end

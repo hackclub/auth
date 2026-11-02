@@ -25,6 +25,9 @@ module Directory
     scope :locked, -> { joins(:identity).where.not(identities: { locked_at: nil }) }
     scope :active, -> { joins(:identity).where(identities: { locked_at: nil, deleted_at: nil }) }
 
+    # Returns all effective memberships annotated with whether they're direct or inherited,
+    # and for inherited ones, which direct group membership provides the path. Used on
+    # person#show, /directory/me, and view_as to show "member of X (via Y)."
     def memberships_with_via_path
       all_effective = effective_memberships.includes(:collection).order("directory_collections.name")
       direct_ids = memberships.pluck(:collection_id).to_set
@@ -41,6 +44,9 @@ module Directory
       end
     end
 
+    # Pre-computes the revocation payload for this person: which apps would need tokens
+    # revoked if this person were removed from the directory entirely. Called before
+    # person.destroy! since the effective_memberships are cascade-deleted with the person.
     def revocation_data
       entitlement_ids = effective_memberships
         .joins(:collection)

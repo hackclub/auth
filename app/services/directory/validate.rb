@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 module Directory
+  # Drift detector: recomputes all derived tables from scratch (using the same GraphQueries
+  # as Rebuild) and diffs them against the live tables. Returns mismatches per table.
+  # Used by the /directory/health page to verify the rebuild hasn't diverged from truth.
   class Validate
     Result = Struct.new(:mismatches, keyword_init: true) do
       def valid? = mismatches.values.all? { |v| v[:missing].empty? && v[:extra].empty? }

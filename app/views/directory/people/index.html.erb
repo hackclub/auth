@@ -24,7 +24,7 @@
             <td><%= identity.full_name %></td>
             <td style="color: var(--foreground2);"><%= identity.primary_email %></td>
             <td style="text-align: right;">
-              <% if Directory::Person.exists?(identity: identity) %>
+              <% if @existing_person_identity_ids.include?(identity.id) %>
                 <span is-="badge" variant-="background2"><%= t("directory.people.index.already_in") %></span>
               <% else %>
                 <%= form_with url: directory_people_path, method: :post, local: true do |f| %>
@@ -81,7 +81,7 @@
             <td><%= link_to person.full_name, directory_person_path(person) %></td>
             <td style="color: var(--foreground2);"><%= person.primary_email %></td>
             <td style="text-align: right;">
-              <%= button_to t("directory.people.index.remove"), directory_person_path(person), method: :delete, data: { confirm: t("directory.people.index.remove_confirm", name: person.full_name) }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+              <%= button_to t("directory.people.index.remove"), directory_person_path(person), method: :delete, data: { confirm: t("directory.people.index.remove_confirm", name: person.full_name) }, class: "btn-destructive" %>
             </td>
           </tr>
         <% end %>

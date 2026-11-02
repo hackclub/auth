@@ -2,8 +2,10 @@
 
 module Directory
   class Consequence
-    # Batch-compute removal summaries from the closure table directly,
-    # avoiding N full rebuilds. Returns { membership_id => summary_string }.
+    # For each person membership in a collection, computes what they'd lose if removed.
+    # Uses the closure table to find which ancestor collections the person reaches through
+    # this collection, then checks if they have an alternate path. Returns { membership_id =>
+    # "will lose: X, Y, Z" } for display in the UI next to the remove button.
     def self.batch_removal_summaries(memberships:, collection:)
       person_ids = memberships.filter_map(&:member_person_id).uniq
       return {} if person_ids.empty?

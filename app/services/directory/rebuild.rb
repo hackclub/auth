@@ -1,13 +1,19 @@
 # frozen_string_literal: true
 
 module Directory
+  # Recomputes all three derived tables (closure, effective_memberships, effective_grants)
+  # from the raw membership + grant edges, diffs against the previous state, and queues
+  # AfterChangeJob for any additions/removals. This is the only writer for the derived tables.
   class Rebuild
+    # Arbitrary but stable. All directory writers acquire this lock to serialize rebuilds.
     LOCK_KEY = 8_675_309
 
     def self.call(cause:, skip_lock: false, skip_snapshot: false)
       new(cause:, skip_lock:, skip_snapshot:).call
     end
 
+    # Captures current effective_memberships into a temp table so emit_changes can diff later.
+    # Called by mutate! before the caller's mutation, so the snapshot is pre-change state.
     def self.snapshot_old(conn)
       conn.execute("DROP TABLE IF EXISTS _old_em, _new_closure, _new_em, _new_eg")
       conn.execute(<<~SQL)
@@ -24,6 +30,11 @@ module Directory
       @conn = ActiveRecord::Base.connection
     end
 
+    # 1. Lock (unless mutate! already holds it)
+    # 2. Snapshot current state (unless mutate! already did)
+    # 3. Recompute all three derived tables into temp tables via GraphQueries
+    # 4. Diff each derived table against its temp table: delete stale, insert new
+    # 5. Record what changed in membership_changes and queue AfterChangeJob
     def call
       @conn.execute("SELECT pg_advisory_xact_lock(#{LOCK_KEY})") unless @skip_lock
       snapshot_old unless @skip_snapshot
@@ -163,6 +174,9 @@ module Directory
       ids
     end
 
+    # Queues AfterChangeJob after the transaction commits (not before — the derived tables
+    # aren't visible to other transactions until commit). Pre-resolves revocation data while
+    # the person/collection records still exist, since cascade-deletes may remove them at commit.
     def register_after_commit(change_ids)
       ids = change_ids.dup
       # Pre-resolve revocation data while entities still exist (before commit might cascade-delete them)
@@ -172,6 +186,9 @@ module Directory
       end
     end
 
+    # For each "removed" change on an entitlement, find which apps care (via exposures
+    # and requirements) and build { identity_id, email, app_ids } hashes. AfterChangeJob
+    # uses these to revoke access, even if the person/entitlement is deleted by then.
     def pre_resolve_revocations(change_ids)
       rows = @conn.exec_query(
         ActiveRecord::Base.sanitize_sql_array([
@@ -188,20 +205,17 @@ module Directory
       entitlements_by_id = Directory::Collection.where(id: collection_ids, kind: "entitlement").index_by(&:id)
 
       entitlement_ids = entitlements_by_id.keys
-      exposure_apps = Directory::Exposure.where(entitlement_id: entitlement_ids).pluck(:entitlement_id, :app_id)
-      requirement_apps = Directory::AppRequirement.where(entitlement_id: entitlement_ids).pluck(:entitlement_id, :app_id)
-      app_ids_by_entitlement = Hash.new { |h, k| h[k] = Set.new }
-      (exposure_apps + requirement_apps).each { |eid, aid| app_ids_by_entitlement[eid] << aid }
+      app_ids_by_entitlement = Directory::Collection.affected_app_ids_by_entitlement(entitlement_ids)
 
       revocations = []
       rows.each do |row|
         person = people_by_id[row["person_id"]]
         next unless person && entitlements_by_id.key?(row["collection_id"])
 
-        app_ids = app_ids_by_entitlement[row["collection_id"]]
+        app_ids = app_ids_by_entitlement[row["collection_id"]] || []
         next if app_ids.empty?
 
-        revocations << { identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids.to_a }
+        revocations << { identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids }
       end
       revocations
     end

@@ -263,6 +263,21 @@ $gate-red: #cc241d;
 .deletion-tool { @include admin-gate($gate-red, 'deletion processor'); }
 .dev-tool { @include admin-gate($gate-green, 'dev only'); }
 
+/* Tables scroll horizontally on narrow viewports */
+#hca-body table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Destructive link-buttons — used for remove/delete actions */
+.btn-destructive {
+  all: unset;
+  color: var(--red);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* Light theme tweaks — better contrast for muted text */
 [data-webtui-theme="vitesse-light-soft"] {
   --foreground2: #555b60;

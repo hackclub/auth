@@ -78,7 +78,7 @@ module Directory
         return
       end
 
-      Directory.mutate!(cause: "membership_created") do
+      Directory.mutate!(cause: Directory.cause("membership_created", actor: current_identity.id)) do
         membership.save!
       end
 
@@ -110,36 +110,45 @@ module Directory
       added = []
       skipped = []
       not_found = []
+      resolved = []
 
-      Directory.mutate!(cause: "batch_membership_created") do
-        identifiers.each do |identifier|
-          identity = if identifier.start_with?("ident!")
-            Identity.find_by_public_id(identifier)
-          else
-            Identity.find_by("lower(primary_email) = ?", identifier.downcase)
+      identifiers.each do |identifier|
+        identity = if identifier.start_with?("ident!")
+          Identity.find_by_public_id(identifier)
+        else
+          Identity.find_by("lower(primary_email) = ?", identifier.downcase)
+        end
+
+        unless identity
+          not_found << identifier
+          next
+        end
+
+        person = Directory::Person.find_or_create_by!(identity: identity) do |p|
+          p.created_by_identity_id = current_identity.id
+        end
+
+        if Directory::Membership.exists?(collection: @collection, member_person: person)
+          skipped << identifier
+          next
+        end
+
+        resolved << { identifier: identifier, person: person }
+      end
+
+      if resolved.any?
+        Directory.mutate!(cause: Directory.cause("batch_membership_created", actor: current_identity.id)) do
+          resolved.each do |entry|
+            next if Directory::Membership.exists?(collection: @collection, member_person: entry[:person])
+
+            Directory::Membership.create!(
+              collection: @collection,
+              member_person: entry[:person],
+              expires_at: params[:expires_at].presence,
+              created_by_identity_id: current_identity.id
+            )
+            added << entry[:identifier]
           end
-
-          unless identity
-            not_found << identifier
-            next
-          end
-
-          person = Directory::Person.find_or_create_by!(identity: identity) do |p|
-            p.created_by_identity_id = current_identity.id
-          end
-
-          if Directory::Membership.exists?(collection: @collection, member_person: person)
-            skipped << identifier
-            next
-          end
-
-          Directory::Membership.create!(
-            collection: @collection,
-            member_person: person,
-            expires_at: params[:expires_at].presence,
-            created_by_identity_id: current_identity.id
-          )
-          added << identifier
         end
       end
 
@@ -174,7 +183,7 @@ module Directory
         end
       end
 
-      Directory.mutate!(cause: "membership_removed:#{membership.id}") do
+      Directory.mutate!(cause: Directory.cause("membership_removed", target: membership.id, actor: current_identity.id)) do
         membership.destroy!
       end
 

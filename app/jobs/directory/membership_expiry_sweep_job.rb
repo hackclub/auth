@@ -5,21 +5,23 @@ module Directory
     queue_as :default
 
     def perform
+      return unless Directory::Membership.where("expires_at <= ?", Time.current).exists?
+
       summary = []
 
-      Directory.mutate!(cause: "sweeper") do
+      Directory.mutate!(cause: Directory.cause("sweeper")) do
         expired = Directory::Membership
           .where("expires_at <= ?", Time.current)
           .includes(:collection, :member_person)
           .to_a
 
-        next if expired.empty?
+        if expired.any?
+          summary = expired.map { |m|
+            { id: m.id, collection: m.collection&.name, member: m.member_person&.full_name }
+          }
 
-        summary = expired.map { |m|
-          { id: m.id, collection: m.collection&.name, member: m.member_person&.full_name }
-        }
-
-        Directory::Membership.where(id: expired.map(&:id)).delete_all
+          Directory::Membership.where(id: expired.map(&:id)).delete_all
+        end
       end
 
       return if summary.empty?

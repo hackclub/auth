@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_29_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_29_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -213,6 +213,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_29_000001) do
     t.text "description"
     t.bigint "created_by_identity_id"
     t.datetime "created_at", null: false
+    t.boolean "confirm_destroy", default: false, null: false
     t.index ["slug"], name: "index_directory_collections_on_slug", unique: true
     t.check_constraint "kind::text = ANY (ARRAY['group'::character varying, 'entitlement'::character varying]::text[])", name: "chk_collection_kind"
   end
@@ -221,6 +222,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_29_000001) do
     t.bigint "person_id", null: false
     t.bigint "target_collection_id", null: false
     t.string "permission", null: false
+    t.index ["target_collection_id"], name: "index_directory_effective_grants_on_target_collection_id"
   end
 
   create_table "directory_effective_memberships", primary_key: ["collection_id", "person_id"], force: :cascade do |t|
@@ -272,7 +274,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_29_000001) do
     t.datetime "expires_at"
     t.datetime "created_at", null: false
     t.index ["collection_id", "member_group_id"], name: "idx_membership_group_unique", unique: true, where: "(member_group_id IS NOT NULL)"
+    t.index ["collection_id", "member_group_id"], name: "idx_uniq_membership_group", unique: true, where: "(member_group_id IS NOT NULL)"
     t.index ["collection_id", "member_person_id"], name: "idx_membership_person_unique", unique: true, where: "(member_person_id IS NOT NULL)"
+    t.index ["collection_id", "member_person_id"], name: "idx_uniq_membership_person", unique: true, where: "(member_person_id IS NOT NULL)"
     t.index ["member_group_id"], name: "index_directory_memberships_on_member_group_id", where: "(member_group_id IS NOT NULL)"
     t.index ["member_person_id"], name: "index_directory_memberships_on_member_person_id", where: "(member_person_id IS NOT NULL)"
     t.check_constraint "member_group_id <> collection_id", name: "chk_membership_no_self_reference"

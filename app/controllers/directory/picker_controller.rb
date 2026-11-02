@@ -35,8 +35,15 @@ module Directory
 
       # Exact email match — always works, even below 3 chars
       if query.include?("@")
-        identity = Identity.find_by("lower(primary_email) = ?", query.downcase)
-        return identity ? [ identity_to_picker_result(identity) ] : []
+        person = Directory::Person.joins(:identity).find_by("lower(identities.primary_email) = ?", query.downcase)
+        return [ person_result(person) ] if person
+
+        if policy(Directory::Person).create?
+          identity = Identity.find_by("lower(primary_email) = ?", query.downcase)
+          return identity ? [ identity_to_picker_result(identity) ] : []
+        end
+
+        return []
       end
 
       return [] if query.length < 3

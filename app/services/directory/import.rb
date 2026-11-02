@@ -3,6 +3,9 @@
 require "csv"
 
 module Directory
+  # CSV bulk import: parses rows, resolves identities and collections, creates persons
+  # and memberships, then triggers one rebuild. Supports dry_run mode for preview.
+  # Takes the advisory lock itself (not via mutate!) so it can skip the lock in Rebuild.call.
   class Import
     Result = Struct.new(:valid?, :changes, :errors, :created_count, :skipped_count, keyword_init: true)
 
@@ -153,7 +156,7 @@ module Directory
           created_count += 1
         end
 
-        Directory::Rebuild.call(cause: "import:#{Time.current.iso8601}", skip_lock: true) if created_count > 0
+        Directory::Rebuild.call(cause: Directory.cause("import", actor: @created_by.id), skip_lock: true) if created_count > 0
       end
 
       Result.new(valid?: true, changes: @changes, errors: @errors,

@@ -10,7 +10,7 @@
     </row>
     <% if directory_admin? %>
       <row gap-="2" align-="center">
-        <%= button_to t("directory.people.show.remove"), directory_person_path(@person), method: :delete, data: { confirm: t("directory.people.show.remove_confirm", name: @person.full_name, count: @visible_memberships.size) }, style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;" %>
+        <%= button_to t("directory.people.show.remove"), directory_person_path(@person), method: :delete, data: { confirm: t("directory.people.show.remove_confirm", name: @person.full_name, count: @visible_memberships.size) }, class: "btn-destructive" %>
       </row>
     <% end %>
   </row>

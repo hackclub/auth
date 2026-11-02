@@ -5,13 +5,14 @@
 # writes the production tables) and Validate (which diffs against them).
 # Keeping one copy prevents the two from diverging.
 module Directory
+  # Raw SQL for computing derived tables. Shared by Rebuild (production writes)
+  # and Validate (read-only drift check) so the two can't diverge.
   module GraphQueries
     module_function
 
-    # Compute the transitive closure of group-nesting edges.
-    # closure_table: the temp table to create
-    # on_commit_drop: whether to add ON COMMIT DROP (Rebuild runs inside
-    #   a transaction that commits; Validate drops tables in an ensure block)
+    # Recursive CTE that walks group-nesting edges to produce every (ancestor, descendant, depth)
+    # triple. Self-loops included (depth 0). Used to flatten "person in A, A nested in B" into
+    # "person is effective member of both A and B."
     def create_closure(conn, table: "_closure", on_commit_drop: false)
       drop_clause = on_commit_drop ? "ON COMMIT DROP" : ""
       conn.execute(<<~SQL)
@@ -32,8 +33,8 @@ module Directory
       SQL
     end
 
-    # Flatten person memberships through the closure.
-    # closure_table: the temp table produced by create_closure
+    # Joins direct person→collection memberships through the closure to produce every
+    # (collection, person) pair where the person is an effective member — directly or via nesting.
     def create_effective_memberships(conn, table: "_em", closure_table: "_closure", on_commit_drop: false)
       drop_clause = on_commit_drop ? "ON COMMIT DROP" : ""
       conn.execute(<<~SQL)
@@ -45,8 +46,10 @@ module Directory
       SQL
     end
 
-    # Expand grants through group nesting, respecting recursive and protected.
-    # em_table: the temp table produced by create_effective_memberships
+    # Recursive CTE that walks grants down through nested groups. A grant on collection X with
+    # recursive=true expands to X's child groups (and their children, etc.), stopping at
+    # collections marked protected=true. The result is (person, target_collection, permission)
+    # for every person in the grantee group.
     def create_effective_grants(conn, table: "_eg", em_table: "_em", on_commit_drop: false)
       drop_clause = on_commit_drop ? "ON COMMIT DROP" : ""
       conn.execute(<<~SQL)

@@ -61,11 +61,19 @@ module Directory
       has_attribute?(:preloaded_exposure_count) ? preloaded_exposure_count : Directory::Exposure.where(entitlement_id: id).count
     end
 
+    # Which apps care about these entitlements? An app "cares" if it has an exposure
+    # (OIDC claim) or a requirement (login gate) wired to the entitlement. Flat array.
     def self.affected_app_ids(entitlement_ids)
-      (
-        Directory::Exposure.where(entitlement_id: entitlement_ids).pluck(:app_id) +
-        Directory::AppRequirement.where(entitlement_id: entitlement_ids).pluck(:app_id)
-      ).uniq
+      affected_app_ids_by_entitlement(entitlement_ids).values.flatten.uniq
+    end
+
+    # Same as above but preserves the per-entitlement mapping: { entitlement_id => [app_id, ...] }.
+    # Used by Rebuild to build per-person revocation payloads.
+    def self.affected_app_ids_by_entitlement(entitlement_ids)
+      result = Hash.new { |h, k| h[k] = Set.new }
+      Directory::Exposure.where(entitlement_id: entitlement_ids).pluck(:entitlement_id, :app_id).each { |eid, aid| result[eid] << aid }
+      Directory::AppRequirement.where(entitlement_id: entitlement_ids).pluck(:entitlement_id, :app_id).each { |eid, aid| result[eid] << aid }
+      result.transform_values(&:to_a)
     end
 
     def affected_app_ids

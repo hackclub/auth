@@ -28,14 +28,16 @@ module Directory
 
     def ensure_directory_access!
       return if directory_admin?
-      return if current_directory_person && controller_name == "my_access"
-      return if current_directory_person && Directory::EffectiveGrant.where(person_id: current_directory_person.id).exists?
+      return if controller_name == "my_access"
+      return if current_directory_person && pundit_user.has_any_grants?
 
       raise ActionController::RoutingError, "Not Found"
     end
 
     def pundit_user
-      Directory::Context.new(identity: current_identity, person: current_directory_person, admin: directory_admin?)
+      @_pundit_user ||= Directory::Context.new(identity: current_identity, person: current_directory_person, admin: directory_admin?).tap do |ctx|
+        ctx.preload_grants! unless directory_admin?
+      end
     end
 
     def skip_authorization?
