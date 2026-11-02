@@ -189,8 +189,9 @@ module Directory
       headers["Content-Disposition"] = "attachment; filename=\"#{filename}\""
       headers["Content-Type"] = "text/csv; charset=utf-8"
       headers["Cache-Control"] = "no-cache"
+      # SafeCsv: names and emails are user-controlled, and this file gets opened in a spreadsheet.
       self.response_body = Enumerator.new do |yielder|
-        yielder << CSV.generate_line([
+        yielder << SafeCsv.generate_line([
           t("directory.export.name"),
           t("directory.export.email"),
           t("directory.export.membership_type")
@@ -202,7 +203,7 @@ module Directory
           .find_each(batch_size: 500) do |em|
             person = em.person
             membership_type = direct_person_ids.include?(person.id) ? "direct" : "via"
-            yielder << CSV.generate_line([ person.full_name, person.primary_email, membership_type ])
+            yielder << SafeCsv.generate_line([ person.full_name, person.primary_email, membership_type ])
           end
       end
     end
