@@ -40,7 +40,9 @@ module Backend
       @user.update!(user_params)
       redirect_to backend_users_path, notice: "User updated!"
     rescue => e
-      redirect_to backend_users_path, alert: e.message
+      # before_save guards (e.g. last directory admin) throw :abort, and
+      # RecordNotSaved's message is just "Failed to save the record".
+      redirect_to backend_users_path, alert: @user.errors.full_messages.to_sentence.presence || e.message
     end
 
     def create
