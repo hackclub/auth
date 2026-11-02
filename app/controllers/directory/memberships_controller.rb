@@ -98,7 +98,9 @@ module Directory
 
     def batch_create
       @collection = Directory::Collection.find_by!(slug: params[:collection_slug])
-      authorize @collection, policy_class: Directory::MembershipPolicy
+      # a batch is N single adds, so it needs exactly what create does. explicit because
+      # pundit would otherwise ask the policy for batch_create?, which doesn't exist.
+      authorize @collection, :create?, policy_class: Directory::MembershipPolicy
 
       identifiers = Array(params[:identifiers]).map(&:strip).reject(&:blank?).uniq
       if identifiers.empty?
