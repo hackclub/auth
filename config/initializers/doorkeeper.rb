@@ -18,22 +18,38 @@ Doorkeeper.configure do
   Doorkeeper::Application.table_name = "programs" if defined?(Doorkeeper::Application)
 
   # This block will be called to check whether the resource owner is authenticated or not.
+  #
+  # It also enforces directory app requirements. Doorkeeper calls it from pages with no
+  # client too (authorized_applications, the oob code page), so the check only runs when
+  # client_id resolves to an app; anything else is left to Doorkeeper's own validation.
+  # Doorkeeper instance_evals this block per request, long after this file has loaded,
+  # so it must not `return` (that raises LocalJumpError).
   resource_owner_authenticator do
     if current_identity
-      app = ::Program.find_by!(uid: params[:client_id])
-      unless Directory::RequirementCheck.passes?(identity: current_identity, app: app)
-        client_redirect = params[:redirect_uri].presence
+      app = ::Program.by_uid(params[:client_id]) if params[:client_id].present?
+      if app.nil? || Directory::RequirementCheck.passes?(identity: current_identity, app: app)
+        current_identity
+      else
+        # Never redirect anywhere the app didn't register: the requested URI only if it
+        # exactly matches a registered one, else the first registered one. Doorkeeper never
+        # redirects errors to oob URIs and opaque ones can't carry a query, so those (and
+        # anything else Doorkeeper wouldn't accept as a redirect URI) get the in-app page.
         registered = app.redirect_uris
-        client_redirect = registered.first unless client_redirect.present? && registered.include?(client_redirect)
-        error_params = { error: "access_denied", error_description: "You do not meet this application's access requirements." }
-        error_params[:state] = params[:state] if params[:state].present?
-        uri = URI.parse(client_redirect)
-        existing = URI.decode_www_form(uri.query || "")
-        uri.query = URI.encode_www_form(existing + error_params.to_a)
-        redirect_to uri.to_s, allow_other_host: true
-        return nil
+        target = registered.include?(params[:redirect_uri]) ? params[:redirect_uri] : registered.first
+        uri_checker = Doorkeeper::OAuth::Helpers::URIChecker
+        if target && !uri_checker.oob_uri?(target) && uri_checker.valid?(target)
+          error_uri = Doorkeeper::OAuth::Authorization::URIBuilder.uri_with_query(
+            target,
+            error: "access_denied",
+            error_description: "You do not meet this application's access requirements.",
+            state: params[:state]
+          )
+          redirect_to error_uri, allow_other_host: true
+        else
+          redirect_to directory_requirement_denied_path
+        end
+        nil
       end
-      current_identity
     else
       redirect_to "/oauth/welcome?return_to=#{CGI.escape(request.fullpath)}"
       nil
