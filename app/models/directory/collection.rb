@@ -79,5 +79,32 @@ module Directory
     def affected_app_ids
       self.class.affected_app_ids(id)
     end
+
+    # Everything a recursive grant covers once it flows down into this collection: this
+    # collection plus every sub-group below it, never entering a protected one, at most
+    # MAX_DEPTH levels deep. Empty when this collection is protected, since recursion can't
+    # enter it at all. One query. The walk mirrors GraphQueries.create_effective_grants
+    # (keep the two in step); memberships#create uses it to see what nesting this under a
+    # group would extend that group's recursive grants into.
+    def recursive_grant_reach
+      self.class.where(<<~SQL.squish, id: id, max_depth: Directory::MAX_DEPTH)
+        directory_collections.id IN (
+          WITH RECURSIVE reach(collection_id, depth) AS (
+            SELECT id, 0 FROM directory_collections WHERE id = :id AND protected = false
+            UNION ALL
+            SELECT m.member_group_id, r.depth + 1
+            FROM reach r
+            INNER JOIN directory_memberships m ON m.collection_id = r.collection_id
+            WHERE m.member_group_id IS NOT NULL
+              AND r.depth < :max_depth
+              AND NOT EXISTS (
+                SELECT 1 FROM directory_collections dc
+                WHERE dc.id = m.member_group_id AND dc.protected = true
+              )
+          )
+          SELECT collection_id FROM reach
+        )
+      SQL
+    end
   end
 end

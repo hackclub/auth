@@ -35,13 +35,11 @@ module Directory
             alert: t("directory.flash.admin_only_group_on_entitlement")
           return
         end
-        # §3.5 escalation prevention: nesting group X under group G with a recursive
-        # grant on G gives manage_members on X. require permission on BOTH sides.
+        # §3.5 escalation prevention, see nesting_refusal
         if @collection.group? && !directory_admin?
-          ctx = pundit_user
-          unless ctx.can?(:manage_members, group)
-            redirect_back fallback_location: directory_collection_path(@collection.slug),
-              alert: t("directory.flash.need_manage_on_child_group")
+          refusal = nesting_refusal(group)
+          if refusal
+            redirect_back fallback_location: directory_collection_path(@collection.slug), alert: refusal
             return
           end
         end
@@ -56,13 +54,11 @@ module Directory
             alert: t("directory.flash.admin_only_group_on_entitlement")
           return
         end
-        # Same bilateral check for raw member_group_id path
+        # Same checks for the raw member_group_id path
         if @collection.group? && !directory_admin?
-          child = Directory::Collection.find(params[:member_group_id])
-          ctx = pundit_user
-          unless ctx.can?(:manage_members, child)
-            redirect_back fallback_location: directory_collection_path(@collection.slug),
-              alert: t("directory.flash.need_manage_on_child_group")
+          refusal = nesting_refusal(Directory::Collection.find(params[:member_group_id]))
+          if refusal
+            redirect_back fallback_location: directory_collection_path(@collection.slug), alert: refusal
             return
           end
         end
@@ -199,6 +195,21 @@ module Directory
       return identity if identity.nil? || directory_admin?
 
       identity if Directory::Person.exists?(identity_id: identity.id)
+    end
+
+    # Why a non-admin can't nest `child` under @collection, or nil if they can (authorize
+    # already covered the parent). Nesting carries every recursive grant that reaches
+    # @collection, the actor's own included, down into child and its unprotected
+    # sub-groups, so the actor must already manage all of them. Otherwise a recursive grant
+    # on one group plus a plain one on another adds up to manage_members on everything
+    # nested inside the second.
+    def nesting_refusal(child)
+      ctx = pundit_user
+      return t("directory.flash.need_manage_on_child_group") unless ctx.can?(:manage_members, child)
+
+      unless child.recursive_grant_reach.all? { |c| ctx.can?(:manage_members, c) }
+        t("directory.flash.need_manage_on_child_subgroups")
+      end
     end
   end
 end
