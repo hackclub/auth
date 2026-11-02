@@ -967,6 +967,9 @@ en:
         remove_group_confirm: "remove this group?"
         structural_admin_only: "structural · admin only"
         type_slug_confirm: "type slug to confirm…"
+        via_hidden:
+          one: "via %{count} group you can't view"
+          other: "via %{count} groups you can't view"
         you_can_manage: "you can manage this"
         col_email: "email"
       updated: "collection updated."

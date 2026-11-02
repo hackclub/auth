@@ -47,6 +47,8 @@
             <td style="color: var(--foreground2);">
               <% if m[:via_path].present? %>
                 <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
+              <% elsif m[:hidden_via].positive? %>
+                <span style="opacity: 0.5;"><%= t("directory.collections.show.via_hidden", count: m[:hidden_via]) %></span>
               <% end %>
             </td>
           </tr>

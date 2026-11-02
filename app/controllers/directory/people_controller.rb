@@ -28,13 +28,22 @@ module Directory
       add_breadcrumb t("directory.people.index.title"), directory_people_path
       add_breadcrumb @person.full_name
 
-      @visible_memberships = @person.memberships_with_via_path.select { |m| policy(m[:collection]).show? }
+      # A via path names the person's direct group, which may be one the viewer can't see.
+      # Keep the segments they can; the view says how many it left out.
+      ctx = pundit_user
+      @visible_memberships = @person.memberships_with_via_path.filter_map do |m|
+        next unless policy(m[:collection]).show?
+
+        via = m[:via_path].select { |c| ctx.can_any?(%w[view manage_members expose], c) }
+        m.merge(via_path: via, hidden_via: m[:via_path].size - via.size)
+      end
 
       @manageable_collections = Directory::Collection
         .joins("INNER JOIN directory_effective_grants ON directory_effective_grants.target_collection_id = directory_collections.id")
         .where(directory_effective_grants: { person_id: @person.id, permission: "manage_members" })
         .distinct
         .order(:name)
+        .select { |c| policy(c).show? }
 
       @activities = directory_activities_for(@person)
     end
