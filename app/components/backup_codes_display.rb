@@ -13,7 +13,7 @@ class Components::BackupCodesDisplay < Components::Base
   end
 
   def view_template(&block)
-    style do
+    style(nonce: helpers.content_security_policy_nonce) do
       raw safe <<~CSS
         @media print {
           @page {
@@ -111,7 +111,7 @@ class Components::BackupCodesDisplay < Components::Base
       CSS
     end
 
-    style do
+    style(nonce: helpers.content_security_policy_nonce) do
       raw safe ".print-only-banner { display: none; }"
     end
 
@@ -146,7 +146,10 @@ class Components::BackupCodesDisplay < Components::Base
       div(class: "backup-codes-actions") do
         button(
           type: "button",
-          onclick: safe("navigator.clipboard.writeText('#{@codes.join('\n')}').then(() => { this.textContent = '#{t('identity_backup_codes.copied')}'; setTimeout(() => this.textContent = '#{t('identity_backup_codes.copy_all')}', 2000); })")
+          data_action: "copy-codes",
+          data_codes: @codes.join("\n"),
+          data_label_copied: t("identity_backup_codes.copied"),
+          data_label_default: t("identity_backup_codes.copy_all")
         ) do
           t "identity_backup_codes.copy_all"
         end
@@ -162,11 +165,28 @@ class Components::BackupCodesDisplay < Components::Base
 
         button(
           type: "button",
-          onclick: safe("window.print()"),
+          data_action: "print-page",
           class: "secondary"
         ) do
           t "identity_backup_codes.print"
         end
+      end
+
+      script(nonce: helpers.content_security_policy_nonce) do
+        raw safe <<~JS
+          document.querySelectorAll('[data-action="copy-codes"]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var codes = btn.dataset.codes;
+              navigator.clipboard.writeText(codes);
+              var original = btn.textContent;
+              btn.textContent = btn.dataset.labelCopied;
+              setTimeout(function() { btn.textContent = btn.dataset.labelDefault; }, 2000);
+            });
+          });
+          document.querySelectorAll('[data-action="print-page"]').forEach(function(btn) {
+            btn.addEventListener('click', function() { window.print(); });
+          });
+        JS
       end
 
       if @show_confirmation
@@ -179,25 +199,14 @@ class Components::BackupCodesDisplay < Components::Base
           render_block(@confirmation_button_block) if @confirmation_button_block
         end
 
-        script do
+        script(nonce: helpers.content_security_policy_nonce) do
           raw safe <<~JS
             (function() {
-              const checkbox = document.getElementById('codes-saved-check');
-              const finishBtn = document.getElementById('finish-setup-btn');
-              if (checkbox && finishBtn) {
-                checkbox.addEventListener('change', () => {
-                  if (checkbox.checked) {
-                    finishBtn.disabled = false;
-                    finishBtn.style.pointerEvents = 'auto';
-                    finishBtn.style.opacity = '1';
-                    finishBtn.removeAttribute('data-disabled');
-                  } else {
-                    finishBtn.disabled = true;
-                    finishBtn.style.pointerEvents = 'none';
-                    finishBtn.style.opacity = '0.5';
-                    finishBtn.setAttribute('data-disabled', 'true');
-                  }
-                });
+              var cb = document.getElementById('codes-saved-check');
+              var btn = cb && cb.closest('.backup-codes-confirmation').querySelector('input[type=submit], button[type=submit]');
+              if (cb && btn) {
+                btn.disabled = !cb.checked;
+                cb.addEventListener('change', function() { btn.disabled = !cb.checked; });
               }
             })();
           JS

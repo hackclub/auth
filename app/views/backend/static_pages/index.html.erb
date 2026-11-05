@@ -27,6 +27,7 @@
           <%= render_nav_item backend_verification_cases_path, "Manual call cases", "CASE" %>
           <%= render_nav_item qa_backend_verification_cases_path, "QA sampling", "QASM" %>
           <%= render_nav_item backend_persona_dashboard_path, "Persona rollout", "PRSA" %>
+          <%= internal_content(:ember_glass_hollow) %>
         </ul>
       <% end %>
 
@@ -44,7 +45,7 @@
 
       <div is-="separator"></div>
 
-      <a href="#" onclick="window.openKbar && window.openKbar(); return false;" data-navigable-item>
+      <a href="#" data-action="open-kbar" data-navigable-item>
         <span style="flex: 1;">Go anywhere</span>
         <span style="color: var(--foreground2);"><kbd>⌘K</kbd></span>
       </a>
@@ -58,16 +59,16 @@
 
     <row gap-="2" align-="center center" pad-="1 0" style="color: var(--foreground2);">
       <row gap-="1" align-="center">
-        <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowUp', bubbles: true}))">↑</button>
-        <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true}))">↓</button>
+        <button size-="small" variant-="background2" data-action="dispatch-key" data-key="ArrowUp">↑</button>
+        <button size-="small" variant-="background2" data-action="dispatch-key" data-key="ArrowDown">↓</button>
         navigate
       </row>
       <row gap-="1" align-="center">
-        <button size-="small" variant-="background2" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}))">↵</button>
+        <button size-="small" variant-="background2" data-action="dispatch-key" data-key="Enter">↵</button>
         open
       </row>
       <row gap-="1" align-="center">
-        <button size-="small" variant-="background2" onclick="window.openKbar && window.openKbar()">⌘K</button>
+        <button size-="small" variant-="background2" data-action="open-kbar">⌘K</button>
         search
       </row>
     </row>

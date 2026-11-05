@@ -38,8 +38,8 @@
           · <%= current_user.pretty_roles %>
         </span>
         <span id="theme-toggle-slot"></span>
-        <button size-="small" onclick="window.openHints && window.openHints()">?</button>
-        <button size-="small" onclick="window.openKbar && window.openKbar()">⌘K</button>
+        <button size-="small" data-action="open-hints">?</button>
+        <button size-="small" data-action="open-kbar">⌘K</button>
       </row>
     </row>
     <!-- erblint:disable ScriptType -->
@@ -51,7 +51,7 @@
       <%= render "backend/shared/flash" %>
       <% if has_unseen_hints? %>
         <div pad-="2 0">
-          <div box-="square" class="tui-banner tui-banner-info" onclick="window.openHints()" style="cursor: pointer;">
+          <div box-="square" class="tui-banner tui-banner-info" data-action="open-hints" style="cursor: pointer;">
             [i] press <kbd>?</kbd> to see keyboard shortcuts for this page
           </div>
         </div>

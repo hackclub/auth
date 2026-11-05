@@ -66,11 +66,10 @@
                     alt: "case document #{index + 1}",
                     id: "case-image-#{index}",
                     style: "max-width: 100%; transition: transform 0.2s;",
-                    data: { rotation: 0 },
-                    onload: "document.getElementById('case-loader-#{index}').style.display='none'; document.getElementById('case-image-container-#{index}').style.display='block';",
-                    onerror: "document.getElementById('case-loader-#{index}').textContent='error loading image';" %>
+                    data: { rotation: 0, loader: "case-loader-#{index}", container: "case-image-container-#{index}" },
+                    class: "case-doc-image" %>
                   <row gap-="1" align-="center">
-                    <button type="button" size-="small" onclick="rotateCaseImage(<%= index %>)">↻ rotate</button>
+                    <button type="button" size-="small" data-action="rotate-case" data-target="case-image-<%= index %>">↻ rotate</button>
                     <%= link_to "open ↗", url_for(file), target: "_blank" %>
                   </row>
                 </div>
@@ -96,15 +95,6 @@
         </column>
       <% end %>
     </column>
-    <script>
-      function rotateCaseImage(index) {
-        const img = document.getElementById('case-image-' + index);
-        let currentRotation = parseInt(img.dataset.rotation || 0);
-        currentRotation = (currentRotation + 90);
-        img.dataset.rotation = currentRotation;
-        img.style.transform = 'rotate(' + currentRotation + 'deg)';
-      }
-    </script>
   <% else %>
     <span style="color: var(--foreground2);">nothing submitted yet</span>
   <% end %>
