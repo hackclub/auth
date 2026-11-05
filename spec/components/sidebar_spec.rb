@@ -1,17 +1,4 @@
-require "spec_helper"
-
-# Stub the component hierarchy so we can load Sidebar without Rails/Phlex
-module Components; class Base; end; end
-module Phlex; module Rails; module Helpers; module LinkTo; end; module CurrentPage; end; end; end; end
-
-# Stub the macros that Sidebar's class body calls
-class Components::Base
-  def self.register_value_helper(*); end
-  def self.register_output_helper(*); end
-  def self.include(*); end
-end
-
-require_relative "../../app/components/sidebar"
+require "rails_helper"
 
 RSpec.describe Components::Sidebar do
   describe "#active_nav_item?" do
