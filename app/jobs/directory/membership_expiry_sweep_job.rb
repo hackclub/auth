@@ -20,7 +20,7 @@ module Directory
             { id: m.id, collection: m.collection&.name, member: m.member_person&.full_name }
           }
 
-          Directory::Membership.where(id: expired.map(&:id)).delete_all
+          expired.each(&:destroy!)
         end
       end
 
