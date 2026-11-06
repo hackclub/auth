@@ -150,7 +150,7 @@
           <% end %>
         </tbody>
       </table>
-      <%= paginate @all_memberships, param_name: :page %>
+      <%= paginate @all_memberships, param_name: :members_page %>
     <% else %>
       <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_members") %></span>
     <% end %>

@@ -31,14 +31,14 @@ module Directory
         .includes(:member_group, :created_by)
         .order("directory_collections.name")
 
-      direct_person_ids = @collection.member_people_memberships.select(:member_person_id)
+      active_direct_person_ids = @collection.member_people_memberships.active.select(:member_person_id)
       effective_people = @collection.effective_people
-        .where.not(id: direct_person_ids)
+        .where.not(id: active_direct_person_ids)
         .includes(:identity)
         .order("identities.first_name")
         .page(params[:effective_page]).per(100)
 
-      direct_group_ids = @collection.member_group_memberships.pluck(:member_group_id)
+      direct_group_ids = @collection.member_group_memberships.active.pluck(:member_group_id)
       effective_person_ids = effective_people.map(&:id)
 
       via_map = {}
@@ -68,7 +68,7 @@ module Directory
         @all_memberships = @collection.memberships
           .includes(:member_person, :member_group, :created_by)
           .order(:created_at)
-          .page(params[:page]).per(100)
+          .page(params[:members_page]).per(100)
       end
 
       if @collection.entitlement?
@@ -183,7 +183,7 @@ module Directory
     def export
       authorize @collection, :show?
 
-      direct_person_ids = @collection.member_people_memberships.pluck(:member_person_id).to_set
+      direct_person_ids = @collection.member_people_memberships.active.pluck(:member_person_id).to_set
       filename = "#{@collection.slug}-members-#{Date.current.iso8601}.csv"
 
       headers["Content-Disposition"] = "attachment; filename=\"#{filename}\""
