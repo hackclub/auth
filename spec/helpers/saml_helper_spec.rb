@@ -29,13 +29,13 @@ RSpec.describe SAMLHelper do
 
       expect {
         helper.build_saml_response(identity:, sp_config: sp(required_entitlements: [ "test-sp-users" ]))
-      }.to raise_error(SAMLHelper::AccessDenied, "this app is for hack club staff")
+      }.to raise_error(SAMLHelper::AccessDenied, I18n.t("saml.denial.no_access"))
     end
 
     it "refuses an identity outside the SP's allowed_emails" do
       expect {
         helper.build_saml_response(identity:, sp_config: sp(allowed_emails: [ "someone-else@hackclub.com" ]))
-      }.to raise_error(SAMLHelper::AccessDenied, "You are not authorized to access this service")
+      }.to raise_error(SAMLHelper::AccessDenied, I18n.t("saml.denial.not_allowed"))
     end
 
     it "refuses Slack to an identity barred from it" do
@@ -43,7 +43,7 @@ RSpec.describe SAMLHelper do
 
       expect {
         helper.build_saml_response(identity:, sp_config: sp(slug: "slack"))
-      }.to raise_error(SAMLHelper::AccessDenied, "Unable to log in right now")
+      }.to raise_error(SAMLHelper::AccessDenied, I18n.t("saml.denial.disallow_slack"))
     end
   end
 end

@@ -471,6 +471,11 @@ en:
       prefer_email: Don't have a passkey?
       use_email_code: Use email code instead
   saml:
+    denial:
+      not_allowed: "you don't have access to this service"
+      no_access: "you don't have access to this app — if you think that's a mistake, ask whoever runs it"
+      misconfigured: "this app is misconfigured — contact an administrator"
+      disallow_slack: "unable to log in right now"
     http_post:
       title: SAMLing...
       text: Logging you in...
@@ -862,7 +867,7 @@ en:
       recursive: "recursive"
       locked: "locked"
       expired: "expired"
-      holds_nothing: "holds nothing"
+      holds_nothing: "no memberships"
       already_in: "already in"
       add: "add"
       skip: "skip"
@@ -883,7 +888,7 @@ en:
         kind: "kind"
         description: "description"
         protected: "protected"
-        protected_hint: "recursive grants can't reach this collection"
+        protected_hint: "stops grant inheritance — must be granted directly"
         confirm_destroy: "require slug confirmation to delete"
       form:
         description: "description"
@@ -922,7 +927,7 @@ en:
         description: "description"
         description_placeholder: "what is this collection for?"
         protected: "protected"
-        protected_hint: "recursive grants can't reach this collection"
+        protected_hint: "stops grant inheritance — must be granted directly"
         confirm_destroy: "require slug confirmation to delete"
         name_placeholder: "e.g. fulltimers"
         slug_placeholder: "e.g. fulltimers"
@@ -951,8 +956,8 @@ en:
         edit: "edit"
         email_placeholder: "email or ident!…"
         group_slug_placeholder: "group slug…"
-        grantee_placeholder: "grantee group slug…"
-        also_includes: "also includes %{count} via nesting"
+        grantee_placeholder: "group slug…"
+        also_includes: "also includes %{count} through nested groups"
         managed_by: "managed by"
         member_groups: "member groups"
         members: "members"
@@ -966,7 +971,7 @@ en:
         remove_confirm: "remove %{name}?"
         remove_grant_confirm: "remove this grant?"
         remove_group_confirm: "remove this group?"
-        structural_admin_only: "structural · admin only"
+        structural_admin_only: "group membership · admin only"
         type_slug_confirm: "type slug to confirm…"
         via_hidden:
           one: "via %{count} group you can't view"
@@ -988,8 +993,8 @@ en:
       grant_removed: "grant removed."
       email_not_found: "no hca account with that email."
       admin_only_group_on_entitlement: "only admins can add member groups to entitlements."
-      need_manage_on_child_group: "you need manage_members on both groups to nest them."
-      need_manage_on_child_subgroups: "you also need manage_members on the groups nested inside that one to nest it here."
+      need_manage_on_child_group: "you need permission to manage both groups to nest them."
+      need_manage_on_child_subgroups: "you also need permission to manage the groups nested inside that one."
       admin_only_remove_group: "only admins can remove member groups from entitlements."
       member_not_found: "that person or group doesn't exist."
       provide_email_or_slug: "provide an email or group slug."
@@ -1086,7 +1091,7 @@ en:
       success: "import complete: %{created} created, %{skipped} skipped."
     memberships:
       admin_only_group_on_entitlement: "only admins can add groups to entitlements."
-      need_manage_on_child_group: "you need manage_members on both groups to nest them."
+      need_manage_on_child_group: "you need permission to manage both groups to nest them."
       created: "member added."
       destroyed: "member removed."
     my_access:
@@ -1100,9 +1105,9 @@ en:
         col_via: "via"
         direct_memberships: "direct memberships"
         heading: "my access"
-        no_memberships: "you don't have any directory memberships yet."
+        no_memberships: "you don't have any directory memberships."
         title: "my access"
-        via_nesting: "via nesting"
+        via_nesting: "inherited"
     people:
       created: "person added to directory."
       destroyed: "person removed from directory."
@@ -1116,8 +1121,8 @@ en:
         col_status: "status"
         email_placeholder: "search by email…"
         heading: "people"
-        holds_nothing: "holds nothing"
-        holds_nothing_heading: "holds nothing"
+        holds_nothing: "no memberships"
+        holds_nothing_heading: "no memberships"
         no_people: "no people in the directory yet."
         remove: "remove"
         remove_confirm: "remove %{name}?"
@@ -1134,7 +1139,7 @@ en:
         recent_activity: "recent activity"
         remove: "remove from directory"
         remove_confirm: "remove %{name}? they have %{count} visible memberships."
-        via_nesting: "via nesting"
+        via_nesting: "inherited"
     reports:
       index:
         col_collection: "collection"
@@ -1150,9 +1155,9 @@ en:
         locked_identities: "locked identities in directory"
         none: "none"
         old_memberships: "memberships older than 1 year"
-        orphan_people: "people holding nothing"
+        orphan_people: "people with no memberships"
         title: "reports"
-        unmanaged_collections: "collections with no manage_members grant"
+        unmanaged_collections: "collections nobody can manage"
       title: "reports"
     view_as:
       title: "view as"
@@ -1163,7 +1168,7 @@ en:
       viewing_as: "viewing as:"
       memberships: "memberships"
       direct: "direct"
-      via_nesting: "via nesting"
+      via_nesting: "inherited"
       no_memberships: "no memberships"
       visible_collections: "visible collections"
       no_visible: "no visible collections (no grants)"
@@ -1202,4 +1207,4 @@ en:
       wire_button: "Wire"
       require_entitlement: "require an entitlement to log in"
       require_button: "Require"
-      not_official: "this app isn't told about any groups. only staff can wire that."
+      not_official: "only official hack club apps can be wired to the directory."

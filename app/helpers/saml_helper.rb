@@ -79,14 +79,14 @@ module SAMLHelper
   # error before doing anything else.
   def saml_access_denial(identity, sp_config)
     if sp_config[:allowed_emails].present? && !sp_config[:allowed_emails].include?(identity.primary_email)
-      return "You are not authorized to access this service"
+      return I18n.t("saml.denial.not_allowed")
     end
 
     if (reason = saml_directory_requirement_denial(identity, sp_config))
       return reason
     end
 
-    "Unable to log in right now" if sp_config[:slug] == "slack" && identity.disallow_slack
+    I18n.t("saml.denial.disallow_slack") if sp_config[:slug] == "slack" && identity.disallow_slack
   end
 
   # required_entitlements: any one of them admits. A slug that doesn't resolve shuts
@@ -101,12 +101,12 @@ module SAMLHelper
     if missing_slugs.any?
       Rails.logger.error("[SAML] required_entitlements references missing slugs: #{missing_slugs.join(', ')} for SP #{sp_config[:slug]}")
       Sentry.capture_message("SAML requirement references missing entitlement", level: :error, extra: { sp: sp_config[:slug], missing_slugs: missing_slugs }) if defined?(Sentry)
-      return "this app is misconfigured — contact an administrator"
+      return I18n.t("saml.denial.misconfigured")
     end
 
     person = Directory::Person.find_by(identity: identity)
     unless person && Directory::EffectiveMembership.where(collection_id: entitlements.select(:id), person_id: person.id).exists?
-      "this app is for hack club staff"
+      I18n.t("saml.denial.no_access")
     end
   end
 

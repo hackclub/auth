@@ -83,7 +83,7 @@ RSpec.describe "SAML access checks", type: :request do
       it "refuses a non-member with the error page and no assertion" do
         idp_initiated
 
-        expect_refused("this app is for hack club staff")
+        expect_refused(I18n.t("saml.denial.no_access"))
       end
     end
 
@@ -100,7 +100,7 @@ RSpec.describe "SAML access checks", type: :request do
       it "refuses a non-member with the error page and no assertion" do
         sp_initiated
 
-        expect_refused("this app is for hack club staff")
+        expect_refused(I18n.t("saml.denial.no_access"))
       end
     end
 
@@ -112,13 +112,13 @@ RSpec.describe "SAML access checks", type: :request do
       it "fails closed for IdP-initiated logins, even for members of the slug that does exist" do
         idp_initiated
 
-        expect_refused("this app is misconfigured")
+        expect_refused(I18n.t("saml.denial.misconfigured"))
       end
 
       it "fails closed for SP-initiated logins too" do
         sp_initiated
 
-        expect_refused("this app is misconfigured")
+        expect_refused(I18n.t("saml.denial.misconfigured"))
       end
     end
   end
@@ -141,10 +141,10 @@ RSpec.describe "SAML access checks", type: :request do
 
       it "refuses, IdP- or SP-initiated" do
         idp_initiated
-        expect_refused("You are not authorized to access this service")
+        expect_refused(I18n.t("saml.denial.not_allowed"))
 
         sp_initiated
-        expect_refused("You are not authorized to access this service")
+        expect_refused(I18n.t("saml.denial.not_allowed"))
       end
     end
   end

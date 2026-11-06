@@ -61,7 +61,7 @@ RSpec.describe "SAML login straight after verifying a login code", type: :reques
     it "shows the SAML error page instead of posting an assertion" do
       verify_login_code
 
-      expect_logged_in_without_assertion("this app is for hack club staff")
+      expect_logged_in_without_assertion(I18n.t("saml.denial.no_access"))
     end
   end
 
@@ -71,7 +71,7 @@ RSpec.describe "SAML login straight after verifying a login code", type: :reques
     it "fails closed" do
       verify_login_code
 
-      expect_logged_in_without_assertion("this app is misconfigured")
+      expect_logged_in_without_assertion(I18n.t("saml.denial.misconfigured"))
     end
   end
 
@@ -81,7 +81,7 @@ RSpec.describe "SAML login straight after verifying a login code", type: :reques
     it "shows the SAML error page instead of posting an assertion" do
       verify_login_code
 
-      expect_logged_in_without_assertion("You are not authorized to access this service")
+      expect_logged_in_without_assertion(I18n.t("saml.denial.not_allowed"))
     end
   end
 
@@ -91,7 +91,7 @@ RSpec.describe "SAML login straight after verifying a login code", type: :reques
     it "shows the SAML error page instead of posting an assertion" do
       verify_login_code
 
-      expect_logged_in_without_assertion("Unable to log in right now")
+      expect_logged_in_without_assertion(I18n.t("saml.denial.disallow_slack"))
     end
   end
 end
