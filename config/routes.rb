@@ -298,7 +298,7 @@ Rails.application.routes.draw do
       resources :grants, only: [ :create, :destroy ]
     end
 
-    resources :people, only: [ :index, :show, :create, :destroy ]
+    resources :people, only: [ :index, :show, :create, :destroy ], param: :public_id
 
     # Picker API
     get "picker/search", to: "picker#search", as: :picker_search

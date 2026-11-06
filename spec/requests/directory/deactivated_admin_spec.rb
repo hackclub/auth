@@ -134,7 +134,7 @@ RSpec.describe "Directory root for deactivated backend users", type: :request do
     backend_user.deactivate!
 
     sign_in viewer
-    get directory_view_as_path, params: { person_id: staffer_person.id }
+    get directory_view_as_path, params: { person_id: staffer_person.public_id }
     expect(response).to have_http_status(:ok)
     expect(response.body).not_to include("Staff Only Entitlement")
   end

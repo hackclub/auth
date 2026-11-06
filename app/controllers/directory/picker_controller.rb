@@ -68,7 +68,7 @@ module Directory
         .limit(20)
         .map do |c|
           {
-            id: c.id,
+            id: c.public_id,
             label: c.name,
             sublabel: c.slug,
             type: kind
@@ -78,7 +78,7 @@ module Directory
 
     def person_result(person)
       {
-        id: person.id,
+        id: person.public_id,
         label: person.full_name,
         sublabel: person.primary_email,
         type: "person"
@@ -90,7 +90,7 @@ module Directory
       if person
         person_result(person)
       else
-        { id: identity.id, label: identity.full_name, sublabel: identity.primary_email,
+        { id: identity.public_id, label: identity.full_name, sublabel: identity.primary_email,
           type: "person", new_directory_person: true }
       end
     end

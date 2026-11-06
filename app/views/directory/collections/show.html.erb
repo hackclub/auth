@@ -8,6 +8,9 @@
       <% if @collection.protected %>
         <span is-="badge" variant-="yellow"><%= t("directory.badges.protected") %></span>
       <% end %>
+      <%= copy_to_clipboard @collection.public_id, label: "copy id" do %>
+        <code style="color: var(--foreground2); font-size: 0.85em; cursor: pointer;"><%= @collection.public_id %></code>
+      <% end %>
     </row>
     <row gap-="2" align-="center">
       <span style="color: var(--foreground2);"><%= t("directory.collections.show.counts", direct: @collection.direct_member_count, effective: @collection.effective_member_count) %></span>

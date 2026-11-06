@@ -23,7 +23,7 @@ module Directory
     end
 
     def show
-      @person = Directory::Person.find(params[:id])
+      @person = Directory::Person.find_by_public_id!(params[:public_id])
       authorize @person
       add_breadcrumb t("directory.people.index.title"), directory_people_path
       add_breadcrumb @person.full_name
@@ -65,7 +65,7 @@ module Directory
     end
 
     def destroy
-      @person = Directory::Person.find(params[:id])
+      @person = Directory::Person.find_by_public_id!(params[:public_id])
       authorize @person
 
       # Capture revocation data BEFORE destroy wipes effective_memberships

@@ -8,7 +8,7 @@ module Directory
 
       return unless params[:person_id].present?
 
-      @target_person = Directory::Person.find(params[:person_id])
+      @target_person = Directory::Person.find_by_public_id!(params[:person_id])
 
       target_admin = @target_person.identity.backend_user&.directory_services_admin?
 

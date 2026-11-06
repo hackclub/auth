@@ -24,6 +24,8 @@ module Directory
 
     delegate :full_name, :primary_email, :locked?, to: :identity
 
+    def to_param = public_id
+
     scope :locked, -> { joins(:identity).where.not(identities: { locked_at: nil }) }
     scope :active, -> { joins(:identity).where(identities: { locked_at: nil, deleted_at: nil }) }
 

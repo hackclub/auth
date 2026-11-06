@@ -4,6 +4,9 @@
     <row gap-="2" align-="center">
       <h2><%= @person.full_name %></h2>
       <span style="color: var(--foreground2);"><%= @person.primary_email %></span>
+      <%= copy_to_clipboard @person.public_id, label: "copy id" do %>
+        <code style="color: var(--foreground2); font-size: 0.85em; cursor: pointer;"><%= @person.public_id %></code>
+      <% end %>
       <% if @person.locked? %>
         <span is-="badge" variant-="red"><%= t("directory.people.show.locked") %></span>
       <% end %>
