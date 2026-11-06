@@ -40,18 +40,10 @@ module Directory
 
       elsif params[:group_slug].present?
         group = Directory::Collection.groups.find_by!(slug: params[:group_slug].strip)
-        if @collection.entitlement? && !directory_admin?
-          redirect_back fallback_location: directory_collection_path(@collection.slug),
-            alert: t("directory.flash.admin_only_group_on_entitlement")
+        refusal = group_membership_refusal(group)
+        if refusal
+          redirect_back fallback_location: directory_collection_path(@collection.slug), alert: refusal
           return
-        end
-        # §3.5 escalation prevention, see nesting_refusal
-        if @collection.group? && !directory_admin?
-          refusal = nesting_refusal(group)
-          if refusal
-            redirect_back fallback_location: directory_collection_path(@collection.slug), alert: refusal
-            return
-          end
         end
         membership.member_group = group
 
@@ -59,20 +51,13 @@ module Directory
         membership.member_person_id = params[:member_person_id]
 
       elsif params[:member_group_id].present?
-        if @collection.entitlement? && !directory_admin?
-          redirect_back fallback_location: directory_collection_path(@collection.slug),
-            alert: t("directory.flash.admin_only_group_on_entitlement")
+        group = Directory::Collection.find(params[:member_group_id])
+        refusal = group_membership_refusal(group)
+        if refusal
+          redirect_back fallback_location: directory_collection_path(@collection.slug), alert: refusal
           return
         end
-        # Same checks for the raw member_group_id path
-        if @collection.group? && !directory_admin?
-          refusal = nesting_refusal(Directory::Collection.find(params[:member_group_id]))
-          if refusal
-            redirect_back fallback_location: directory_collection_path(@collection.slug), alert: refusal
-            return
-          end
-        end
-        membership.member_group_id = params[:member_group_id]
+        membership.member_group = group
 
       else
         redirect_back fallback_location: directory_collection_path(@collection.slug),
@@ -242,6 +227,15 @@ module Directory
       return identity if identity.nil? || directory_admin?
 
       identity if Directory::Person.exists?(identity_id: identity.id)
+    end
+
+    def group_membership_refusal(group)
+      if @collection.entitlement? && !directory_admin?
+        return t("directory.flash.admin_only_group_on_entitlement")
+      end
+      if @collection.group? && !directory_admin?
+        nesting_refusal(group)
+      end
     end
 
     # Why a non-admin can't nest `child` under @collection, or nil if they can (authorize
