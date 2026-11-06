@@ -4,23 +4,10 @@ module Directory
   class Membership < ApplicationRecord
     has_paper_trail
     include PublicActivity::Model
-    tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) },
-           recipient: ->(_, model) { model.collection },
-           params: {
-             collection_name: ->(_c, model) { model.collection&.name },
-             member_name: ->(_c, model) {
-               if model.member_person_id
-                 model.member_person&.full_name || "(deleted)"
-               elsif model.member_group_id
-                 model.member_group&.name || "(deleted)"
-               end
-             },
-             member_type: ->(_c, model) { model.member_person_id ? "person" : "group" },
-             expires_at: ->(_c, model) { model.expires_at&.iso8601 }
-           }
+    tracked enabled: false
 
-    after_create :track_on_person_and_collection
-    after_destroy :track_removal_on_person_and_collection
+    after_create :track_membership_change
+    after_destroy :track_membership_change
 
     scope :active, -> { where("expires_at IS NULL OR expires_at > ?", Time.current) }
     scope :expired, -> { where("expires_at <= ?", Time.current) }
@@ -106,31 +93,30 @@ module Directory
       end
     end
 
-    def track_on_person_and_collection
-      return unless member_person
-      collection.create_activity :member_added,
-        owner: created_by,
+    def track_membership_change
+      action = destroyed? ? :member_removed : :member_added
+      owner = activity_owner
+      member = member_person || member_group
+      return unless member
+
+      name = begin; member.respond_to?(:full_name) ? member.full_name : member.name; rescue ActiveRecord::RecordNotFound; "(deleted)"; end
+      type = member_person_id ? "person" : "group"
+
+      params = { member_name: name, member_type: type }
+      params[:reason] = (expires_at.present? && expires_at <= Time.current) ? "expired" : "removed" if destroyed?
+
+      collection&.create_activity action,
+        owner: owner,
         recipient: member_person,
-        params: { member_name: member_person.full_name, member_email: member_person.primary_email }
+        params: params
     rescue StandardError => e
       Rails.logger.error("[Directory] Activity tracking failed: #{e.message}")
       Sentry.capture_exception(e) if defined?(Sentry)
     end
 
-    def track_removal_on_person_and_collection
-      expired = expires_at.present? && expires_at <= Time.current
-      name = if member_person_id
-        begin; member_person&.full_name; rescue ActiveRecord::RecordNotFound; nil; end || "(deleted)"
-      elsif member_group_id
-        begin; member_group&.name; rescue ActiveRecord::RecordNotFound; nil; end || "(deleted)"
-      end
-      return unless name
-
-      collection&.create_activity :member_removed,
-        params: { member_name: name, reason: expired ? "expired" : "removed" }
-    rescue StandardError => e
-      Rails.logger.error("[Directory] Activity tracking failed: #{e.message}")
-      Sentry.capture_exception(e) if defined?(Sentry)
+    def activity_owner
+      controller = Thread.current[:public_activity_controller]
+      controller&.try(:user_for_public_activity) || created_by
     end
   end
 end
