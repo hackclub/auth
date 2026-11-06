@@ -36,9 +36,9 @@ module Directory
     private
 
     def compute_expected
-      GraphQueries.create_closure(@conn, table: "_expected_closure")
-      GraphQueries.create_effective_memberships(@conn, table: "_expected_em", closure_table: "_expected_closure")
-      GraphQueries.create_effective_grants(@conn, table: "_expected_eg", em_table: "_expected_em")
+      GraphQueries.create_closure(@conn, table: "_expected_closure", on_commit_drop: true)
+      GraphQueries.create_effective_memberships(@conn, table: "_expected_em", closure_table: "_expected_closure", on_commit_drop: true)
+      GraphQueries.create_effective_grants(@conn, table: "_expected_eg", em_table: "_expected_em", on_commit_drop: true)
     end
 
     def diff_closure
