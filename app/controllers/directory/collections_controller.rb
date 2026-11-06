@@ -200,7 +200,7 @@ module Directory
         @collection.effective_memberships
           .includes(person: :identity)
           .order("identities.first_name")
-          .find_each(batch_size: 500) do |em|
+          .each do |em|
             person = em.person
             membership_type = direct_person_ids.include?(person.id) ? "direct" : "via"
             yielder << SafeCsv.generate_line([ person.full_name, person.primary_email, membership_type ])
