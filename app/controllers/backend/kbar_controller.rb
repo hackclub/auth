@@ -68,6 +68,19 @@ module Backend
             }
           end
         end
+
+      when "directory"
+        if current_user.directory_services_admin?
+          like = "%#{ActiveRecord::Base.sanitize_sql_like(query)}%"
+          Directory::Person.joins(:identity)
+            .where("identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR identities.primary_email ILIKE :q", q: like)
+            .includes(:identity).limit(10).each do |person|
+              results << { type: "directory_person", id: person.id, label: person.full_name, sublabel: person.primary_email, path: "/directory/people/#{person.id}" }
+            end
+          Directory::Collection.where("name ILIKE :q OR slug ILIKE :q", q: like).limit(10).each do |col|
+            results << { type: "directory_collection", id: col.id, label: col.name, sublabel: "#{col.kind} · #{col.slug}", path: "/directory/collections/#{col.slug}" }
+          end
+        end
       end
 
       results

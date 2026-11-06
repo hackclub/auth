@@ -13,7 +13,7 @@ module Directory
     before_action :ensure_directory_access!
     after_action :verify_authorized, unless: :skip_authorization?
 
-    helper_method :current_directory_person, :directory_admin?, :breadcrumbs
+    helper_method :current_directory_person, :directory_admin?, :breadcrumbs, :directory_keyboard_shortcuts
 
     private
 
@@ -56,5 +56,35 @@ module Directory
     def user_for_public_activity
       current_identity
     end
+
+    def directory_keyboard_shortcuts
+      shortcuts = {}
+      parent = breadcrumbs[-2]
+      shortcuts[:back] = parent[:path] if parent&.dig(:path)
+      shortcuts
+    end
+
+    def directory_kbar_data
+      shortcuts = [
+        { code: "DRCT", label: "Directory home", path: directory_root_path, icon: "⌂" },
+        { code: "DPPL", label: "People", path: directory_people_path, icon: "⭢" },
+        { code: "DGRT", label: "Grants", path: directory_all_grants_path, icon: "⭢" },
+        { code: "DRPT", label: "Reports", path: directory_reports_path, icon: "⭢" },
+        { code: "DHLT", label: "Health", path: directory_health_path, icon: "⭢" },
+        { code: "DIMP", label: "Import", path: directory_new_import_path, icon: "⭢" },
+        { code: "DACT", label: "Activity", path: directory_activity_path, icon: "⭢" },
+        { code: "DSRC", label: "Search", path: directory_search_path, icon: "⌕" },
+        { code: "DVAS", label: "View as", path: directory_view_as_path, icon: "⭢" },
+        { code: "MYAX", label: "My access", path: directory_my_access_path, icon: "⭢" }
+      ]
+      if current_identity.active_for_backend?
+        shortcuts << { code: "BKND", label: "Backend", path: backend_root_path, icon: "⭠" }
+      end
+
+      search_scopes = [ { key: "directory", label: "Directory", icon: "⭢" } ]
+
+      { shortcuts: shortcuts, searchScopes: search_scopes, searchUrl: directory_search_kbar_path }
+    end
+    helper_method :directory_kbar_data
   end
 end

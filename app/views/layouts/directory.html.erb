@@ -46,5 +46,7 @@
       <% end %>
       <%= yield %>
     </column>
+    <script type="application/json" id="keyboard-shortcuts-data"><%= raw(directory_keyboard_shortcuts.to_json) %></script>
+    <script type="application/json" id="kbar-data"><%= raw(directory_kbar_data.to_json) %></script>
   </body>
 </html>

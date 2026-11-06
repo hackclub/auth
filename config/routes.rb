@@ -279,6 +279,7 @@ Rails.application.routes.draw do
     root "collections#index"
     get "me", to: "my_access#show", as: :my_access
     get "search", to: "search#index", as: :search
+    get "search/kbar", to: "search#kbar", as: :search_kbar
     get "activity", to: "activity#index", as: :activity
     get "reports", to: "reports#index", as: :reports
     get "health", to: "health#show", as: :health
