@@ -35,9 +35,7 @@ module Directory
             alert: t("directory.flash.email_not_found")
           return
         end
-        person = Directory::Person.find_or_create_by!(identity: identity) do |p|
-          p.created_by_identity_id = current_identity.id
-        end
+        person = find_or_create_person!(identity)
         membership.member_person = person
 
       elsif params[:group_slug].present?
@@ -121,40 +119,34 @@ module Directory
       added = []
       skipped = []
       not_found = []
-      resolved = []
 
+      identities_by_identifier = {}
       identifiers.each do |identifier|
         identity = lookup_identity(identifier)
-
-        unless identity
+        if identity
+          identities_by_identifier[identifier] = identity
+        else
           not_found << identifier
-          next
         end
-
-        person = Directory::Person.find_or_create_by!(identity: identity) do |p|
-          p.created_by_identity_id = current_identity.id
-        end
-
-        if Directory::Membership.exists?(collection: @collection, member_person: person)
-          skipped << identifier
-          next
-        end
-
-        resolved << { identifier: identifier, person: person }
       end
 
-      if resolved.any?
+      if identities_by_identifier.any?
         Directory.mutate!(cause: Directory.cause("batch_membership_created", actor: current_identity.id)) do
-          resolved.each do |entry|
-            next if Directory::Membership.exists?(collection: @collection, member_person: entry[:person])
+          identities_by_identifier.each do |identifier, identity|
+            person = find_or_create_person!(identity)
+
+            if Directory::Membership.exists?(collection: @collection, member_person: person)
+              skipped << identifier
+              next
+            end
 
             Directory::Membership.create!(
               collection: @collection,
-              member_person: entry[:person],
+              member_person: person,
               expires_at: params[:expires_at].presence,
               created_by_identity_id: current_identity.id
             )
-            added << entry[:identifier]
+            added << identifier
           end
         end
       end
@@ -200,6 +192,14 @@ module Directory
 
     private
 
+    def find_or_create_person!(identity)
+      Directory::Person.find_or_create_by!(identity: identity) do |p|
+        p.created_by_identity_id = current_identity.id
+      end
+    rescue ActiveRecord::RecordNotUnique
+      Directory::Person.find_by!(identity: identity)
+    end
+
     def refuse_rate_limited
       Rails.logger.warn("[Directory] add-by-identifier: #{current_identity.primary_email} rate limited on #{params[:collection_slug]}")
       redirect_back fallback_location: directory_collection_path(params[:collection_slug]),
@@ -210,10 +210,11 @@ module Directory
     # alike: every lookup is logged with who typed what, and every miss is recorded for
     # the reports page.
     def lookup_identity(input)
-      Rails.logger.info("[Directory] add-by-identifier: #{current_identity.primary_email} searched for '#{input}' on #{@collection.slug}")
+      sanitized = input.gsub(/[\r\n]/, " ")
+      Rails.logger.info("[Directory] add-by-identifier: #{current_identity.primary_email} searched for '#{sanitized}' on #{@collection.slug}")
       identity = resolve_identifier(input)
       unless identity
-        Rails.logger.info("[Directory] add-by-identifier: miss for '#{input}'")
+        Rails.logger.info("[Directory] add-by-identifier: miss for '#{sanitized}'")
         @collection.create_activity :email_lookup_miss, owner: current_identity, params: { email: input }
       end
       identity
