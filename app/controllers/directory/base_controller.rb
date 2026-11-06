@@ -83,7 +83,7 @@ module Directory
 
       search_scopes = [ { key: "directory", label: "Directory", icon: "⭢" } ]
 
-      { shortcuts: shortcuts, searchScopes: search_scopes, searchUrl: directory_search_kbar_path }
+      { shortcuts: shortcuts, searchScopes: search_scopes, searchUrl: directory_search_kbar_path, defaultScope: "directory" }
     end
     helper_method :directory_kbar_data
   end

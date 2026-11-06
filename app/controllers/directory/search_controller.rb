@@ -33,6 +33,19 @@ module Directory
       results = []
       return render(json: results) if query.length < 2
 
+      if query.start_with?("ident!")
+        identity = Identity.find_by_public_id(query)
+        if identity
+          person = Directory::Person.find_by(identity: identity)
+          if person
+            results << { type: "directory_person", id: person.id, label: person.full_name, sublabel: identity.primary_email, path: directory_person_path(person) }
+          else
+            results << { type: "identity", id: identity.public_id, label: identity.full_name, sublabel: "#{identity.primary_email} (not in directory)", path: nil, disabled: true }
+          end
+        end
+        return render(json: results)
+      end
+
       like = "%#{ActiveRecord::Base.sanitize_sql_like(query)}%"
 
       policy_scope(Directory::Person).joins(:identity)

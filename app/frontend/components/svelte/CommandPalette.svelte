@@ -275,6 +275,10 @@
         prefixes = data.prefixes || {};
         searchScopes = data.searchScopes || [];
         if (data.searchUrl) searchUrl = data.searchUrl;
+        if (data.defaultScope) {
+          const scope = searchScopes.find(s => s.key === data.defaultScope);
+          if (scope) activeScope = scope;
+        }
       } catch (err) {
         console.error('Failed to parse kbar data:', err);
       }
