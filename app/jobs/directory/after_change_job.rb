@@ -76,9 +76,6 @@ module Directory
       @person_entitlements_cache[person.id] ||= Directory::EffectiveMembership.where(person_id: person.id).pluck(:collection_id).to_set
     end
 
-    def app_ids_affected_by(entitlement)
-      entitlement.affected_app_ids
-    end
 
     def revoke_access(identity_id, app_id, email)
       Directory::RevokeAccess.call(identity_id: identity_id, app_id: app_id, email: email)
