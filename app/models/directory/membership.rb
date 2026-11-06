@@ -118,9 +118,14 @@ module Directory
     end
 
     def track_removal_on_person_and_collection
-      return unless member_person_id
       expired = expires_at.present? && expires_at <= Time.current
-      name = begin; member_person&.full_name; rescue ActiveRecord::RecordNotFound; nil; end || "(deleted)"
+      name = if member_person_id
+        begin; member_person&.full_name; rescue ActiveRecord::RecordNotFound; nil; end || "(deleted)"
+      elsif member_group_id
+        begin; member_group&.name; rescue ActiveRecord::RecordNotFound; nil; end || "(deleted)"
+      end
+      return unless name
+
       collection&.create_activity :member_removed,
         owner: nil,
         params: { member_name: name, reason: expired ? "expired" : "removed" }

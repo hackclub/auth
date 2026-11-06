@@ -77,6 +77,7 @@ module Directory
 
       @recent_activities = PublicActivity::Activity
         .where(trackable: @collection)
+        .or(PublicActivity::Activity.where(recipient: @collection))
         .order(created_at: :desc)
         .limit(5)
 
