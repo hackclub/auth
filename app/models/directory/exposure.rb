@@ -21,6 +21,12 @@ module Directory
     validates :claim_name, uniqueness: { scope: :app_id }
     validate :entitlement_must_be_entitlement
 
+    def self.claim_names_for(person:, app:)
+      where(app_id: app.id)
+        .where(entitlement_id: Directory::EffectiveMembership.where(person_id: person.id).select(:collection_id))
+        .pluck(:claim_name)
+    end
+
     private
 
     def entitlement_must_be_entitlement

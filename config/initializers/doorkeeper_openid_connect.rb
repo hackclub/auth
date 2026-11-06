@@ -85,14 +85,7 @@ Doorkeeper::OpenidConnect.configure do
       person = Directory::Person.find_by(identity: resource_owner)
       next [] unless person
 
-      Directory::Exposure
-        .where(app_id: app.id)
-        .where(
-          entitlement_id: Directory::EffectiveMembership
-            .where(person_id: person.id)
-            .select(:collection_id)
-        )
-        .pluck(:claim_name)
+      Directory::Exposure.claim_names_for(person: person, app: app)
     end
   end
 end

@@ -127,14 +127,7 @@ class OAuthScope
           next "none" unless person
 
           if app
-            claim_names = Directory::Exposure
-              .where(app_id: app.id)
-              .where(
-                entitlement_id: Directory::EffectiveMembership
-                  .where(person_id: person.id)
-                  .select(:collection_id)
-              )
-              .pluck(:claim_name)
+            claim_names = Directory::Exposure.claim_names_for(person: person, app: app)
             claim_names.any? ? claim_names.sort.join(", ") : "none"
           else
             names = person.effective_memberships.joins(:collection).where(directory_collections: { kind: "entitlement" }).pluck("directory_collections.name")
