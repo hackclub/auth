@@ -125,14 +125,24 @@ module Directory
         @resolved << { identity:, collection:, expires_at: row[:expires_at], email: row[:email] }
       end
 
-      # Now check for duplicates and build changes
+      # Batch-load persons and active memberships to avoid N+1 queries
+      identity_ids = @resolved.map { |e| e[:identity].id }.uniq
+      persons_by_identity = Directory::Person.where(identity_id: identity_ids).index_by(&:identity_id)
+
+      person_ids = persons_by_identity.values.map(&:id)
+      collection_ids = @resolved.map { |e| e[:collection].id }.uniq
+      active_pairs = if person_ids.any? && collection_ids.any?
+        Directory::Membership.active
+          .where(collection_id: collection_ids, member_person_id: person_ids)
+          .pluck(:collection_id, :member_person_id)
+          .to_set
+      else
+        Set.new
+      end
+
       @resolved.each do |entry|
-        person = Directory::Person.find_by(identity: entry[:identity])
-        existing = if person
-          Directory::Membership.active.exists?(collection: entry[:collection], member_person: person)
-        else
-          false
-        end
+        person = persons_by_identity[entry[:identity].id]
+        existing = person ? active_pairs.include?([ entry[:collection].id, person.id ]) : false
 
         if existing
           @changes << { email: entry[:email], collection: entry[:collection].slug, expires_at: entry[:expires_at], action: "skip_existing" }
@@ -175,6 +185,8 @@ module Directory
           )
 
           created_count += 1
+        rescue ActiveRecord::RecordNotUnique
+          skipped_count += 1
         end
 
         Directory::Rebuild.call(cause: Directory.cause("import", actor: @created_by.id), skip_lock: true) if created_count > 0
