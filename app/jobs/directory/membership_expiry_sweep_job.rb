@@ -9,7 +9,7 @@ module Directory
     queue_as :default
 
     def perform
-      return unless Directory::Membership.expired.exists?
+      return unless Directory::EffectiveMembership.unscoped.where("expires_at <= NOW()").exists?
 
       Directory.mutate!(cause: Directory.cause("expiry_rebuild")) {}
     end
