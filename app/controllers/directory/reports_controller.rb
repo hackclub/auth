@@ -7,8 +7,9 @@ module Directory
       add_breadcrumb t("directory.reports.title")
 
       @empty_collections = Directory::Collection
-        .left_joins(:memberships)
-        .where(directory_memberships: { id: nil })
+        .where.not(
+          id: Directory::Membership.active.select(:collection_id)
+        )
         .order(:name)
         .load_async
 

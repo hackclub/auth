@@ -17,7 +17,7 @@ module Directory
 
       target_set = target_ancestor_ids.to_set
 
-      rows = Directory::Membership
+      rows = Directory::Membership.active
         .joins("INNER JOIN directory_closure ON directory_closure.descendant_id = directory_memberships.collection_id")
         .where(member_person_id: person_ids)
         .where.not(collection_id: collection.id)

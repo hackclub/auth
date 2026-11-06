@@ -51,7 +51,7 @@ RSpec.describe "SAML access checks", type: :request do
 
   def expect_refused(message)
     expect(response).to have_http_status(:forbidden)
-    expect(response.body).to include(message)
+    expect(response.body).to include(CGI.escapeHTML(message))
     expect(posted_saml_response).to be_nil
   end
 

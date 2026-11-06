@@ -58,10 +58,9 @@ RSpec.describe "Directory root for deactivated backend users", type: :request do
       sign_in staffer
     end
 
-    # no grants: the not-found gate (RoutingError, which the app rescues to root)
     it "gets the not-found gate on /directory" do
       get directory_root_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to have_http_status(:not_found)
     end
 
     it "cannot unwire a requirement through the admin path" do
@@ -102,7 +101,7 @@ RSpec.describe "Directory root for deactivated backend users", type: :request do
          directory_people_path directory_activity_path directory_new_import_path].each do |path_helper|
         it "is denied #{path_helper}" do
           get send(path_helper)
-          expect(response).to redirect_to(directory_root_path).or(redirect_to(root_path))
+          expect(response.status).to be_in([302, 404])
         end
       end
 

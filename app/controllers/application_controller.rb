@@ -114,7 +114,7 @@ class ApplicationController < ActionController::Base
     flash[:error] = "Something went wrong. Please try again."
     flash[:sentry_event_id] = event_id if event_id
 
-    raise e if Rails.env.development?
+    raise e if Rails.env.local?
     redirect_to root_path unless request.path == "/"
   end
 

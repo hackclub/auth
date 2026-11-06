@@ -39,7 +39,7 @@ RSpec.describe "SAML login straight after verifying a login code", type: :reques
 
   def expect_logged_in_without_assertion(message)
     expect(response).to have_http_status(:forbidden)
-    expect(response.body).to include(message)
+    expect(response.body).to include(CGI.escapeHTML(message))
     expect(posted_saml_response).to be_nil
     # the HCA login itself still went through; only the hop into the SP is refused
     expect(@attempt.reload.session).to be_present
