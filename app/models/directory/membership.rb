@@ -127,7 +127,6 @@ module Directory
       return unless name
 
       collection&.create_activity :member_removed,
-        owner: nil,
         params: { member_name: name, reason: expired ? "expired" : "removed" }
     rescue StandardError => e
       Rails.logger.error("[Directory] Activity tracking failed: #{e.message}")

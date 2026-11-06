@@ -1,5 +1,5 @@
 <% content_for :title, @collection.name %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+<column pad-="2 1" gap-="2" style="max-width: 120ch; margin: 0 auto; width: 100%;">
   <%# Header %>
   <row align-="center between">
     <row gap-="2" align-="center">
@@ -23,141 +23,92 @@
 
   <% can_manage = policy(@collection).manage_members? %>
 
-  <div is-="separator"></div>
-
   <%# === MEMBERS === %>
   <% if @collection.entitlement? %>
-    <%# Entitlements: groups (structural) and people (delegated) %>
-    <row align-="center between">
-      <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.collections.show.member_groups") %></span>
-      <span style="color: var(--foreground2); font-size: 0.85em;"><%= t("directory.collections.show.structural_admin_only") %></span>
-    </row>
-    <% if @direct_group_memberships.any? %>
-      <table>
-        <thead><tr><th><%= t("directory.collections.show.col_group") %></th><th><%= t("directory.collections.show.col_added") %></th><th><%= t("directory.collections.show.col_by") %></th><% if directory_admin? %><th></th><% end %></tr></thead>
-        <tbody>
-          <% @direct_group_memberships.each do |m| %>
-            <tr>
-              <td><%= link_to m.member_group.name, directory_collection_path(m.member_group.slug) %> <span is-="badge" variant-="blue"><%= t("directory.badges.group") %></span></td>
-              <td style="color: var(--foreground2);"><%= m.created_at.strftime("%Y-%m-%d") %></td>
-              <td style="color: var(--foreground2);"><%= m.created_by&.full_name || "—" %></td>
-              <% if directory_admin? %>
-                <td style="text-align: right;">
-                  <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: t("directory.collections.show.remove_group_confirm") }, class: "btn-destructive" %>
+    <%# Entitlements: groups (structural) then people (delegated) %>
+    <column gap-="1">
+      <row align-="center between">
+        <b style="color: var(--foreground1);"><%= t("directory.collections.show.member_groups") %></b>
+        <span style="color: var(--foreground2); font-size: 0.85em;"><%= t("directory.collections.show.structural_admin_only") %></span>
+      </row>
+      <% if @direct_group_memberships.any? %>
+        <table>
+          <thead><tr><th><%= t("directory.collections.show.col_group") %></th><th><%= t("directory.collections.show.col_added") %></th><th><%= t("directory.collections.show.col_by") %></th><% if directory_admin? %><th></th><% end %></tr></thead>
+          <tbody>
+            <% @direct_group_memberships.each do |m| %>
+              <% expired = m.expires_at && m.expires_at <= Time.current %>
+              <tr style="<%= 'opacity: 0.5;' if expired %>">
+                <td>
+                  <%= link_to m.member_group.name, directory_collection_path(m.member_group.slug) %>
+                  <span is-="badge" variant-="blue"><%= t("directory.badges.group") %></span>
+                  <% if expired %><span is-="badge" variant-="yellow"><%= t("directory.badges.expired") %></span><% end %>
                 </td>
-              <% end %>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_member_groups") %></span>
-    <% end %>
-
-    <% if directory_admin? %>
-      <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
-        <row gap-="1" align-="center">
-          <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder"), style: "flex: 1; border: none;", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
-          <button type="submit" size-="small"><%= t("directory.collections.show.add_group") %></button>
-        </row>
+                <td style="color: var(--foreground2);"><%= m.created_at.strftime("%Y-%m-%d") %></td>
+                <td style="color: var(--foreground2);"><%= m.created_by&.full_name || "—" %></td>
+                <% if directory_admin? %>
+                  <td style="text-align: right;">
+                    <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: t("directory.collections.show.remove_group_confirm") }, class: "btn-destructive" %>
+                  </td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_member_groups") %></span>
       <% end %>
-    <% end %>
+      <% if directory_admin? %>
+        <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
+          <row gap-="1" align-="center">
+            <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder"), style: "flex: 1; border: none;", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
+            <button type="submit" size-="small"><%= t("directory.collections.show.add_group") %></button>
+          </row>
+        <% end %>
+      <% end %>
+    </column>
 
     <div is-="separator"></div>
 
-    <row align-="center between">
-      <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.collections.show.direct_people") %></span>
-      <% if can_manage && !directory_admin? %>
-        <span style="color: var(--foreground2); font-size: 0.85em;"><%= t("directory.collections.show.you_can_manage") %></span>
-      <% end %>
-    </row>
-    <% if @direct_people_memberships.any? %>
-      <table>
-        <thead><tr><th><%= t("directory.collections.show.col_person") %></th><th><%= t("directory.collections.show.col_added") %></th><th><%= t("directory.collections.show.col_by") %></th><th><%= t("directory.collections.show.col_expires") %></th><% if can_manage %><th></th><% end %></tr></thead>
-        <tbody>
-          <% @direct_people_memberships.each do |m| %>
-            <% expired = m.expires_at && m.expires_at <= Time.current %>
-            <tr style="<%= 'opacity: 0.5;' if expired %>">
-              <td>
-                <%= link_to m.member_person.full_name, directory_person_path(m.member_person) %>
-                <% if expired %><span is-="badge" variant-="yellow"><%= t("directory.badges.expired") %></span><% end %>
-              </td>
-              <td style="color: var(--foreground2);"><%= m.created_at.strftime("%Y-%m-%d") %></td>
-              <td style="color: var(--foreground2);"><%= m.created_by&.full_name || "—" %></td>
-              <td style="color: var(--foreground2);"><%= m.expires_at ? distance_of_time_in_words_to_now(m.expires_at) : "—" %></td>
-              <% if can_manage %>
-                <td style="text-align: right;">
-                  <% confirm_msg = t("directory.collections.show.remove_confirm", name: m.member_person.full_name) %>
-                  <% if @consequences[m.id] %>
-                    <% confirm_msg += "\n#{@consequences[m.id]}" %>
-                  <% end %>
-                  <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, class: "btn-destructive" %>
-                </td>
-              <% end %>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-      <%= paginate @direct_people_memberships, param_name: :page %>
-    <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_direct_people") %></span>
-    <% end %>
-
-    <% if can_manage %>
-      <%= form_with url: batch_create_directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
-        <div data-directory-member-picker>
-          <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
-        </div>
-        <row gap-="1" align-="center" style="margin-top: 4px;">
-          <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
-        </row>
-      <% end %>
-    <% end %>
-
-  <% else %>
-    <%# Groups: unified member list %>
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.collections.show.members") %></span>
-    <% if @all_memberships.any? %>
-      <table>
-        <thead><tr><th><%= t("directory.collections.show.col_member") %></th><th><%= t("directory.collections.show.col_added") %></th><th><%= t("directory.collections.show.col_by") %></th><th><%= t("directory.collections.show.col_expires") %></th><% if can_manage %><th></th><% end %></tr></thead>
-        <tbody>
-          <% @all_memberships.each do |m| %>
-            <% expired = m.expires_at && m.expires_at <= Time.current %>
-            <tr style="<%= 'opacity: 0.5;' if expired %>">
-              <td>
-                <% if m.member_person %>
+    <column gap-="1">
+      <row align-="center between">
+        <b style="color: var(--foreground1);"><%= t("directory.collections.show.direct_people") %></b>
+        <% if can_manage && !directory_admin? %>
+          <span style="color: var(--foreground2); font-size: 0.85em;"><%= t("directory.collections.show.you_can_manage") %></span>
+        <% end %>
+      </row>
+      <% if @direct_people_memberships.any? %>
+        <table>
+          <thead><tr><th><%= t("directory.collections.show.col_person") %></th><th><%= t("directory.collections.show.col_added") %></th><th><%= t("directory.collections.show.col_by") %></th><th><%= t("directory.collections.show.col_expires") %></th><% if can_manage %><th></th><% end %></tr></thead>
+          <tbody>
+            <% @direct_people_memberships.each do |m| %>
+              <% expired = m.expires_at && m.expires_at <= Time.current %>
+              <tr style="<%= 'opacity: 0.5;' if expired %>">
+                <td>
                   <%= link_to m.member_person.full_name, directory_person_path(m.member_person) %>
-                <% elsif m.member_group %>
-                  <%= link_to m.member_group.name, directory_collection_path(m.member_group.slug) %>
-                  <span is-="badge" variant-="blue"><%= t("directory.badges.group") %></span>
-                <% end %>
-                <% if expired %><span is-="badge" variant-="yellow"><%= t("directory.badges.expired") %></span><% end %>
-              </td>
-              <td style="color: var(--foreground2);"><%= m.created_at.strftime("%Y-%m-%d") %></td>
-              <td style="color: var(--foreground2);"><%= m.created_by&.full_name || "—" %></td>
-              <td style="color: var(--foreground2);"><%= m.expires_at ? distance_of_time_in_words_to_now(m.expires_at) : "—" %></td>
-              <% if can_manage %>
-                <td style="text-align: right;">
-                  <% member_name = m.member_person&.full_name || m.member_group&.name %>
-                  <% confirm_msg = t("directory.collections.show.remove_confirm", name: member_name) %>
-                  <% if m.member_person && @consequences[m.id] %>
-                    <% confirm_msg += "\n#{@consequences[m.id]}" %>
-                  <% end %>
-                  <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, class: "btn-destructive" %>
+                  <% if expired %><span is-="badge" variant-="yellow"><%= t("directory.badges.expired") %></span><% end %>
                 </td>
-              <% end %>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-      <%= paginate @all_memberships, param_name: :members_page %>
-    <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_members") %></span>
-    <% end %>
-
-    <% if can_manage %>
-      <row gap-="2">
-        <%= form_with url: batch_create_directory_collection_memberships_path(@collection.slug), method: :post, local: true, style: "flex: 1;" do |f| %>
+                <td style="color: var(--foreground2);"><%= m.created_at.strftime("%Y-%m-%d") %></td>
+                <td style="color: var(--foreground2);"><%= m.created_by&.full_name || "—" %></td>
+                <td style="color: var(--foreground2);"><%= m.expires_at ? distance_of_time_in_words_to_now(m.expires_at) : "—" %></td>
+                <% if can_manage %>
+                  <td style="text-align: right;">
+                    <% confirm_msg = t("directory.collections.show.remove_confirm", name: m.member_person.full_name) %>
+                    <% if @consequences[m.id] %>
+                      <% confirm_msg += "\n#{@consequences[m.id]}" %>
+                    <% end %>
+                    <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, class: "btn-destructive" %>
+                  </td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+        <%= paginate @direct_people_memberships, param_name: :page %>
+      <% else %>
+        <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_direct_people") %></span>
+      <% end %>
+      <% if can_manage %>
+        <%= form_with url: batch_create_directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
           <div data-directory-member-picker>
             <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
           </div>
@@ -165,120 +116,182 @@
             <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
           </row>
         <% end %>
-        <% if @collection.group? || directory_admin? %>
-          <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true, style: "flex: 1;" do |f| %>
-            <row gap-="1" align-="center">
-              <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder"), style: "flex: 1; border: none;", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
-              <button type="submit" size-="small"><%= t("directory.collections.show.add_group") %></button>
+      <% end %>
+    </column>
+
+  <% else %>
+    <%# Groups: unified member list %>
+    <column gap-="1">
+      <b style="color: var(--foreground1);"><%= t("directory.collections.show.members") %></b>
+      <% if @all_memberships.any? %>
+        <table>
+          <thead><tr><th><%= t("directory.collections.show.col_member") %></th><th><%= t("directory.collections.show.col_added") %></th><th><%= t("directory.collections.show.col_by") %></th><th><%= t("directory.collections.show.col_expires") %></th><% if can_manage %><th></th><% end %></tr></thead>
+          <tbody>
+            <% @all_memberships.each do |m| %>
+              <% expired = m.expires_at && m.expires_at <= Time.current %>
+              <tr style="<%= 'opacity: 0.5;' if expired %>">
+                <td>
+                  <% if m.member_person %>
+                    <%= link_to m.member_person.full_name, directory_person_path(m.member_person) %>
+                  <% elsif m.member_group %>
+                    <%= link_to m.member_group.name, directory_collection_path(m.member_group.slug) %>
+                    <span is-="badge" variant-="blue"><%= t("directory.badges.group") %></span>
+                  <% end %>
+                  <% if expired %><span is-="badge" variant-="yellow"><%= t("directory.badges.expired") %></span><% end %>
+                </td>
+                <td style="color: var(--foreground2);"><%= m.created_at.strftime("%Y-%m-%d") %></td>
+                <td style="color: var(--foreground2);"><%= m.created_by&.full_name || "—" %></td>
+                <td style="color: var(--foreground2);"><%= m.expires_at ? distance_of_time_in_words_to_now(m.expires_at) : "—" %></td>
+                <% if can_manage %>
+                  <td style="text-align: right;">
+                    <% member_name = m.member_person&.full_name || m.member_group&.name %>
+                    <% confirm_msg = t("directory.collections.show.remove_confirm", name: member_name) %>
+                    <% if m.member_person && @consequences[m.id] %>
+                      <% confirm_msg += "\n#{@consequences[m.id]}" %>
+                    <% end %>
+                    <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, class: "btn-destructive" %>
+                  </td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+        <%= paginate @all_memberships, param_name: :members_page %>
+      <% else %>
+        <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_members") %></span>
+      <% end %>
+
+      <% if can_manage %>
+        <column gap-="1" pad-="1 0 0 0">
+          <%= form_with url: batch_create_directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
+            <div data-directory-member-picker>
+              <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
+            </div>
+            <row gap-="1" align-="center" style="margin-top: 4px;">
+              <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
             </row>
           <% end %>
-        <% end %>
-      </row>
-    <% end %>
+          <% if @collection.group? || directory_admin? %>
+            <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
+              <row gap-="1" align-="center">
+                <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder"), style: "flex: 1; border: none;", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
+                <button type="submit" size-="small"><%= t("directory.collections.show.add_group") %></button>
+              </row>
+            <% end %>
+          <% end %>
+        </column>
+      <% end %>
+    </column>
   <% end %>
-
-  <div is-="separator"></div>
 
   <%# === ALSO INCLUDES === %>
   <% if @effective_people_with_paths.present? && @effective_people_with_paths.any? %>
-    <details>
-      <summary style="color: var(--foreground2); cursor: pointer;"><%= t("directory.collections.show.also_includes", count: @effective_people_paginated.total_count) %></summary>
-      <table>
-        <thead><tr><th><%= t("directory.collections.show.col_person") %></th><th><%= t("directory.collections.show.col_email") %></th><th><%= t("directory.collections.show.col_via") %></th></tr></thead>
-        <tbody>
-          <% @effective_people_with_paths.each do |entry| %>
-            <tr>
-              <td><%= link_to entry[:person].full_name, directory_person_path(entry[:person]) %></td>
-              <td style="color: var(--foreground2);"><%= entry[:person].primary_email %></td>
-              <td style="color: var(--foreground2);">
-                <% if entry[:via].any? %>
-                  via <%= entry[:via].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" · ").html_safe %>
-                <% else %>
-                  <span style="opacity: 0.5;"><%= t("directory.collections.show.via_hidden", count: 1) %></span>
-                <% end %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-      <%= paginate @effective_people_paginated, param_name: :effective_page %>
-    </details>
     <div is-="separator"></div>
-  <% end %>
-
-  <%# === MANAGED BY === %>
-  <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.collections.show.managed_by") %></span>
-  <% if @grants.any? %>
-    <table>
-      <thead><tr><th><%= t("directory.collections.show.col_group") %></th><th><%= t("directory.collections.show.col_permission") %></th><th></th><th><%= t("directory.collections.show.col_by") %></th><% if directory_admin? %><th></th><% end %></tr></thead>
-      <tbody>
-        <% @grants.each do |grant| %>
-          <tr>
-            <td><%= link_to grant.grantee_group.name, directory_collection_path(grant.grantee_group.slug) %></td>
-            <td><code><%= grant.permission %></code></td>
-            <td><% if grant.recursive %><span is-="badge" variant-="background2"><%= t("directory.badges.recursive") %></span><% end %></td>
-            <td style="color: var(--foreground2);"><%= grant.created_by&.full_name || "—" %></td>
-            <% if directory_admin? %>
-              <td style="text-align: right;">
-                <%= button_to t("directory.actions.remove"), directory_collection_grant_path(@collection.slug, grant), method: :delete, data: { confirm: t("directory.collections.show.remove_grant_confirm") }, class: "btn-destructive" %>
-              </td>
+    <details>
+      <summary style="cursor: pointer;"><b style="color: var(--foreground1);"><%= t("directory.collections.show.also_includes", count: @effective_people_paginated.total_count) %></b></summary>
+      <column gap-="1" pad-="1 0 0 0">
+        <table>
+          <thead><tr><th><%= t("directory.collections.show.col_person") %></th><th><%= t("directory.collections.show.col_email") %></th><th><%= t("directory.collections.show.col_via") %></th></tr></thead>
+          <tbody>
+            <% @effective_people_with_paths.each do |entry| %>
+              <tr>
+                <td><%= link_to entry[:person].full_name, directory_person_path(entry[:person]) %></td>
+                <td style="color: var(--foreground2);"><%= entry[:person].primary_email %></td>
+                <td style="color: var(--foreground2);">
+                  <% if entry[:via].any? %>
+                    via <%= entry[:via].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" · ").html_safe %>
+                  <% else %>
+                    <span style="opacity: 0.5;"><%= t("directory.collections.show.via_hidden", count: 1) %></span>
+                  <% end %>
+                </td>
+              </tr>
             <% end %>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_grants") %></span>
-  <% end %>
-
-  <% if directory_admin? %>
-    <%= form_with url: directory_collection_grants_path(@collection.slug), method: :post, local: true do |f| %>
-      <row gap-="1" align-="center">
-        <%= f.text_field :grantee_group_slug, placeholder: t("directory.collections.show.grantee_placeholder"), style: "flex: 1; border: none;", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
-        <%= f.select :permission, %w[view manage_members expose] %>
-        <label style="color: var(--foreground2); white-space: nowrap;"><%= f.check_box :recursive %> <%= t("directory.collections.show.recursive_label") %></label>
-        <button type="submit" size-="small"><%= t("directory.collections.show.add_grant") %></button>
-      </row>
-    <% end %>
+          </tbody>
+        </table>
+        <%= paginate @effective_people_paginated, param_name: :effective_page %>
+      </column>
+    </details>
   <% end %>
 
   <div is-="separator"></div>
 
-  <%# === APPS TOLD ABOUT THIS (entitlements only) === %>
-  <% if @collection.entitlement? %>
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.collections.show.apps_told_about") %></span>
-    <% if @wired_exposures.any? %>
+  <%# === MANAGED BY === %>
+  <column gap-="1">
+    <b style="color: var(--foreground1);"><%= t("directory.collections.show.managed_by") %></b>
+    <% if @grants.any? %>
       <table>
-        <thead><tr><th><%= t("directory.collections.show.col_app") %></th><th><%= t("directory.collections.show.col_claim") %></th><th><%= t("directory.collections.show.col_wired_by") %></th><th><%= t("directory.collections.show.col_when") %></th></tr></thead>
+        <thead><tr><th><%= t("directory.collections.show.col_group") %></th><th><%= t("directory.collections.show.col_permission") %></th><th></th><th><%= t("directory.collections.show.col_by") %></th><% if directory_admin? %><th></th><% end %></tr></thead>
         <tbody>
-          <% @wired_exposures.each do |exp| %>
+          <% @grants.each do |grant| %>
             <tr>
-              <td><%= exp.app.name %></td>
-              <td><code><%= exp.claim_name %></code></td>
-              <td style="color: var(--foreground2);"><%= exp.created_by&.full_name || "—" %></td>
-              <td style="color: var(--foreground2);"><%= exp.created_at.strftime("%Y-%m-%d") %></td>
+              <td><%= link_to grant.grantee_group.name, directory_collection_path(grant.grantee_group.slug) %></td>
+              <td><code><%= grant.permission %></code></td>
+              <td><% if grant.recursive %><span is-="badge" variant-="background2"><%= t("directory.badges.recursive") %></span><% end %></td>
+              <td style="color: var(--foreground2);"><%= grant.created_by&.full_name || "—" %></td>
+              <% if directory_admin? %>
+                <td style="text-align: right;">
+                  <%= button_to t("directory.actions.remove"), directory_collection_grant_path(@collection.slug, grant), method: :delete, data: { confirm: t("directory.collections.show.remove_grant_confirm") }, class: "btn-destructive" %>
+                </td>
+              <% end %>
             </tr>
           <% end %>
         </tbody>
       </table>
     <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_apps_wired") %></span>
+      <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_grants") %></span>
     <% end %>
+    <% if directory_admin? %>
+      <%= form_with url: directory_collection_grants_path(@collection.slug), method: :post, local: true do |f| %>
+        <row gap-="1" align-="center">
+          <%= f.text_field :grantee_group_slug, placeholder: t("directory.collections.show.grantee_placeholder"), style: "flex: 1; border: none;", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
+          <%= f.select :permission, %w[view manage_members expose] %>
+          <label style="color: var(--foreground2); white-space: nowrap;"><%= f.check_box :recursive %> <%= t("directory.collections.show.recursive_label") %></label>
+          <button type="submit" size-="small"><%= t("directory.collections.show.add_grant") %></button>
+        </row>
+      <% end %>
+    <% end %>
+  </column>
+
+  <%# === APPS TOLD ABOUT THIS (entitlements only) === %>
+  <% if @collection.entitlement? %>
     <div is-="separator"></div>
+    <column gap-="1">
+      <b style="color: var(--foreground1);"><%= t("directory.collections.show.apps_told_about") %></b>
+      <% if @wired_exposures.any? %>
+        <table>
+          <thead><tr><th><%= t("directory.collections.show.col_app") %></th><th><%= t("directory.collections.show.col_claim") %></th><th><%= t("directory.collections.show.col_wired_by") %></th><th><%= t("directory.collections.show.col_when") %></th></tr></thead>
+          <tbody>
+            <% @wired_exposures.each do |exp| %>
+              <tr>
+                <td><%= exp.app.name %></td>
+                <td><code><%= exp.claim_name %></code></td>
+                <td style="color: var(--foreground2);"><%= exp.created_by&.full_name || "—" %></td>
+                <td style="color: var(--foreground2);"><%= exp.created_at.strftime("%Y-%m-%d") %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <span style="color: var(--foreground2);"><%= t("directory.collections.show.no_apps_wired") %></span>
+      <% end %>
+    </column>
   <% end %>
 
   <%# === ACTIVITY === %>
   <% if @recent_activities.present? && @recent_activities.any? %>
-    <row align-="center between">
-      <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.collections.show.recent_activity") %></span>
-      <a href="<%= activity_directory_collection_path(@collection.slug) %>" style="color: var(--foreground2);"><%= t("directory.collections.show.all_activity") %></a>
-    </row>
-    <%= render "backend/shared/activity_log", activities: @recent_activities %>
+    <div is-="separator"></div>
+    <column gap-="1">
+      <row align-="center between">
+        <b style="color: var(--foreground1);"><%= t("directory.collections.show.recent_activity") %></b>
+        <a href="<%= activity_directory_collection_path(@collection.slug) %>" style="color: var(--foreground2); font-size: 0.85em;"><%= t("directory.collections.show.all_activity") %> &rarr;</a>
+      </row>
+      <%= render "backend/shared/activity_log", activities: @recent_activities %>
+    </column>
   <% end %>
 
-  <div is-="separator"></div>
-
+  <%# === DANGER ZONE === %>
   <% if directory_admin? %>
+    <div is-="separator"></div>
     <details>
       <summary style="color: var(--red); cursor: pointer;"><%= t("directory.collections.show.danger_zone") %></summary>
       <column pad-="1 0" gap-="1">
@@ -297,7 +310,6 @@
   <% end %>
 
   <div is-="separator"></div>
-
   <row gap-="2" align-="center" style="color: var(--foreground2);">
     <row gap-="1" align-="center">
       <span is-="badge" variant-="background2">Bksp</span>
