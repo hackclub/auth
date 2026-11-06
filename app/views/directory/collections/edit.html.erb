@@ -6,7 +6,7 @@
 
   <div is-="separator"></div>
 
-  <%= form_with model: @collection, url: directory_collection_path(@collection.slug), method: :patch, local: true do |f| %>
+  <%= form_with model: @collection, url: directory_collection_path(@collection.slug), method: :patch, local: true, scope: :collection do |f| %>
     <column gap-="1" style="max-width: 600px;">
       <% if @collection.errors.any? %>
         <div style="color: var(--red); padding: 0.5rem 0;">
