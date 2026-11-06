@@ -15,7 +15,7 @@ module Directory
       @collection = Directory::Collection.find_by!(slug: params[:collection_slug])
       authorize Directory::Grant
 
-      grantee = Directory::Collection.groups.find_by!(slug: params[:grantee_group_slug].strip)
+      grantee = Directory::Collection.groups.find_by!(slug: params[:grantee_group_slug]&.strip)
 
       grant = @collection.grants_as_target.new(
         grantee_group: grantee,
