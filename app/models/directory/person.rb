@@ -2,6 +2,8 @@
 
 module Directory
   class Person < ApplicationRecord
+    include PublicIdentifiable
+    set_public_id_prefix "dper"
     include PublicActivity::Model
 
     tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) },

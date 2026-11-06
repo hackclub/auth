@@ -2,6 +2,8 @@
 
 module Directory
   class Collection < ApplicationRecord
+    include PublicIdentifiable
+    set_public_id_prefix "dcol"
     has_paper_trail
     include PublicActivity::Model
     tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) },

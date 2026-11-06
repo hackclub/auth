@@ -33,17 +33,31 @@ module Directory
       results = []
       return render(json: results) if query.length < 2
 
-      if query.start_with?("ident!")
-        identity = Identity.find_by_public_id(query)
-        if identity
-          person = Directory::Person.find_by(identity: identity)
+      if query.include?("!")
+        prefix = query.split("!").first.downcase
+        case prefix
+        when "ident"
+          identity = Identity.find_by_public_id(query)
+          if identity
+            person = Directory::Person.find_by(identity: identity)
+            if person
+              results << { type: "directory_person", id: person.public_id, label: person.full_name, sublabel: identity.primary_email, path: directory_person_path(person) }
+            else
+              results << { type: "identity", label: identity.full_name, sublabel: "#{identity.primary_email} (not in directory)", disabled: true }
+            end
+          end
+        when "dper"
+          person = Directory::Person.find_by_public_id(query)
           if person
-            results << { type: "directory_person", id: person.id, label: person.full_name, sublabel: identity.primary_email, path: directory_person_path(person) }
-          else
-            results << { type: "identity", id: identity.public_id, label: identity.full_name, sublabel: "#{identity.primary_email} (not in directory)", path: nil, disabled: true }
+            results << { type: "directory_person", id: person.public_id, label: person.full_name, sublabel: person.primary_email, path: directory_person_path(person) }
+          end
+        when "dcol"
+          col = Directory::Collection.find_by_public_id(query)
+          if col
+            results << { type: "directory_collection", id: col.public_id, label: col.name, sublabel: "#{col.kind} · #{col.slug}", path: directory_collection_path(col.slug) }
           end
         end
-        return render(json: results)
+        return render(json: results) if results.any? || query.split("!").last.length >= 3
       end
 
       like = "%#{ActiveRecord::Base.sanitize_sql_like(query)}%"
