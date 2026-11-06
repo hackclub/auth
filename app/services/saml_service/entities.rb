@@ -66,6 +66,11 @@ module SAMLService
             @service_providers ||= build_service_providers(cfg.dig(:service_providers))
         end
 
+        def reset!
+            @idp = @idp_entity = @metadata_xml = @service_providers = nil
+            @cert = @key = @signing_key = nil
+        end
+
         # { entity_id => sp_config } from a service_providers list, as config_for(:saml) returns it.
         # Raises ConfigError rather than load an SP differently from how it's written.
         def build_service_providers(sp_configs)
