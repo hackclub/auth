@@ -10,8 +10,8 @@ module Directory
       @collections = policy_scope(Directory::Collection)
         .select(
           "directory_collections.*",
-          "(SELECT COUNT(*) FROM directory_memberships WHERE directory_memberships.collection_id = directory_collections.id) AS preloaded_direct_count",
-          "(SELECT COUNT(*) FROM directory_effective_memberships WHERE directory_effective_memberships.collection_id = directory_collections.id) AS preloaded_effective_count",
+          "(SELECT COUNT(*) FROM directory_memberships WHERE directory_memberships.collection_id = directory_collections.id AND (directory_memberships.expires_at IS NULL OR directory_memberships.expires_at > NOW())) AS preloaded_direct_count",
+          "(SELECT COUNT(*) FROM directory_effective_memberships WHERE directory_effective_memberships.collection_id = directory_collections.id AND (directory_effective_memberships.expires_at IS NULL OR directory_effective_memberships.expires_at > NOW())) AS preloaded_effective_count",
           "(SELECT COUNT(*) FROM directory_exposures WHERE directory_exposures.entitlement_id = directory_collections.id) AS preloaded_exposure_count"
         )
         .order(:name)
