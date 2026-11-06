@@ -146,6 +146,6 @@ module SAMLHelper
       .where(person_id: person.id, directory_collections: { slug: slugs, kind: "entitlement" })
       .pluck("directory_collections.slug")
 
-    entitled_slugs.filter_map { |slug| entitlements_map[slug.to_sym] || entitlements_map[slug] }
+    entitled_slugs.filter_map { |slug| entitlements_map[slug] }
   end
 end
