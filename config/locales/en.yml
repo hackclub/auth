@@ -1063,7 +1063,7 @@ en:
       breadcrumb: "import"
       errors: "import failed with %{count} error(s)."
       new:
-        description_html: "upload a csv or paste csv text to bulk-add memberships. format: <code>email,collection_slug,expires_at</code>"
+        description_html: "upload a csv or paste csv text to bulk-add memberships. format: <code>email_or_ident!,collection_slug_or_dcol!,expires_at</code>"
         expires_at_html: "<code>expires_at</code> is optional. leave it blank for access that doesn't expire, or give a future <code>YYYY-MM-DD</code> (midnight UTC) or ISO 8601 datetime like <code>2027-01-01T17:00-05:00</code> (UTC if there's no offset). anything else is a row error. the preview shows how each row's expiry was read."
         file_label: "upload file"
         heading: "import"

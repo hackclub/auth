@@ -100,12 +100,22 @@ module Directory
     end
 
     def resolve_rows
-      # Batch-load identities and collections
-      emails = @rows.map { |r| r[:email] }.uniq
-      slugs = @rows.map { |r| r[:slug] }.uniq
+      emails = @rows.reject { |r| r[:email].start_with?("ident!") }.map { |r| r[:email] }.uniq
+      ident_ids = @rows.select { |r| r[:email].start_with?("ident!") }.map { |r| r[:email] }.uniq
+      slugs = @rows.reject { |r| r[:slug].start_with?("dcol!") }.map { |r| r[:slug] }.uniq
+      dcol_ids = @rows.select { |r| r[:slug].start_with?("dcol!") }.map { |r| r[:slug] }.uniq
 
       identities_by_email = Identity.where("lower(primary_email) IN (?)", emails).index_by { |i| i.primary_email.downcase }
+      ident_ids.each do |pid|
+        identity = Identity.find_by_public_id(pid)
+        identities_by_email[pid] = identity if identity
+      end
+
       collections_by_slug = Directory::Collection.where(slug: slugs).index_by(&:slug)
+      dcol_ids.each do |pid|
+        col = Directory::Collection.find_by_public_id(pid)
+        collections_by_slug[pid] = col if col
+      end
 
       @resolved = []
 
