@@ -108,14 +108,22 @@ module Directory
       SQL
 
       @conn.execute(<<~SQL)
-        INSERT INTO directory_effective_memberships (collection_id, person_id)
-        SELECT ne.collection_id, ne.person_id
+        INSERT INTO directory_effective_memberships (collection_id, person_id, expires_at)
+        SELECT ne.collection_id, ne.person_id, ne.expires_at
         FROM _new_em ne
         WHERE NOT EXISTS (
           SELECT 1 FROM directory_effective_memberships dem
           WHERE dem.collection_id = ne.collection_id
             AND dem.person_id = ne.person_id
         )
+      SQL
+
+      @conn.execute(<<~SQL)
+        UPDATE directory_effective_memberships SET expires_at = ne.expires_at
+        FROM _new_em ne
+        WHERE directory_effective_memberships.collection_id = ne.collection_id
+          AND directory_effective_memberships.person_id = ne.person_id
+          AND directory_effective_memberships.expires_at IS DISTINCT FROM ne.expires_at
       SQL
     end
 

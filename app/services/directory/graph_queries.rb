@@ -19,18 +19,23 @@ module Directory
       drop_clause = on_commit_drop ? "ON COMMIT DROP" : ""
       conn.execute(<<~SQL)
         CREATE TEMP TABLE #{table} #{drop_clause} AS
-        WITH RECURSIVE closure(ancestor_id, descendant_id, depth) AS (
-          SELECT id, id, 0
+        WITH RECURSIVE closure(ancestor_id, descendant_id, depth, path_expires_at) AS (
+          SELECT id, id, 0, NULL::timestamptz
           FROM directory_collections
           UNION ALL
-          SELECT c.ancestor_id, m.member_group_id, c.depth + 1
+          SELECT c.ancestor_id, m.member_group_id, c.depth + 1,
+                 CASE WHEN c.path_expires_at IS NULL THEN m.expires_at
+                      WHEN m.expires_at IS NULL THEN c.path_expires_at
+                      ELSE LEAST(c.path_expires_at, m.expires_at) END
           FROM closure c
           INNER JOIN directory_memberships m ON m.collection_id = c.descendant_id
           WHERE m.member_group_id IS NOT NULL
             AND #{ACTIVE_MEMBERSHIP}
             AND c.depth < #{Directory::MAX_DEPTH}
         )
-        SELECT DISTINCT ancestor_id, descendant_id, min(depth) AS depth
+        SELECT ancestor_id, descendant_id, min(depth) AS depth,
+               CASE WHEN bool_or(path_expires_at IS NULL) THEN NULL
+                    ELSE MAX(path_expires_at) END AS path_expires_at
         FROM closure
         GROUP BY ancestor_id, descendant_id
       SQL
@@ -42,11 +47,20 @@ module Directory
       drop_clause = on_commit_drop ? "ON COMMIT DROP" : ""
       conn.execute(<<~SQL)
         CREATE TEMP TABLE #{table} #{drop_clause} AS
-        SELECT DISTINCT c.ancestor_id AS collection_id, m.member_person_id AS person_id
-        FROM directory_memberships m
-        INNER JOIN #{closure_table} c ON c.descendant_id = m.collection_id
-        WHERE m.member_person_id IS NOT NULL
-          AND #{ACTIVE_MEMBERSHIP}
+        SELECT collection_id, person_id,
+               CASE WHEN bool_or(path_expires_at IS NULL) THEN NULL
+                    ELSE MAX(path_expires_at) END AS expires_at
+        FROM (
+          SELECT c.ancestor_id AS collection_id, m.member_person_id AS person_id,
+                 CASE WHEN c.path_expires_at IS NULL THEN m.expires_at
+                      WHEN m.expires_at IS NULL THEN c.path_expires_at
+                      ELSE LEAST(c.path_expires_at, m.expires_at) END AS path_expires_at
+          FROM directory_memberships m
+          INNER JOIN #{closure_table} c ON c.descendant_id = m.collection_id
+          WHERE m.member_person_id IS NOT NULL
+            AND #{ACTIVE_MEMBERSHIP}
+        ) raw
+        GROUP BY collection_id, person_id
       SQL
     end
 
