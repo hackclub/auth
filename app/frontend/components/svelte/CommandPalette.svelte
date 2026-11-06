@@ -16,6 +16,7 @@
   let publicIdResult = $state(null);
   let activeIndex = $state(0);
   let isExiting = $state(false);
+  let _defaultScope = null;
 
   let scopedSearchTimeout;
   let publicIdTimeout;
@@ -32,7 +33,7 @@
 
   function open() {
     query = '';
-    activeScope = null;
+    activeScope = _defaultScope;
     scopedResults = [];
     publicIdResult = null;
     isExiting = false;
@@ -277,7 +278,10 @@
         if (data.searchUrl) searchUrl = data.searchUrl;
         if (data.defaultScope) {
           const scope = searchScopes.find(s => s.key === data.defaultScope);
-          if (scope) activeScope = scope;
+          if (scope) {
+            activeScope = scope;
+            _defaultScope = scope;
+          }
         }
       } catch (err) {
         console.error('Failed to parse kbar data:', err);

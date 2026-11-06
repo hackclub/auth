@@ -116,7 +116,7 @@
             <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
           </div>
           <row gap-="1" align-="center" style="margin-top: 4px;">
-            <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" style="border: none; width: auto;" placeholder="expires (optional)" title="membership expiry date (optional)">
+            <label style="color: var(--foreground2); white-space: nowrap; font-size: 0.85em;">expires: <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" style="border: none; width: auto;"></label>
             <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
           </row>
         <% end %>
@@ -172,7 +172,7 @@
               <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
             </div>
             <row gap-="1" align-="center" style="margin-top: 4px;">
-              <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" style="border: none; width: auto;" title="membership expiry date (optional)">
+              <label style="color: var(--foreground2); white-space: nowrap; font-size: 0.85em;">expires: <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" style="border: none; width: auto;"></label>
               <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
             </row>
           <% end %>
@@ -288,7 +288,7 @@
     <column gap-="1">
       <row align-="center between">
         <b style="color: var(--foreground1);"><%= t("directory.collections.show.recent_activity") %></b>
-        <a href="<%= activity_directory_collection_path(@collection.slug) %>" style="color: var(--foreground2); font-size: 0.85em;"><%= t("directory.collections.show.all_activity") %> &rarr;</a>
+        <a href="<%= activity_directory_collection_path(@collection.slug) %>" style="color: var(--foreground2); font-size: 0.85em;"><%= t("directory.collections.show.all_activity") %></a>
       </row>
       <%= render "backend/shared/activity_log", activities: @recent_activities %>
     </column>
