@@ -141,7 +141,7 @@ class Identity < ApplicationRecord
   validate :legal_names_must_be_complete
 
   before_validation :downcase_email
-  before_commit :copy_legal_name_if_needed, on: :create
+  before_create :copy_legal_name_if_needed
 
   def full_name = "#{first_name} #{last_name}"
 
