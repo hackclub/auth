@@ -104,7 +104,7 @@ module SAMLHelper
       return I18n.t("saml.denial.misconfigured")
     end
 
-    person = Directory::Person.find_by(identity: identity)
+    person = saml_directory_person(identity)
     unless person && Directory::EffectiveMembership.where(collection_id: entitlements.select(:id), person_id: person.id).exists?
       I18n.t("saml.denial.no_access")
     end
@@ -137,7 +137,7 @@ module SAMLHelper
     entitlements_map = sp_config[:entitlements]
     return [] if entitlements_map.blank?
 
-    person = Directory::Person.find_by(identity: identity)
+    person = saml_directory_person(identity)
     return [] unless person
 
     slugs = entitlements_map.keys.map(&:to_s)
@@ -147,5 +147,14 @@ module SAMLHelper
       .pluck("directory_collections.slug")
 
     entitled_slugs.filter_map { |slug| entitlements_map[slug] }
+  end
+
+  def saml_directory_person(identity)
+    @saml_directory_person_cache ||= {}
+    if @saml_directory_person_cache.key?(identity.id)
+      @saml_directory_person_cache[identity.id]
+    else
+      @saml_directory_person_cache[identity.id] = Directory::Person.find_by(identity: identity)
+    end
   end
 end
