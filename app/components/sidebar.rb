@@ -53,12 +53,12 @@ class Components::Sidebar < Components::Base
     if current_identity.present?
       if current_identity.backend_user&.directory_services_admin?
         items << { label: t("sidebar.directory"), path: directory_root_path, icon: "admin" }
-      elsif Directory::EffectiveGrant
-              .joins("INNER JOIN directory_people ON directory_people.id = directory_effective_grants.person_id")
-              .where(directory_people: { identity_id: current_identity.id }).exists?
-        items << { label: t("sidebar.directory"), path: directory_root_path, icon: "admin" }
-      elsif Directory::Person.exists?(identity_id: current_identity.id)
-        items << { label: t("sidebar.directory"), path: directory_my_access_path, icon: "admin" }
+      elsif (person_id = Directory::Person.where(identity_id: current_identity.id).pick(:id))
+        if Directory::EffectiveGrant.where(person_id: person_id).exists?
+          items << { label: t("sidebar.directory"), path: directory_root_path, icon: "admin" }
+        else
+          items << { label: t("sidebar.directory"), path: directory_my_access_path, icon: "admin" }
+        end
       end
     end
 
