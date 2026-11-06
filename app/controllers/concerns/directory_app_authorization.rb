@@ -17,4 +17,17 @@ module DirectoryAppAuthorization
       Directory::Context.new(identity: current_identity, person: person, admin: admin)
     end
   end
+
+  def authorize_app_entitlement_wiring!(app, entitlement)
+    unless app_owner?(app) && directory_context.can?(:expose, entitlement) && app.hq_official?
+      raise Pundit::NotAuthorizedError
+    end
+  end
+
+  def authorize_app_entitlement_unwiring!(app, entitlement)
+    return if directory_context.admin?
+    unless app_owner?(app) && directory_context.can?(:expose, entitlement)
+      raise Pundit::NotAuthorizedError
+    end
+  end
 end

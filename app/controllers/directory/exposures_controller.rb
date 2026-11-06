@@ -17,7 +17,7 @@ module Directory
       app = Program.find(params[:app_id])
       entitlement = Directory::Collection.entitlements.find_by!(slug: params[:entitlement_slug])
 
-      authorize_exposure!(app, entitlement)
+      authorize_app_entitlement_wiring!(app, entitlement)
 
       Directory::Exposure.create!(
         app: app,
@@ -37,32 +37,10 @@ module Directory
       exposure = Directory::Exposure.find(params[:id])
       app = exposure.app
 
-      authorize_unwire!(exposure)
+      authorize_app_entitlement_unwiring!(app, exposure.entitlement)
       exposure.destroy!
 
       redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.exposure_removed")
-    end
-
-    private
-
-    def authorize_exposure!(app, entitlement)
-      unless app_owner?(app) && directory_context.can?(:expose, entitlement) && app.hq_official?
-        raise Pundit::NotAuthorizedError
-      end
-    end
-
-    # Unwire auth: admin can always sever an exposure (the directory
-    # controls what it discloses, regardless of app owner preference).
-    # Non-admins need BOTH app ownership AND the expose grant.
-    #
-    # This can break an app (claim disappears) but cannot open access —
-    # exposures control what the token says, not who can log in.
-    # Requirements (which gate login) use the same AND pattern.
-    def authorize_unwire!(exposure)
-      return if directory_context.admin?
-      unless app_owner?(exposure.app) && directory_context.can?(:expose, exposure.entitlement)
-        raise Pundit::NotAuthorizedError
-      end
     end
   end
 end

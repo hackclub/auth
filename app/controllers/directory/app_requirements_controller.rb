@@ -17,7 +17,7 @@ module Directory
       app = Program.find(params[:app_id])
       entitlement = Directory::Collection.entitlements.find_by!(slug: params[:entitlement_slug])
 
-      authorize_requirement!(app, entitlement)
+      authorize_app_entitlement_wiring!(app, entitlement)
 
       req = Directory::AppRequirement.create!(app: app, entitlement: entitlement)
 
@@ -36,32 +36,13 @@ module Directory
       entitlement = Directory::Collection.find_by!(slug: params[:id])
       req = Directory::AppRequirement.find_by!(app_id: app.id, entitlement_id: entitlement.id)
 
-      authorize_unwire!(app, entitlement)
+      authorize_app_entitlement_unwiring!(app, entitlement)
       req.destroy!
 
       redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.requirement_removed")
     end
 
     private
-
-    def authorize_requirement!(app, entitlement)
-      ctx = directory_context
-      unless app_owner?(app) && ctx.can?(:expose, entitlement) && app.hq_official?
-        raise Pundit::NotAuthorizedError
-      end
-    end
-
-    # Unwire auth: admin can always remove a requirement. Non-admins
-    # need BOTH app ownership AND the expose grant — removing a login
-    # gate opens the app to more people, so both sides must agree.
-    def authorize_unwire!(app, entitlement)
-      ctx = directory_context
-      return if ctx.admin?
-      unless app_owner?(app) && ctx.can?(:expose, entitlement)
-        raise Pundit::NotAuthorizedError
-      end
-    end
-
 
     def revoke_tokens_for_non_members(app, _entitlement)
       Directory::RevokeAccess.bulk_revoke_non_passing(app: app)
