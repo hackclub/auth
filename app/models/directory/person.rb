@@ -30,7 +30,7 @@ module Directory
     # person#show, /directory/me, and view_as to show "member of X (via Y)."
     def memberships_with_via_path
       all_effective = effective_memberships.includes(:collection).order("directory_collections.name")
-      direct_ids = memberships.pluck(:collection_id).to_set
+      direct_ids = memberships.active.pluck(:collection_id).to_set
 
       indirect_ids = all_effective.reject { |em| direct_ids.include?(em.collection_id) }.map(&:collection_id)
       via_paths = Directory::Closure.batch_via_paths(direct_ids, indirect_ids)
