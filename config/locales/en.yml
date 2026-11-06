@@ -986,6 +986,7 @@ en:
       email: "email"
       membership_type: "membership type"
       name: "name"
+      public_id: "public id"
     flash:
       member_added: "member added."
       member_removed: "member removed."

@@ -171,7 +171,7 @@ module Directory
     def activity
       authorize @collection, :show?
       add_breadcrumb @collection.name, directory_collection_path(@collection.slug)
-      add_breadcrumb t("directory.collections.activity.title")
+      add_breadcrumb t("directory.collections.activity.title", name: @collection.name)
 
       @activities = PublicActivity::Activity
         .where(trackable: @collection)
@@ -194,6 +194,7 @@ module Directory
         yielder << SafeCsv.generate_line([
           t("directory.export.name"),
           t("directory.export.email"),
+          t("directory.export.public_id"),
           t("directory.export.membership_type")
         ])
 
@@ -203,7 +204,7 @@ module Directory
           .each do |em|
             person = em.person
             membership_type = direct_person_ids.include?(person.id) ? "direct" : "via"
-            yielder << SafeCsv.generate_line([ person.full_name, person.primary_email, membership_type ])
+            yielder << SafeCsv.generate_line([ person.full_name, person.primary_email, person.identity.public_id, membership_type ])
           end
       end
     end
