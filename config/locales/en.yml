@@ -997,6 +997,7 @@ en:
       need_manage_on_child_subgroups: "you also need permission to manage the groups nested inside that one."
       admin_only_remove_group: "only admins can remove member groups from entitlements."
       member_not_found: "that person or group doesn't exist."
+      already_a_member: "already a member of this collection."
       provide_email_or_slug: "provide an email or group slug."
       exposure_added: "exposure added."
       exposure_removed: "exposure removed."

@@ -81,6 +81,7 @@ module Directory
       end
 
       Directory.mutate!(cause: Directory.cause("membership_created", actor: current_identity.id)) do
+        @collection.memberships.expired.where(member_person_id: membership.member_person_id).delete_all if membership.member_person_id
         membership.save!
       end
 
@@ -96,6 +97,9 @@ module Directory
     rescue ActiveRecord::InvalidForeignKey
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         alert: t("directory.flash.member_not_found")
+    rescue ActiveRecord::RecordNotUnique
+      redirect_back fallback_location: directory_collection_path(@collection.slug),
+        alert: t("directory.flash.already_a_member")
     end
 
     def batch_create
@@ -135,10 +139,12 @@ module Directory
           identities_by_identifier.each do |identifier, identity|
             person = find_or_create_person!(identity)
 
-            if Directory::Membership.exists?(collection: @collection, member_person: person)
+            if Directory::Membership.active.exists?(collection: @collection, member_person: person)
               skipped << identifier
               next
             end
+
+            @collection.memberships.expired.where(member_person: person).delete_all
 
             Directory::Membership.create!(
               collection: @collection,
@@ -147,6 +153,10 @@ module Directory
               created_by_identity_id: current_identity.id
             )
             added << identifier
+          rescue ActiveRecord::RecordNotUnique
+            skipped << identifier
+          rescue ActiveRecord::RecordInvalid
+            not_found << identifier
           end
         end
       end

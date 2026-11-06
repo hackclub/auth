@@ -129,7 +129,7 @@ module Directory
       @resolved.each do |entry|
         person = Directory::Person.find_by(identity: entry[:identity])
         existing = if person
-          Directory::Membership.exists?(collection: entry[:collection], member_person: person)
+          Directory::Membership.active.exists?(collection: entry[:collection], member_person: person)
         else
           false
         end
@@ -163,9 +163,9 @@ module Directory
             next
           end
 
-          person = entry[:person] || Directory::Person.find_or_create_by!(identity: entry[:identity]) do |p|
-            p.created_by_identity_id = @created_by.id
-          end
+          person = entry[:person] || find_or_create_person!(entry[:identity])
+
+          Directory::Membership.expired.where(collection: entry[:collection], member_person: person).delete_all
 
           Directory::Membership.create!(
             collection: entry[:collection],
@@ -182,6 +182,14 @@ module Directory
 
       Result.new(valid?: true, changes: @changes, errors: @errors,
                  created_count:, skipped_count:)
+    end
+
+    def find_or_create_person!(identity)
+      Directory::Person.find_or_create_by!(identity: identity) do |p|
+        p.created_by_identity_id = @created_by.id
+      end
+    rescue ActiveRecord::RecordNotUnique
+      Directory::Person.find_by!(identity: identity)
     end
   end
 end
