@@ -111,7 +111,7 @@ RSpec.describe "Directory person page activity feed", type: :request do
 
       hidden_rows = PublicActivity::Activity.where(owner: member_identity, trackable_type: directory_types).to_a
       expect(hidden_rows.map(&:key)).to include(
-        "directory_person.create", "directory_membership.create",
+        "directory_person.create",
         "directory_collection.member_added", "directory_collection.email_lookup_miss"
       )
 
@@ -148,22 +148,19 @@ RSpec.describe "Directory person page activity feed", type: :request do
     it "shows the person's manager actions on collections the viewer can see, including removals" do
       grant!(member, visible, "manage_members")
       rowan = create(:identity, first_name: "Rowan", last_name: "Visibleperson")
+      rowan_person = create(:directory_person, identity: rowan)
       acting_as(member_identity) do
-        rowan_person = create(:directory_person, identity: rowan)
         add_member!(visible, rowan_person, by: member_identity)
         Directory.mutate!(cause: "test") { Directory::Membership.find_by!(member_person: rowan_person).destroy! }
       end
 
-      member_added = PublicActivity::Activity.find_by!(key: "directory_collection.member_added", trackable: visible, owner: member_identity)
-      added = PublicActivity::Activity.find_by!(key: "directory_membership.create", owner: member_identity, recipient: visible)
-      removed = PublicActivity::Activity.find_by!(key: "directory_membership.destroy", owner: member_identity, recipient: visible)
-      expect(removed.trackable).to be_nil
+      member_added = PublicActivity::Activity.find_by!(key: "directory_collection.member_added", trackable: visible, owner: member_identity, recipient: rowan_person)
+      member_removed = PublicActivity::Activity.find_by!(key: "directory_collection.member_removed", trackable: visible, owner: member_identity)
 
       sign_in viewer_identity
       get directory_person_path(member)
 
-      # the membership is gone, but the removal row still names its collection as recipient
-      expect(feed).to include(member_added, added, removed)
+      expect(feed).to include(member_added, member_removed)
     end
 
     it "hides rows whose record is gone and can't be placed in a visible collection" do
