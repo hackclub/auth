@@ -76,8 +76,12 @@
         <thead><tr><th><%= t("directory.collections.show.col_person") %></th><th><%= t("directory.collections.show.col_added") %></th><th><%= t("directory.collections.show.col_by") %></th><th><%= t("directory.collections.show.col_expires") %></th><% if can_manage %><th></th><% end %></tr></thead>
         <tbody>
           <% @direct_people_memberships.each do |m| %>
-            <tr>
-              <td><%= link_to m.member_person.full_name, directory_person_path(m.member_person) %></td>
+            <% expired = m.expires_at && m.expires_at <= Time.current %>
+            <tr style="<%= 'opacity: 0.5;' if expired %>">
+              <td>
+                <%= link_to m.member_person.full_name, directory_person_path(m.member_person) %>
+                <% if expired %><span is-="badge" variant-="yellow"><%= t("directory.badges.expired") %></span><% end %>
+              </td>
               <td style="color: var(--foreground2);"><%= m.created_at.strftime("%Y-%m-%d") %></td>
               <td style="color: var(--foreground2);"><%= m.created_by&.full_name || "—" %></td>
               <td style="color: var(--foreground2);"><%= m.expires_at ? distance_of_time_in_words_to_now(m.expires_at) : "—" %></td>
@@ -118,7 +122,8 @@
         <thead><tr><th><%= t("directory.collections.show.col_member") %></th><th><%= t("directory.collections.show.col_added") %></th><th><%= t("directory.collections.show.col_by") %></th><th><%= t("directory.collections.show.col_expires") %></th><% if can_manage %><th></th><% end %></tr></thead>
         <tbody>
           <% @all_memberships.each do |m| %>
-            <tr>
+            <% expired = m.expires_at && m.expires_at <= Time.current %>
+            <tr style="<%= 'opacity: 0.5;' if expired %>">
               <td>
                 <% if m.member_person %>
                   <%= link_to m.member_person.full_name, directory_person_path(m.member_person) %>
@@ -126,6 +131,7 @@
                   <%= link_to m.member_group.name, directory_collection_path(m.member_group.slug) %>
                   <span is-="badge" variant-="blue"><%= t("directory.badges.group") %></span>
                 <% end %>
+                <% if expired %><span is-="badge" variant-="yellow"><%= t("directory.badges.expired") %></span><% end %>
               </td>
               <td style="color: var(--foreground2);"><%= m.created_at.strftime("%Y-%m-%d") %></td>
               <td style="color: var(--foreground2);"><%= m.created_by&.full_name || "—" %></td>

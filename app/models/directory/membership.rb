@@ -22,6 +22,9 @@ module Directory
     after_create :track_on_person_and_collection
     after_destroy :track_removal_on_person_and_collection
 
+    scope :active, -> { where("expires_at IS NULL OR expires_at > ?", Time.current) }
+    scope :expired, -> { where("expires_at <= ?", Time.current) }
+
     belongs_to :collection, class_name: "Directory::Collection"
     belongs_to :member_person, class_name: "Directory::Person", optional: true
     belongs_to :member_group, class_name: "Directory::Collection", optional: true
@@ -61,6 +64,7 @@ module Directory
       quoted_member_group = conn.quote(member_group_id)
       max_depth = Directory::MAX_DEPTH
 
+      active = "(m.expires_at IS NULL OR m.expires_at > NOW())"
       result = conn.select_one(<<~SQL)
         WITH RECURSIVE
         ancestors AS (
@@ -70,6 +74,7 @@ module Directory
           FROM directory_memberships m
           INNER JOIN ancestors a ON a.id = m.member_group_id
           WHERE m.member_group_id IS NOT NULL
+            AND #{active}
             AND a.depth <= #{max_depth + 1}
         ),
         descendants AS (
@@ -79,6 +84,7 @@ module Directory
           FROM directory_memberships m
           INNER JOIN descendants d ON d.id = m.collection_id
           WHERE m.member_group_id IS NOT NULL
+            AND #{active}
             AND d.depth <= #{max_depth + 1}
         )
         SELECT

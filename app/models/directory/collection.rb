@@ -50,7 +50,7 @@ module Directory
     def entitlement? = kind == "entitlement"
     def to_param = slug
     def direct_member_count
-      has_attribute?(:preloaded_direct_count) ? preloaded_direct_count : memberships.count
+      has_attribute?(:preloaded_direct_count) ? preloaded_direct_count : memberships.active.count
     end
 
     def effective_member_count
@@ -96,6 +96,7 @@ module Directory
             FROM reach r
             INNER JOIN directory_memberships m ON m.collection_id = r.collection_id
             WHERE m.member_group_id IS NOT NULL
+              AND (m.expires_at IS NULL OR m.expires_at > NOW())
               AND r.depth < :max_depth
               AND NOT EXISTS (
                 SELECT 1 FROM directory_collections dc

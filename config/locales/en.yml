@@ -861,6 +861,7 @@ en:
       protected: "protected"
       recursive: "recursive"
       locked: "locked"
+      expired: "expired"
       holds_nothing: "holds nothing"
       already_in: "already in"
       add: "add"

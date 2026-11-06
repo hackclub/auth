@@ -13,6 +13,8 @@ module Directory
     # Recursive CTE that walks group-nesting edges to produce every (ancestor, descendant, depth)
     # triple. Self-loops included (depth 0). Used to flatten "person in A, A nested in B" into
     # "person is effective member of both A and B."
+    ACTIVE_MEMBERSHIP = "(m.expires_at IS NULL OR m.expires_at > NOW())"
+
     def create_closure(conn, table: "_closure", on_commit_drop: false)
       drop_clause = on_commit_drop ? "ON COMMIT DROP" : ""
       conn.execute(<<~SQL)
@@ -25,6 +27,7 @@ module Directory
           FROM closure c
           INNER JOIN directory_memberships m ON m.collection_id = c.descendant_id
           WHERE m.member_group_id IS NOT NULL
+            AND #{ACTIVE_MEMBERSHIP}
             AND c.depth < #{Directory::MAX_DEPTH}
         )
         SELECT DISTINCT ancestor_id, descendant_id, min(depth) AS depth
@@ -43,6 +46,7 @@ module Directory
         FROM directory_memberships m
         INNER JOIN #{closure_table} c ON c.descendant_id = m.collection_id
         WHERE m.member_person_id IS NOT NULL
+          AND #{ACTIVE_MEMBERSHIP}
       SQL
     end
 
@@ -65,6 +69,7 @@ module Directory
           INNER JOIN directory_grants g2 ON g2.id = gt.grant_id
           INNER JOIN directory_memberships m ON m.collection_id = gt.collection_id
           WHERE m.member_group_id IS NOT NULL
+            AND #{ACTIVE_MEMBERSHIP}
             AND g2.recursive = true
             AND gt.depth < #{Directory::MAX_DEPTH}
             AND NOT EXISTS (
