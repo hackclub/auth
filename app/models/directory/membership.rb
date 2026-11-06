@@ -4,7 +4,6 @@ module Directory
   class Membership < ApplicationRecord
     has_paper_trail
     include PublicActivity::Model
-    tracked enabled: false
 
     after_create :track_membership_change
     after_destroy :track_membership_change
