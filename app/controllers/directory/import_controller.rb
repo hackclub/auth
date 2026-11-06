@@ -51,7 +51,7 @@ module Directory
 
     def read_csv_from_params
       if params[:csv_file].present?
-        params[:csv_file].read.force_encoding("UTF-8")
+        params[:csv_file].read.force_encoding("UTF-8").scrub
       elsif params[:csv_text].present?
         params[:csv_text]
       end
