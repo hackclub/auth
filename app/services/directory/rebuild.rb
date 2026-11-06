@@ -197,6 +197,11 @@ module Directory
     # For each "removed" change on an entitlement, find which apps care (via exposures
     # and requirements) and build { identity_id, email, app_ids } hashes. AfterChangeJob
     # uses these to revoke access, even if the person/entitlement is deleted by then.
+    #
+    # IMPORTANT: this runs inside the transaction, after the caller's mutation. If the
+    # mutation destroyed a collection or person, the lookup here returns nothing and
+    # revocations are silently lost. Any destroy path must capture revocation data
+    # BEFORE calling mutate! — see CollectionsController#destroy for the pattern.
     def pre_resolve_revocations(change_ids)
       rows = @conn.exec_query(
         ActiveRecord::Base.sanitize_sql_array([
