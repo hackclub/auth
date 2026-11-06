@@ -116,6 +116,7 @@
             <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
           </div>
           <row gap-="1" align-="center" style="margin-top: 4px;">
+            <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" style="border: none; width: auto;" placeholder="expires (optional)" title="membership expiry date (optional)">
             <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
           </row>
         <% end %>
@@ -171,6 +172,7 @@
               <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
             </div>
             <row gap-="1" align-="center" style="margin-top: 4px;">
+              <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" style="border: none; width: auto;" title="membership expiry date (optional)">
               <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
             </row>
           <% end %>

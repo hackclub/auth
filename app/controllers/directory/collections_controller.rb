@@ -80,7 +80,7 @@ module Directory
         .order(created_at: :desc)
         .limit(5)
 
-      @consequences = if policy(@collection).manage_members? && Directory::Closure.where(descendant_id: @collection.id).where.not(ancestor_id: @collection.id).exists?
+      @consequences = if policy(@collection).manage_members?
         Directory::Consequence.batch_removal_summaries(
           memberships: @direct_people_memberships.to_a, collection: @collection
         )
@@ -194,7 +194,7 @@ module Directory
         yielder << SafeCsv.generate_line([
           t("directory.export.name"),
           t("directory.export.email"),
-          t("directory.export.public_id"),
+          t("directory.export.hca_id"),
           t("directory.export.membership_type")
         ])
 

@@ -64,7 +64,26 @@
     <span style="color: var(--foreground2);"><%= t("directory.people.show.no_visible_memberships") %></span>
   <% end %>
 
-  <% if @manageable_collections.present? && @manageable_collections.any? %>
+  <% if can_manage_any = @manageable_collections.present? && @manageable_collections.any? %>
+    <div is-="separator"></div>
+
+    <column gap-="1">
+      <b style="color: var(--foreground1);"><%= t("directory.people.show.add_to_group") %></b>
+      <%= form_with url: "#", method: :post, local: true, id: "add-to-group-form" do |f| %>
+        <row gap-="1" align-="center">
+          <select name="collection_slug" style="flex: 1; border: none;" onchange="document.getElementById('add-to-group-form').action = '/directory/collections/' + this.value + '/memberships'">
+            <option value="" disabled selected><%= t("directory.people.show.pick_group") %></option>
+            <% @manageable_collections.select(&:group?).each do |col| %>
+              <option value="<%= col.slug %>"><%= col.name %></option>
+            <% end %>
+          </select>
+          <input type="hidden" name="member_person_id" value="<%= @person.id %>">
+          <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" style="border: none; width: auto;" title="expiry (optional)">
+          <button type="submit" size-="small"><%= t("directory.people.show.add_btn") %></button>
+        </row>
+      <% end %>
+    </column>
+
     <div is-="separator"></div>
 
     <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.people.show.can_manage") %></span>

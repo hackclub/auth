@@ -986,7 +986,7 @@ en:
       email: "email"
       membership_type: "membership type"
       name: "name"
-      public_id: "public id"
+      hca_id: "hca_id"
     flash:
       member_added: "member added."
       member_removed: "member removed."
@@ -1131,6 +1131,9 @@ en:
         search: "search"
         title: "people"
       show:
+        add_to_group: "add to group"
+        add_btn: "add"
+        pick_group: "pick a group..."
         can_manage: "can manage"
         col_collection: "collection"
         col_kind: "kind"
