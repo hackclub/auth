@@ -29,13 +29,22 @@ module Directory
       end
 
       changes = Directory::MembershipChange.where(id: change_ids, op: "removed")
+
+      collection_ids = changes.pluck(:collection_id).uniq
+      person_ids = changes.pluck(:person_id).uniq
+      collections_by_id = Directory::Collection.where(id: collection_ids).index_by(&:id)
+      persons_by_id = Directory::Person.where(id: person_ids).includes(:identity).index_by(&:id)
+
+      entitlement_ids = collections_by_id.values.select(&:entitlement?).map(&:id)
+      app_ids_by_collection = Directory::Collection.affected_app_ids_by_entitlement(entitlement_ids)
+
       changes.each do |change|
-        collection = Directory::Collection.find_by(id: change.collection_id)
-        person = Directory::Person.find_by(id: change.person_id)
+        collection = collections_by_id[change.collection_id]
+        person = persons_by_id[change.person_id]
         next unless collection&.entitlement? && person
 
         identity = person.identity
-        app_ids = app_ids_affected_by(collection)
+        app_ids = app_ids_by_collection[collection.id] || []
 
         app_ids.each do |app_id|
           key = [ identity.id, app_id ]
