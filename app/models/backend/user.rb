@@ -64,7 +64,7 @@ module Backend
     end
 
     private def ensure_directory_person_exists
-      Directory::Person.find_or_create_by!(identity_id: identity_id)
+      Directory::Person.find_or_create_for_identity!(identity, created_by: identity)
     end
 
 
