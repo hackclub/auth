@@ -328,17 +328,6 @@ class Identity < ApplicationRecord
       .count
   end
 
-  # TODO: this is schnasty
-  def onboarding_redirect_path
-    helpers = Rails.application.routes.url_helpers
-
-    return helpers.basic_info_onboarding_path unless persisted?
-    return helpers.new_verifications_path if needs_persona? || needs_documents?
-    return helpers.address_onboarding_path unless primary_address_id.present?
-
-    helpers.submitted_onboarding_path
-  end
-
   def needs_document_upload?
     return false if verification_status == "ineligible"
     return true unless verifications.not_ignored.where(status: %w[approved pending]).any?
