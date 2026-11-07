@@ -46,6 +46,7 @@ module Directory
         .select { |c| policy(c).show? }
 
       @activities = directory_activities_for(@person)
+      @admin_can_add = directory_admin?
 
       # App access: which apps this person can reach via entitlements
       entitlement_ids = @person.effective_memberships

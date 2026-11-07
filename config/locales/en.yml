@@ -1183,6 +1183,7 @@ en:
       col_kind: "kind"
       col_name: "name"
       col_permission: "permission"
+      col_via: "via"
     requirement_denied:
       title: "not available"
       heading: "you don't have access to this app."
