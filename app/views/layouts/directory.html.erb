@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-webtui-theme="gruvbox-dark-hard">
+<html lang="en" data-webtui-theme="gruvbox-dark-hard">
   <head>
     <title><%= [content_for(:title).presence, t("directory.layout.page_title")].compact.join(" — ") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -51,14 +51,14 @@
         <a href="<%= directory_view_as_path %>" class="<%= 'active' if controller_name == 'view_as' %>">view as</a>
       <% end %>
     </nav>
-    <column id="hca-body" self-="grow">
+    <main id="hca-body" is-="column" self-="grow" role="main">
       <% flash.each do |type, message| %>
         <div style="max-width: 120ch; margin: 0 auto; width: 100%; padding: 0.5lh 2ch 0 2ch;">
           <div class="tui-banner-<%= type %>" box-="square" style="padding: 0.25lh 1ch;"><%= message %></div>
         </div>
       <% end %>
       <%= yield %>
-    </column>
+    </main>
     <script type="application/json" id="keyboard-shortcuts-data"><%= raw(directory_keyboard_shortcuts.to_json) %></script>
     <script type="application/json" id="kbar-data"><%= raw(directory_kbar_data.to_json) %></script>
   </body>
