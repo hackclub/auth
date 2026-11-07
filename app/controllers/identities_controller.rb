@@ -234,7 +234,7 @@ class IdentitiesController < ApplicationController
     end
 
     def set_return_to
-        @return_to = params[:return_to] if params[:return_to].present?
+        @return_to = url_from(params[:return_to]) if params[:return_to].present?
     end
 
     def portal_onboarding_scenario = @onboarding_scenario
