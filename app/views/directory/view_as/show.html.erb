@@ -21,7 +21,7 @@
       style="flex: 1; max-width: 40ch;"
       <% if @target_person %>value="<%= @target_person.full_name %>"<% end %>
     />
-    <button type="submit"><%= t("directory.view_as.go") %></button>
+    <button type="submit" size-="small"><%= t("directory.view_as.go") %></button>
   </form>
 
   <% if @target_person %>
@@ -55,12 +55,17 @@
         <% if via.any? %>
           <span style="color: var(--foreground2); font-size: 0.9em;"><%= t("directory.view_as.via_nesting") %></span>
           <table>
-            <thead><tr><th><%= t("directory.view_as.col_collection") %></th><th><%= t("directory.view_as.col_kind") %></th></tr></thead>
+            <thead><tr><th><%= t("directory.view_as.col_collection") %></th><th><%= t("directory.view_as.col_kind") %></th><th><%= t("directory.view_as.col_via") %></th></tr></thead>
             <tbody>
               <% via.each do |m| %>
                 <tr>
                   <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
                   <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
+                  <td style="color: var(--foreground2);">
+                    <% if m[:via_path].present? %>
+                      <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
+                    <% end %>
+                  </td>
                 </tr>
               <% end %>
             </tbody>

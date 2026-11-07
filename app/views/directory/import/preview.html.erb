@@ -76,7 +76,8 @@
             <button type="submit" size-="small"><%= t("directory.import.preview.apply_button") %></button>
           </row>
         <% end %>
-      <% end %>
+      <% else %>
+        <div class="dir-section-empty">fix the <%= @result.errors.size %> error<%= @result.errors.size == 1 ? '' : 's' %> above to apply</div>
     </div>
   <% else %>
     <% if @result.errors.empty? %>

@@ -6,7 +6,7 @@
     </div>
   </div>
 
-  <div class="dir-section" data-accent="<%= @result&.valid? ? 'green' : 'red' %>">
+  <div class="dir-section" data-accent="<%= @result.nil? ? nil : (@result.valid? ? 'green' : 'red') %>">
     <div class="dir-section-header">
       <span>validation status</span>
       <span class="dir-section-meta">
@@ -41,7 +41,7 @@
             <tbody>
               <% diff[:missing].each do |row| %>
                 <tr>
-                  <td style="color: var(--green);"><%= t("directory.health.show.missing") %></td>
+                  <td style="color: var(--yellow);"><%= t("directory.health.show.missing") %></td>
                   <td><code><%= row.to_json %></code></td>
                 </tr>
               <% end %>

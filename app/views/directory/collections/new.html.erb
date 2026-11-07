@@ -11,7 +11,7 @@
       <div class="dir-section-form">
         <column gap-="1">
           <% if @collection.errors.any? %>
-            <div style="color: var(--red); padding: 0.5rem 0;">
+            <div style="color: var(--red); padding: 0.5lh 0;">
               <% @collection.errors.full_messages.each do |msg| %>
                 <div><%= msg %></div>
               <% end %>
