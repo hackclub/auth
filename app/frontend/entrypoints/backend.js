@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.metaKey || e.ctrlKey) return;
     if (e.key === '/') {
       e.preventDefault();
-      const searchInput = document.querySelector('input[type="search"]');
+      const searchInput = document.querySelector('input[type="search"], input[name="q"]');
       if (searchInput) searchInput.focus();
     }
   });

@@ -44,18 +44,6 @@ module Directory
         .order(:expires_at)
         .load_async
 
-      @exposed_entitlements = Directory::Collection.entitlements
-        .joins("INNER JOIN directory_exposures ON directory_exposures.entitlement_id = directory_collections.id")
-        .group("directory_collections.id")
-        .having("COUNT(directory_exposures.id) > 3")
-        .select("directory_collections.*, COUNT(directory_exposures.id) AS exposure_count")
-        .load_async
-
-      @email_misses = PublicActivity::Activity
-        .where(key: "directory_collection.email_lookup_miss")
-        .where("created_at > ?", 1.day.ago)
-        .group(:owner_id)
-        .count
     end
   end
 end

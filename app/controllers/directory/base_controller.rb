@@ -67,16 +67,20 @@ module Directory
     def directory_kbar_data
       shortcuts = [
         { code: "DRCT", label: "Directory home", path: directory_root_path, icon: "⌂" },
-        { code: "DPPL", label: "People", path: directory_people_path, icon: "⭢" },
-        { code: "DGRT", label: "Grants", path: directory_all_grants_path, icon: "⭢" },
-        { code: "DRPT", label: "Reports", path: directory_reports_path, icon: "⭢" },
-        { code: "DHLT", label: "Health", path: directory_health_path, icon: "⭢" },
-        { code: "DIMP", label: "Import", path: directory_new_import_path, icon: "⭢" },
-        { code: "DACT", label: "Activity", path: directory_activity_path, icon: "⭢" },
+        { code: "MYAX", label: "My access", path: directory_my_access_path, icon: "⭢" },
         { code: "DSRC", label: "Search", path: directory_search_path, icon: "⌕" },
-        { code: "DVAS", label: "View as", path: directory_view_as_path, icon: "⭢" },
-        { code: "MYAX", label: "My access", path: directory_my_access_path, icon: "⭢" }
       ]
+      if directory_admin?
+        shortcuts += [
+          { code: "DPPL", label: "People", path: directory_people_path, icon: "⭢" },
+          { code: "DGRT", label: "Grants", path: directory_all_grants_path, icon: "⭢" },
+          { code: "DRPT", label: "Reports", path: directory_reports_path, icon: "⭢" },
+          { code: "DHLT", label: "Health", path: directory_health_path, icon: "⭢" },
+          { code: "DIMP", label: "Import", path: directory_new_import_path, icon: "⭢" },
+          { code: "DACT", label: "Activity", path: directory_activity_path, icon: "⭢" },
+          { code: "DVAS", label: "View as", path: directory_view_as_path, icon: "⭢" },
+        ]
+      end
       if current_identity.active_for_backend?
         shortcuts << { code: "BKND", label: "Backend", path: backend_root_path, icon: "⭠" }
       end
