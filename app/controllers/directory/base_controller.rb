@@ -28,7 +28,6 @@ module Directory
 
     def ensure_directory_access!
       return if directory_admin?
-      return if controller_name == "my_access"
       return if current_directory_person && pundit_user.has_any_grants?
 
       raise ActionController::RoutingError, "Not Found"

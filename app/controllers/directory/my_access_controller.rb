@@ -2,6 +2,8 @@
 
 module Directory
   class MyAccessController < BaseController
+    skip_before_action :ensure_directory_access!
+
     def show
       skip_authorization
       add_breadcrumb t("directory.my_access.show.title")
