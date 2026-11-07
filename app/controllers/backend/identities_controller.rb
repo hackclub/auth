@@ -177,7 +177,7 @@ module Backend
       authorize @identity, :update?
 
       count = @identity.sessions.not_expired.count
-      @identity.sessions.not_expired.update_all(signed_out_at: Time.current, expires_at: Time.now)
+      @identity.sessions.not_expired.update_all(signed_out_at: Time.current, expires_at: Time.current)
 
       if count > 0
         @identity.create_activity(:revoke_all_sessions, owner: current_user, recipient: @identity, parameters: { count: count })
@@ -192,7 +192,7 @@ module Backend
     def revoke_session
       authorize @identity, :update?
       session = @identity.sessions.find(params[:session_id])
-      session.update!(signed_out_at: Time.current, expires_at: Time.now)
+      session.update!(signed_out_at: Time.current, expires_at: Time.current)
       @identity.create_activity(:revoke_all_sessions, owner: current_user, recipient: @identity, parameters: { count: 1 })
       flash[:success] = "Session revoked."
       redirect_to backend_identity_path(@identity)
