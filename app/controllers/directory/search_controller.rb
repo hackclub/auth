@@ -39,20 +39,20 @@ module Directory
         when "ident"
           identity = Identity.find_by_public_id(query)
           if identity
-            person = Directory::Person.find_by(identity: identity)
+            person = policy_scope(Directory::Person).find_by(identity: identity)
             if person
               results << { type: "directory_person", id: person.public_id, label: person.full_name, sublabel: identity.primary_email, path: directory_person_path(person) }
-            else
+            elsif directory_admin?
               results << { type: "identity", label: identity.full_name, sublabel: "#{identity.primary_email} (not in directory)", disabled: true }
             end
           end
         when "dper"
-          person = Directory::Person.find_by_public_id(query)
+          person = policy_scope(Directory::Person).find_by_public_id(query)
           if person
             results << { type: "directory_person", id: person.public_id, label: person.full_name, sublabel: person.primary_email, path: directory_person_path(person) }
           end
         when "dcol"
-          col = Directory::Collection.find_by_public_id(query)
+          col = policy_scope(Directory::Collection).find_by_public_id(query)
           if col
             results << { type: "directory_collection", id: col.public_id, label: col.name, sublabel: "#{col.kind} · #{col.slug}", path: directory_collection_path(col.slug) }
           end
