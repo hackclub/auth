@@ -14,6 +14,6 @@ module SpecialAppCards
 
     def url = "https://phantom.hackclub.com/?utm_source=hca"
 
-    def launch_text = "let's go!"
+    def launch_text = "Enter the Void!"
   end
 end
