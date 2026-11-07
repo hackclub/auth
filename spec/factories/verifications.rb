@@ -67,7 +67,8 @@ FactoryBot.define do
   factory :persona_verification, class: "Verification::PersonaVerification" do
     association :identity
     status { :draft }
-    persona_inquiry_id { "inq_#{SecureRandom.hex(12)}" }
+    # must match the record's inquiry_id — persona_record_matches_inquiry
+    persona_inquiry_id { persona_record&.inquiry_id || "inq_#{SecureRandom.hex(12)}" }
 
     trait :with_inquiry do
       persona_session_token { "session_#{SecureRandom.hex(16)}" }
@@ -75,27 +76,27 @@ FactoryBot.define do
 
     trait :pending do
       status { :pending }
-      association :persona_record, factory: :identity_persona_record
+      persona_record { association :identity_persona_record, identity: identity }
       association :identity_document
     end
 
     trait :approved do
       status { :approved }
-      association :persona_record, factory: :identity_persona_record
+      persona_record { association :identity_persona_record, identity: identity }
       association :identity_document
     end
 
     trait :rejected do
       status { :rejected }
       rejection_reason { "info_mismatch" }
-      association :persona_record, factory: :identity_persona_record
+      persona_record { association :identity_persona_record, identity: identity }
     end
 
     trait :fatal_rejection do
       status { :rejected }
       fatal { true }
       rejection_reason { "duplicate" }
-      association :persona_record, factory: :identity_persona_record
+      persona_record { association :identity_persona_record, identity: identity }
     end
   end
 end

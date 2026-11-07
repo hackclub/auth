@@ -39,11 +39,14 @@ RSpec.describe Verification::ManualVerificationCall, type: :model do
 
   it "pings guardians but sends no shared rejection mail on a fatal rejection" do
     verification = create(:manual_verification_call)
+    # enqueued_jobs isn't cleared between model specs — only look at what
+    # the rejection itself enqueues
+    already_enqueued = ActiveJob::Base.queue_adapter.enqueued_jobs.size
 
     expect { verification.mark_as_rejected!("fraud", "internal note") }
       .to have_enqueued_job(Slack::NotifyGuardiansJob).with(verification.identity)
 
-    expect(ActiveJob::Base.queue_adapter.enqueued_jobs.map { |j| j[:job] })
+    expect(ActiveJob::Base.queue_adapter.enqueued_jobs.drop(already_enqueued).map { |j| j[:job] })
       .not_to include(ActionMailer::MailDeliveryJob)
 
     expect(verification.reload).to be_rejected

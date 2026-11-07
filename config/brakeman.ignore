@@ -22,6 +22,25 @@
         470
       ],
       "note": "this is clamped to valid PublicIdentifiable models in @shortcodes.rb"
+    },
+    {
+      "warning_type": "Unmaintained Dependency",
+      "warning_code": 122,
+      "fingerprint": "98b26f60d776fd41ee6f088c833725145be9aac2d7c5b33780241c273622db42",
+      "check_name": "EOLRails",
+      "message": "Support for Rails 8.0.5.1 ends on 2026-11-07",
+      "file": "Gemfile.lock",
+      "line": 466,
+      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        1104
+      ],
+      "note": "rails 8.0 support ends 2026-11-07 \u2014 upgrade to 8.1 before then and drop this ignore. added so --ensure-latest brakeman 8.1.0 doesn't block unrelated PRs."
     }
   ],
   "brakeman_version": "8.0.4"
