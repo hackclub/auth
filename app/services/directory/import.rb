@@ -54,7 +54,8 @@ module Directory
       lines.each_with_index do |cols, idx|
         next if cols.all? { |c| c.nil? || c.strip.empty? }
 
-        email = cols[0]&.strip&.downcase
+        email = cols[0]&.strip
+        email = email.downcase unless email&.match?(/\A(ident|dper)!/) # preserve case-sensitive public IDs
         slug = cols[1]&.strip
         expires_at_raw = cols[2]&.strip.presence
 
