@@ -77,7 +77,7 @@ module SessionsHelper
       &.find_by(session_token: cookies.encrypted[:session_token])
 
     if session
-      session.update(signed_out_at: Time.now, expires_at: Time.now)
+      session.update(signed_out_at: Time.current, expires_at: Time.current)
       session.create_activity :sign_out, owner: current_identity, recipient: current_identity
     end
 
@@ -93,6 +93,6 @@ module SessionsHelper
     identity
       &.sessions
       &.where&.not(id: current_session&.id)
-      &.update_all(signed_out_at: Time.now, expires_at: Time.now)
+      &.update_all(signed_out_at: Time.current, expires_at: Time.current)
   end
 end
