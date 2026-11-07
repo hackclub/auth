@@ -19,7 +19,8 @@ RSpec.describe "AuthorizedApplications", type: :request do
 
       get authorized_applications_path
       expect(response).to have_http_status(:ok)
-      expect(response.body.scan(program.name).size).to eq(1)
+      expect(response.body).to include(program.name)
+      expect(response.body.scan("card-hoverable").size).to eq(1)
     end
   end
 

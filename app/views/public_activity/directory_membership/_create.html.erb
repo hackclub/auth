@@ -1,0 +1,5 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  added <%= activity.parameters["member_type"] || "member" %>
+  <b><%= activity.trackable&.member_person&.full_name || activity.trackable&.member_group&.name || activity.parameters["member_name"] || "(unknown)" %></b>
+  to <b><%= activity.trackable&.collection&.name || activity.parameters["collection_name"] || "(deleted)" %></b>.
+<% end %>

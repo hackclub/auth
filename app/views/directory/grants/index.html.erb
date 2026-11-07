@@ -1,0 +1,52 @@
+<% content_for :title, t("directory.grants.index.title") %>
+<div class="dir-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.grants.index.heading") %></h2></div>
+    </div>
+  </div>
+
+  <div class="dir-section" data-accent="yellow">
+    <% if @grants.any? %>
+      <table>
+        <thead>
+          <tr>
+            <th><%= t("directory.grants.index.col_grantee") %></th>
+            <th><%= t("directory.grants.index.col_target") %></th>
+            <th><%= t("directory.grants.index.col_permission") %></th>
+            <th><%= t("directory.grants.index.col_recursive") %></th>
+            <th><%= t("directory.grants.index.col_by") %></th>
+            <th><%= t("directory.grants.index.col_date") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @grants.each do |grant| %>
+            <tr>
+              <td><%= link_to grant.grantee_group.name, directory_collection_path(grant.grantee_group.slug) %></td>
+              <td><%= link_to grant.target_collection.name, directory_collection_path(grant.target_collection.slug) %></td>
+              <td><code><%= grant.permission.tr('_', ' ') %></code></td>
+              <td>
+                <% if grant.recursive %>
+                  <span is-="badge" variant-="background2"><%= t("directory.badges.recursive") %></span>
+                <% else %>—<% end %>
+              </td>
+              <td style="color: var(--foreground2);"><%= grant.created_by&.full_name || "—" %></td>
+              <td style="color: var(--foreground2);"><%= grant.created_at.strftime("%Y-%m-%d") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="dir-section-empty"><%= t("directory.grants.index.empty") %></div>
+    <% end %>
+  </div>
+
+  <div class="dir-keyhints">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">⌘K</span> command palette
+    </row>
+  </div>
+</div>

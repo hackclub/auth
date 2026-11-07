@@ -20,7 +20,7 @@ class SAMLController < ApplicationController
     end
 
     return unless ensure_sp_configured!(slug: params[:slug])
-    return unless check_allowed_emails!
+    return unless check_saml_access!
 
     unless @sp_config[:allow_idp_initiated]
       @error = "This SP is not configured for IdP-initiated authentication"
@@ -29,11 +29,6 @@ class SAMLController < ApplicationController
 
     unless current_identity
       redirect_to saml_welcome_path(return_to: request.fullpath) and return
-    end
-
-    if params[:slug] == "slack" && current_identity.disallow_slack
-      @error = "Unable to log in right now"
-      render :error, status: :forbidden and return
     end
 
     set_honeybadger_context
@@ -63,12 +58,7 @@ class SAMLController < ApplicationController
       redirect_to saml_welcome_path(return_to: request.fullpath) and return
     end
 
-    return unless check_allowed_emails!
-
-    if @sp_config[:slug] == "slack" && current_identity.disallow_slack
-      @error = "Unable to log in right now"
-      render :error, status: :forbidden and return
-    end
+    return unless check_saml_access!
 
     set_honeybadger_context
 
@@ -294,12 +284,13 @@ class SAMLController < ApplicationController
     true
   end
 
-  def check_allowed_emails!
-    return true unless @sp_config[:allowed_emails].present?
+  # The same checks build_saml_response enforces (SAMLHelper#saml_access_denial), asked up
+  # front so a refusal comes before Slack provisioning or the replay cache. Logged-out users
+  # pass for now: they're sent to log in and checked when they come back.
+  def check_saml_access!
     return true unless current_identity
 
-    unless @sp_config[:allowed_emails].include?(current_identity.primary_email)
-      @error = "You are not authorized to access this service"
+    if (@error = saml_access_denial(current_identity, @sp_config))
       render :error, status: :forbidden and return false
     end
 

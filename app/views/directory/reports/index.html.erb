@@ -1,0 +1,142 @@
+<% content_for :title, t("directory.reports.index.title") %>
+<% any_reports = [@expiring_memberships, @empty_collections, @unmanaged_collections, @orphan_people, @locked_people, @old_memberships].any?(&:any?) %>
+<div class="dir-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.reports.index.heading") %></h2></div>
+    </div>
+  </div>
+
+  <% if @expiring_memberships.any? %>
+    <div class="dir-section" data-accent="yellow">
+      <details open>
+        <summary><div class="dir-section-header"><span><%= t("directory.reports.index.expiring_memberships") %> <span is-="badge" variant-="yellow"><%= @expiring_memberships.size %></span></span></div></summary>
+        <table>
+          <thead><tr><th><%= t("directory.reports.index.col_person") %></th><th><%= t("directory.reports.index.col_collection") %></th><th><%= t("directory.reports.index.col_expires") %></th></tr></thead>
+          <tbody>
+            <% @expiring_memberships.each do |m| %>
+              <tr>
+                <td><%= link_to m.member_person.full_name, directory_person_path(m.member_person) %></td>
+                <td><%= link_to m.collection.name, directory_collection_path(m.collection.slug) %></td>
+                <td><%= m.expires_at.strftime("%Y-%m-%d") %> <span style="color: var(--yellow);">(in <%= distance_of_time_in_words_to_now(m.expires_at) %>)</span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </details>
+    </div>
+  <% end %>
+
+  <% if @empty_collections.any? %>
+    <div class="dir-section">
+      <details open>
+        <summary><div class="dir-section-header"><span><%= t("directory.reports.index.empty_collections") %> <span is-="badge" variant-="background2"><%= @empty_collections.size %></span></span></div></summary>
+        <table>
+          <thead><tr><th><%= t("directory.reports.index.col_name") %></th><th><%= t("directory.reports.index.col_kind") %></th></tr></thead>
+          <tbody>
+            <% @empty_collections.each do |c| %>
+              <tr>
+                <td><%= link_to c.name, directory_collection_path(c.slug) %></td>
+                <td><span is-="badge" variant-="<%= c.group? ? 'blue' : 'green' %>"><%= c.kind %></span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </details>
+    </div>
+  <% end %>
+
+
+  <% if @unmanaged_collections.any? %>
+    <div class="dir-section">
+      <details open>
+        <summary><div class="dir-section-header"><span><%= t("directory.reports.index.unmanaged_collections") %> <span is-="badge" variant-="background2"><%= @unmanaged_collections.size %></span></span></div></summary>
+        <table>
+          <thead><tr><th><%= t("directory.reports.index.col_name") %></th><th><%= t("directory.reports.index.col_kind") %></th></tr></thead>
+          <tbody>
+            <% @unmanaged_collections.each do |c| %>
+              <tr>
+                <td><%= link_to c.name, directory_collection_path(c.slug) %></td>
+                <td><span is-="badge" variant-="<%= c.group? ? 'blue' : 'green' %>"><%= c.kind %></span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </details>
+    </div>
+  <% end %>
+
+
+  <% if @orphan_people.any? %>
+    <div class="dir-section">
+      <details open>
+        <summary><div class="dir-section-header"><span><%= t("directory.reports.index.orphan_people") %> <span is-="badge" variant-="background2"><%= @orphan_people.size %></span></span></div></summary>
+        <table>
+          <thead><tr><th><%= t("directory.reports.index.col_name") %></th><th><%= t("directory.reports.index.col_email") %></th></tr></thead>
+          <tbody>
+            <% @orphan_people.each do |p| %>
+              <tr>
+                <td><%= link_to p.full_name, directory_person_path(p) %></td>
+                <td style="color: var(--foreground2);"><%= p.primary_email %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </details>
+    </div>
+  <% end %>
+
+
+  <% if @locked_people.any? %>
+    <div class="dir-section">
+      <details open>
+        <summary><div class="dir-section-header"><span><%= t("directory.reports.index.locked_identities") %> <span is-="badge" variant-="background2"><%= @locked_people.size %></span></span></div></summary>
+        <table>
+          <thead><tr><th><%= t("directory.reports.index.col_name") %></th><th><%= t("directory.reports.index.col_email") %></th></tr></thead>
+          <tbody>
+            <% @locked_people.each do |p| %>
+              <tr>
+                <td><%= link_to p.full_name, directory_person_path(p) %></td>
+                <td style="color: var(--foreground2);"><%= p.primary_email %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </details>
+    </div>
+  <% end %>
+
+
+  <% if @old_memberships.any? %>
+    <div class="dir-section">
+      <details open>
+        <summary><div class="dir-section-header"><span><%= t("directory.reports.index.old_memberships") %> <span is-="badge" variant-="background2"><%= @old_memberships.size %></span></span></div></summary>
+        <table>
+          <thead><tr><th><%= t("directory.reports.index.col_person") %></th><th><%= t("directory.reports.index.col_collection") %></th><th><%= t("directory.reports.index.col_created") %></th></tr></thead>
+          <tbody>
+            <% @old_memberships.each do |m| %>
+              <tr>
+                <td><%= link_to m.member_person.full_name, directory_person_path(m.member_person) %></td>
+                <td><%= link_to m.collection.name, directory_collection_path(m.collection.slug) %></td>
+                <td style="color: var(--foreground2);"><%= m.created_at.strftime("%Y-%m-%d") %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </details>
+    </div>
+  <% end %>
+
+  <% if !any_reports %>
+    <div class="dir-empty"><span class="dir-empty-icon">✓</span><span>nothing to report</span></div>
+  <% end %>
+
+  <div class="dir-keyhints">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">⌘K</span> command palette
+    </row>
+  </div>
+</div>

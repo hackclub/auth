@@ -18,9 +18,38 @@ Doorkeeper.configure do
   Doorkeeper::Application.table_name = "programs" if defined?(Doorkeeper::Application)
 
   # This block will be called to check whether the resource owner is authenticated or not.
+  #
+  # It also enforces directory app requirements. Doorkeeper calls it from pages with no
+  # client too (authorized_applications, the oob code page), so the check only runs when
+  # client_id resolves to an app; anything else is left to Doorkeeper's own validation.
+  # Doorkeeper instance_evals this block per request, long after this file has loaded,
+  # so it must not `return` (that raises LocalJumpError).
   resource_owner_authenticator do
     if current_identity
-      current_identity
+      app = ::Program.by_uid(params[:client_id]) if params[:client_id].present?
+      if app.nil? || Directory::RequirementCheck.passes?(identity: current_identity, app: app)
+        current_identity
+      else
+        # Never redirect anywhere the app didn't register: the requested URI only if it
+        # exactly matches a registered one, else the first registered one. Doorkeeper never
+        # redirects errors to oob URIs and opaque ones can't carry a query, so those (and
+        # anything else Doorkeeper wouldn't accept as a redirect URI) get the in-app page.
+        registered = app.redirect_uris
+        target = registered.include?(params[:redirect_uri]) ? params[:redirect_uri] : registered.first
+        uri_checker = Doorkeeper::OAuth::Helpers::URIChecker
+        if target && !uri_checker.oob_uri?(target) && uri_checker.valid?(target)
+          error_uri = Doorkeeper::OAuth::Authorization::URIBuilder.uri_with_query(
+            target,
+            error: "access_denied",
+            error_description: "You do not meet this application's access requirements.",
+            state: params[:state]
+          )
+          redirect_to error_uri, allow_other_host: true
+        else
+          redirect_to directory_requirement_denied_path
+        end
+        nil
+      end
     else
       redirect_to "/oauth/welcome?return_to=#{CGI.escape(request.fullpath)}"
       nil
@@ -190,7 +219,7 @@ Doorkeeper.configure do
   # Require non-confidential clients to use PKCE when using an authorization code
   # to obtain an access_token (disabled by default)
   #
-  # force_pkce
+  force_pkce
 
   # Hash access and refresh tokens before persisting them.
   # This will disable the possibility to use +reuse_access_token+
@@ -303,7 +332,7 @@ Doorkeeper.configure do
   # #call can be used in order to allow conditional checks (to allow non-SSL
   # redirects to localhost for example).
   #
-  force_ssl_in_redirect_uri false
+  force_ssl_in_redirect_uri { !Rails.env.local? }
 
   forbid_redirect_uri { |uri| %w[javascript data].include?(uri.scheme.to_s.downcase) }
 
@@ -555,4 +584,28 @@ Doorkeeper.configure do
   # WWW-Authenticate Realm (default: "Doorkeeper").
   #
   # realm "Doorkeeper"
+end
+
+# Enforce directory requirements on refresh_token grants.
+# Intercepts token creation before doorkeeper processes it;
+# returns access_denied if the identity no longer meets the app's requirements.
+module DoorkeeperRequirementEnforcement
+  def create
+    if params[:grant_type] == "refresh_token" && params[:refresh_token].present?
+      token = ::OAuthToken.by_refresh_token(params[:refresh_token])
+      if token
+        app = token.application
+        identity = ::Identity.find_by(id: token.resource_owner_id)
+        if app && identity && !Directory::RequirementCheck.passes?(identity: identity, app: app)
+          render json: { error: "invalid_grant", error_description: "You no longer meet this application's requirements." }, status: :bad_request
+          return
+        end
+      end
+    end
+    super
+  end
+end
+
+Rails.application.config.to_prepare do
+  Doorkeeper::TokensController.prepend(DoorkeeperRequirementEnforcement) unless Doorkeeper::TokensController < DoorkeeperRequirementEnforcement
 end

@@ -274,10 +274,55 @@ Rails.application.routes.draw do
     end
   end
 
+  # Directory Services
+  namespace :directory do
+    root "collections#index"
+    get "me", to: "my_access#show", as: :my_access
+    get "search", to: "search#index", as: :search
+    get "search/kbar", to: "search#kbar", as: :search_kbar
+    get "activity", to: "activity#index", as: :activity
+    get "reports", to: "reports#index", as: :reports
+    get "health", to: "health#show", as: :health
+    post "health/validate", to: "health#validate", as: :health_validate
+
+    resources :collections, param: :slug do
+      member do
+        get :activity
+        get :export
+      end
+      resources :memberships, only: [ :create, :destroy ] do
+        collection do
+          post :batch_create
+        end
+      end
+      resources :grants, only: [ :create, :destroy ]
+    end
+
+    resources :people, only: [ :index, :show, :create, :destroy ], param: :public_id
+
+    # Picker API
+    get "picker/search", to: "picker#search", as: :picker_search
+
+    # CSV Import
+    get "import", to: "import#new", as: :new_import
+    post "import", to: "import#create", as: :import
+    post "import/preview", to: "import#preview", as: :import_preview
+
+    # Admin: all grants flat view
+    get "grants", to: "grants#index", as: :all_grants
+
+    resources :exposures, only: [ :create, :destroy ]
+    resources :app_requirements, only: [ :create, :destroy ]
+    get "denied", to: "requirement_denied#show", as: :requirement_denied
+
+    get "view_as", to: "view_as#show", as: :view_as
+  end
+
   root "static_pages#home"
 
   get "/welcome", to: "static_pages#welcome", as: :welcome
   get "/slack-id", to: "static_pages#slack_id", as: :slack_id
+  get "/debug-dump", to: "static_pages#debug_dump", as: :debug_dump
   get "/oauth/welcome", to: "static_pages#oauth_welcome", as: :oauth_welcome
   get "/security", to: "static_pages#security", as: :security
   get "/activity", to: "audit_logs#index", as: :audit_logs

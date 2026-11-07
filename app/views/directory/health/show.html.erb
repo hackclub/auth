@@ -1,0 +1,99 @@
+<% content_for :title, t("directory.health.show.title") %>
+<div class="dir-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.health.show.heading") %></h2></div><!-- dcdiag -->
+    </div>
+  </div>
+
+  <div class="dir-section" data-accent="<%= @result.nil? ? nil : (@result.valid? ? 'green' : 'red') %>">
+    <div class="dir-section-header">
+      <span>validation status</span>
+      <span class="dir-section-meta">
+        <% if @result %>
+          <% if @result.valid? %>
+            <span is-="badge" variant-="green"><%= t("directory.health.show.valid") %></span>
+          <% else %>
+            <span is-="badge" variant-="red"><%= t("directory.health.show.invalid") %></span>
+          <% end %>
+          <% if @validated_at %>
+            <%= t("directory.health.show.last_run", time: time_ago_in_words(@validated_at)) %>
+          <% end %>
+        <% end %>
+      </span>
+    </div>
+    <% if @result %>
+
+      <% unless @result.valid? %>
+        <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.health.show.mismatches") %></span>
+
+        <% @result.mismatches.each do |table_name, diff| %>
+          <% next if diff[:missing].empty? && diff[:extra].empty? %>
+          <span style="color: var(--foreground2); font-style: italic;"><%= table_name %></span>
+
+          <table>
+            <thead>
+              <tr>
+                <th><%= t("directory.health.show.col_status") %></th>
+                <th><%= t("directory.health.show.col_record") %></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% diff[:missing].each do |row| %>
+                <tr>
+                  <td style="color: var(--yellow);"><%= t("directory.health.show.missing") %></td>
+                  <td><code><%= row.to_json %></code></td>
+                </tr>
+              <% end %>
+              <% diff[:extra].each do |row| %>
+                <tr>
+                  <td style="color: var(--red);"><%= t("directory.health.show.extra") %></td>
+                  <td><code><%= row.to_json %></code></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
+      <% end %>
+    <% else %>
+      <div class="dir-section-empty"><%= t("directory.health.show.never_run") %></div>
+    <% end %>
+
+    <%= form_with url: directory_health_validate_path, method: :post, local: true do |f| %>
+      <button type="submit" size-="small"><%= t("directory.health.show.run_now") %></button>
+    <% end %>
+  </div>
+
+  <div class="dir-section">
+    <div class="dir-section-header">
+      <span><%= t("directory.health.show.revokers") %></span>
+    </div>
+    <% if @revokers.any? %>
+      <table>
+        <thead><tr><th><%= t("directory.health.show.col_app") %></th><th><%= t("directory.health.show.col_adapter") %></th><th><%= t("directory.health.show.col_enabled") %></th><th><%= t("directory.health.show.col_last_called") %></th><th><%= t("directory.health.show.col_result") %></th></tr></thead>
+        <tbody>
+          <% @revokers.each do |r| %>
+            <tr>
+              <td><%= r.app.name %></td>
+              <td><code><%= r.adapter %></code></td>
+              <td><%= r.enabled ? "✓" : "—" %></td>
+              <td style="color: var(--foreground2);"><%= r.last_called_at&.strftime("%Y-%m-%d %H:%M") || "never" %></td>
+              <td><%= r.last_result || "—" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="dir-section-empty"><%= t("directory.health.show.no_revokers") %></div>
+    <% end %>
+  </div>
+
+  <div class="dir-keyhints">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">⌘K</span> command palette
+    </row>
+  </div>
+</div>

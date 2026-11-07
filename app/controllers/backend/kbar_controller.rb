@@ -58,7 +58,7 @@ module Backend
 
       when "oauth_apps"
         if current_user.super_admin? || current_user.program_manager?
-          Program.where("name ILIKE ? OR uid = ?", "%#{query}%", query).limit(10).each do |app|
+          Program.where("name ILIKE ? OR LOWER(uid) = LOWER(?)", "%#{ActiveRecord::Base.sanitize_sql_like(query)}%", query).limit(10).each do |app|
             results << {
               type: "oauth_app",
               id: app.id,
@@ -66,6 +66,19 @@ module Backend
               sublabel: app.redirect_uri&.truncate(50),
               path: "/developer/apps/#{app.id}"
             }
+          end
+        end
+
+      when "directory"
+        if current_user.directory_services_admin?
+          like = "%#{ActiveRecord::Base.sanitize_sql_like(query)}%"
+          Directory::Person.joins(:identity)
+            .where("identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR identities.primary_email ILIKE :q", q: like)
+            .includes(:identity).limit(10).each do |person|
+              results << { type: "directory_person", id: person.public_id, label: person.full_name, sublabel: person.primary_email, path: "/directory/people/#{person.public_id}" }
+            end
+          Directory::Collection.where("name ILIKE :q OR slug ILIKE :q", q: like).limit(10).each do |col|
+            results << { type: "directory_collection", id: col.id, label: col.name, sublabel: "#{col.kind} · #{col.slug}", path: "/directory/collections/#{col.slug}" }
           end
         end
       end

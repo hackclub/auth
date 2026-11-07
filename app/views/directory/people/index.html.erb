@@ -1,0 +1,83 @@
+<% content_for :title, t("directory.people.index.title") %>
+<div class="dir-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.people.index.heading") %></h2></div>
+    </div>
+  </div>
+
+  <div class="dir-section" data-accent="green">
+    <div class="dir-section-header">
+      <span><%= t("directory.people.index.bring_someone_in") %></span>
+    </div>
+    <div class="dir-section-form">
+      <%= form_with url: directory_people_path, method: :get, local: true do |f| %>
+        <%= f.email_field :email, placeholder: t("directory.people.index.email_placeholder"), value: params[:email], aria_label: "email address", style: "flex: 1; border: none;" %>
+        <button type="submit" size-="small"><%= t("directory.people.index.search") %></button>
+      <% end %>
+    </div>
+
+    <% if @search_results.present? %>
+      <table>
+        <thead><tr><th><%= t("directory.people.index.col_name") %></th><th><%= t("directory.people.index.col_email") %></th><th></th></tr></thead>
+        <tbody>
+          <% @search_results.each do |identity| %>
+            <tr>
+              <td><%= identity.full_name %></td>
+              <td style="color: var(--foreground2);"><%= identity.primary_email %></td>
+              <td style="text-align: right;">
+                <% if @existing_person_identity_ids.include?(identity.id) %>
+                  <span is-="badge" variant-="background2"><%= t("directory.people.index.already_in") %></span>
+                <% else %>
+                  <%= form_with url: directory_people_path, method: :post, local: true do |f| %>
+                    <%= f.hidden_field :identity_id, value: identity.id %>
+                    <button type="submit" size-="small"><%= t("directory.people.index.bring_in") %></button>
+                  <% end %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+
+  <div class="dir-section" data-accent="blue">
+    <div class="dir-section-header">
+      <span><%= t("directory.people.index.all_people") %> <span is-="badge" variant-="blue"><%= @people.total_count %></span></span>
+    </div>
+    <% if @people.any? %>
+      <table data-filterable>
+        <thead><tr><th><%= t("directory.people.index.col_name") %></th><th><%= t("directory.people.index.col_email") %></th><th></th></tr></thead>
+        <tbody>
+          <% @people.each do |person| %>
+            <tr style="<%= 'opacity: 0.5;' if person.locked? %>">
+              <td>
+                <%= link_to person.full_name, directory_person_path(person) %>
+                <% if person.locked? %><span is-="badge" variant-="red"><%= t("directory.badges.locked") %></span><% end %>
+              </td>
+              <td style="color: var(--foreground2);"><%= person.primary_email %></td>
+              <td style="text-align: right;">
+                <% if @holds_nothing_ids.include?(person.id) %>
+                  <span style="color: var(--foreground2); font-size: 0.85em; opacity: 0.6;">no groups</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <%= paginate @people %>
+    <% else %>
+      <div class="dir-section-empty"><%= t("directory.people.index.no_people") %></div>
+    <% end %>
+  </div>
+
+  <div class="dir-keyhints">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">⌘K</span> command palette
+    </row>
+  </div>
+</div>

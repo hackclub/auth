@@ -69,6 +69,10 @@ FactoryBot.define do
     status { :draft }
     persona_inquiry_id { "inq_#{SecureRandom.hex(12)}" }
 
+    after(:build) do |v|
+      v.persona_inquiry_id = v.persona_record.inquiry_id if v.persona_record
+    end
+
     trait :with_inquiry do
       persona_session_token { "session_#{SecureRandom.hex(16)}" }
     end

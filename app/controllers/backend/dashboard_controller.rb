@@ -6,22 +6,25 @@ module Backend
 
     hint :back_navigation, on: :show
 
-    def show
-      add_breadcrumb "DASH"
-      set_keyboard_shortcut(:back, backend_root_path)
-      authorize Verification
+  def show
+    add_breadcrumb "DASH"
+    set_keyboard_shortcut(:back, backend_root_path)
+    authorize Verification
 
-      @time_period = params[:time_period] || "this_month"
-      @start_date = case @time_period
-      when "today"
-          Time.current.beginning_of_day
-      when "this_month"
-          Time.current.beginning_of_month
-      when "all_time"
-          Time.at(0)
-      end
+    @time_period = params[:time_period] || "this_month"
+    @start_date = case @time_period
+    when "today"
+        Time.current.beginning_of_day
+    when "this_month"
+        Time.current.beginning_of_month
+    when "all_time"
+        # Limit all_time lookback to last 2 years to prevent memory exhaustion
+        2.years.ago.beginning_of_day
+    else
+        Time.current.beginning_of_month  # Default to this month for invalid input
+    end
 
-      @verifications = Verification.not_ignored.where("verifications.created_at >= ?", @start_date)
+    @verifications = Verification.not_ignored.where("verifications.created_at >= ?", @start_date)
 
       @stats = {
         total: @verifications.count,
@@ -68,14 +71,19 @@ module Backend
     def calculate_average_hangtime(verifications)
       return 0 if verifications.empty?
 
-      total_seconds = verifications.sum do |verification|
+      total_seconds = 0
+      count = 0
+
+      verifications.find_each(batch_size: 1000) do |verification|
         start_time = verification.pending_at || verification.created_at
         end_time = verification.approved_at || verification.rejected_at || (verification.updated_at if verification.approved? || verification.rejected?) || Time.now
 
-        end_time - start_time
+        total_seconds += end_time - start_time
+        count += 1
       end
 
-      total_seconds / verifications.count
+      return 0 if count.zero?
+      total_seconds / count
     end
 
     # this should be less bad
@@ -84,7 +92,7 @@ module Backend
 
       breakdown = {}
 
-      rejected_verifications.each do |verification|
+      rejected_verifications.find_each(batch_size: 1000) do |verification|
         next unless verification.rejection_reason.present?
 
         reason_name = verification.try(:rejection_reason_name) || verification.rejection_reason.humanize
@@ -100,25 +108,35 @@ module Backend
       empty_bucket = -> { { approved: 0, rejected_soft: 0, rejected_fatal: 0, pending: 0 } }
       rows = {}
 
+      # Document verifications breakdown
       doc_verifs = verifications.where(type: "Verification::DocumentVerification")
         .joins("LEFT JOIN identity_documents ON identity_documents.id = verifications.identity_document_id")
-        .select("verifications.*, identity_documents.document_type AS doc_type")
+        .group("identity_documents.document_type", "verifications.status", "verifications.fatal")
+        .select("identity_documents.document_type AS doc_type, verifications.status, verifications.fatal, COUNT(*) as count")
 
       govt = empty_bucket.call
       trans = empty_bucket.call
-      doc_verifs.each do |v|
-        bucket = v["doc_type"] == 1 ? trans : govt
-        bump_bucket(bucket, v)
+      doc_verifs.each do |row|
+        bucket = row.doc_type == 1 ? trans : govt
+        increment_bucket_from_row(bucket, row)
       end
       rows[Identity::Document::FRIENDLY_NAMES[:government_id]] = govt if govt.values.sum > 0
       rows[Identity::Document::FRIENDLY_NAMES[:transcript]] = trans if trans.values.sum > 0
 
+      # Vouch verifications
       vouch = empty_bucket.call
-      verifications.where(type: "Verification::VouchVerification").each { |v| bump_bucket(vouch, v) }
+      vouch_counts = verifications.where(type: "Verification::VouchVerification")
+        .group(:status, :fatal)
+        .count
+      vouch_counts.each { |(_status, fatal), count| increment_bucket_from_counts(vouch, _status, fatal, count) }
       rows["Vouch"] = vouch if vouch.values.sum > 0
 
+      # Aadhaar verifications
       aadhaar = empty_bucket.call
-      verifications.where(type: "Verification::AadhaarVerification").each { |v| bump_bucket(aadhaar, v) }
+      aadhaar_counts = verifications.where(type: "Verification::AadhaarVerification")
+        .group(:status, :fatal)
+        .count
+      aadhaar_counts.each { |(_status, fatal), count| increment_bucket_from_counts(aadhaar, _status, fatal, count) }
       rows["Aadhaar"] = aadhaar if aadhaar.values.sum > 0
 
       rows.each_value { |b| b[:total] = b[:approved] + b[:rejected_soft] + b[:rejected_fatal] + b[:pending] }
@@ -134,10 +152,36 @@ module Backend
         bucket[:pending] += 1
       end
     end
+    def increment_bucket_from_row(bucket, row)
+      count = row.try(:count).to_i
+      if row.status == "approved"
+        bucket[:approved] += count
+      elsif row.status == "rejected"
+        row.fatal? ? bucket[:rejected_fatal] += count : bucket[:rejected_soft] += count
+      else
+        bucket[:pending] += count
+      end
+    end
+
+    def increment_bucket_from_counts(bucket, status, fatal, count)
+      if status == "approved"
+        bucket[:approved] += count
+      elsif status == "rejected"
+        fatal ? bucket[:rejected_fatal] += count : bucket[:rejected_soft] += count
+      else
+        bucket[:pending] += count
+      end
+    end
 
     def calculate_attempts_distribution(verifications)
-      by_identity = verifications.order(:created_at).group_by(&:identity_id)
+      by_identity = {}
       distribution = Hash.new(0)
+
+      # Load verifications in batches to avoid memory exhaustion
+      verifications.order(:created_at).find_each(batch_size: 1000) do |v|
+        by_identity[v.identity_id] ||= []
+        by_identity[v.identity_id] << v
+      end
 
       by_identity.each_value do |verifs|
         approved = verifs.find(&:approved?)
@@ -155,7 +199,7 @@ module Backend
 
       by_country = {}
 
-      rejected_verifications.includes(:identity).each do |verification|
+      rejected_verifications.includes(:identity).find_each(batch_size: 1000) do |verification|
         next unless verification.rejection_reason.present?
         next unless verification.identity&.country.present?
 
@@ -173,8 +217,7 @@ module Backend
 
       # Calculate fraud rate and sort by fatal count (most suspicious first)
       by_country.transform_values do |data|
-        data[:reasons] = data[:reasons].sort_by { |_, r| [ r[:fatal] ? 0 : 1, -r[:count] ] }.to_h
-        data[:fatal_rate] = data[:total] > 0 ? (data[:fatal].to_f / data[:total] * 100).round(1) : 0
+        data[:fraud_rate] = data[:fatal] / data[:total].to_f
         data
       end.sort_by { |_, data| [ -data[:fatal], -data[:total] ] }.to_h
     end

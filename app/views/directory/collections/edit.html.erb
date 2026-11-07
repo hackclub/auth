@@ -1,0 +1,51 @@
+<% content_for :title, t("directory.collections.edit.title", name: @collection.name) %>
+<div class="dir-page dir-form-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.collections.edit.heading", name: @collection.name) %></h2></div>
+    </div>
+  </div>
+
+  <div class="dir-section" data-accent="blue">
+    <%= form_with model: @collection, url: directory_collection_path(@collection.slug), method: :patch, local: true, scope: :collection do |f| %>
+      <div class="dir-section-form">
+        <column gap-="1">
+          <% if @collection.errors.any? %>
+            <div style="color: var(--red); padding: 0.5lh 0;">
+              <% @collection.errors.full_messages.each do |msg| %>
+                <div><%= msg %></div>
+              <% end %>
+            </div>
+          <% end %>
+
+          <label style="color: var(--foreground2);"><%= t("directory.collections.edit.name") %></label>
+          <%= f.text_field :name, required: true, style: "border: none;" %>
+
+          <label style="color: var(--foreground2);"><%= t("directory.collections.edit.slug") %></label>
+          <span><%= @collection.slug %></span>
+
+          <label style="color: var(--foreground2);"><%= t("directory.collections.edit.kind") %></label>
+          <span><span is-="badge" variant-="<%= @collection.group? ? 'blue' : 'green' %>"><%= @collection.kind %></span></span>
+
+          <label style="color: var(--foreground2);"><%= t("directory.collections.edit.description") %></label>
+          <%= f.text_area :description, rows: 3, style: "border: none;" %>
+
+          <row gap-="1" align-="center">
+            <%= f.check_box :protected %>
+            <label style="color: var(--foreground2);"><%= t("directory.collections.edit.protected") %> <span style="font-size: 0.85em;">(<%= t("directory.collections.edit.protected_hint") %>)</span></label>
+          </row>
+
+          <row gap-="1" align-="center">
+            <%= f.check_box :confirm_destroy %>
+            <label style="color: var(--foreground2);"><%= t("directory.collections.edit.confirm_destroy") %></label>
+          </row>
+
+          <row gap-="2" align-="center" style="margin-top: 0.5lh;">
+            <button type="submit" size-="small"><%= t("directory.collections.edit.submit") %></button>
+            <a href="<%= directory_collection_path(@collection.slug) %>" style="color: var(--foreground2);"><%= t("directory.actions.cancel") %></a>
+          </row>
+        </column>
+      </div>
+    <% end %>
+  </div>
+</div>

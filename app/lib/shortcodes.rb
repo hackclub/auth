@@ -61,6 +61,17 @@ module Shortcodes
         ]
       end
 
+      # Directory
+      if user&.directory_services_admin?
+        shortcuts += [
+          Shortcode.new(code: "ADUC", label: "Directory", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory"),
+          Shortcode.new(code: "DPPL", label: "Directory people", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/people"),
+          Shortcode.new(code: "DRPT", label: "Directory reports", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/reports"),
+          Shortcode.new(code: "DHLT", label: "Directory health", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/health"),
+          Shortcode.new(code: "DIMP", label: "Directory import", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/import")
+        ]
+      end
+
       # Utility
       shortcuts << Shortcode.new(code: "SRCH", label: "Focus search", controller: nil, action: nil, icon: "⌕", role: :general, path_override: "#search")
       shortcuts << Shortcode.new(code: "HELP", label: "Keyboard shortcuts", controller: nil, action: nil, icon: "?", role: :general, path_override: "#hints")
@@ -113,6 +124,10 @@ module Shortcodes
 
       if user&.super_admin? || user&.program_manager?
         scopes << { key: "oauth_apps", label: "OAuth apps", icon: "⭢" }
+      end
+
+      if user&.directory_services_admin?
+        scopes << { key: "directory", label: "Directory", icon: "⭢" }
       end
 
       scopes

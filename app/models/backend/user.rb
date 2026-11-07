@@ -43,6 +43,30 @@ module Backend
     def can_process_deletions? = can_process_deletions
     def can_ban? = can_ban
 
+    # Directory root is exercised from a normal HCA session (/directory, the app
+    # page), outside Backend::ApplicationController's active? gate, so it has to
+    # honor deactivate! itself. The stored flag is untouched: forms, pretty_roles
+    # and the hooks below read `directory_services_admin` directly.
+    def directory_services_admin? = active? && directory_services_admin
+
+    after_save :ensure_directory_person_exists, if: -> { saved_change_to_directory_services_admin? && directory_services_admin && identity_id.present? }
+    before_save :prevent_last_admin_removal, if: -> { will_save_change_to_directory_services_admin? && !directory_services_admin && active? }
+
+    # Only active admins count: an inactive one isn't root, so stripping its flag
+    # never costs a working admin. deactivate! doesn't touch the flag and is never
+    # blocked here, since offboarding has to work even for the last admin.
+    private def prevent_last_admin_removal
+      if Backend::User.where(directory_services_admin: true, active: true).where.not(id: id).none?
+        errors.add(:directory_services_admin, "can't remove the last directory services admin")
+        throw :abort
+      end
+    end
+
+    private def ensure_directory_person_exists
+      Directory::Person.find_or_create_by!(identity_id: identity_id)
+    end
+
+
     # Returns a human-readable string of the user's roles
     def pretty_roles
       roles = []
@@ -52,6 +76,7 @@ module Backend
       roles << "Human Endorser" if human_endorser?
       roles << "All Fields Access" if all_fields_access?
       roles << "Ban" if can_ban?
+      roles << "Directory Services Admin" if directory_services_admin # stored flag, like the rest; status is shown separately
       roles.presence&.join(", ") || "None"
     end
 

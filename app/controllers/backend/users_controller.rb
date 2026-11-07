@@ -13,7 +13,7 @@ module Backend
       set_keyboard_shortcut(:back, backend_root_path)
 
       @users = User.all
-      @users = @users.left_joins(:identity).where("identities.primary_email ILIKE :q OR identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR backend_users.username ILIKE :q", q: "%#{params[:search]}%") if params[:search].present?
+      @users = @users.left_joins(:identity).where("identities.primary_email ILIKE :q OR identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR backend_users.username ILIKE :q", q: "%#{ActiveRecord::Base.sanitize_sql_like(params[:search])}%") if params[:search].present?
       @users = @users.includes(:identity, :organized_programs)
     end
 
@@ -40,7 +40,9 @@ module Backend
       @user.update!(user_params)
       redirect_to backend_users_path, notice: "User updated!"
     rescue => e
-      redirect_to backend_users_path, alert: e.message
+      # before_save guards (e.g. last directory admin) throw :abort, and
+      # RecordNotSaved's message is just "Failed to save the record".
+      redirect_to backend_users_path, alert: @user.errors.full_messages.to_sentence.presence || e.message
     end
 
     def create
@@ -100,6 +102,6 @@ module Backend
       @user = User.find(params[:id])
     end
 
-    def user_params = params.require(:backend_user).permit(:username, :icon_url, :all_fields_access, :human_endorser, :program_manager, :manual_document_verifier, :super_admin, :can_ban, organized_program_ids: [])
+    def user_params = params.require(:backend_user).permit(:username, :icon_url, :all_fields_access, :human_endorser, :program_manager, :manual_document_verifier, :super_admin, :can_ban, :directory_services_admin, organized_program_ids: [])
   end
 end

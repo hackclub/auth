@@ -37,8 +37,8 @@ class OAuthToken < ApplicationRecord
   REFRESH_TOKEN_PREFIX = "idnrf."
   SIZE = 32
 
-  scope :not_expired, -> { where(expires_in: nil).or(where("(oauth_access_tokens.created_at + make_interval(secs => expires_in)) >= ?", Time.now)) }
-  scope :not_revoked, -> { where(revoked_at: nil).or(where(revoked_at: Time.now..)) }
+  scope :not_expired, -> { where(expires_in: nil).or(where("(oauth_access_tokens.created_at + make_interval(secs => expires_in)) >= ?", Time.current)) }
+  scope :not_revoked, -> { where(revoked_at: nil) }
 
   scope :accessible, -> { not_expired.and(not_revoked) }
 

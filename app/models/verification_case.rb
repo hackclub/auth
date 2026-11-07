@@ -210,7 +210,10 @@ class VerificationCase < ApplicationRecord
     return false unless ActiveSupport::SecurityUtils.secure_compare(token, access_token)
     return false if access_token_expires_at.nil? || access_token_expires_at.past?
 
-    self.class.where(id: id, access_token_used_at: nil)
+    # Include token in the atomic where clause to prevent race condition:
+    # if another process invalidates the token after we load the instance,
+    # the update will fail (== 0) and we won't consume a stale token.
+    self.class.where(id: id, access_token: token, access_token_used_at: nil)
       .update_all(access_token_used_at: Time.current) == 1
   end
 

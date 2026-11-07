@@ -32,7 +32,7 @@
       <%
         scopes = @pre_auth.scopes.map(&:to_s)
         not_set = t('.data.not_set')
-        scope_data = OAuthScope.consent_data_by_scope(scopes, current_identity)
+        scope_data = OAuthScope.consent_data_by_scope(scopes, current_identity, app: application)
         unknown_scopes = scopes.reject { |s| OAuthScope.known?(s) }
       %>
 

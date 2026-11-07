@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  deleted <%= activity.parameters["kind"] || "collection" %> <b><%= activity.parameters["name"] || "(unknown)" %></b>.
+<% end %>

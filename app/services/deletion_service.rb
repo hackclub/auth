@@ -35,10 +35,18 @@ module DeletionService
     log.call ""
 
     deferred_attachments = []
+    dir_revocations = []
 
     ActiveRecord::Base.transaction do
       log.call "step 1: locking account..."
       identity.lock_account! unless identity.locked?
+
+      log.call "step 1b: removing from directory (if present)..."
+      if (dir_person = Directory::Person.find_by(identity: identity))
+        dir_revocations = dir_person.revocation_data
+        Directory.mutate!(cause: "person_removed:#{dir_person.id}") { dir_person.destroy! }
+        log.call "  removed directory person #{dir_person.id}"
+      end
 
       log.call "step 2: destroying auth data..."
       counts = {
@@ -172,6 +180,10 @@ module DeletionService
         key: "identity.deletion_request",
         parameters: { tombstoned_at: Time.current.iso8601 }
       )
+    end
+
+    if dir_revocations.any?
+      Directory::AfterChangeJob.perform_later(change_ids: [], revocations: dir_revocations)
     end
 
     if deferred_attachments.any?

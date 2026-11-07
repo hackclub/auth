@@ -64,6 +64,7 @@ class Identity < ApplicationRecord
   has_many :email_change_requests, class_name: "Identity::EmailChangeRequest", dependent: :destroy
 
   has_one :backend_user, class_name: "Backend::User", dependent: :destroy
+  has_one :directory_person, class_name: "Directory::Person", dependent: nil
 
   def active_for_backend? = backend_user&.active?
 
@@ -140,7 +141,7 @@ class Identity < ApplicationRecord
   validate :legal_names_must_be_complete
 
   before_validation :downcase_email
-  before_commit :copy_legal_name_if_needed, on: :create
+  before_create :copy_legal_name_if_needed
 
   def full_name = "#{first_name} #{last_name}"
 
@@ -327,17 +328,6 @@ class Identity < ApplicationRecord
       .count
   end
 
-  # TODO: this is schnasty
-  def onboarding_redirect_path
-    helpers = Rails.application.routes.url_helpers
-
-    return helpers.basic_info_onboarding_path unless persisted?
-    return helpers.new_verifications_path if needs_persona? || needs_documents?
-    return helpers.address_onboarding_path unless primary_address_id.present?
-
-    helpers.submitted_onboarding_path
-  end
-
   def needs_document_upload?
     return false if verification_status == "ineligible"
     return true unless verifications.not_ignored.where(status: %w[approved pending]).any?
@@ -356,6 +346,16 @@ class Identity < ApplicationRecord
     update!(locked_at: Time.current)
     sessions.update_all(expires_at: Time.current)
     all_access_tokens.update_all(revoked_at: Time.current)
+
+    # §9.1 trigger 4: fire directory revokers for locked identity
+    if (dir_person = Directory::Person.find_by(identity: self))
+      dir_person.revocation_data.each do |rev|
+        rev[:app_ids].each do |app_id|
+          revoker = Directory::AppRevoker.find_by(app_id: app_id, enabled: true)
+          Directory::RevokeSessionJob.perform_later(app_id: app_id, email: primary_email) if revoker
+        end
+      end
+    end
   end
 
   def self.calculate_age(birthday)

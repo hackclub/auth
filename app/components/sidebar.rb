@@ -50,6 +50,18 @@ class Components::Sidebar < Components::Base
     items << { label: t("sidebar.addresses"), path: addresses_path, icon: "email" }
     items << { label: t("sidebar.security"), path: security_path, icon: "private" }
 
+    if current_identity.present?
+      if current_identity.backend_user&.directory_services_admin?
+        items << { label: t("sidebar.directory"), path: directory_root_path, icon: "admin" }
+      elsif (person_id = Directory::Person.where(identity_id: current_identity.id).pick(:id))
+        if Directory::EffectiveGrant.where(person_id: person_id).exists?
+          items << { label: t("sidebar.directory"), path: directory_root_path, icon: "admin" }
+        else
+          items << { label: t("sidebar.directory"), path: directory_my_access_path, icon: "admin" }
+        end
+      end
+    end
+
     # Add developer link if developer mode is enabled or user is a program manager/super admin
     if current_identity.present? && (current_identity.developer_mode? || current_identity.backend_user&.program_manager? || current_identity.backend_user&.super_admin?)
       pending_count = current_identity.pending_collaboration_invitations.count
