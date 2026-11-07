@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  looked up <code><%= activity.parameters["email"] %></code> (not found) on <b><%= activity.trackable&.name || "(deleted)" %></b>.
+<% end %>

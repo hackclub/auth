@@ -334,7 +334,9 @@ class Persona::ProcessInquiryEventJob < ApplicationJob
 
     names = failed.map { |c| c["name"] }
 
-    if names.include?("id_expired_detection")
+    if names.any? { |n| Internal::Decisioning::FRAUD_CHECKS.include?(n) }
+      "fraud"
+    elsif names.include?("id_expired_detection")
       "expired"
     else
       "poor_quality"

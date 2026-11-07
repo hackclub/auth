@@ -7,7 +7,7 @@ RSpec.describe OAuthScope do
       expect(scope_names).to contain_exactly(
         "openid", "email", "name", "profile", "phone", "birthdate",
         "address", "verification_status", "slack_id", "legal_name",
-        "basic_info", "set_slack_id"
+        "basic_info", "set_slack_id", "groups"
       )
     end
 
@@ -134,7 +134,7 @@ RSpec.describe OAuthScope do
   describe "COMMUNITY_ALLOWED" do
     it "contains only safe scopes for community apps" do
       expect(described_class::COMMUNITY_ALLOWED).to contain_exactly(
-        "openid", "profile", "email", "name", "slack_id", "verification_status"
+        "openid", "profile", "email", "name", "slack_id", "verification_status", "groups"
       )
     end
   end

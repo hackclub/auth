@@ -1,0 +1,5 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  granted <b><%= activity.trackable&.grantee_group&.name || activity.parameters["grantee_name"] || "?" %></b>
+  <code><%= activity.trackable&.permission || activity.parameters["permission"] %></code>
+  on <b><%= activity.trackable&.target_collection&.name || activity.parameters["target_name"] || "?" %></b>.
+<% end %>

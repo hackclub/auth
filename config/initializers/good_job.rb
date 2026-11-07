@@ -15,6 +15,14 @@ Rails.application.configure do
     remind_quiet_verification_cases: {
       cron: "0 15 * * *", # Run daily at 3pm UTC (morning in the US)
       class: "VerificationCase::SendLinkReminderJob"
+    },
+    directory_sweep_expired_memberships: {
+      cron: "*/5 * * * *",
+      class: "Directory::MembershipExpirySweepJob"
+    },
+    directory_validate: {
+      cron: "0 2 * * *",
+      class: "Directory::ValidateJob"
     }
   }
   config.good_job.enable_cron = true

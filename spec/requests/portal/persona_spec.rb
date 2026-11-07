@@ -23,6 +23,8 @@ RSpec.describe "Portal persona verification", type: :request do
   after { Flipper.disable(:persona_verification_2026_04_09) }
 
   describe "document gate for persona-flagged users" do
+    before { allow(Internal::Eligibility).to receive(:manual_flow?).and_return(false) }
+
     describe "GET /portal/verify/document" do
       it "redirects persona-flagged users to persona page" do
         get "/portal/verify/document"

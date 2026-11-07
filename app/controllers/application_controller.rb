@@ -48,6 +48,7 @@ class ApplicationController < ActionController::Base
   # verification flows — controllers serving those flows use this as a
   # before_action so users land on their case instead of a legacy page
   def redirect_to_open_manual_case
+    return unless Flipper.enabled?(VerificationCase::FLIPPER_FLAG, current_identity)
     return unless current_identity.verification_cases.open_cases.exists?
 
     redirect_to manual_verification_path
@@ -102,19 +103,15 @@ class ApplicationController < ActionController::Base
   end
 
   rescue_from ActiveRecord::RecordNotFound do |e|
-    event_id = Sentry.capture_exception(e)&.event_id
-    flash[:error] = "sorry, couldn't find that object... (404)"
-    flash[:sentry_event_id] = event_id if event_id
-    redirect_to root_path unless request.path == "/"
+    Sentry.capture_exception(e)
+    render "errors/not_found", layout: "errors", status: :not_found
   end
 
   rescue_from StandardError do |e|
-    event_id = Sentry.capture_exception(e)&.event_id
-    flash[:error] = "Something went wrong. Please try again."
-    flash[:sentry_event_id] = event_id if event_id
+    raise e if Rails.env.local?
 
-    raise e if Rails.env.development?
-    redirect_to root_path unless request.path == "/"
+    @event_id = Sentry.capture_exception(e)&.event_id
+    render "errors/internal_server_error", layout: "errors", status: :internal_server_error
   end
 
   private

@@ -60,6 +60,11 @@ module PortalFlow
     return_url = portal_return_url
     session.delete(:portal_return_to)
 
+    unless return_url.present?
+      redirect_to root_path, notice: notice
+      return
+    end
+
     uri = URI.parse(return_url)
     params = URI.decode_www_form(uri.query || "").to_h
     params["portal_status"] = status.to_s

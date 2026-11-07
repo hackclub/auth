@@ -1,0 +1,7 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <% if activity.parameters["reason"] == "expired" %>
+    membership expired: <%= activity.parameters["member_type"] || "member" %> <b><%= activity.parameters["member_name"] || "(unknown)" %></b> from <b><%= activity.trackable&.name || "(deleted)" %></b>.
+  <% else %>
+    removed <%= activity.parameters["member_type"] || "member" %> <b><%= activity.parameters["member_name"] || "(unknown)" %></b> from <b><%= activity.trackable&.name || "(deleted)" %></b>.
+  <% end %>
+<% end %>

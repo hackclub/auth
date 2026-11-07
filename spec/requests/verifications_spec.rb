@@ -41,6 +41,7 @@ RSpec.describe "Verifications", type: :request do
   describe "document gate for persona-flagged users" do
     before do
       Flipper.enable(:persona_verification_2026_04_09, identity)
+      allow(Internal::Eligibility).to receive(:manual_flow?).and_return(false)
     end
 
     after do

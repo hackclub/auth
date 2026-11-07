@@ -44,6 +44,11 @@ if app_path.exist? && app_path.glob("*.rb").any?
 else
   module Internal
     class Decisioning
+      FRAUD_CHECKS = %w[
+        id_electronic_replica_detection
+        id_digital_replica_detection
+      ].to_set.freeze
+
       def self.run(verification) = Stubs::Decisioning.run(verification)
     end
 
