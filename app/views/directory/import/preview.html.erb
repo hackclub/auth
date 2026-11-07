@@ -78,6 +78,7 @@
         <% end %>
       <% else %>
         <div class="dir-section-empty">fix the <%= @result.errors.size %> error<%= @result.errors.size == 1 ? '' : 's' %> above to apply</div>
+      <% end %>
     </div>
   <% else %>
     <% if @result.errors.empty? %>
