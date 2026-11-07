@@ -229,6 +229,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_000003) do
   create_table "directory_effective_memberships", primary_key: ["collection_id", "person_id"], force: :cascade do |t|
     t.bigint "collection_id", null: false
     t.bigint "person_id", null: false
+    t.datetime "expires_at"
+    t.index ["expires_at"], name: "idx_effective_memberships_expires_at", where: "(expires_at IS NOT NULL)"
     t.index ["person_id"], name: "index_directory_effective_memberships_on_person_id"
   end
 
