@@ -245,7 +245,7 @@
               <%= form.text_area :internal_rejection_comment, rows: 2, placeholder: "internal notes (not visible to user)..." %>
             </column>
             <column style="align-self: flex-end;">
-              <button type="submit" variant-="red" size-="small" onclick="return confirm('reject this document?')">REJECT</button>
+              <button type="submit" variant-="red" size-="small" data-confirm="reject this document?">REJECT</button>
             </column>
           </row>
         <% end %>

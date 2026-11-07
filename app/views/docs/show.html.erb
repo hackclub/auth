@@ -1,14 +1,14 @@
 <% content_for :title, @doc[:title] %>
 
 <div class="docs-layout">
-  <button class="docs-sidebar-toggle" onclick="toggleDocsSidebar()" aria-label="Toggle sidebar">
+  <button class="docs-sidebar-toggle" data-action="toggle-sidebar" aria-label="Toggle sidebar">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <line x1="4" y1="6" x2="20" y2="6"></line>
       <line x1="4" y1="12" x2="20" y2="12"></line>
       <line x1="4" y1="18" x2="20" y2="18"></line>
     </svg>
   </button>
-  <div class="docs-sidebar-overlay" onclick="toggleDocsSidebar()"></div>
+  <div class="docs-sidebar-overlay" data-action="toggle-sidebar"></div>
 
   <button class="lightswitch-btn" type="button" aria-label="Toggle theme">
     <span class="lightswitch-moon"><%= inline_icon("moon-fill", size: 16) %></span>
@@ -57,11 +57,11 @@
   </main>
 </div>
 
-<script>
-  function toggleDocsSidebar() {
-    const sidebar = document.getElementById('docs-sidebar');
-    const overlay = document.querySelector('.docs-sidebar-overlay');
-    sidebar.classList.toggle('mobile-open');
-    overlay.classList.toggle('active');
-  }
+<script nonce="<%= content_security_policy_nonce %>">
+  document.querySelectorAll('[data-action="toggle-sidebar"]').forEach(function(el) {
+    el.addEventListener('click', function() {
+      document.getElementById('docs-sidebar').classList.toggle('mobile-open');
+      document.querySelector('.docs-sidebar-overlay').classList.toggle('active');
+    });
+  });
 </script>

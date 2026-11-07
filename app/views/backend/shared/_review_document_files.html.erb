@@ -18,14 +18,13 @@
             <%= file.content_type.in?(%w[image/heic image/heif]) ? "converting heic..." : "loading..." %>
           </div>
           <div id="image-container-<%= index %>" style="display: none;">
-            <%= image_tag image_src,
-              alt: "document file #{index + 1}",
-              id: "image-#{index}",
-              style: "max-width: 100%; transition: transform 0.2s;",
-              data: { rotation: 0 },
-              onload: "document.getElementById('loader-#{index}').style.display='none'; document.getElementById('image-container-#{index}').style.display='block';",
-              onerror: "document.getElementById('loader-#{index}').textContent='error loading image';" %>
-            <button type="button" size-="small" onclick="rotateImage(<%= index %>)">↻ rotate</button>
+          <%= image_tag image_src,
+            alt: "document file #{index + 1}",
+            id: "image-#{index}",
+            style: "max-width: 100%; transition: transform 0.2s;",
+            data: { rotation: 0, loader: "loader-#{index}", container: "image-container-#{index}" },
+            class: "review-doc-image" %>
+            <button type="button" size-="small" data-action="rotate" data-target="image-<%= index %>">↻ rotate</button>
           </div>
         <% elsif file.content_type == "application/pdf" %>
           <iframe src="<%= url_for(file) %>" style="width: 100%; height: 60vh; border: 1px solid var(--background2);" type="application/pdf">
@@ -43,15 +42,6 @@
       </column>
     <% end %>
   </column>
-  <script>
-    function rotateImage(index) {
-      const img = document.getElementById('image-' + index);
-      let currentRotation = parseInt(img.dataset.rotation || 0);
-      currentRotation = (currentRotation + 90);
-      img.dataset.rotation = currentRotation;
-      img.style.transform = 'rotate(' + currentRotation + 'deg)';
-    }
-  </script>
 <% else %>
   <span style="color: var(--foreground2);">no files attached</span>
 <% end %>

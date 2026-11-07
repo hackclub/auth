@@ -17,6 +17,7 @@
     "vite-plugin-ruby": "^5.1.1"
   },
   "dependencies": {
+    "@alpinejs/csp": "^3.17.5",
     "@fingerprintjs/fingerprintjs": "^3.4.2",
     "@noble/curves": "^1.9.1",
     "@picocss/pico": "^2.1.1",

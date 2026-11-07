@@ -27,7 +27,7 @@
 
 <%= form_with model: @document, url: local_assigns[:form_url], method: local_assigns[:form_method] || :post, local: true, multipart: true,
               html: {
-                "x-data" => "{ selectedType: '#{ @document.document_type }', transcriptFileCount: 0, studentIdFileCount: 0, governmentIdFileCount: 0, get canSubmit() { return this.selectedType === 'transcript' ? (this.transcriptFileCount >= 1 && this.studentIdFileCount >= 1) : this.governmentIdFileCount >= 1; }, submitted: false }",
+                "x-data" => "documentForm('#{ @document.document_type }')",
                 "x-on:submit" => "submitted = true"
               } do |form| %>
 
