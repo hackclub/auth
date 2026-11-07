@@ -1,10 +1,10 @@
 <% content_for :title, t("directory.search.title") %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <row align-="center between">
-    <h2><%= t("directory.search.heading") %></h2>
-  </row>
-
-  <div is-="separator"></div>
+<div class="dir-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.search.heading") %></h2></div>
+    </div>
+  </div>
 
   <%= form_with url: directory_search_path, method: :get, local: true do %>
     <row gap-="1" align-="center">
@@ -15,68 +15,70 @@
   <% end %>
 
   <% if params[:q].present? %>
-    <div is-="separator"></div>
-
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.search.people") %></span>
-
-    <% if @people.any? %>
-      <table>
-        <thead>
-          <tr>
-            <th><%= t("directory.search.col_name") %></th>
-            <th><%= t("directory.search.col_email") %></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @people.each do |person| %>
+    <div class="dir-section" data-accent="green">
+      <div class="dir-section-header">
+        <span><%= t("directory.search.people") %></span>
+      </div>
+      <% if @people.any? %>
+        <table>
+          <thead>
             <tr>
-              <td><%= link_to person.full_name, directory_person_path(person) %></td>
-              <td style="color: var(--foreground2);"><%= person.primary_email %></td>
+              <th><%= t("directory.search.col_name") %></th>
+              <th><%= t("directory.search.col_email") %></th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.search.no_results") %></span>
-    <% end %>
+          </thead>
+          <tbody>
+            <% @people.each do |person| %>
+              <tr>
+                <td><%= link_to person.full_name, directory_person_path(person) %></td>
+                <td style="color: var(--foreground2);"><%= person.primary_email %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <div class="dir-section-empty"><%= t("directory.search.no_results") %></div>
+      <% end %>
+    </div>
 
-    <div is-="separator"></div>
-
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.search.collections") %></span>
-
-    <% if @collections.any? %>
-      <table>
-        <thead>
-          <tr>
-            <th><%= t("directory.search.col_name") %></th>
-            <th><%= t("directory.search.col_kind") %></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @collections.each do |collection| %>
+    <div class="dir-section" data-accent="blue">
+      <div class="dir-section-header">
+        <span><%= t("directory.search.collections") %></span>
+      </div>
+      <% if @collections.any? %>
+        <table>
+          <thead>
             <tr>
-              <td><%= link_to collection.name, directory_collection_path(collection.slug) %></td>
-              <td><span is-="badge" variant-="<%= collection.group? ? 'blue' : 'green' %>"><%= collection.kind %></span></td>
+              <th><%= t("directory.search.col_name") %></th>
+              <th><%= t("directory.search.col_kind") %></th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.search.no_results") %></span>
-    <% end %>
+          </thead>
+          <tbody>
+            <% @collections.each do |collection| %>
+              <tr>
+                <td><%= link_to collection.name, directory_collection_path(collection.slug) %></td>
+                <td><span is-="badge" variant-="<%= collection.group? ? 'blue' : 'green' %>"><%= collection.kind %></span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <div class="dir-section-empty"><%= t("directory.search.no_results") %></div>
+      <% end %>
+    </div>
   <% else %>
-    <div is-="separator"></div>
-
-    <column align-="center center" pad-="4 0">
-      <span style="color: var(--foreground2);"><%= t("directory.search.prompt") %></span>
-    </column>
+    <div class="dir-empty">
+      <span class="dir-empty-icon">⌕</span>
+      <span><%= t("directory.search.prompt") %></span>
+    </div>
   <% end %>
 
-  <div is-="separator"></div>
-
-  <row gap-="2" align-="center" style="color: var(--foreground2);">
+  <div class="dir-keyhints">
     <row gap-="1" align-="center">
       <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
     </row>
-  </row>
-</column>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">⌘K</span> command palette
+    </row>
+  </div>
+</div>

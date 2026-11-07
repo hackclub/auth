@@ -1,13 +1,10 @@
 <% content_for :title, t("directory.view_as.title") %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <row align-="center between">
-    <h2><%= t("directory.view_as.heading") %></h2>
-    <row gap-="2" align-="center">
-      <a href="<%= directory_root_path %>" style="color: var(--foreground2);"><%= t("directory.layout.title") %></a>
-    </row>
-  </row>
-
-  <div is-="separator"></div>
+<div class="dir-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.view_as.heading") %></h2></div>
+    </div>
+  </div>
 
   <form method="get" action="<%= directory_view_as_path %>" style="display: flex; gap: 1ch; align-items: center;">
     <label for="view-as-picker" style="color: var(--foreground2);"><%= t("directory.view_as.person_label") %></label>
@@ -28,99 +25,101 @@
   </form>
 
   <% if @target_person %>
-    <div is-="separator"></div>
-
-    <span style="color: var(--foreground2); font-style: italic;">
+    <span style="color: var(--foreground2);">
       <%= t("directory.view_as.viewing_as") %> <strong style="color: var(--foreground);"><%= @target_person.full_name %></strong>
       (<%= @target_person.primary_email %>)
     </span>
 
-    <div is-="separator"></div>
+    <div class="dir-section" data-accent="blue">
+      <div class="dir-section-header">
+        <span><%= t("directory.view_as.memberships") %></span>
+      </div>
+      <% if @memberships.any? %>
+        <% direct, via = @memberships.partition { |m| m[:direct] } %>
 
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.view_as.memberships") %></span>
+        <% if direct.any? %>
+          <span style="color: var(--foreground2); font-size: 0.9em;"><%= t("directory.view_as.direct") %></span>
+          <table>
+            <thead><tr><th><%= t("directory.view_as.col_collection") %></th><th><%= t("directory.view_as.col_kind") %></th></tr></thead>
+            <tbody>
+              <% direct.each do |m| %>
+                <tr>
+                  <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+                  <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
 
-    <% if @memberships.any? %>
-      <% direct, via = @memberships.partition { |m| m[:direct] } %>
+        <% if via.any? %>
+          <span style="color: var(--foreground2); font-size: 0.9em;"><%= t("directory.view_as.via_nesting") %></span>
+          <table>
+            <thead><tr><th><%= t("directory.view_as.col_collection") %></th><th><%= t("directory.view_as.col_kind") %></th></tr></thead>
+            <tbody>
+              <% via.each do |m| %>
+                <tr>
+                  <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+                  <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
+      <% else %>
+        <div class="dir-section-empty"><%= t("directory.view_as.no_memberships") %></div>
+      <% end %>
+    </div>
 
-      <% if direct.any? %>
-        <span style="color: var(--foreground2); font-size: 0.9em;"><%= t("directory.view_as.direct") %></span>
+    <div class="dir-section" data-accent="blue">
+      <div class="dir-section-header">
+        <span><%= t("directory.view_as.visible_collections") %></span>
+      </div>
+      <% if @visible_collections.any? %>
         <table>
-          <thead><tr><th><%= t("directory.view_as.col_collection") %></th><th><%= t("directory.view_as.col_kind") %></th></tr></thead>
+          <thead><tr><th><%= t("directory.view_as.col_name") %></th><th><%= t("directory.view_as.col_kind") %></th></tr></thead>
           <tbody>
-            <% direct.each do |m| %>
+            <% @visible_collections.each do |collection| %>
               <tr>
-                <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
-                <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
+                <td><%= link_to collection.name, directory_collection_path(collection.slug) %></td>
+                <td><span is-="badge" variant-="<%= collection.group? ? 'blue' : 'green' %>"><%= collection.kind %></span></td>
               </tr>
             <% end %>
           </tbody>
         </table>
+      <% else %>
+        <div class="dir-section-empty"><%= t("directory.view_as.no_visible") %></div>
       <% end %>
+    </div>
 
-      <% if via.any? %>
-        <span style="color: var(--foreground2); font-size: 0.9em;"><%= t("directory.view_as.via_nesting") %></span>
+    <div class="dir-section" data-accent="yellow">
+      <div class="dir-section-header">
+        <span><%= t("directory.view_as.effective_grants") %></span>
+      </div>
+      <% if @grants.any? %>
         <table>
-          <thead><tr><th><%= t("directory.view_as.col_collection") %></th><th><%= t("directory.view_as.col_kind") %></th></tr></thead>
+          <thead><tr><th><%= t("directory.view_as.col_collection") %></th><th><%= t("directory.view_as.col_permission") %></th></tr></thead>
           <tbody>
-            <% via.each do |m| %>
+            <% @grants.each do |grant| %>
               <tr>
-                <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
-                <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
+                <td><%= link_to grant.target_collection.name, directory_collection_path(grant.target_collection.slug) %></td>
+                <td><span is-="badge" variant-="blue"><%= grant.permission.tr('_', ' ') %></span></td>
               </tr>
             <% end %>
           </tbody>
         </table>
+      <% else %>
+        <div class="dir-section-empty"><%= t("directory.view_as.no_grants") %></div>
       <% end %>
-    <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.view_as.no_memberships") %></span>
-    <% end %>
-
-    <div is-="separator"></div>
-
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.view_as.visible_collections") %></span>
-
-    <% if @visible_collections.any? %>
-      <table>
-        <thead><tr><th><%= t("directory.view_as.col_name") %></th><th><%= t("directory.view_as.col_kind") %></th></tr></thead>
-        <tbody>
-          <% @visible_collections.each do |collection| %>
-            <tr>
-              <td><%= link_to collection.name, directory_collection_path(collection.slug) %></td>
-              <td><span is-="badge" variant-="<%= collection.group? ? 'blue' : 'green' %>"><%= collection.kind %></span></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.view_as.no_visible") %></span>
-    <% end %>
-
-    <div is-="separator"></div>
-
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.view_as.effective_grants") %></span>
-
-    <% if @grants.any? %>
-      <table>
-        <thead><tr><th><%= t("directory.view_as.col_collection") %></th><th><%= t("directory.view_as.col_permission") %></th></tr></thead>
-        <tbody>
-          <% @grants.each do |grant| %>
-            <tr>
-              <td><%= link_to grant.target_collection.name, directory_collection_path(grant.target_collection.slug) %></td>
-              <td><span is-="badge" variant-="blue"><%= grant.permission %></span></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.view_as.no_grants") %></span>
-    <% end %>
+    </div>
   <% end %>
 
-  <div is-="separator"></div>
-
-  <row gap-="2" align-="center" style="color: var(--foreground2);">
+  <div class="dir-keyhints">
     <row gap-="1" align-="center">
       <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
     </row>
-  </row>
-</column>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">⌘K</span> command palette
+    </row>
+  </div>
+</div>

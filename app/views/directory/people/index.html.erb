@@ -1,18 +1,21 @@
 <% content_for :title, t("directory.people.index.title") %>
-<column pad-="2 1" gap-="2" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <row align-="center between">
-    <h2><%= t("directory.people.index.heading") %></h2>
-  </row>
+<div class="dir-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.people.index.heading") %></h2></div>
+    </div>
+  </div>
 
-  <%# Bring-in search %>
-  <column gap-="1">
-    <b style="color: var(--foreground1);"><%= t("directory.people.index.bring_someone_in") %></b>
-    <%= form_with url: directory_people_path, method: :get, local: true do |f| %>
-      <row gap-="1" align-="center">
+  <div class="dir-section" data-accent="green">
+    <div class="dir-section-header">
+      <span><%= t("directory.people.index.bring_someone_in") %></span>
+    </div>
+    <div class="dir-section-form">
+      <%= form_with url: directory_people_path, method: :get, local: true do |f| %>
         <%= f.email_field :email, placeholder: t("directory.people.index.email_placeholder"), value: params[:email], style: "flex: 1; border: none;" %>
         <button type="submit" size-="small"><%= t("directory.people.index.search") %></button>
-      </row>
-    <% end %>
+      <% end %>
+    </div>
 
     <% if @search_results.present? %>
       <table>
@@ -37,13 +40,12 @@
         </tbody>
       </table>
     <% end %>
-  </column>
+  </div>
 
-  <div is-="separator"></div>
-
-  <%# All people %>
-  <column gap-="1">
-    <b style="color: var(--foreground1);"><%= t("directory.people.index.all_people") %></b>
+  <div class="dir-section" data-accent="blue">
+    <div class="dir-section-header">
+      <span><%= t("directory.people.index.all_people") %> <span is-="badge" variant-="blue"><%= @people.total_count %></span></span>
+    </div>
     <% if @people.any? %>
       <table>
         <thead><tr><th><%= t("directory.people.index.col_name") %></th><th><%= t("directory.people.index.col_email") %></th><th></th></tr></thead>
@@ -66,14 +68,16 @@
       </table>
       <%= paginate @people %>
     <% else %>
-      <span style="color: var(--foreground2);"><%= t("directory.people.index.no_people") %></span>
+      <div class="dir-section-empty"><%= t("directory.people.index.no_people") %></div>
     <% end %>
-  </column>
+  </div>
 
-  <div is-="separator"></div>
-  <row gap-="2" align-="center" style="color: var(--foreground2);">
+  <div class="dir-keyhints">
     <row gap-="1" align-="center">
       <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
     </row>
-  </row>
-</column>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">⌘K</span> command palette
+    </row>
+  </div>
+</div>

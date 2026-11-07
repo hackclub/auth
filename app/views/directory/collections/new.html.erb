@@ -1,52 +1,55 @@
 <% content_for :title, t("directory.collections.new.title") %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <row align-="center between">
-    <h2><%= t("directory.collections.new.heading") %></h2>
-  </row>
+<div class="dir-page dir-form-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.collections.new.heading") %></h2></div>
+    </div>
+  </div>
 
-  <div is-="separator"></div>
-
-  <%= form_with model: @collection, url: directory_collections_path, method: :post, local: true, scope: :collection do |f| %>
-    <column gap-="1" style="max-width: 600px;">
-      <% if @collection.errors.any? %>
-        <div style="color: var(--red); padding: 0.5rem 0;">
-          <% @collection.errors.full_messages.each do |msg| %>
-            <div><%= msg %></div>
+  <div class="dir-section" data-accent="blue">
+    <%= form_with model: @collection, url: directory_collections_path, method: :post, local: true, scope: :collection do |f| %>
+      <div class="dir-section-form">
+        <column gap-="1">
+          <% if @collection.errors.any? %>
+            <div style="color: var(--red); padding: 0.5rem 0;">
+              <% @collection.errors.full_messages.each do |msg| %>
+                <div><%= msg %></div>
+              <% end %>
+            </div>
           <% end %>
-        </div>
-      <% end %>
-      <label style="color: var(--foreground2);"><%= t("directory.collections.new.name") %></label>
-      <%= f.text_field :name, required: true, placeholder: t("directory.collections.new.name_placeholder"), style: "border: none;" %>
 
-      <label style="color: var(--foreground2);"><%= t("directory.collections.new.slug") %></label>
-      <%= f.text_field :slug, required: true, placeholder: t("directory.collections.new.slug_placeholder"), style: "border: none;" %>
-      <span style="color: var(--foreground2); font-size: 0.85em;"><%= t("directory.collections.new.slug_hint") %></span>
+          <label style="color: var(--foreground2);"><%= t("directory.collections.new.name") %></label>
+          <%= f.text_field :name, required: true, placeholder: t("directory.collections.new.name_placeholder"), style: "border: none;" %>
 
-      <label style="color: var(--foreground2);"><%= t("directory.collections.new.kind") %></label>
-      <row gap-="2" align-="center">
-        <label><%= f.radio_button :kind, "group" %> <%= t("directory.collections.new.kind_group") %></label>
-        <label><%= f.radio_button :kind, "entitlement" %> <%= t("directory.collections.new.kind_entitlement") %></label>
-      </row>
+          <label style="color: var(--foreground2);"><%= t("directory.collections.new.slug") %></label>
+          <%= f.text_field :slug, required: true, placeholder: t("directory.collections.new.slug_placeholder"), style: "border: none;" %>
+          <span style="color: var(--foreground2); font-size: 0.85em;"><%= t("directory.collections.new.slug_hint") %></span>
 
-      <label style="color: var(--foreground2);"><%= t("directory.collections.new.description") %></label>
-      <%= f.text_area :description, rows: 3, placeholder: t("directory.collections.new.description_placeholder"), style: "border: none;" %>
+          <label style="color: var(--foreground2);"><%= t("directory.collections.new.kind") %></label>
+          <row gap-="2" align-="center">
+            <label><%= f.radio_button :kind, "group" %> <%= t("directory.collections.new.kind_group") %></label>
+            <label><%= f.radio_button :kind, "entitlement" %> <%= t("directory.collections.new.kind_entitlement") %></label>
+          </row>
 
-      <row gap-="1" align-="center">
-        <%= f.check_box :protected %>
-        <label style="color: var(--foreground2);"><%= t("directory.collections.new.protected") %> <span style="font-size: 0.85em;">(<%= t("directory.collections.new.protected_hint") %>)</span></label>
-      </row>
+          <label style="color: var(--foreground2);"><%= t("directory.collections.new.description") %></label>
+          <%= f.text_area :description, rows: 3, placeholder: t("directory.collections.new.description_placeholder"), style: "border: none;" %>
 
-      <row gap-="1" align-="center">
-        <%= f.check_box :confirm_destroy %>
-        <label style="color: var(--foreground2);"><%= t("directory.collections.new.confirm_destroy") %></label>
-      </row>
+          <row gap-="1" align-="center">
+            <%= f.check_box :protected %>
+            <label style="color: var(--foreground2);"><%= t("directory.collections.new.protected") %> <span style="font-size: 0.85em;">(<%= t("directory.collections.new.protected_hint") %>)</span></label>
+          </row>
 
-      <div is-="separator"></div>
+          <row gap-="1" align-="center">
+            <%= f.check_box :confirm_destroy %>
+            <label style="color: var(--foreground2);"><%= t("directory.collections.new.confirm_destroy") %></label>
+          </row>
 
-      <row gap-="2" align-="center">
-        <button type="submit" size-="small"><%= t("directory.collections.new.submit") %></button>
-        <a href="<%= directory_root_path %>" style="color: var(--foreground2);"><%= t("directory.actions.cancel") %></a>
-      </row>
-    </column>
-  <% end %>
-</column>
+          <row gap-="2" align-="center" style="margin-top: 0.5lh;">
+            <button type="submit" size-="small"><%= t("directory.collections.new.submit") %></button>
+            <a href="<%= directory_collections_path %>" style="color: var(--foreground2);"><%= t("directory.actions.cancel") %></a>
+          </row>
+        </column>
+      </div>
+    <% end %>
+  </div>
+</div>

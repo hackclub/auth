@@ -1,44 +1,43 @@
 <% content_for :title, t("directory.import.new.title") %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <row align-="center between">
-    <h2><%= t("directory.import.new.heading") %></h2>
-    <row gap-="2" align-="center">
-      <a href="<%= directory_root_path %>" style="color: var(--foreground2);"><%= t("directory.layout.title") %></a>
-    </row>
-  </row>
-
-  <div is-="separator"></div>
-
-  <span style="color: var(--foreground2);"><%= t("directory.import.new.description_html") %></span>
-  <span style="color: var(--foreground2);"><%= t("directory.import.new.expires_at_html") %></span>
-
-  <div is-="separator"></div>
+<div class="dir-page dir-form-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.import.new.heading") %></h2></div>
+    </div>
+    <div class="dir-description">
+      <span><%= t("directory.import.new.description_html") %></span>
+      <span><%= t("directory.import.new.expires_at_html") %></span>
+    </div>
+  </div>
 
   <%= form_with url: directory_import_preview_path, method: :post, multipart: true, local: true do |f| %>
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.import.new.file_label") %></span>
+    <div class="dir-section">
+      <div class="dir-section-header">
+        <span><%= t("directory.import.new.file_label") %></span>
+      </div>
+      <div class="dir-section-form">
+        <%= f.file_field :csv_file, accept: ".csv", style: "flex: 1; border: none;" %>
+      </div>
+    </div>
 
-    <row gap-="1" align-="center">
-      <%= f.file_field :csv_file, accept: ".csv", style: "flex: 1; border: none;" %>
-    </row>
-
-    <div is-="separator"></div>
-
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.import.new.paste_label") %></span>
-
-    <%= f.text_area :csv_text, rows: 8, placeholder: "email,collection_slug,expires_at\njane@example.com,engineering,\njohn@example.com,ops,2027-01-01", style: "font-family: monospace; width: 100%; border: none;" %>
-
-    <div is-="separator"></div>
+    <div class="dir-section">
+      <div class="dir-section-header">
+        <span><%= t("directory.import.new.paste_label") %></span>
+      </div>
+      <%= f.text_area :csv_text, rows: 8, placeholder: "email,collection_slug,expires_at\njane@example.com,engineering,\njohn@example.com,ops,2027-01-01", style: "font-family: monospace; width: 100%; border: none;" %>
+    </div>
 
     <row gap-="1" align-="center">
       <button type="submit" size-="small"><%= t("directory.import.new.preview_button") %></button>
     </row>
   <% end %>
 
-  <div is-="separator"></div>
-
-  <row gap-="2" align-="center" style="color: var(--foreground2);">
+  <div class="dir-keyhints">
     <row gap-="1" align-="center">
       <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
     </row>
-  </row>
-</column>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">⌘K</span> command palette
+    </row>
+  </div>
+</div>
