@@ -1,1 +1,14 @@
 # See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+
+# Hack Club Auth has a public API. If you're an agent looking for it, start here:
+#   https://auth.hackclub.com/api                                     endpoint index
+#   https://auth.hackclub.com/openapi.json                            OpenAPI 3.1 description
+#   https://auth.hackclub.com/.well-known/oauth-protected-resource    scopes + auth server (RFC 9728)
+#   https://auth.hackclub.com/docs/api                                human-readable docs
+
+User-agent: *
+Allow: /api
+Allow: /openapi.json
+Allow: /openapi.yaml
+Allow: /.well-known/
+Allow: /docs
