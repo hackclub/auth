@@ -11,8 +11,8 @@ class IdentitySession < ApplicationRecord
   include PublicActivity::Model
   tracked owner: proc { |controller, record| record.identity }, recipient: proc { |controller, record| record.identity }, only: [ :create ]
 
-  scope :expired, -> { where("expires_at <= ?", Time.now) }
-  scope :not_expired, -> { where("expires_at > ?", Time.now) }
+  scope :expired, -> { where("expires_at <= ?", Time.current) }
+  scope :not_expired, -> { where("expires_at > ?", Time.current) }
   scope :recently_expired_within, ->(date) { expired.where("expires_at >= ?", date) }
 
   after_create_commit do
@@ -29,7 +29,7 @@ class IdentitySession < ApplicationRecord
 
   validate :identity_is_unlocked, on: :create
 
-  def expired? = expires_at <= Time.now
+  def expired? = expires_at <= Time.current
 
   def clear_metadata!
     update!(
