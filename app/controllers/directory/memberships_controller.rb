@@ -137,15 +137,8 @@ module Directory
       skipped = []
       not_found = []
 
-      identities_by_identifier = {}
-      identifiers.each do |identifier|
-        identity = lookup_identity(identifier)
-        if identity
-          identities_by_identifier[identifier] = identity
-        else
-          not_found << identifier
-        end
-      end
+      identities_by_identifier = bulk_lookup_identities(identifiers)
+      not_found = identifiers.reject { |id| identities_by_identifier.key?(id) }
 
       if identities_by_identifier.any?
         Directory.mutate!(cause: Directory.cause("batch_membership_created", actor: current_identity.id)) do
@@ -241,25 +234,35 @@ module Directory
         alert: t("directory.flash.add_rate_limited")
     end
 
-    # resolve_identifier plus the audit trail SPEC §3.1 promises, for single and batch adds
-    # alike: every lookup is logged with who typed what, and every miss is recorded for
-    # the reports page.
-    def lookup_identity(input)
-      sanitized = input.gsub(/[\r\n]/, " ")
-      Rails.logger.info("[Directory] add-by-identifier: #{current_identity.primary_email} searched for '#{sanitized}' on #{@collection.slug}")
-      identity = resolve_identifier(input)
-      unless identity
-        Rails.logger.info("[Directory] add-by-identifier: miss for '#{sanitized}'")
-        @collection.create_activity :email_lookup_miss, owner: current_identity, params: { email: input }
+    def bulk_lookup_identities(identifiers)
+      emails, public_ids = identifiers.partition { |id| !id.start_with?("ident!") }
+
+      result = {}
+
+      if emails.any?
+        by_email = Identity.where("lower(primary_email) IN (?)", emails.map(&:downcase)).index_by { |i| i.primary_email.downcase }
+        emails.each { |e| result[e] = by_email[e.downcase] if by_email[e.downcase] }
       end
-      identity
+
+      public_ids.each do |pid|
+        identity = Identity.find_by_public_id(pid)
+        next unless identity
+        next unless directory_admin? || Directory::Person.exists?(identity_id: identity.id)
+        result[pid] = identity
+      end
+
+      identifiers.each do |identifier|
+        sanitized = identifier.gsub(/[\r\n]/, " ")
+        Rails.logger.info("[Directory] add-by-identifier: #{current_identity.primary_email} searched for '#{sanitized}' on #{@collection.slug}")
+        unless result.key?(identifier)
+          Rails.logger.info("[Directory] add-by-identifier: miss for '#{sanitized}'")
+          @collection.create_activity :email_lookup_miss, owner: current_identity, params: { email: identifier }
+        end
+      end
+
+      result
     end
 
-    # Turns an add-by-identifier input into an identity, or nil for a miss. An exact email
-    # may bring a new identity into the directory (SPEC §3.1). Public IDs are guessable
-    # (unsalted hashids over sequential ids), so for non-admins an ident! only reaches
-    # people already in the directory, the same reach the picker has; any other identity
-    # is a miss, indistinguishable from one that doesn't exist.
     def resolve_identifier(input)
       return Identity.find_by("lower(primary_email) = ?", input.downcase) unless input.start_with?("ident!")
 
