@@ -155,7 +155,7 @@ module Directory
 
         if app_ids.any?
           @collection.effective_people.includes(:identity).find_each do |person|
-            revocations << { identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids }
+            revocations << person.revocation_entry(app_ids)
           end
         end
       end

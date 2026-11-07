@@ -75,9 +75,10 @@ module Directory
         .where(entitlement_id: ent_ids).group_by(&:app)
     end
 
-    # Pre-computes the revocation payload for this person: which apps would need tokens
-    # revoked if this person were removed from the directory entirely. Called before
-    # person.destroy! since the effective_memberships are cascade-deleted with the person.
+    def revocation_entry(app_ids)
+      { identity_id: identity_id, email: primary_email, app_ids: app_ids }
+    end
+
     def revocation_data
       entitlement_ids = effective_memberships
         .joins(:collection)
@@ -88,7 +89,7 @@ module Directory
       app_ids = Directory::Collection.affected_app_ids(entitlement_ids)
       return [] if app_ids.empty?
 
-      [ { identity_id: identity_id, email: primary_email, app_ids: app_ids } ]
+      [ revocation_entry(app_ids) ]
     end
   end
 end

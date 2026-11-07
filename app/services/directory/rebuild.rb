@@ -228,7 +228,7 @@ module Directory
         app_ids = app_ids_by_entitlement[row["collection_id"]] || []
         next if app_ids.empty?
 
-        revocations << { identity_id: person.identity_id, email: person.primary_email, app_ids: app_ids }
+        revocations << person.revocation_entry(app_ids)
       end
       revocations
     end
