@@ -369,6 +369,10 @@
               <span style="color: var(--overlay0);">{item.hint}</span>
             {/if}
           </a>
+        {:else}
+          {#if query.length >= 2}
+            <span class="palette-result disabled" style="color: var(--foreground2); padding: 0.5lh 1ch;">no results</span>
+          {/if}
         {/each}
       </column>
     </div>
