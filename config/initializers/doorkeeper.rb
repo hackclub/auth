@@ -20,7 +20,13 @@ Doorkeeper.configure do
   # This block will be called to check whether the resource owner is authenticated or not.
   resource_owner_authenticator do
     if current_identity
-      current_identity
+      app = ::Program.find_by(uid: params[:client_id])
+      if app && !Directory::RequirementCheck.passes?(identity: current_identity, app: app)
+        redirect_to directory_requirement_denied_path
+        nil
+      else
+        current_identity
+      end
     else
       redirect_to "/oauth/welcome?return_to=#{CGI.escape(request.fullpath)}"
       nil
