@@ -2,13 +2,15 @@
 
 module Directory
   class PersonPolicy < ApplicationPolicy
+    VISIBILITY_PERMISSIONS = %w[view manage_members expose].freeze
+
     def show?
       return true if user.admin?
       return false unless user.person
 
       viewable_collection_ids = Directory::EffectiveGrant.where(
         person_id: user.person.id,
-        permission: %w[view manage_members expose]
+        permission: VISIBILITY_PERMISSIONS
       ).select(:target_collection_id)
 
       Directory::EffectiveMembership.where(
@@ -39,7 +41,7 @@ module Directory
         elsif user.person
           visible_collection_ids = Directory::EffectiveGrant.where(
             person_id: user.person.id,
-            permission: %w[view manage_members expose]
+            permission: VISIBILITY_PERMISSIONS
           ).select(:target_collection_id)
 
           visible_person_ids = Directory::EffectiveMembership.where(
