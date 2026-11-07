@@ -19,7 +19,7 @@
     <row id="hca-actionbar" align-="center between">
       <row gap-="1" align-="center">
         <a href="<%= directory_root_path %>" style="text-decoration: none; color: var(--foreground0);" title="hacktive directory users and computers"><b><%= t("directory.layout.title") %></b></a>
-        <% breadcrumbs.each do |crumb| %>
+        <% breadcrumbs.drop(1).each do |crumb| %>
           <span style="color: var(--foreground2);">/</span>
           <% if crumb[:path] %>
             <a href="<%= crumb[:path] %>" style="color: var(--foreground2); text-decoration: none;"><%= crumb[:label] %></a>
@@ -29,19 +29,32 @@
         <% end %>
       </row>
       <row gap-="2" align-="center">
-        <a href="<%= directory_my_access_path %>" style="color: var(--foreground2); text-decoration: none;"><%= t("directory.layout.my_access") %></a>
-        <span style="color: var(--foreground2);">
-          <%= current_identity.first_name %> <%= current_identity.last_name %>
-        </span>
+        <span id="theme-toggle-slot"></span>
+        <span style="color: var(--foreground2);"><%= current_identity.first_name %> <%= current_identity.last_name %></span>
         <% if directory_admin? %>
           <span is-="badge" variant-="yellow"><%= t("directory.layout.admin") %></span>
         <% end %>
       </row>
     </row>
+    <nav class="dir-nav">
+      <a href="<%= directory_root_path %>" class="<%= 'active' if controller_name == 'collections' && action_name == 'index' %>">collections</a>
+      <a href="<%= directory_my_access_path %>" class="<%= 'active' if controller_name == 'my_access' %>">my access</a>
+      <% if directory_admin? %>
+        <a href="<%= directory_people_path %>" class="<%= 'active' if controller_name == 'people' %>">people</a>
+        <a href="<%= directory_all_grants_path %>" class="<%= 'active' if controller_name == 'grants' %>">grants</a>
+        <a href="<%= directory_reports_path %>" class="<%= 'active' if controller_name == 'reports' %>">reports</a>
+        <a href="<%= directory_activity_path %>" class="<%= 'active' if controller_name == 'activity' %>">activity</a>
+        <a href="<%= directory_health_path %>" class="<%= 'active' if controller_name == 'health' %>">health</a>
+        <span class="dir-nav-spacer"></span>
+        <a href="<%= directory_new_import_path %>" class="<%= 'active' if controller_name == 'import' %>">import</a>
+        <a href="<%= directory_search_path %>" class="<%= 'active' if controller_name == 'search' %>">search</a>
+        <a href="<%= directory_view_as_path %>" class="<%= 'active' if controller_name == 'view_as' %>">view as</a>
+      <% end %>
+    </nav>
     <column id="hca-body" self-="grow">
       <% flash.each do |type, message| %>
-        <div pad-="1 2">
-          <div box-="square" style="color: var(--<%= type == 'alert' || type == 'error' ? 'red' : 'green' %>);"><%= message %></div>
+        <div style="max-width: 120ch; margin: 0 auto; width: 100%; padding: 0.5lh 2ch 0 2ch;">
+          <div class="tui-banner-<%= type %>" box-="square" style="padding: 0.25lh 1ch;"><%= message %></div>
         </div>
       <% end %>
       <%= yield %>
