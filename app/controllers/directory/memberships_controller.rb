@@ -48,7 +48,19 @@ module Directory
         membership.member_group = group
 
       elsif params[:member_person_id].present?
-        membership.member_person_id = params[:member_person_id]
+        person = Directory::Person.find_by(id: params[:member_person_id])
+        unless person
+          redirect_back fallback_location: directory_collection_path(@collection.slug),
+            alert: t("directory.flash.member_not_found")
+          return
+        end
+        # Non-admins can only add people they have visibility to
+        unless policy(person).show?
+          redirect_back fallback_location: directory_collection_path(@collection.slug),
+            alert: t("directory.flash.member_not_found")
+          return
+        end
+        membership.member_person = person
 
       elsif params[:member_group_id].present?
         group = Directory::Collection.find(params[:member_group_id])
