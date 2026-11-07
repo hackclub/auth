@@ -86,6 +86,10 @@ class DirectoryPicker {
     // ignore nav keys handled in keydown
     if (['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(e.key)) return;
 
+    // user is typing — invalidate any previous picker selection so a stale
+    // hidden-input value can't silently win over what they're actually typing
+    this.hiddenInput.value = '';
+
     clearTimeout(this.debounceTimer);
     const q = this.input.value.trim();
 
