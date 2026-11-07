@@ -9,7 +9,7 @@
   <%= form_with url: directory_search_path, method: :get, local: true do %>
     <row gap-="1" align-="center">
       <span style="color: var(--foreground2);">⌕</span>
-      <%= text_field_tag :q, params[:q], placeholder: t("directory.search.placeholder"), autofocus: true, style: "flex: 1; border: none;" %>
+      <%= text_field_tag :q, params[:q], placeholder: t("directory.search.placeholder"), autofocus: true, aria_label: "search", style: "flex: 1; border: none;" %>
       <button type="submit" size-="small"><%= t("directory.search.button") %></button>
     </row>
   <% end %>

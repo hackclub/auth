@@ -54,7 +54,7 @@
       <% if directory_admin? %>
         <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
           <div class="dir-section-form">
-            <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder"), data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
+            <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder"), aria_label: "group slug", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
             <button type="submit" size-="small"><%= t("directory.collections.show.add_group") %></button>
           </div>
         <% end %>
@@ -100,7 +100,7 @@
               <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
             </div>
             <row gap-="1" align-="center" style="justify-content: flex-end;">
-              <label style="color: var(--foreground2); white-space: nowrap; font-size: 0.85em;">expires: <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" style="border: none; width: auto;"></label>
+              <label style="color: var(--foreground2); white-space: nowrap; font-size: 0.85em;">expires: <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" aria-label="expiry date" style="border: none; width: auto;"></label>
               <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
             </row>
           </div>
@@ -153,7 +153,7 @@
               <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
             </div>
             <row gap-="1" align-="center" style="justify-content: flex-end;">
-              <label style="color: var(--foreground2); white-space: nowrap; font-size: 0.85em;">expires: <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" style="border: none; width: auto;"></label>
+              <label style="color: var(--foreground2); white-space: nowrap; font-size: 0.85em;">expires: <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" aria-label="expiry date" style="border: none; width: auto;"></label>
               <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
             </row>
           </div>
@@ -161,7 +161,7 @@
         <% if @collection.group? || directory_admin? %>
           <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
             <div class="dir-section-form">
-              <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder"), data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
+              <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder"), aria_label: "group slug", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
               <button type="submit" size-="small"><%= t("directory.collections.show.add_group") %></button>
             </div>
           <% end %>
@@ -246,7 +246,7 @@
     <% if directory_admin? %>
       <%= form_with url: directory_collection_grants_path(@collection.slug), method: :post, local: true do |f| %>
         <div class="dir-section-form">
-          <%= f.text_field :grantee_group_slug, placeholder: t("directory.collections.show.grantee_placeholder"), data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
+          <%= f.text_field :grantee_group_slug, placeholder: t("directory.collections.show.grantee_placeholder"), aria_label: "grantee group", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
           <%= f.select :permission, [["view", "view"], ["manage members", "manage_members"], ["expose", "expose"]] %>
           <label style="color: var(--foreground2); white-space: nowrap;"><%= f.check_box :recursive %> <%= t("directory.collections.show.recursive_label") %></label>
           <button type="submit" size-="small"><%= t("directory.collections.show.add_grant") %></button>

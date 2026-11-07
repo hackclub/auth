@@ -12,7 +12,7 @@
     </div>
     <div class="dir-section-form">
       <%= form_with url: directory_people_path, method: :get, local: true do |f| %>
-        <%= f.email_field :email, placeholder: t("directory.people.index.email_placeholder"), value: params[:email], style: "flex: 1; border: none;" %>
+        <%= f.email_field :email, placeholder: t("directory.people.index.email_placeholder"), value: params[:email], aria_label: "email address", style: "flex: 1; border: none;" %>
         <button type="submit" size-="small"><%= t("directory.people.index.search") %></button>
       <% end %>
     </div>

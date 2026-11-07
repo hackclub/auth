@@ -16,7 +16,7 @@
         <span><%= t("directory.import.new.file_label") %></span>
       </div>
       <div class="dir-section-form">
-        <%= f.file_field :csv_file, accept: ".csv", style: "flex: 1; border: none;" %>
+        <%= f.file_field :csv_file, accept: ".csv", aria_label: "CSV file", style: "flex: 1; border: none;" %>
       </div>
     </div>
 
@@ -24,7 +24,7 @@
       <div class="dir-section-header">
         <span><%= t("directory.import.new.paste_label") %></span>
       </div>
-      <%= f.text_area :csv_text, rows: 8, placeholder: "email,collection_slug,expires_at\njane@example.com,engineering,\njohn@example.com,ops,2027-01-01", style: "font-family: monospace; width: 100%; border: none;" %>
+      <%= f.text_area :csv_text, rows: 8, aria_label: "CSV text", placeholder: "email,collection_slug,expires_at\njane@example.com,engineering,\njohn@example.com,ops,2027-01-01", style: "font-family: monospace; width: 100%; border: none;" %>
     </div>
 
     <row gap-="1" align-="center">
