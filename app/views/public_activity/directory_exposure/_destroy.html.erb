@@ -1,0 +1,4 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  unwired <b><%= activity.parameters["app_name"] || "(unknown app)" %></b>
+  from entitlement <b><%= activity.parameters["entitlement_name"] || "(unknown)" %></b>.
+<% end %>
