@@ -199,7 +199,7 @@ class VerificationCase < ApplicationRecord
     return false unless ActiveSupport::SecurityUtils.secure_compare(token, access_token)
     return false if access_token_expires_at.nil? || access_token_expires_at.past?
 
-    self.class.where(id: id, access_token_used_at: nil)
+    self.class.where(id: id, access_token: token, access_token_used_at: nil)
       .update_all(access_token_used_at: Time.current) == 1
   end
 
