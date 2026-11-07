@@ -1074,6 +1074,7 @@ en:
         paste_label: "or paste csv"
         preview_button: "preview"
         title: "import"
+      file_too_large: "CSV file is too large (2MB max)."
       no_file: "please upload a CSV file or paste CSV text."
       preview:
         action_add: "add"
