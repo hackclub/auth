@@ -978,6 +978,7 @@ en:
           other: "via %{count} groups you can't view"
         you_can_manage: "you can manage this"
         col_email: "email"
+        col_via: "via"
       updated: "collection updated."
     confirmations:
       remove_grant: "remove this grant?"
