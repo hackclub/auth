@@ -5,6 +5,7 @@ shared:
   email_change_2025_10_09: allows users to change their primary email address
   allow_adult_registration_2026_05_28: allows users 19+ to register without an adult-accepting program
   app_card_stardance_2026_05_30: enables Stardance app card on the welcome page
+  app_card_phantom_2026_11_06: enables Phantom app card on the welcome page
   app_card_beest_2026_04_03: enables Beest app card on the welcome page
   app_card_flavortown_2025_12_09: enables Flavortown app card on the welcome page
   app_card_hctg_2026_03_19: enables HCTG app card on the welcome page
