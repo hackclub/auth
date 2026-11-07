@@ -30,7 +30,7 @@
                   <span is-="badge" variant-="background2"><%= t("directory.badges.recursive") %></span>
                 <% else %>—<% end %>
               </td>
-              <td style="color: var(--foreground2);"><%= grant.created_by&.full_name %></td>
+              <td style="color: var(--foreground2);"><%= grant.created_by&.full_name || "—" %></td>
               <td style="color: var(--foreground2);"><%= grant.created_at.strftime("%Y-%m-%d") %></td>
             </tr>
           <% end %>

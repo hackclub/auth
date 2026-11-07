@@ -12,10 +12,9 @@
       id="view-as-picker"
       type="text"
       name="person_id"
-      data-controller="picker"
-      data-picker-url-value="<%= directory_picker_search_path %>"
-      data-picker-scope-value="people"
-      data-picker-name-value="person_id"
+      data-directory-picker
+      data-scope="people"
+      data-url="<%= directory_picker_search_path %>"
       placeholder="<%= t("directory.view_as.placeholder") %>"
       autocomplete="off"
       style="flex: 1; max-width: 40ch;"
