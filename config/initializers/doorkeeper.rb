@@ -219,7 +219,7 @@ Doorkeeper.configure do
   # Require non-confidential clients to use PKCE when using an authorization code
   # to obtain an access_token (disabled by default)
   #
-  # force_pkce
+  force_pkce
 
   # Hash access and refresh tokens before persisting them.
   # This will disable the possibility to use +reuse_access_token+
@@ -332,7 +332,7 @@ Doorkeeper.configure do
   # #call can be used in order to allow conditional checks (to allow non-SSL
   # redirects to localhost for example).
   #
-  force_ssl_in_redirect_uri false
+  force_ssl_in_redirect_uri { !Rails.env.local? }
 
   forbid_redirect_uri { |uri| %w[javascript data].include?(uri.scheme.to_s.downcase) }
 
