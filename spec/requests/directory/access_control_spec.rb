@@ -50,7 +50,7 @@ RSpec.describe "Directory access control", type: :request do
 
   def expect_denied(method, path, **opts)
     send(method, path, **opts)
-    expect(response.status).to be_in([302, 404])
+    expect(response.status).to be_in([ 302, 404 ])
   end
 
   # ═══════════════════════════════════════════════════════════════

@@ -11,7 +11,7 @@ module Directory
     def perform
       return unless Directory::EffectiveMembership.unscoped.where("expires_at <= NOW()").exists?
 
-      Directory.mutate!(cause: Directory.cause("expiry_rebuild")) {}
+      Directory.mutate!(cause: Directory.cause("expiry_rebuild")) { }
     end
   end
 end

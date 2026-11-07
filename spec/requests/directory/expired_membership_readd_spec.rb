@@ -69,7 +69,7 @@ RSpec.describe "Re-adding members with expired memberships", type: :request do
       expire_membership!(membership)
 
       post batch_create_directory_collection_memberships_path(group.slug),
-        params: { identifiers: [person.primary_email] }
+        params: { identifiers: [ person.primary_email ] }
 
       expect(response).to redirect_to(directory_collection_path(group.slug))
       expect(flash[:notice]).to include(I18n.t("directory.flash.batch_added", count: 1))
@@ -85,7 +85,7 @@ RSpec.describe "Re-adding members with expired memberships", type: :request do
       end
 
       post batch_create_directory_collection_memberships_path(group.slug),
-        params: { identifiers: [person.primary_email] }
+        params: { identifiers: [ person.primary_email ] }
 
       expect(flash[:notice]).to include(I18n.t("directory.flash.batch_skipped", count: 1))
     end
@@ -101,7 +101,7 @@ RSpec.describe "Re-adding members with expired memberships", type: :request do
       end
 
       post batch_create_directory_collection_memberships_path(group.slug),
-        params: { identifiers: [person.primary_email, other.primary_email] }
+        params: { identifiers: [ person.primary_email, other.primary_email ] }
 
       expect(response).to redirect_to(directory_collection_path(group.slug))
       expect(Directory::Membership.active.where(collection: group, member_person: other)).to exist

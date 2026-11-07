@@ -47,7 +47,7 @@ module API
             return render json: { error: "invalid_auth" }, status: :unauthorized
           end
           if @current_identity && @current_program && !Directory::RequirementCheck.passes?(identity: @current_identity, app: @current_program)
-            return render json: { error: "access_denied", error_description: "You no longer meet this application's requirements." }, status: :forbidden
+            render json: { error: "access_denied", error_description: "You no longer meet this application's requirements." }, status: :forbidden
           end
         else
           unless @current_token.hq_official?

@@ -68,7 +68,7 @@ module Directory
       shortcuts = [
         { code: "DRCT", label: "Directory home", path: directory_root_path, icon: "⌂" },
         { code: "MYAX", label: "My access", path: directory_my_access_path, icon: "⭢" },
-        { code: "DSRC", label: "Search", path: directory_search_path, icon: "⌕" },
+        { code: "DSRC", label: "Search", path: directory_search_path, icon: "⌕" }
       ]
       if directory_admin?
         shortcuts += [
@@ -78,7 +78,7 @@ module Directory
           { code: "DHLT", label: "Health", path: directory_health_path, icon: "⭢" },
           { code: "DIMP", label: "Import", path: directory_new_import_path, icon: "⭢" },
           { code: "DACT", label: "Activity", path: directory_activity_path, icon: "⭢" },
-          { code: "DVAS", label: "View as", path: directory_view_as_path, icon: "⭢" },
+          { code: "DVAS", label: "View as", path: directory_view_as_path, icon: "⭢" }
         ]
       end
       if current_identity.active_for_backend?
