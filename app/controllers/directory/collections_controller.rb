@@ -66,7 +66,7 @@ module Directory
 
       if @collection.group?
         @all_memberships = @collection.memberships
-          .includes(:member_person, :member_group, :created_by)
+          .includes({ member_person: :identity }, :member_group, :created_by)
           .order(:created_at)
           .page(params[:members_page]).per(100)
       end
