@@ -58,7 +58,7 @@ module Backend
 
       when "oauth_apps"
         if current_user.super_admin? || current_user.program_manager?
-          Program.where("name ILIKE ? OR uid = ?", "%#{ActiveRecord::Base.sanitize_sql_like(query)}%", query).limit(10).each do |app|
+          Program.where("name ILIKE ? OR LOWER(uid) = LOWER(?)", "%#{ActiveRecord::Base.sanitize_sql_like(query)}%", query).limit(10).each do |app|
             results << {
               type: "oauth_app",
               id: app.id,
