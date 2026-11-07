@@ -28,7 +28,7 @@ module API
       def check
         ident = if (public_id = params[:idv_id]).present?
                   Identity.find_by_public_id(public_id)
-        elsif (primary_email = params[:email]).present?
+        elsif (primary_email = params[:email]&.strip&.downcase).present?
                   Identity.find_by(primary_email:)
         elsif (slack_id = params[:slack_id]).present?
                   Identity.find_by(slack_id:)

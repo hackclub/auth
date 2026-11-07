@@ -47,7 +47,7 @@ module Webhooks
       return nil if emails.empty?
 
       VerificationCase.open_cases.joins(:identity)
-        .where(identities: { primary_email: emails })
+        .where("LOWER(identities.primary_email) IN (?)", emails.map(&:downcase))
         .order(created_at: :desc).first
     end
 
