@@ -9,7 +9,9 @@ module Directory
       person_id_param = params[:person_id_id].presence || params[:person_id]
       return unless person_id_param.present?
 
-      @target_person = Directory::Person.find_by_public_id!(person_id_param)
+      @target_person = Directory::Person.find_by_public_id(person_id_param) ||
+        Directory::Person.joins(:identity).find_by("lower(identities.primary_email) = ?", person_id_param.to_s.strip.downcase)
+      return unless @target_person
 
       target_admin = @target_person.identity.backend_user&.directory_services_admin?
 

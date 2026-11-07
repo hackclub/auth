@@ -73,6 +73,10 @@ class DirectoryPicker {
     this.hiddenInput.name = this.fieldName + '_id';
     this.wrapper.appendChild(this.hiddenInput);
 
+    this.input.addEventListener('input', () => {
+      // any input method (typing, paste, drag) invalidates previous selection
+      this.hiddenInput.value = '';
+    });
     this.input.addEventListener('keyup', (e) => this._onKeyup(e));
     this.input.addEventListener('keydown', (e) => this._onKeydown(e));
     this.input.addEventListener('paste', (e) => this._onPaste(e));
@@ -83,12 +87,7 @@ class DirectoryPicker {
   }
 
   _onKeyup(e) {
-    // ignore nav keys handled in keydown
     if (['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(e.key)) return;
-
-    // user is typing — invalidate any previous picker selection so a stale
-    // hidden-input value can't silently win over what they're actually typing
-    this.hiddenInput.value = '';
 
     clearTimeout(this.debounceTimer);
     const q = this.input.value.trim();
