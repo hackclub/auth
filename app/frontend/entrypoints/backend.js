@@ -78,6 +78,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Inline table filter — adds a quick-filter input above tables with data-filterable
+  document.querySelectorAll('table[data-filterable]').forEach((table) => {
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    if (rows.length < 8) return; // only filter tables worth filtering
+
+    const filter = document.createElement('input');
+    filter.type = 'text';
+    filter.placeholder = `filter ${rows.length} rows…`;
+    filter.style.cssText = 'border: none; width: 100%; padding: 0.25lh 1ch; color: var(--foreground2); font-size: 0.85em;';
+    filter.setAttribute('data-filter-input', '');
+
+    filter.addEventListener('input', () => {
+      const q = filter.value.toLowerCase();
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(q) ? '' : 'none';
+      });
+    });
+
+    table.parentNode.insertBefore(filter, table);
+  });
+
   // Mount tab views
   document.querySelectorAll('[data-tab-view]').forEach(async (el) => {
     const { mount: mountSvelte } = await import('svelte');

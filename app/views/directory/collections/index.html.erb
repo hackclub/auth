@@ -1,117 +1,116 @@
 <% content_for :title, t("directory.collections.index.title") %>
 <% groups = @collections.select(&:group?) %>
 <% entitlements = @collections.select(&:entitlement?) %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <row align-="center between">
-    <h2><%= t("directory.collections.index.heading") %></h2>
-    <row gap-="2" align-="center">
-      <% if directory_admin? %>
-        <a href="<%= directory_reports_path %>" style="color: var(--foreground2);"><%= t("directory.nav.reports") %></a>
-        <a href="<%= directory_activity_path %>" style="color: var(--foreground2);"><%= t("directory.nav.activity") %></a>
-        <a href="<%= directory_health_path %>" style="color: var(--foreground2);"><%= t("directory.nav.health") %></a>
-        <a href="<%= directory_new_import_path %>" style="color: var(--foreground2);"><%= t("directory.nav.import") %></a>
-        <a href="<%= new_directory_collection_path %>" is-="button" size-="small"><%= t("directory.collections.index.new_button") %></a>
-      <% end %>
-    </row>
-  </row>
-
-  <div is-="separator"></div>
-
-  <%= form_with url: directory_search_path, method: :get, local: true do %>
-    <row gap-="1" align-="center">
-      <span style="color: var(--foreground2);">⌕</span>
-      <%= text_field_tag :q, params[:q], placeholder: t("directory.collections.index.search_placeholder"), autofocus: true, style: "flex: 1; border: none;" %>
-      <button type="submit" size-="small"><%= t("directory.collections.index.search_button") %></button>
-    </row>
-  <% end %>
-
-  <div is-="separator"></div>
-
-  <%# === GROUPS === %>
-  <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.collections.index.groups") %></span>
-  <% if groups.any? %>
-    <table>
-      <thead>
-        <tr>
-          <th><%= t("directory.collections.index.col_name") %></th>
-          <th style="text-align: right;"><%= t("directory.collections.index.col_direct") %></th>
-          <th style="text-align: right;"><%= t("directory.collections.index.col_total") %></th>
-          <th style="text-align: right;"><%= t("directory.collections.index.col_you_can") %></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% groups.each do |g| %>
-          <tr>
-            <td>
-              <%= link_to g.name, directory_collection_path(g.slug) %>
-              <% if g.protected %>
-                <span is-="badge" variant-="yellow"><%= t("directory.badges.protected") %></span>
-              <% end %>
-            </td>
-            <td style="text-align: right;"><%= g.direct_member_count %></td>
-            <td style="text-align: right;"><%= g.effective_member_count %></td>
-            <td style="text-align: right; color: var(--foreground2);">
-              <% perms = [] %>
-              <% perms << "view" if pundit_user.can?(:view, g) %>
-              <% perms << "manage" if pundit_user.can?(:manage_members, g) %>
-              <%= perms.join(", ") %>
-            </td>
-          </tr>
+<div class="dir-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title">
+        <h2><%= groups.size + entitlements.size %> collections</h2>
+      </div>
+      <row gap-="1" align-="center">
+        <% if directory_admin? %>
+          <a href="<%= new_directory_collection_path %>" is-="button" size-="small"><%= t("directory.collections.index.new_button") %></a>
         <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <span style="color: var(--foreground2);"><%= t("directory.collections.index.no_groups") %></span>
-  <% end %>
+      </row>
+    </div>
+  </div>
 
-  <div is-="separator"></div>
-
-  <%# === ENTITLEMENTS === %>
-  <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.collections.index.entitlements") %></span>
-  <% if entitlements.any? %>
-    <table>
-      <thead>
-        <tr>
-          <th><%= t("directory.collections.index.col_name") %></th>
-          <th style="text-align: right;"><%= t("directory.collections.index.col_direct") %></th>
-          <th style="text-align: right;"><%= t("directory.collections.index.col_total") %></th>
-          <th style="text-align: right;"><%= t("directory.collections.index.col_apps") %></th>
-          <th style="text-align: right;"><%= t("directory.collections.index.col_you_can") %></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% entitlements.each do |e| %>
+  <%# Groups %>
+  <div class="dir-section" data-accent="blue">
+    <div class="dir-section-header">
+      <span><%= t("directory.collections.index.groups") %> <span is-="badge" variant-="blue"><%= groups.size %></span></span>
+    </div>
+    <% if groups.any? %>
+      <table>
+        <thead>
           <tr>
-            <td>
-              <%= link_to e.name, directory_collection_path(e.slug) %>
-              <% if e.protected %>
-                <span is-="badge" variant-="yellow"><%= t("directory.badges.protected") %></span>
-              <% end %>
-            </td>
-            <td style="text-align: right;"><%= e.direct_member_count %></td>
-            <td style="text-align: right;"><%= e.effective_member_count %></td>
-            <td style="text-align: right;"><%= e.exposure_count %></td>
-            <td style="text-align: right; color: var(--foreground2);">
-              <% perms = [] %>
-              <% perms << "view" if pundit_user.can?(:view, e) %>
-              <% perms << "manage" if pundit_user.can?(:manage_members, e) %>
-              <% perms << "expose" if pundit_user.can?(:expose, e) %>
-              <%= perms.join(", ") %>
-            </td>
+            <th><%= t("directory.collections.index.col_name") %></th>
+            <th style="text-align: right;">members</th>
+            <th></th>
           </tr>
-        <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <span style="color: var(--foreground2);"><%= t("directory.collections.index.no_entitlements") %></span>
-  <% end %>
+        </thead>
+        <tbody>
+          <% groups.each do |g| %>
+            <tr>
+              <td>
+                <%= link_to g.name, directory_collection_path(g.slug) %>
+                <% if g.protected %>
+                  <span is-="badge" variant-="yellow"><%= t("directory.badges.protected") %></span>
+                <% end %>
+              </td>
+              <td style="text-align: right;">
+                <%= g.direct_member_count %><% if g.effective_member_count != g.direct_member_count %> <span style="color: var(--foreground2);">(+<%= g.effective_member_count - g.direct_member_count %> nested)</span><% end %>
+              </td>
+              <td style="text-align: right;">
+                <% if pundit_user.can?(:manage_members, g) %>
+                  <span is-="badge" variant-="blue">manage</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="dir-section-empty"><%= t("directory.collections.index.no_groups") %></div>
+    <% end %>
+  </div>
+
+  <%# Entitlements %>
+  <div class="dir-section" data-accent="green">
+    <div class="dir-section-header">
+      <span><%= t("directory.collections.index.entitlements") %> <span is-="badge" variant-="green"><%= entitlements.size %></span></span>
+    </div>
+    <% if entitlements.any? %>
+      <table>
+        <thead>
+          <tr>
+            <th><%= t("directory.collections.index.col_name") %></th>
+            <th style="text-align: right;">members</th>
+            <th style="text-align: right;">apps</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% entitlements.each do |e| %>
+            <tr>
+              <td>
+                <%= link_to e.name, directory_collection_path(e.slug) %>
+                <% if e.protected %>
+                  <span is-="badge" variant-="yellow"><%= t("directory.badges.protected") %></span>
+                <% end %>
+              </td>
+              <td style="text-align: right;">
+                <%= e.direct_member_count %><% if e.effective_member_count != e.direct_member_count %> <span style="color: var(--foreground2);">(+<%= e.effective_member_count - e.direct_member_count %> nested)</span><% end %>
+              </td>
+              <td style="text-align: right;"><%= e.exposure_count %></td>
+              <td style="text-align: right;">
+                <% if pundit_user.can?(:manage_members, e) %>
+                  <span is-="badge" variant-="blue">manage</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="dir-section-empty"><%= t("directory.collections.index.no_entitlements") %></div>
+    <% end %>
+  </div>
 
   <% unless @collections.any? %>
-    <div is-="separator"></div>
-    <column align-="center center" pad-="2 0">
-      <span style="color: var(--foreground2);"><%= t("directory.collections.index.empty_message") %></span>
-      <!-- hacktive directory users and computers -->
-      <span style="color: var(--foreground2); font-size: 0.75em; margin-top: 2ch; opacity: 0.4;">hduc</span>
-    </column>
+    <div class="dir-empty">
+      <span class="dir-empty-icon">⌂</span>
+      <span><%= t("directory.collections.index.empty_message") %></span>
+      <span style="font-size: 0.75em; opacity: 0.4;">hduc</span>
+    </div>
   <% end %>
-</column>
+
+  <div class="dir-keyhints">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">⌘K</span> command palette
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">/</span> search
+    </row>
+  </div>
+</div>

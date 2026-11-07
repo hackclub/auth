@@ -1,117 +1,148 @@
 <% content_for :title, @person.full_name %>
-<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
-  <row align-="center between">
-    <row gap-="2" align-="center">
-      <h2><%= @person.full_name %></h2>
-      <span style="color: var(--foreground2);"><%= @person.primary_email %></span>
-      <%= copy_to_clipboard @person.public_id, label: "copy id" do %>
-        <code style="color: var(--foreground2); font-size: 0.85em; cursor: pointer;"><%= @person.public_id %></code>
-      <% end %>
-      <% if @person.locked? %>
-        <span is-="badge" variant-="red"><%= t("directory.people.show.locked") %></span>
-      <% end %>
-    </row>
-    <% if directory_admin? %>
-      <row gap-="2" align-="center">
-        <%= button_to t("directory.people.show.remove"), directory_person_path(@person), method: :delete, data: { confirm: t("directory.people.show.remove_confirm", name: @person.full_name, count: @visible_memberships.size) }, class: "btn-destructive" %>
-      </row>
-    <% end %>
-  </row>
-
-  <div is-="separator"></div>
+<div class="dir-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title">
+        <h2><%= @person.full_name %></h2>
+        <% if @person.locked? %>
+          <span is-="badge" variant-="red"><%= t("directory.people.show.locked") %></span>
+        <% end %>
+      </div>
+      <div class="dir-meta">
+        <span style="color: var(--foreground2);"><%= @person.primary_email %></span>
+        <%= copy_to_clipboard @person.public_id, label: "copy id" do %>
+          <code style="color: var(--foreground2); font-size: 0.85em; cursor: pointer;"><%= @person.public_id %></code>
+        <% end %>
+        <% if directory_admin? %>
+          <%= button_to t("directory.people.show.remove"), directory_person_path(@person), method: :delete, data: { confirm: t("directory.people.show.remove_confirm", name: @person.full_name, count: @visible_memberships.size) }, class: "btn-destructive" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
 
   <% direct, via = @visible_memberships.partition { |m| m[:direct] } %>
 
-  <% if direct.any? %>
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.people.show.direct_memberships") %></span>
-    <table>
-      <thead><tr><th><%= t("directory.people.show.col_collection") %></th><th><%= t("directory.people.show.col_kind") %></th></tr></thead>
-      <tbody>
-        <% direct.each do |m| %>
-          <tr>
-            <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
-            <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  <% end %>
+  <div class="dir-section" data-accent="blue">
+    <div class="dir-section-header">
+      <span>memberships <span is-="badge" variant-="blue"><%= direct.size + via.size %></span></span>
+    </div>
+    <% if direct.any? || via.any? %>
+      <table>
+        <thead><tr><th><%= t("directory.people.show.col_collection") %></th><th><%= t("directory.people.show.col_kind") %></th><th>access</th></tr></thead>
+        <tbody>
+          <% direct.each do |m| %>
+            <tr>
+              <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+              <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
+              <td><span is-="badge" variant-="foreground2">direct</span></td>
+            </tr>
+          <% end %>
+          <% via.each do |m| %>
+            <tr>
+              <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+              <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
+              <td style="color: var(--foreground2);">
+                <% if m[:via_path].present? %>
+                  <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
+                  <% if m[:hidden_via].positive? %>
+                    <span style="opacity: 0.5;"> (+<%= m[:hidden_via] %> hidden)</span>
+                  <% end %>
+                <% elsif m[:hidden_via].positive? %>
+                  <span style="opacity: 0.5;"><%= t("directory.collections.show.via_hidden", count: m[:hidden_via]) %></span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="dir-section-empty"><%= t("directory.people.show.no_visible_memberships") %></div>
+    <% end %>
+  </div>
 
-  <% if via.any? %>
-    <% if direct.any? %><div is-="separator"></div><% end %>
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.people.show.via_nesting") %></span>
-    <table>
-      <thead><tr><th><%= t("directory.people.show.col_collection") %></th><th><%= t("directory.people.show.col_kind") %></th><th><%= t("directory.people.show.col_via") %></th></tr></thead>
-      <tbody>
-        <% via.each do |m| %>
-          <tr>
-            <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
-            <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
-            <td style="color: var(--foreground2);">
-              <% if m[:via_path].present? %>
-                <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
-              <% elsif m[:hidden_via].positive? %>
-                <span style="opacity: 0.5;"><%= t("directory.collections.show.via_hidden", count: m[:hidden_via]) %></span>
-              <% end %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  <% end %>
-
-  <% if direct.empty? && via.empty? %>
-    <span style="color: var(--foreground2);"><%= t("directory.people.show.no_visible_memberships") %></span>
-  <% end %>
-
-  <% if can_manage_any = @manageable_collections.present? && @manageable_collections.any? %>
-    <div is-="separator"></div>
-
-    <column gap-="1">
-      <b style="color: var(--foreground1);"><%= t("directory.people.show.add_to_group") %></b>
-      <%= form_with url: "#", method: :post, local: true, id: "add-to-group-form" do |f| %>
-        <row gap-="1" align-="center">
-          <select name="collection_slug" style="flex: 1; border: none;" onchange="document.getElementById('add-to-group-form').action = '/directory/collections/' + this.value + '/memberships'">
-            <option value="" disabled selected><%= t("directory.people.show.pick_group") %></option>
-            <% @manageable_collections.select(&:group?).each do |col| %>
-              <option value="<%= col.slug %>"><%= col.name %></option>
+  <%# App access — the answer to "why can this person use this app?" %>
+  <% if @app_exposures.any? %>
+    <div class="dir-section" data-accent="green">
+      <div class="dir-section-header">
+        <span>app access <span is-="badge" variant-="green"><%= @app_exposures.size %></span></span>
+      </div>
+      <table>
+        <thead><tr><th>app</th><th>because</th></tr></thead>
+        <tbody>
+          <% @app_exposures.each do |app, exposures| %>
+            <% exposures.each do |exp| %>
+              <% membership = @visible_memberships.find { |m| m[:collection].id == exp.entitlement_id } %>
+              <tr>
+                <td><b><%= app.name %></b> <code style="color: var(--foreground2); font-size: 0.8em;"><%= exp.claim_name %></code></td>
+                <td>
+                  <% if membership && !membership[:direct] && membership[:via_path].present? %>
+                    <%# Nested: show the full chain as person → group → entitlement %>
+                    <% chain = membership[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) } %>
+                    <% chain << link_to(exp.entitlement.name, directory_collection_path(exp.entitlement.slug)) %>
+                    <span style="color: var(--foreground0);"><%= chain.join(' <span style="color: var(--foreground2);">→</span> ').html_safe %></span>
+                  <% elsif membership && membership[:direct] %>
+                    <%# Direct: just the entitlement %>
+                    member of <%= link_to exp.entitlement.name, directory_collection_path(exp.entitlement.slug) %>
+                  <% else %>
+                    <%= link_to exp.entitlement.name, directory_collection_path(exp.entitlement.slug) %>
+                  <% end %>
+                </td>
+              </tr>
             <% end %>
-          </select>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+
+  <% if @manageable_collections.present? && @manageable_collections.any? %>
+    <div class="dir-section" data-accent="green">
+      <div class="dir-section-header">
+        <span><%= t("directory.people.show.add_to_group") %></span>
+      </div>
+      <%= form_with url: "#", method: :post, local: true, id: "add-to-group-form" do |f| %>
+        <div class="dir-section-form">
+          <%= f.text_field :collection_slug, placeholder: t("directory.people.show.pick_group"), style: "flex: 1;", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path }, onchange: "this.form.action = '/directory/collections/' + this.value + '/memberships'" %>
           <input type="hidden" name="member_person_id" value="<%= @person.id %>">
           <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" style="border: none; width: auto;" title="expiry (optional)">
           <button type="submit" size-="small"><%= t("directory.people.show.add_btn") %></button>
-        </row>
+        </div>
       <% end %>
-    </column>
+    </div>
 
-    <div is-="separator"></div>
-
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.people.show.can_manage") %></span>
-    <table>
-      <thead><tr><th><%= t("directory.people.show.col_collection") %></th><th><%= t("directory.people.show.col_kind") %></th></tr></thead>
-      <tbody>
-        <% @manageable_collections.each do |collection| %>
-          <tr>
-            <td><%= link_to collection.name, directory_collection_path(collection.slug) %></td>
-            <td><span is-="badge" variant-="<%= collection.group? ? 'blue' : 'green' %>"><%= collection.kind %></span></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
+    <div class="dir-section">
+      <div class="dir-section-header">
+        <span><%= t("directory.people.show.can_manage") %> <span is-="badge" variant-="blue"><%= @manageable_collections.size %></span></span>
+      </div>
+      <table>
+        <thead><tr><th><%= t("directory.people.show.col_collection") %></th><th><%= t("directory.people.show.col_kind") %></th></tr></thead>
+        <tbody>
+          <% @manageable_collections.each do |collection| %>
+            <tr>
+              <td><%= link_to collection.name, directory_collection_path(collection.slug) %></td>
+              <td><span is-="badge" variant-="<%= collection.group? ? 'blue' : 'green' %>"><%= collection.kind %></span></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
   <% end %>
 
   <% if @activities.present? && @activities.any? %>
-    <div is-="separator"></div>
-
-    <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.people.show.recent_activity") %></span>
-    <%= render "backend/shared/activity_log", activities: @activities %>
+    <div class="dir-section">
+      <div class="dir-section-header">
+        <span><%= t("directory.people.show.recent_activity") %></span>
+      </div>
+      <%= render "backend/shared/activity_log", activities: @activities %>
+    </div>
   <% end %>
 
-  <div is-="separator"></div>
-
-  <row gap-="2" align-="center" style="color: var(--foreground2);">
+  <div class="dir-keyhints">
     <row gap-="1" align-="center">
       <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
     </row>
-  </row>
-</column>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">⌘K</span> command palette
+    </row>
+  </div>
+</div>

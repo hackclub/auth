@@ -46,6 +46,19 @@ module Directory
         .select { |c| policy(c).show? }
 
       @activities = directory_activities_for(@person)
+
+      # App access: which apps this person can reach via entitlements
+      entitlement_ids = @person.effective_memberships
+        .joins(:collection)
+        .where(directory_collections: { kind: "entitlement" })
+        .pluck(:collection_id)
+      @app_exposures = if entitlement_ids.any?
+        Directory::Exposure.includes(:app, :entitlement)
+          .where(entitlement_id: entitlement_ids)
+          .group_by { |e| e.app }
+      else
+        {}
+      end
     end
 
     def create
