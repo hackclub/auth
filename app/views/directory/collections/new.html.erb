@@ -30,18 +30,20 @@
             <label><%= f.radio_button :kind, "group" %> <%= t("directory.collections.new.kind_group") %></label>
             <label><%= f.radio_button :kind, "entitlement" %> <%= t("directory.collections.new.kind_entitlement") %></label>
           </row>
+          <span style="color: var(--foreground2); font-size: 0.85em;">groups organize people. entitlements control what apps they can access. can't be changed later.</span>
 
           <label style="color: var(--foreground2);"><%= t("directory.collections.new.description") %></label>
           <%= f.text_area :description, rows: 3, placeholder: t("directory.collections.new.description_placeholder"), style: "border: none;" %>
 
+          <label style="color: var(--foreground2); margin-top: 0.5lh;"><%= t("directory.collections.new.protected") %></label>
           <row gap-="1" align-="center">
             <%= f.check_box :protected %>
-            <label style="color: var(--foreground2);"><%= t("directory.collections.new.protected") %> <span style="font-size: 0.85em;">(<%= t("directory.collections.new.protected_hint") %>)</span></label>
+            <span style="color: var(--foreground2); font-size: 0.85em;"><%= t("directory.collections.new.protected_hint") %></span>
           </row>
 
           <row gap-="1" align-="center">
             <%= f.check_box :confirm_destroy %>
-            <label style="color: var(--foreground2);"><%= t("directory.collections.new.confirm_destroy") %></label>
+            <span style="color: var(--foreground2); font-size: 0.85em;"><%= t("directory.collections.new.confirm_destroy") %></span>
           </row>
 
           <row gap-="2" align-="center" style="margin-top: 0.5lh;">
