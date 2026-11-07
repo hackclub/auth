@@ -43,7 +43,7 @@
               </td>
               <td style="text-align: right;">
                 <% if pundit_user.can?(:manage_members, g) %>
-                  <span is-="badge" variant-="blue">manage</span>
+                  <span is-="badge" variant-="background2">manage</span>
                 <% end %>
               </td>
             </tr>
@@ -85,7 +85,7 @@
               <td style="text-align: right;"><%= e.exposure_count %></td>
               <td style="text-align: right;">
                 <% if pundit_user.can?(:manage_members, e) %>
-                  <span is-="badge" variant-="blue">manage</span>
+                  <span is-="badge" variant-="background2">manage</span>
                 <% end %>
               </td>
             </tr>

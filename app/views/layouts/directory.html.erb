@@ -22,7 +22,7 @@
         <% breadcrumbs.drop(1).each do |crumb| %>
           <span style="color: var(--foreground2);">/</span>
           <% if crumb[:path] %>
-            <a href="<%= crumb[:path] %>" style="color: var(--foreground2); text-decoration: none;"><%= crumb[:label] %></a>
+            <a href="<%= crumb[:path] %>" class="dir-breadcrumb"><%= crumb[:label] %></a>
           <% else %>
             <span style="color: var(--foreground0);"><%= crumb[:label] %></span>
           <% end %>
@@ -37,7 +37,7 @@
       </row>
     </row>
     <nav class="dir-nav">
-      <a href="<%= directory_root_path %>" class="<%= 'active' if controller_name == 'collections' && action_name == 'index' %>">collections</a>
+      <a href="<%= directory_root_path %>" class="<%= 'active' if controller_name == 'collections' %>">collections</a>
       <a href="<%= directory_my_access_path %>" class="<%= 'active' if controller_name == 'my_access' %>">my access</a>
       <% if directory_admin? %>
         <a href="<%= directory_people_path %>" class="<%= 'active' if controller_name == 'people' %>">people</a>

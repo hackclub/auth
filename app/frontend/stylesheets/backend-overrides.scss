@@ -335,6 +335,13 @@ $gate-red: #cc241d;
   }
 }
 
+/* Breadcrumb links */
+.dir-breadcrumb {
+  color: var(--foreground2);
+  text-decoration: none;
+  &:hover { color: var(--foreground0); }
+}
+
 /* Body offset for actionbar + nav */
 body:has(.dir-nav) #hca-body {
   padding-top: calc(2lh + 1.5lh);
@@ -394,7 +401,8 @@ body:has(.dir-nav) #hca-body {
   display: flex;
   flex-direction: column;
   gap: 0;
-
+  border-left: 3px solid transparent;
+  padding-left: 1ch;
   .dir-section-header {
     display: flex;
     align-items: center;
@@ -444,11 +452,10 @@ body:has(.dir-nav) #hca-body {
 }
 
 /* Section with left accent border — thick enough to read as intentional */
-.dir-section[data-accent] { padding-left: 1ch; }
-.dir-section[data-accent="green"] { border-left: 3px solid var(--green); }
-.dir-section[data-accent="blue"] { border-left: 3px solid var(--blue); }
-.dir-section[data-accent="yellow"] { border-left: 3px solid var(--yellow); }
-.dir-section[data-accent="red"] { border-left: 3px solid var(--red); }
+.dir-section[data-accent="green"] { border-left-color: var(--green); }
+.dir-section[data-accent="blue"] { border-left-color: var(--blue); }
+.dir-section[data-accent="yellow"] { border-left-color: var(--yellow); }
+.dir-section[data-accent="red"] { border-left-color: var(--red); }
 
 /* Empty state — full page empty */
 .dir-empty {

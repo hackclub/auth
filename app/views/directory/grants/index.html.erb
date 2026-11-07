@@ -27,7 +27,7 @@
               <td><code><%= grant.permission.tr('_', ' ') %></code></td>
               <td>
                 <% if grant.recursive %>
-                  <span is-="badge" variant-="blue"><%= t("directory.badges.recursive") %></span>
+                  <span is-="badge" variant-="background2"><%= t("directory.badges.recursive") %></span>
                 <% else %>—<% end %>
               </td>
               <td style="color: var(--foreground2);"><%= grant.created_by&.full_name %></td>

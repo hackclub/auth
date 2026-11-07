@@ -7,7 +7,7 @@
     expiring_soon = !expired && expires_at <= 7.days.from_now
     color = expired ? "red" : (expiring_soon ? "yellow" : "foreground2")
     label = distance_of_time_in_words_to_now(expires_at)
-    label = (expired ? "expired " : "") + label + (expired ? " ago" : "")
+    label = expired ? "expired #{label} ago" : "in #{label}"
     %(<span style="color: var(--#{color});" title="#{expires_at.strftime('%Y-%m-%d %H:%M %Z')}">#{label}</span>).html_safe
   }
 %>
@@ -135,7 +135,7 @@
         </table>
         <%= paginate @direct_people_memberships, param_name: :page %>
       <% else %>
-        <div class="dir-section-empty">no direct people yet — use the form above to add someone</div>
+        <div class="dir-section-empty"><%= can_manage ? "no direct people yet — use the form above to add someone" : t("directory.collections.show.no_direct_people") %></div>
       <% end %>
     </div>
 
@@ -202,7 +202,7 @@
         </table>
         <%= paginate @all_memberships, param_name: :members_page %>
       <% else %>
-        <div class="dir-section-empty">no members yet — use the forms above to add people or groups</div>
+        <div class="dir-section-empty"><%= can_manage ? "no members yet — use the forms above to add people or groups" : t("directory.collections.show.no_members") %></div>
       <% end %>
     </div>
   <% end %>
@@ -247,7 +247,7 @@
       <%= form_with url: directory_collection_grants_path(@collection.slug), method: :post, local: true do |f| %>
         <div class="dir-section-form">
           <%= f.text_field :grantee_group_slug, placeholder: t("directory.collections.show.grantee_placeholder"), data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
-          <%= f.select :permission, %w[view manage_members expose] %>
+          <%= f.select :permission, [["view", "view"], ["manage members", "manage_members"], ["expose", "expose"]] %>
           <label style="color: var(--foreground2); white-space: nowrap;"><%= f.check_box :recursive %> <%= t("directory.collections.show.recursive_label") %></label>
           <button type="submit" size-="small"><%= t("directory.collections.show.add_grant") %></button>
         </div>

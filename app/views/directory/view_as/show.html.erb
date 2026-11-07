@@ -103,7 +103,7 @@
             <% @grants.each do |grant| %>
               <tr>
                 <td><%= link_to grant.target_collection.name, directory_collection_path(grant.target_collection.slug) %></td>
-                <td><span is-="badge" variant-="blue"><%= grant.permission.tr('_', ' ') %></span></td>
+                <td><code><%= grant.permission.tr('_', ' ') %></code></td>
               </tr>
             <% end %>
           </tbody>

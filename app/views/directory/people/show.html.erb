@@ -34,7 +34,7 @@
             <tr>
               <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
               <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
-              <td><span is-="badge" variant-="foreground2">direct</span></td>
+              <td><span is-="badge" variant-="background2">direct</span></td>
             </tr>
           <% end %>
           <% via.each do |m| %>
