@@ -6,9 +6,10 @@ module Directory
       authorize :directory, :admin?
       add_breadcrumb "view as"
 
-      return unless params[:person_id].present?
+      person_id_param = params[:person_id_id].presence || params[:person_id]
+      return unless person_id_param.present?
 
-      @target_person = Directory::Person.find_by_public_id!(params[:person_id])
+      @target_person = Directory::Person.find_by_public_id!(person_id_param)
 
       target_admin = @target_person.identity.backend_user&.directory_services_admin?
 
