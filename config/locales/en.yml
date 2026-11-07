@@ -1021,6 +1021,7 @@ en:
         other: "%{count} not found: %{items}"
       batch_too_many: "that's more than %{max} at once. split it into smaller batches."
       add_rate_limited: "too many adds in a short time. wait a few minutes and try again."
+      type_slug_to_confirm: "type the collection slug to confirm deletion."
     grants:
       created: "grant added."
       destroyed: "grant removed."
