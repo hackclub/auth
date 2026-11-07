@@ -229,6 +229,10 @@ module Directory
         return :invalid
       end
       parsed
+    rescue ArgumentError
+      redirect_back fallback_location: directory_collection_path(@collection.slug),
+        alert: t("directory.flash.invalid_expires_at")
+      :invalid
     end
 
     def refuse_rate_limited
