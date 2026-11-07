@@ -47,7 +47,7 @@
       <span><%= t("directory.people.index.all_people") %> <span is-="badge" variant-="blue"><%= @people.total_count %></span></span>
     </div>
     <% if @people.any? %>
-      <table>
+      <table data-filterable>
         <thead><tr><th><%= t("directory.people.index.col_name") %></th><th><%= t("directory.people.index.col_email") %></th><th></th></tr></thead>
         <tbody>
           <% @people.each do |person| %>
@@ -59,7 +59,7 @@
               <td style="color: var(--foreground2);"><%= person.primary_email %></td>
               <td style="text-align: right;">
                 <% if @holds_nothing_ids.include?(person.id) %>
-                  <span style="color: var(--foreground2); font-size: 0.85em;">no memberships</span>
+                  <span style="color: var(--foreground2); font-size: 0.85em; opacity: 0.6;">no groups</span>
                 <% end %>
               </td>
             </tr>
