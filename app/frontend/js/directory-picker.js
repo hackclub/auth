@@ -92,7 +92,7 @@ class DirectoryPicker {
     clearTimeout(this.debounceTimer);
     const q = this.input.value.trim();
 
-    if (q.length < MIN_CHARS) {
+    if (q.length < MIN_CHARS && !q.includes('@')) {
       this._closeDropdown();
       return;
     }
