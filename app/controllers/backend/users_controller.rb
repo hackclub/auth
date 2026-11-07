@@ -13,7 +13,7 @@ module Backend
       set_keyboard_shortcut(:back, backend_root_path)
 
       @users = User.all
-      @users = @users.left_joins(:identity).where("identities.primary_email ILIKE :q OR identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR backend_users.username ILIKE :q", q: "%#{params[:search]}%") if params[:search].present?
+      @users = @users.left_joins(:identity).where("identities.primary_email ILIKE :q OR identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR backend_users.username ILIKE :q", q: "%#{ActiveRecord::Base.sanitize_sql_like(params[:search])}%") if params[:search].present?
       @users = @users.includes(:identity, :organized_programs)
     end
 
