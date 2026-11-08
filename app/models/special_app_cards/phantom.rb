@@ -6,7 +6,7 @@ module SpecialAppCards
       identity.ysws_eligible != false && Flipper.enabled?(:app_card_phantom_2026_11_06, identity)
     end
 
-    def friendly_name = "Phantom"
+    def friendly_name = "PHANTOM"
 
     def tagline = "Build projects, go to an escape room hackathon in Philadelphia."
 
@@ -14,6 +14,6 @@ module SpecialAppCards
 
     def url = "https://phantom.hackclub.com/?utm_source=hca"
 
-    def launch_text = "Enter the Void!"
+    def launch_text = "Enter the void"
   end
 end
