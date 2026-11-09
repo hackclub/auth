@@ -42,9 +42,8 @@ module Directory
       )
     }
 
-    # Called inside open transactions (Directory.mutate!, the Backend::User after_save), so
-    # the insert gets its own savepoint: on a lost race only the savepoint rolls back, and
-    # the lookup afterwards still runs in a live transaction.
+    # called inside open transactions, so the insert gets a savepoint: a lost race rolls
+    # back only that, and the lookup after it still runs in a live transaction
     def self.find_or_create_for_identity!(identity, created_by:)
       find_by(identity: identity) || transaction(requires_new: true) do
         create!(identity: identity, created_by_identity_id: created_by.id)
@@ -53,9 +52,7 @@ module Directory
       find_by!(identity: identity)
     end
 
-    # Returns all effective memberships annotated with whether they're direct or inherited,
-    # and for inherited ones, which direct group membership provides the path. Used on
-    # person#show, /directory/me, and view_as to show "member of X (via Y)."
+    # for "member of X (via Y)"
     def memberships_with_via_path
       all_effective = effective_memberships.includes(:collection).order("directory_collections.name")
       direct_ids = memberships.active.pluck(:collection_id).to_set
@@ -72,8 +69,7 @@ module Directory
       end
     end
 
-    # Which apps this person can reach via entitlement memberships.
-    # Returns { app => [exposure, ...] } for the "because" column on person/my-access pages.
+    # { app => [exposure, ...] }
     def app_exposures
       ent_ids = effective_memberships.joins(:collection)
         .where(directory_collections: { kind: "entitlement" }).pluck(:collection_id)
@@ -82,8 +78,8 @@ module Directory
         .where(entitlement_id: ent_ids).group_by(&:app)
     end
 
-    # entitlement_ids: which entitlements were lost, so AfterChangeJob can tell whether the
-    # loss still stands when it runs. Omit when the loss is permanent (person/collection deleted).
+    # entitlement_ids: what was lost, so AfterChangeJob can tell whether the loss still
+    # stands. omit when it's permanent (person or collection deleted).
     def revocation_entry(app_ids, entitlement_ids: nil)
       entry = { identity_id: identity_id, email: primary_email, app_ids: app_ids }
       entry[:entitlement_ids] = entitlement_ids if entitlement_ids

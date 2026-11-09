@@ -12,9 +12,8 @@ module Directory
 
     scope :active, -> { where("expires_at IS NULL OR expires_at > ?", Time.current) }
     scope :expired, -> { where("expires_at <= ?", Time.current) }
-    # Lapsed but not yet swept. Compared against the database's NOW() (transaction start),
-    # the same clock GraphQueries uses, so anything swept here is already gone from the
-    # rebuild that runs in the same transaction.
+    # NOW(), not Time.current: the same clock GraphQueries uses, so anything swept here is
+    # already gone from the rebuild in the same transaction
     scope :expiry_unrecorded, -> { where(expiry_recorded_at: nil).where("expires_at <= NOW()") }
 
     belongs_to :collection, class_name: "Directory::Collection"
@@ -27,10 +26,7 @@ module Directory
     validate :no_cycles_and_depth_within_limit, if: -> { member_group_id.present? }
     validate :expires_at_in_future, if: -> { expires_at.present? && expires_at_changed? }
 
-    # Writes the audit trail for every membership that has lapsed since the last sweep:
-    # a "membership expired" activity on the collection and a paper_trail version stamping
-    # expiry_recorded_at. Run inside Directory.mutate! so the rebuild drops them in the
-    # same transaction. Returns how many were recorded.
+    # run inside Directory.mutate! so the rebuild drops these rows in the same transaction
     def self.record_expiries!
       count = 0
       expiry_unrecorded.includes(:collection, :member_group, member_person: :identity).find_each do |membership|
@@ -45,9 +41,7 @@ module Directory
       paper_trail.update_columns(expiry_recorded_at: Time.current)
     end
 
-    # Deletes lapsed rows so a re-add gets past the unique index. Goes through destroy
-    # (not delete_all) so each row leaves a paper_trail destroy version; the activity is
-    # skipped for rows the sweep already recorded, and says "expired" for any it hasn't.
+    # destroy, not delete_all, so each row leaves a paper_trail version
     def self.purge_expired!(relation)
       relation.expired.find_each(&:destroy!)
     end

@@ -44,8 +44,7 @@ module Directory
     scope :groups, -> { where(kind: "group") }
     scope :entitlements, -> { where(kind: "entitlement") }
 
-    # Slugs that collide with routes under /directory/collections (resources :collections,
-    # param: :slug): /directory/collections/new is the new-collection form, not a collection.
+    # /directory/collections/new is the new-collection form
     RESERVED_SLUGS = %w[new].freeze
 
     validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/ },
@@ -61,8 +60,7 @@ module Directory
     def group? = kind == "group"
     def entitlement? = kind == "entitlement"
     def to_param = slug
-    # People only, on both sides: views show "N members (+M nested)" as the difference, and
-    # nested-group rows aren't members of anything effective_memberships counts.
+    # people only, to match effective_member_count
     def direct_member_count
       has_attribute?(:preloaded_direct_count) ? preloaded_direct_count : member_people_memberships.active.count
     end
@@ -77,14 +75,11 @@ module Directory
       has_attribute?(:preloaded_exposure_count) ? preloaded_exposure_count : Directory::Exposure.where(entitlement_id: id).count
     end
 
-    # Which apps care about these entitlements? An app "cares" if it has an exposure
-    # (OIDC claim) or a requirement (login gate) wired to the entitlement. Flat array.
+    # apps with an exposure or a requirement on any of these entitlements
     def self.affected_app_ids(entitlement_ids)
       affected_app_ids_by_entitlement(entitlement_ids).values.flatten.uniq
     end
 
-    # Same as above but preserves the per-entitlement mapping: { entitlement_id => [app_id, ...] }.
-    # Used by Rebuild to build per-person revocation payloads.
     def self.affected_app_ids_by_entitlement(entitlement_ids)
       result = Hash.new { |h, k| h[k] = Set.new }
       Directory::Exposure.where(entitlement_id: entitlement_ids).pluck(:entitlement_id, :app_id).each { |eid, aid| result[eid] << aid }
@@ -96,12 +91,9 @@ module Directory
       self.class.affected_app_ids(id)
     end
 
-    # Everything a recursive grant covers once it flows down into this collection: this
-    # collection plus every sub-group below it, never entering a protected one, at most
-    # MAX_DEPTH levels deep. Empty when this collection is protected, since recursion can't
-    # enter it at all. One query. The walk mirrors GraphQueries.create_effective_grants
-    # (keep the two in step); memberships#create uses it to see what nesting this under a
-    # group would extend that group's recursive grants into.
+    # what a recursive grant covers once it flows into this collection: itself plus every
+    # unprotected sub-group, to MAX_DEPTH. mirrors GraphQueries.create_effective_grants; keep
+    # the two in step.
     def recursive_grant_reach
       self.class.where(<<~SQL.squish, id: id, max_depth: Directory::MAX_DEPTH)
         directory_collections.id IN (

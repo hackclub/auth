@@ -1,13 +1,9 @@
 # frozen_string_literal: true
 
 module Directory
-  # Expired memberships are excluded at query time (GraphQueries filters on expires_at),
-  # but the derived tables (closure, effective_memberships, effective_grants) only drop
-  # them on the next rebuild — and Context#can? reads effective_grants. So every lapsed
-  # membership edge, person or nested group, needs a rebuild whether or not anyone was
-  # holding an effective membership through it. This job records each newly-lapsed row
-  # (activity + paper_trail, see Membership.record_expiries!) and rebuilds in the same
-  # transaction, so AfterChangeJob fires any revocations.
+  # the derived tables only drop a lapsed membership on the next rebuild, and Context#can?
+  # reads effective_grants, so every lapsed edge (person or nested group) needs one, even
+  # when nobody held an effective membership through it.
   class MembershipExpirySweepJob < ApplicationJob
     queue_as :default
 

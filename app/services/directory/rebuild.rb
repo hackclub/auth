@@ -1,19 +1,16 @@
 # frozen_string_literal: true
 
 module Directory
-  # Recomputes all three derived tables (closure, effective_memberships, effective_grants)
-  # from the raw membership + grant edges, diffs against the previous state, and queues
-  # AfterChangeJob for any additions/removals. This is the only writer for the derived tables.
+  # the only writer of closure, effective_memberships and effective_grants
   class Rebuild
-    # Arbitrary but stable. All directory writers acquire this lock to serialize rebuilds.
+    # arbitrary but stable; every directory writer takes it
     LOCK_KEY = 8_675_309
 
     def self.call(cause:, skip_lock: false, skip_snapshot: false)
       new(cause:, skip_lock:, skip_snapshot:).call
     end
 
-    # Captures current effective_memberships into a temp table so emit_changes can diff later.
-    # Called by mutate! before the caller's mutation, so the snapshot is pre-change state.
+    # mutate! calls this before the caller's changes, so the diff sees pre-change state
     def self.snapshot_old(conn)
       conn.execute("DROP TABLE IF EXISTS _old_em, _new_closure, _new_em, _new_eg")
       conn.execute(<<~SQL)
@@ -30,11 +27,6 @@ module Directory
       @conn = ActiveRecord::Base.connection
     end
 
-    # 1. Lock (unless mutate! already holds it)
-    # 2. Snapshot current state (unless mutate! already did)
-    # 3. Recompute all three derived tables into temp tables via GraphQueries
-    # 4. Diff each derived table against its temp table: delete stale, insert new
-    # 5. Record what changed in membership_changes and queue AfterChangeJob
     def call
       @conn.execute("SELECT pg_advisory_xact_lock(#{LOCK_KEY})") unless @skip_lock
       snapshot_old unless @skip_snapshot
@@ -182,26 +174,18 @@ module Directory
       ids
     end
 
-    # Queues AfterChangeJob after the transaction commits (not before — the derived tables
-    # aren't visible to other transactions until commit). Pre-resolves revocation data while
-    # the person/collection records still exist, since cascade-deletes may remove them at commit.
+    # after commit: other transactions can't see the derived tables before then
     def register_after_commit(change_ids)
       ids = change_ids.dup
-      # Pre-resolve revocation data while entities still exist (before commit might cascade-delete them)
       revocations = pre_resolve_revocations(ids)
       @conn.current_transaction.after_commit do
         Directory::AfterChangeJob.perform_later(change_ids: ids, revocations: revocations)
       end
     end
 
-    # For each "removed" change on an entitlement, find which apps care (via exposures
-    # and requirements) and build { identity_id, email, app_ids } hashes. AfterChangeJob
-    # uses these to revoke access, even if the person/entitlement is deleted by then.
-    #
-    # IMPORTANT: this runs inside the transaction, after the caller's mutation. If the
-    # mutation destroyed a collection or person, the lookup here returns nothing and
-    # revocations are silently lost. Any destroy path must capture revocation data
-    # BEFORE calling mutate! — see CollectionsController#destroy for the pattern.
+    # resolved now, while the people still exist. this runs after the caller's mutation, so
+    # a destroyed collection or person finds nothing here: destroy paths must capture their
+    # revocations before mutate! (see CollectionsController#destroy).
     def pre_resolve_revocations(change_ids)
       rows = @conn.exec_query(
         ActiveRecord::Base.sanitize_sql_array([

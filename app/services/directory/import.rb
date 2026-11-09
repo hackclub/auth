@@ -3,13 +3,11 @@
 require "csv"
 
 module Directory
-  # CSV bulk import: parses rows, resolves identities and collections, creates persons
-  # and memberships, then triggers one rebuild. Supports dry_run mode for preview.
-  # Takes the advisory lock itself (not via mutate!) so it can skip the lock in Rebuild.call.
+  # takes the advisory lock itself (not via mutate!) so Rebuild.call can skip it
   class Import
     Result = Struct.new(:valid?, :changes, :errors, :created_count, :skipped_count, keyword_init: true)
 
-    # Applies to every way CSV reaches us (file upload, pasted text, the preview's re-post).
+    # upload, pasted text, and the preview's re-post alike
     MAX_CSV_BYTES = 2.megabytes
 
     def self.call(csv_string:, dry_run: false, created_by:)
@@ -58,7 +56,6 @@ module Directory
       end
       return if lines.empty?
 
-      # Detect header row
       first = lines.first
       if first.length >= 2 && first[0]&.strip&.downcase == "email"
         lines = lines.drop(1)
@@ -142,7 +139,6 @@ module Directory
         @resolved << { identity:, collection:, expires_at: row[:expires_at], email: row[:email], row_num: row[:row_num] }
       end
 
-      # Batch-load persons and active memberships to avoid N+1 queries
       identity_ids = @resolved.map { |e| e[:identity].id }.uniq
       persons_by_identity = Directory::Person.where(identity_id: identity_ids).index_by(&:identity_id)
 

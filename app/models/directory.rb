@@ -6,8 +6,7 @@ module Directory
   # Groups can nest up to 6 levels deep (A→B→C→D→E→F). Enforced by membership validation and the recursive CTEs.
   MAX_DEPTH = 6
 
-  # Builds a structured cause string for the audit log. Format: "action:target_id by:actor_id"
-  # Use this instead of ad-hoc string interpolation so causes are grep-friendly.
+  # "action:target_id by:actor_id", so causes stay grep-friendly
   def self.cause(action, target: nil, actor: nil)
     parts = [ action ]
     parts << target if target
@@ -16,10 +15,8 @@ module Directory
     parts.join(" ")
   end
 
-  # Gateway for every directory write. Takes a postgres advisory lock so only one mutation
-  # runs at a time, snapshots the current effective_memberships, yields for the caller's
-  # changes, then does a full rebuild to recompute closure + effective tables and diff them.
-  # The diff drives AfterChangeJob (revocations, webhooks). Cause is a string for the audit log.
+  # every directory write goes through here: advisory lock, snapshot, the caller's changes,
+  # full rebuild, diff. the diff drives AfterChangeJob.
   def self.mutate!(cause:, &block)
     ActiveRecord::Base.transaction do
       conn = ActiveRecord::Base.connection

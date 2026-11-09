@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 module Directory
-  # Single source of truth for "these identities should no longer have access to this app."
-  # Revokes OAuth access tokens and authorization grants, and enqueues session revocation
-  # for apps with a revoker configured. Idempotent.
+  # tokens, grants, and the app's own sessions via its revoker. idempotent.
   class RevokeAccess
     def self.call(identity_id:, app_id:, email:)
       revoke_tokens(app_id: app_id, identity_ids: [ identity_id ])

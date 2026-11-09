@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
 module Directory
-  # Runs after a rebuild commits. Processes "removed" effective membership changes:
-  # for each person who lost an entitlement, checks if they still qualify for each affected
-  # app (via another entitlement), and revokes access if not. Deduplicates across the two
-  # input sources (pre-resolved revocations + change records) to avoid double-revoking.
+  # runs after a rebuild commits: revokes app access for people who lost an entitlement and
+  # don't still qualify some other way.
   class AfterChangeJob < ApplicationJob
     queue_as :default
 

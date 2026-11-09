@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 module Directory
-  # Pundit authorization context for directory controllers. Wraps the current user's identity,
-  # directory person, and admin status. Provides can?/can_any? for permission checks against
-  # the effective_grants table, with an optional preload_grants! to batch all grants into memory.
   class Context
     attr_reader :identity, :person, :admin
 
@@ -15,7 +12,6 @@ module Directory
 
     def admin? = !!@admin
 
-    # Does this user hold `permission` on `collection`? Uses the in-memory cache if preloaded.
     def can?(permission, collection)
       return true if admin?
       return false unless person
@@ -58,8 +54,6 @@ module Directory
       end
     end
 
-    # Loads all (target_collection_id, permission) pairs into a Set for O(1) lookups.
-    # Called once per request in BaseController. Turns N per-collection queries into 1.
     def preload_grants!
       return self unless person
 

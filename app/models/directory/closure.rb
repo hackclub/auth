@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 module Directory
-  # Read-only model over the transitive closure table. Each row says "ancestor_id can reach
-  # descendant_id in `depth` hops through group nesting." Written exclusively by Rebuild.
+  # "ancestor_id reaches descendant_id in `depth` hops". only Rebuild writes it.
   class Closure < ApplicationRecord
     self.table_name = "directory_closure"
     self.primary_key = [ :ancestor_id, :descendant_id ]
@@ -12,9 +11,7 @@ module Directory
 
     def readonly? = true
 
-    # For a set of indirect memberships (ancestor_ids), find which direct group membership
-    # (from direct_collection_ids) provides the shortest path to each. Returns
-    # { ancestor_id => [via_collection] }. Used by memberships_with_via_path to show "via X."
+    # { ancestor_id => [via_collection] }: the direct group giving the shortest path to each
     def self.batch_via_paths(direct_collection_ids, ancestor_ids)
       return {} if direct_collection_ids.empty? || ancestor_ids.empty?
 
