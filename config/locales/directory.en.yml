@@ -12,7 +12,7 @@ en:
       revoker_saved: "session revoker saved."
       revoker_removed: "session revoker removed."
     developer_apps:
-      remove_exposure_confirm: "stop sending %{claim} to this app? it shows up in the next token each person gets."
+      remove_exposure_confirm: "stop sending %{claim} to this app? tokens issued from now on won't include it."
       remove_requirement_confirm: "stop requiring %{name}? anyone who only qualified through it gets logged out of this app."
       remove_last_requirement_confirm: "remove %{name}, this app's only requirement? the app opens to everyone with an HCA account."
       revoker_heading: "session revocation"
