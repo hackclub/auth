@@ -11,6 +11,12 @@ RSpec.describe Directory::Import, "input robustness" do
 
   def memberships = Directory::Membership.where(collection: team)
 
+  it "names the slug it couldn't find and keeps the row's email" do
+    preview = import("jane@example.com,nope\n", dry_run: true)
+
+    expect(preview.errors.sole).to include(row: 1, email: "jane@example.com", message: "collection not found: nope")
+  end
+
   describe "the same person and collection twice" do
     [
       [ "exact repeat", "jane@example.com,team\njane@example.com,team\n" ],
@@ -24,6 +30,7 @@ RSpec.describe Directory::Import, "input robustness" do
         preview = import(csv, dry_run: true)
         expect(preview).to be_valid
         expect(preview.changes.map { |c| c[:action] }).to eq(%w[add skip_duplicate])
+        expect(preview.changes.last[:duplicate_of]).to eq(1)
 
         result = import(csv)
         expect(result).to be_valid

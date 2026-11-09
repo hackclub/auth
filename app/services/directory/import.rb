@@ -135,11 +135,11 @@ module Directory
           next
         end
         unless collection
-          @errors << { row: row[:row_num], slug: row[:slug], message: "collection not found" }
+          @errors << { row: row[:row_num], email: row[:email], message: "collection not found: #{row[:slug]}" }
           next
         end
 
-        @resolved << { identity:, collection:, expires_at: row[:expires_at], email: row[:email] }
+        @resolved << { identity:, collection:, expires_at: row[:expires_at], email: row[:email], row_num: row[:row_num] }
       end
 
       # Batch-load persons and active memberships to avoid N+1 queries
@@ -157,15 +157,17 @@ module Directory
         Set.new
       end
 
-      seen = Set.new
+      first_row = {}
       @resolved.each do |entry|
         # The same person and collection twice (exact repeat, different case, email and
         # ident! for one person, slug and dcol! for one collection): first row wins.
-        unless seen.add?([ entry[:identity].id, entry[:collection].id ])
-          @changes << { email: entry[:email], collection: entry[:collection].slug, expires_at: entry[:expires_at], action: "skip_duplicate" }
+        key = [ entry[:identity].id, entry[:collection].id ]
+        if first_row.key?(key)
+          @changes << { email: entry[:email], collection: entry[:collection].slug, expires_at: entry[:expires_at], action: "skip_duplicate", duplicate_of: first_row[key] }
           entry[:duplicate] = true
           next
         end
+        first_row[key] = entry[:row_num]
 
         person = persons_by_identity[entry[:identity].id]
         existing = person ? active_pairs.include?([ entry[:collection].id, person.id ]) : false

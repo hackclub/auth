@@ -51,6 +51,12 @@ RSpec.describe "Directory import expires_at", type: :request do
       expect(preview_row(permanent.primary_email)).to eq([ permanent.primary_email, "temps", "never", "add" ])
     end
 
+    it "says why a row is skipped" do
+      post directory_import_preview_path, params: { csv_text: "#{temp.primary_email},temps\n#{temp.primary_email},temps\n" }
+
+      expect(response.parsed_body.text).to include("duplicate of row 1")
+    end
+
     it "shows an unparseable expiry as a row error and doesn't offer to apply" do
       post directory_import_preview_path, params: { csv_text: "#{temp.primary_email},temps,tomorrow\n" }
 

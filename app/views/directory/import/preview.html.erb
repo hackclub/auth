@@ -61,6 +61,7 @@
                   <span is-="badge" variant-="green"><%= t("directory.badges.add") %></span>
                 <% else %>
                   <span is-="badge" variant-="background2"><%= t("directory.badges.skip") %></span>
+                  <span style="color: var(--foreground2);"><%= change[:action] == "skip_duplicate" ? t("directory.import.preview.duplicate_of", row: change[:duplicate_of]) : t("directory.import.preview.already_member") %></span>
                 <% end %>
               </td>
             </tr>

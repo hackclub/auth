@@ -1099,6 +1099,8 @@ en:
       preview:
         action_add: "add"
         action_skip: "skip"
+        already_member: "already a member"
+        duplicate_of: "duplicate of row %{row}"
         apply_button: "apply import"
         back: "back"
         back_to_import: "back to import"
