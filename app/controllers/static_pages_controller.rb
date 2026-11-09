@@ -36,5 +36,4 @@ class StaticPagesController < ApplicationController
   end
 
   def slack_id = render layout: "minimal"
-
 end
