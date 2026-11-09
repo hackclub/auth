@@ -175,7 +175,7 @@ module Directory
       parts << t("directory.flash.batch_failed", count: failed.size, items: failed.first(3).join(", ")) if failed.any?
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
-        notice: parts.join(". ")
+        notice: parts.join(" ")
     end
 
     def update

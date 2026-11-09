@@ -1023,8 +1023,8 @@ en:
         one: "%{count} already a member."
         other: "%{count} already members."
       batch_not_found:
-        one: "%{count} not found: %{items}"
-        other: "%{count} not found: %{items}"
+        one: "%{count} not found: %{items}."
+        other: "%{count} not found: %{items}."
       batch_too_many: "that's more than %{max} at once. split it into smaller batches."
       add_rate_limited: "too many adds in a short time. wait a few minutes and try again."
       type_slug_to_confirm: "type the collection slug to confirm deletion."
@@ -1035,8 +1035,8 @@ en:
       grant_updated: "grant updated."
       expiry_updated: "expiry updated."
       batch_failed:
-        one: "%{count} couldn't be added: %{items}"
-        other: "%{count} couldn't be added: %{items}"
+        one: "%{count} couldn't be added: %{items}."
+        other: "%{count} couldn't be added: %{items}."
     grants:
       created: "grant added."
       destroyed: "grant removed."

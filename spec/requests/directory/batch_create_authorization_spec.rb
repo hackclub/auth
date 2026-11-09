@@ -40,6 +40,17 @@ RSpec.describe "Directory batch add authorization", type: :request do
     expect(member_people(group).map(&:identity)).to contain_exactly(existing_person.identity, outside_identity)
   end
 
+  it "reads as sentences when several outcomes are reported" do
+    admin = create(:identity)
+    create(:backend_user, identity: admin, directory_services_admin: true)
+    sign_in admin.reload
+    batch_add(group, [ existing_person.primary_email ])
+
+    batch_add(group, [ existing_person.primary_email, outside_identity.primary_email, "nobody@example.invalid" ])
+
+    expect(flash[:notice]).to eq("added 1 person. 1 already a member. 1 not found: nobody@example.invalid.")
+  end
+
   it "lets a manage_members holder batch add to their collection" do
     manager = create(:directory_person)
     grant!(manager, group, "manage_members")
