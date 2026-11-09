@@ -26,6 +26,18 @@ RSpec.describe "Directory my access page", type: :request do
     expect(response.body).not_to match(/translation[ _]missing/i)
   end
 
+  it "doesn't link a grantless member to pages that 404 for them" do
+    person = create(:directory_person)
+    team = create(:directory_group)
+    Directory.mutate!(cause: "test") { Directory::Membership.create!(collection: team, member_person: person) }
+    sign_in person.identity
+
+    get directory_my_access_path
+
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body.css(%(a[href="#{directory_root_path}"]))).to be_empty
+  end
+
   it "only links collections the person can open" do
     person = create(:directory_person)
     hidden = create(:directory_group, slug: "hidden-team", name: "Hidden Team")

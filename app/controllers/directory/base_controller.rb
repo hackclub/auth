@@ -14,7 +14,7 @@ module Directory
     after_action :verify_authorized, unless: :skip_authorization?
 
     helper_method :current_directory_person, :directory_admin?, :breadcrumbs, :directory_keyboard_shortcuts,
-      :directory_activity_owner
+      :directory_activity_owner, :directory_browsable?, :directory_home_path
 
     private
 
@@ -76,10 +76,17 @@ module Directory
     end
 
     def ensure_directory_access!
-      return if directory_admin?
-      return if current_directory_person && pundit_user.has_any_grants?
+      raise ActionController::RoutingError, "Not Found" unless directory_browsable?
+    end
 
-      raise ActionController::RoutingError, "Not Found"
+    # Members with no grants only get /directory/me; everything else 404s for them.
+    def directory_browsable?
+      return @directory_browsable if defined?(@directory_browsable)
+      @directory_browsable = !!(directory_admin? || (current_directory_person && pundit_user.has_any_grants?))
+    end
+
+    def directory_home_path
+      directory_browsable? ? directory_root_path : directory_my_access_path
     end
 
     def pundit_user
@@ -93,12 +100,12 @@ module Directory
     end
 
     def add_breadcrumb(label, path = nil)
-      @_breadcrumbs ||= [ { label: "directory", path: directory_root_path } ]
+      @_breadcrumbs ||= [ { label: "directory", path: directory_home_path } ]
       @_breadcrumbs << { label:, path: }
     end
 
     def breadcrumbs
-      @_breadcrumbs || [ { label: "directory", path: directory_root_path } ]
+      @_breadcrumbs || [ { label: "directory", path: directory_home_path } ]
     end
 
     def directory_keyboard_shortcuts
