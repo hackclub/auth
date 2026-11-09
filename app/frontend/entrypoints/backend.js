@@ -1,5 +1,6 @@
 import htmx from 'htmx.org';
 import { setup_copy } from '../js/click-to-copy.js';
+import '../js/data-confirm.js';
 import '../js/directory-picker.js';
 import { mount } from 'svelte';
 import CommandPalette from '../components/svelte/CommandPalette.svelte';
