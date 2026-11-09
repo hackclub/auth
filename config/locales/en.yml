@@ -878,6 +878,7 @@ en:
         title: "activity — %{name}"
         back_to_collection: "← back to collection"
       created: "collection created."
+      cannot_destroy_in_use: "can't delete this collection — it's still required by one or more apps."
       destroyed: "collection deleted."
       edit:
         heading: "edit: %{name}"

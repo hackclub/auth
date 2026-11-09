@@ -160,8 +160,14 @@ module Directory
         end
       end
 
-      Directory.mutate!(cause: Directory.cause("collection_deleted", target: @collection.id, actor: current_identity.id)) do
-        @collection.destroy!
+      begin
+        Directory.mutate!(cause: Directory.cause("collection_deleted", target: @collection.id, actor: current_identity.id)) do
+          @collection.destroy!
+        end
+      rescue ActiveRecord::InvalidForeignKey
+        redirect_to directory_collection_path(@collection.slug),
+          alert: t("directory.collections.cannot_destroy_in_use")
+        return
       end
 
       # Enqueue revocations directly since the rebuild diff won't find them
