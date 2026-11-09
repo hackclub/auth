@@ -77,11 +77,11 @@ RSpec.describe Directory::Import, "expires_at" do
   end
 
   describe "a valid value" do
-    it "applies a date as the end of that day anywhere on earth" do
+    it "applies a date as the end of that day, eastern time" do
       result = import("2099-01-01")
 
       expect(result).to be_valid
-      expect(memberships.sole.expires_at).to be_within(1.second).of(Time.utc(2099, 1, 2, 12))
+      expect(memberships.sole.expires_at).to be_within(1.second).of(Time.utc(2099, 1, 2, 5))
       expect(Directory::Expiry.date_for(memberships.sole.expires_at)).to eq(Date.new(2099, 1, 1))
     end
 

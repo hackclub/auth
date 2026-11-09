@@ -34,7 +34,7 @@ RSpec.describe "Directory import expires_at", type: :request do
       get directory_new_import_path
 
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body.text).to include("through the end of that day, anywhere on earth")
+      expect(response.parsed_body.text).to include("through the end of that day, eastern time")
     end
   end
 
@@ -47,7 +47,7 @@ RSpec.describe "Directory import expires_at", type: :request do
       }
 
       expect(response).to have_http_status(:ok)
-      expect(preview_row(temp.primary_email)).to eq([ temp.primary_email, "temps", "2099-01-01 17:30 UTC", "add" ])
+      expect(preview_row(temp.primary_email)).to eq([ temp.primary_email, "temps", "2099-01-01 12:30 EST", "add" ])
       expect(preview_row(permanent.primary_email)).to eq([ permanent.primary_email, "temps", "never", "add" ])
     end
 

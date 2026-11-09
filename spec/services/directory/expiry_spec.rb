@@ -6,8 +6,9 @@ RSpec.describe Directory::Expiry do
   include ActiveSupport::Testing::TimeHelpers
 
   describe ".parse" do
-    it "reads a bare date as the end of that day anywhere on earth" do
-      expect(described_class.parse("2027-03-01")).to eq(Time.utc(2027, 3, 2, 11, 59, 59.999999r))
+    it "reads a bare date as the end of that day, eastern time" do
+      expect(described_class.parse("2027-03-01")).to eq(Time.utc(2027, 3, 2, 4, 59, 59.999999r))
+      expect(described_class.parse("2027-07-01")).to eq(Time.utc(2027, 7, 2, 3, 59, 59.999999r))
     end
 
     it "takes an explicit datetime as given" do
@@ -21,7 +22,7 @@ RSpec.describe Directory::Expiry do
       end
     end
 
-    it "keeps today's date valid for the rest of today, wherever you are" do
+    it "keeps today's date valid for the rest of today, eastern time" do
       travel_to Time.utc(2027, 3, 1, 23, 0) do
         expect(described_class.parse("2027-03-01")).to be > Time.current
         expect(described_class.first_selectable_date).to eq(Date.new(2027, 3, 1))
@@ -34,6 +35,6 @@ RSpec.describe Directory::Expiry do
 
     expect(described_class.date_for(membership_time)).to eq(Date.new(2027, 3, 1))
     expect(described_class.label(membership_time)).to eq("2027-03-01")
-    expect(described_class.label(Time.utc(2027, 3, 1, 17, 30))).to eq("2027-03-01 17:30 UTC")
+    expect(described_class.label(Time.utc(2027, 3, 1, 17, 30))).to eq("2027-03-01 12:30 EST")
   end
 end

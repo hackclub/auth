@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 module Directory
-  # Membership expiry dates. A bare date D means "valid through the end of D anywhere on
-  # earth" (UTC-12), so nobody loses access while it's still D where they are; an explicit
-  # ISO 8601 datetime is taken as given.
+  # Membership expiry dates. A bare date D means "valid through the end of D, eastern time"
+  # (hack club runs on it); an explicit ISO 8601 datetime is taken as given.
   module Expiry
-    ZONE = ActiveSupport::TimeZone["Etc/GMT+12"]
+    ZONE = ActiveSupport::TimeZone["America/New_York"]
 
     # Unambiguous ISO 8601 only: Time.zone.parse guesses (nil for "tomorrow", Feb 1 for
     # "1/2/2027", March 2 for "2027-02-30"), and for an access expiry a wrong guess is worse
@@ -46,7 +45,7 @@ module Directory
       if [ local.hour, local.min, local.sec ] == [ 23, 59, 59 ]
         local.to_date.iso8601
       else
-        time.utc.strftime("%Y-%m-%d %H:%M UTC")
+        local.strftime("%Y-%m-%d %H:%M %Z")
       end
     end
   end

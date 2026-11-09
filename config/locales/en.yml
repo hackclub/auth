@@ -1088,7 +1088,7 @@ en:
       errors: "import failed with %{count} error(s)."
       new:
         description_html: "bulk-add memberships from a csv. three columns: <code>email or ident!</code>, <code>collection slug or dcol!</code>, <code>expires_at</code>."
-        expires_at_html: "expiry is optional — leave it blank for permanent access. dates are <code>YYYY-MM-DD</code> (access lasts through the end of that day, anywhere on earth) or a full ISO 8601 datetime. preview first to make sure it looks right."
+        expires_at_html: "expiry is optional — leave it blank for permanent access. dates are <code>YYYY-MM-DD</code> (access lasts through the end of that day, eastern time) or a full ISO 8601 datetime. preview first to make sure it looks right."
         file_label: "upload file"
         heading: "import"
         paste_label: "or paste csv"
