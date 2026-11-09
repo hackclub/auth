@@ -309,6 +309,7 @@ Rails.application.routes.draw do
 
     # Picker API
     get "picker/search", to: "picker#search", as: :picker_search
+    get "picker/resolve", to: "picker#resolve", as: :picker_resolve
 
     # CSV Import
     get "import", to: "import#new", as: :new_import

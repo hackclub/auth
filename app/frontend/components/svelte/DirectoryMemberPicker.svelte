@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
 
-  let { searchUrl = '/directory/picker/search', placeholder = 'email or ident!…', name = 'identifiers' } = $props();
+  let { searchUrl = '/directory/picker/search', resolveUrl = '/directory/picker/resolve', placeholder = 'email or ident!…', name = 'identifiers' } = $props();
 
   let selected = $state([]);
   let query = $state('');
@@ -42,22 +42,26 @@
     return false;
   }
 
-  async function resolveChip(value) {
+  function resolveChip(value) { return resolveChips([value]); }
+
+  // one request for a whole paste; exact email matches only
+  async function resolveChips(values) {
+    if (values.length === 0) return;
     try {
-      const res = await fetch(`${searchUrl}?q=${encodeURIComponent(value)}&scope=people`);
+      const params = new URLSearchParams();
+      values.forEach(v => params.append('emails[]', v));
+      const res = await fetch(`${resolveUrl}?${params}`);
       if (!res.ok) return;
       const data = await res.json();
-      // exact match only: the search is a fuzzy ILIKE, data[0] could be anyone
-      const match = data.find(r => r.sublabel?.toLowerCase() === value.toLowerCase());
-      if (match) {
-        selected = selected.map(s =>
-          s.value === value ? { ...s, label: match.label, sublabel: match.sublabel, resolved: 'found', new: !!match.new_directory_person } : s
-        );
-      } else {
-        selected = selected.map(s =>
-          s.value === value ? { ...s, resolved: 'not-found' } : s
-        );
-      }
+      const byEmail = new Map(data.map(r => [r.sublabel?.toLowerCase(), r]));
+      const pending = new Set(values);
+      selected = selected.map(s => {
+        if (!pending.has(s.value)) return s;
+        const match = byEmail.get(s.value.toLowerCase());
+        return match
+          ? { ...s, label: match.label, sublabel: match.sublabel, resolved: 'found', new: !!match.new_directory_person }
+          : { ...s, resolved: 'not-found' };
+      });
     } catch {
       // leave as pending
     }
@@ -162,6 +166,7 @@
     if (/[,\n]/.test(text)) {
       e.preventDefault();
       const items = text.split(/[,\n]+/).map(s => s.trim()).filter(s => s.length > 0);
+      const toResolve = [];
       for (const item of items) {
         const alreadySelected = selected.some(s => s.value === item);
         if (!alreadySelected) {
@@ -169,10 +174,11 @@
             selected = [...selected, { value: item, label: item, sublabel: null, resolved: 'ident' }];
           } else {
             selected = [...selected, { value: item, label: item, sublabel: null, resolved: 'pending' }];
-            resolveChip(item);
+            toResolve.push(item);
           }
         }
       }
+      resolveChips(toResolve);
       query = '';
       if (inputEl) inputEl.value = '';
     }

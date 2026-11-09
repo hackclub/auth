@@ -35,4 +35,26 @@ RSpec.describe "Directory picker people search", type: :request do
   it "still resolves an exact email for someone they can't see yet" do
     expect(labels("zorblax.hidden@example.com")).to contain_exactly("Zorblax Hidden")
   end
+
+  describe "batch resolve" do
+    def resolve(emails)
+      get directory_picker_resolve_path, params: { emails: emails }
+      JSON.parse(response.body)
+    end
+
+    it "resolves exact emails in one request, case-insensitively" do
+      found = resolve([ "ZORBLAX.HIDDEN@example.com", teammate.primary_email, "nobody@example.com", "Zorblax" ])
+      expect(found.map { |r| r["label"] }).to contain_exactly("Zorblax Hidden", "Zorblax Visible")
+    end
+
+    it "doesn't offer people outside the directory to someone who can't create them" do
+      outsider = create(:identity, primary_email: "outsider@example.com")
+      expect(resolve([ outsider.primary_email ])).to be_empty
+    end
+
+    it "caps the batch" do
+      emails = Array.new(150) { |i| "nobody#{i}@example.com" } + [ "zorblax.hidden@example.com" ]
+      expect(resolve(emails)).to be_empty
+    end
+  end
 end

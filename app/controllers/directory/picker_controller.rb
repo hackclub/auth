@@ -24,6 +24,32 @@ module Directory
       render json: results
     end
 
+    # Exact-email lookups for a pasted batch, in one request. Same rules as an exact
+    # email in #search.
+    def resolve
+      authorize Directory::Person, :picker?
+
+      emails = Array(params[:emails]).map { |e| e.to_s.strip.downcase }.select { |e| e.include?("@") }.uniq
+        .first(Directory::MembershipsController::MAX_BATCH_IDENTIFIERS)
+      return render(json: []) if emails.empty?
+
+      people = Directory::Person.joins(:identity).includes(:identity)
+        .where("lower(identities.primary_email) IN (?)", emails)
+      results = people.map { |p| person_result(p) }
+
+      if policy(Directory::Person).create?
+        missing = emails - results.map { |r| r[:sublabel].downcase }
+        if missing.any?
+          Identity.where("lower(primary_email) IN (?)", missing).where.not(id: people.map(&:identity_id)).find_each do |identity|
+            results << { id: identity.public_id, label: identity.full_name, sublabel: identity.primary_email,
+                         type: "person", new_directory_person: true }
+          end
+        end
+      end
+
+      render json: results
+    end
+
     private
 
     # Partial search only covers people the viewer can already see; adding someone new
