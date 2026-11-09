@@ -51,18 +51,19 @@ module Directory
       add_breadcrumb(t("directory.import.breadcrumb"), directory_new_import_path)
     end
 
-    MAX_CSV_SIZE = 2.megabytes
-
     def read_csv_from_params
       if params[:csv_file].present?
-        if params[:csv_file].size > MAX_CSV_SIZE
-          redirect_to directory_new_import_path, alert: t("directory.import.file_too_large")
-          return
-        end
+        return redirect_too_large if params[:csv_file].size > Directory::Import::MAX_CSV_BYTES
         params[:csv_file].read.force_encoding("UTF-8").scrub
-      elsif params[:csv_text].present?
-        params[:csv_text]
+      elsif (csv_text = params[:csv_text]).is_a?(String) && csv_text.present?
+        return redirect_too_large if csv_text.bytesize > Directory::Import::MAX_CSV_BYTES
+        csv_text
       end
+    end
+
+    def redirect_too_large
+      redirect_to directory_new_import_path, alert: t("directory.import.file_too_large")
+      nil
     end
   end
 end

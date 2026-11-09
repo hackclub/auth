@@ -9,6 +9,9 @@ module Directory
   class Import
     Result = Struct.new(:valid?, :changes, :errors, :created_count, :skipped_count, keyword_init: true)
 
+    # Applies to every way CSV reaches us (file upload, pasted text, the preview's re-post).
+    MAX_CSV_BYTES = 2.megabytes
+
     # YYYY-MM-DD, optionally followed by a time (after T or a space) and a Z or ±HH:MM offset.
     EXPIRES_AT_FORMAT = /\A(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-](?:[01]\d|2[0-3])(?::?[0-5]\d)?)?)?\z/i
 
@@ -29,7 +32,7 @@ module Directory
       if @dry_run
         Result.new(valid?: @errors.empty?, changes: @changes, errors: @errors,
                    created_count: @changes.count { |c| c[:action] == "add" },
-                   skipped_count: @changes.count { |c| c[:action] == "skip_existing" })
+                   skipped_count: @changes.count { |c| c[:action] != "add" })
       else
         persist
       end
@@ -42,7 +45,20 @@ module Directory
       @errors = []
       @changes = []
 
-      lines = CSV.parse(@csv_string, liberal_parsing: true)
+      if @csv_string.bytesize > MAX_CSV_BYTES
+        @errors << { message: "CSV is too large (#{MAX_CSV_BYTES / 1.megabyte}MB max)" }
+        return
+      end
+
+      # Excel's "CSV UTF-8" export starts with a BOM, which would glue itself to "email"
+      # and hide the header row.
+      csv = @csv_string.dup.force_encoding("UTF-8").scrub.delete_prefix("\uFEFF")
+      lines = begin
+        CSV.parse(csv, liberal_parsing: true)
+      rescue CSV::MalformedCSVError => e
+        @errors << { message: "couldn't parse CSV: #{e.message}" }
+        return
+      end
       return if lines.empty?
 
       # Detect header row
@@ -157,7 +173,16 @@ module Directory
         Set.new
       end
 
+      seen = Set.new
       @resolved.each do |entry|
+        # The same person and collection twice (exact repeat, different case, email and
+        # ident! for one person, slug and dcol! for one collection): first row wins.
+        unless seen.add?([ entry[:identity].id, entry[:collection].id ])
+          @changes << { email: entry[:email], collection: entry[:collection].slug, expires_at: entry[:expires_at], action: "skip_duplicate" }
+          entry[:duplicate] = true
+          next
+        end
+
         person = persons_by_identity[entry[:identity].id]
         existing = person ? active_pairs.include?([ entry[:collection].id, person.id ]) : false
 
@@ -185,21 +210,25 @@ module Directory
         ActiveRecord::Base.connection.execute("SELECT pg_advisory_xact_lock(#{Directory::Rebuild::LOCK_KEY})")
 
         @resolved.each do |entry|
-          if entry[:existing]
+          if entry[:existing] || entry[:duplicate]
             skipped_count += 1
             next
           end
 
           person = entry[:person] || find_or_create_person!(entry[:identity])
 
-          Directory::Membership.expired.where(collection: entry[:collection], member_person: person).delete_all
+          # Savepoint, so a unique violation only rolls back this row rather than
+          # aborting the whole import transaction.
+          ActiveRecord::Base.transaction(requires_new: true) do
+            Directory::Membership.purge_expired!(Directory::Membership.where(collection: entry[:collection], member_person: person))
 
-          Directory::Membership.create!(
-            collection: entry[:collection],
-            member_person: person,
-            expires_at: entry[:expires_at],
-            created_by_identity_id: @created_by.id
-          )
+            Directory::Membership.create!(
+              collection: entry[:collection],
+              member_person: person,
+              expires_at: entry[:expires_at],
+              created_by_identity_id: @created_by.id
+            )
+          end
 
           created_count += 1
         rescue ActiveRecord::RecordNotUnique
