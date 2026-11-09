@@ -39,6 +39,11 @@ module Directory
       authorize_app_entitlement_unwiring!(app, entitlement)
       req.destroy!
 
+      # Dropping one of several any-of requirements narrows who passes; holders who only
+      # qualified through this entitlement lose access, same as on create. Dropping the
+      # last one opens the app, so nobody is revoked.
+      revoke_tokens_for_non_members(app, entitlement) if Directory::AppRequirement.exists?(app_id: app.id)
+
       redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.requirement_removed")
     end
 
