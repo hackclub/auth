@@ -9,8 +9,6 @@ module Directory
 
     validate :entitlement_must_be_entitlement
 
-    after_commit -> { Directory::RequirementCheck.bust_cache!(app_id) }
-
     private
 
     def entitlement_must_be_entitlement
