@@ -83,10 +83,10 @@ module Directory
 
       @recent_activities = preload_activities(visible_activities.order(created_at: :desc).limit(5))
 
-      # groups render @all_memberships, entitlements @direct_people_memberships
+      # the rows each page renders with a remove button
       @consequences = if policy(@collection).manage_members?
         Directory::Consequence.batch_removal_summaries(
-          memberships: (@collection.group? ? @all_memberships : @direct_people_memberships).to_a,
+          memberships: @collection.group? ? @all_memberships.to_a : @direct_people_memberships.to_a + @direct_group_memberships.to_a,
           collection: @collection, viewer: pundit_user
         )
       else

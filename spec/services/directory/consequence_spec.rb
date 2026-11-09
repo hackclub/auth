@@ -139,5 +139,76 @@ RSpec.describe Directory::Consequence, type: :model do
       expect(batch[m.id]).to eq("will lose: Open Ent (+1 you can't see)")
       expect(batch[m.id]).not_to include("Top Secret")
     end
+
+    describe "apps" do
+      let(:app) { create(:program, name: "Gated App") }
+
+      it "names the apps a person loses when removed from the entitlement itself" do
+        person = create(:directory_person)
+        ent = create(:directory_entitlement, name: "Staff")
+        Directory::Exposure.create!(app: app, entitlement: ent, claim_name: "staff")
+        m = create(:directory_membership, :person, collection: ent, member_person: person)
+        rebuild!
+
+        batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: ent, viewer: admin)
+
+        expect(batch[m.id]).to eq("will lose: apps: Gated App")
+      end
+
+      it "doesn't count a requirement app the person still qualifies for another way" do
+        person = create(:directory_person)
+        e1 = create(:directory_entitlement, name: "E1")
+        e2 = create(:directory_entitlement, name: "E2")
+        Directory::AppRequirement.create!(app: app, entitlement: e1)
+        Directory::AppRequirement.create!(app: app, entitlement: e2)
+        m = create(:directory_membership, :person, collection: e1, member_person: person)
+        create(:directory_membership, :person, collection: e2, member_person: person)
+        rebuild!
+
+        batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: e1, viewer: admin)
+        expect(batch[m.id]).to be_nil
+
+        other = create(:directory_person)
+        m2 = create(:directory_membership, :person, collection: e1, member_person: other)
+        rebuild!
+
+        batch = Directory::Consequence.batch_removal_summaries(memberships: [ m2 ], collection: e1, viewer: admin)
+        expect(batch[m2.id]).to eq("will lose: apps: Gated App")
+      end
+
+      it "summarises a nested group's removal across its people" do
+        p1 = create(:directory_person)
+        p2 = create(:directory_person)
+        team = create(:directory_group, name: "Team")
+        ent = create(:directory_entitlement, name: "Staff")
+        Directory::Exposure.create!(app: app, entitlement: ent, claim_name: "staff")
+        m = create(:directory_membership, :group, collection: ent, member_group: team)
+        create(:directory_membership, :person, collection: team, member_person: p1)
+        create(:directory_membership, :person, collection: team, member_person: p2)
+        create(:directory_membership, :person, collection: ent, member_person: p2)
+        rebuild!
+
+        batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: ent, viewer: admin)
+
+        expect(batch[m.id]).to eq("1 person will lose: apps: Gated App")
+      end
+
+      it "counts apps lost only through hidden entitlements instead of naming them" do
+        viewer_person = create(:directory_person)
+        person = create(:directory_person)
+        team = create(:directory_group, slug: "team2", name: "Team")
+        secret = create(:directory_entitlement, name: "Secret")
+        Directory::Exposure.create!(app: app, entitlement: secret, claim_name: "secret")
+        create(:directory_membership, :group, collection: secret, member_group: team)
+        m = create(:directory_membership, :person, collection: team, member_person: person)
+        rebuild!
+
+        viewer = Directory::Context.new(identity: viewer_person.identity, person: viewer_person, admin: false)
+        batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: team, viewer: viewer)
+
+        expect(batch[m.id]).to eq("will lose access through 2 things you can't see")
+        expect(batch[m.id]).not_to include("Gated App")
+      end
+    end
   end
 end
