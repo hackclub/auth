@@ -35,18 +35,13 @@ module DeletionService
     log.call ""
 
     deferred_attachments = []
-    dir_revocations = []
+    dir_person = Directory::Person.find_by(identity: identity)
+    # captured up front: revocations need the real email to reach app revokers
+    dir_revocations = dir_person ? dir_person.revocation_data : []
 
     ActiveRecord::Base.transaction do
       log.call "step 1: locking account..."
       identity.lock_account! unless identity.locked?
-
-      log.call "step 1b: removing from directory (if present)..."
-      if (dir_person = Directory::Person.find_by(identity: identity))
-        dir_revocations = dir_person.revocation_data
-        Directory.mutate!(cause: "person_removed:#{dir_person.id}") { dir_person.destroy! }
-        log.call "  removed directory person #{dir_person.id}"
-      end
 
       log.call "step 2: destroying auth data..."
       counts = {
@@ -137,7 +132,7 @@ module DeletionService
       delete_versions(version_items)
 
       log.call "step 10: scrubbing activity parameters..."
-      scrub_activities(identity, activity_trackables)
+      scrub_activities(identity, activity_trackables, original_email)
 
       log.call "step 11: removing Flipper actor gates..."
       gates = ActiveRecord::Base.connection.delete(
@@ -163,6 +158,14 @@ module DeletionService
         onboarding_scenario: nil
       )
       log.call "  => #{tombstone_email}"
+
+      # after the identity is redacted, so the activity rows the destroy writes
+      # (directory_person.destroy, member_removed) only ever see [REDACTED]
+      log.call "step 12b: removing from directory (if present)..."
+      if dir_person
+        Directory.mutate!(cause: "person_removed:#{dir_person.id}") { dir_person.reload.destroy! }
+        log.call "  removed directory person #{dir_person.id}"
+      end
 
       log.call "step 13: creating tombstone record..."
       Deletion.create!(
@@ -266,7 +269,8 @@ module DeletionService
       "Identity::PersonaRecord" => Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
       "Identity::TOTP" => Identity::TOTP.where(identity_id: identity.id).pluck(:id),
       "Identity::WebauthnCredential" => Identity::WebauthnCredential.where(identity_id: identity.id).pluck(:id),
-      "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id)
+      "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id),
+      "Directory::Person" => Directory::Person.where(identity_id: identity.id).pluck(:id)
     }.each do |type, ids|
       ids.each { |id| trackables << [ type, id ] }
     end
@@ -404,7 +408,9 @@ module DeletionService
   def self.discard_pending_jobs(identity)
     return unless defined?(GoodJob::Job)
 
-    GoodJob::Job.where(finished_at: nil).where(
+    # AfterChangeJob batches many people's revocations into one payload (and this
+    # person's own revocations should still go through), so it's never discarded.
+    GoodJob::Job.where(finished_at: nil).where("job_class IS DISTINCT FROM ?", "Directory::AfterChangeJob").where(
       "serialized_params::text LIKE ? OR serialized_params::text LIKE ? OR serialized_params::text LIKE ?",
       "%\"identity_id\": #{identity.id},%",
       "%\"identity_id\": #{identity.id}}%",
@@ -424,13 +430,25 @@ module DeletionService
 
   SAFE_ACTIVITY_KEY_PREFIXES = %w[verification.].freeze
 
-  def self.scrub_activities(identity, activity_trackables)
+  def self.scrub_activities(identity, activity_trackables, original_email)
     scope = PublicActivity::Activity.where(
       "(trackable_type = 'Identity' AND trackable_id = ?) OR " \
       "(owner_type = 'Identity' AND owner_id = ?) OR " \
       "(recipient_type = 'Identity' AND recipient_id = ?)",
       identity.id, identity.id, identity.id
     )
+
+    # directory rows name the person by Directory::Person, not Identity: added/removed
+    # from a collection (recipient), plus misses from before they had an account, which
+    # sit on the collection with the raw email in parameters
+    dir_person_ids = activity_trackables.filter_map { |type, id| id if type == "Directory::Person" }
+    scope = scope.or(PublicActivity::Activity.where(recipient_type: "Directory::Person", recipient_id: dir_person_ids)) if dir_person_ids.any?
+    if original_email.present?
+      scope = scope.or(
+        PublicActivity::Activity.where(key: "directory_collection.email_lookup_miss")
+          .where("parameters ILIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(original_email)}%")
+      )
+    end
 
     activity_trackables.each_slice(100) do |batch|
       batch.group_by(&:first).each do |type, pairs|

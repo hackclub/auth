@@ -221,4 +221,61 @@ RSpec.describe DeletionService do
       end
     end
   end
+  describe ".execute_deletion directory cleanup" do
+    let(:admin) { create(:identity) }
+    let(:victim) { create(:identity, first_name: "Zelda", last_name: "Quixote") }
+    let(:group) { create(:directory_group, slug: "pii-probe", name: "PII Probe") }
+
+    def delete!(identity) = described_class.execute_deletion(identity.reload, privacy_request_reference: "rec", logger: ->(_) { })
+
+    it "leaves no activity row holding the deleted person's name or email" do
+      email = victim.primary_email
+      person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
+      Directory.mutate!(cause: "test") do
+        Directory::Membership.create!(collection: group, member_person: person, created_by_identity_id: admin.id)
+      end
+      # a lookup miss from before they had an account
+      group.create_activity :email_lookup_miss, owner: admin, params: { email: email }
+
+      delete!(victim)
+
+      leftovers = PublicActivity::Activity.where("parameters ILIKE ? OR parameters ILIKE ? OR parameters ILIKE ?", "%Zelda%", "%Quixote%", "%#{email}%")
+      expect(leftovers.map(&:key)).to be_empty
+      expect(Directory::Person.exists?(person.id)).to be(false)
+    end
+
+    it "still revokes the deleted person's app access" do
+      app = create(:program)
+      entitlement = create(:directory_entitlement)
+      Directory::Exposure.create!(app: app, entitlement: entitlement, claim_name: "staff")
+      person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
+      Directory.mutate!(cause: "test") do
+        Directory::Membership.create!(collection: entitlement, member_person: person, created_by_identity_id: admin.id)
+      end
+
+      expect { delete!(victim) }.to have_enqueued_job(Directory::AfterChangeJob)
+        .with(hash_including(revocations: [ hash_including(identity_id: victim.id, app_ids: [ app.id ]) ]))
+    end
+
+    it "doesn't discard batched AfterChangeJobs that carry other people's revocations" do
+      bystander = create(:identity)
+      payload = { "change_ids" => [], "revocations" => [
+        { "identity_id" => victim.id, "email" => victim.primary_email, "app_ids" => [ 1 ] },
+        { "identity_id" => bystander.id, "email" => bystander.primary_email, "app_ids" => [ 1 ] }
+      ] }
+      batch = GoodJob::Job.create!(
+        active_job_id: SecureRandom.uuid, queue_name: "default", job_class: "Directory::AfterChangeJob",
+        serialized_params: { "job_class" => "Directory::AfterChangeJob", "arguments" => [ payload ] }
+      )
+      own = GoodJob::Job.create!(
+        active_job_id: SecureRandom.uuid, queue_name: "default", job_class: "SomeIdentityJob",
+        serialized_params: { "job_class" => "SomeIdentityJob", "arguments" => [ { "identity_id" => victim.id } ] }
+      )
+
+      delete!(victim)
+
+      expect(batch.reload.finished_at).to be_nil
+      expect(own.reload.finished_at).to be_present
+    end
+  end
 end
