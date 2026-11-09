@@ -2,9 +2,8 @@
 
 require "rails_helper"
 
-# deactivate! is the backend's offboarding switch. Directory root is exercised
-# from a normal HCA session, outside Backend::ApplicationController's active?
-# gate, so a deactivated staffer has to lose it there too.
+# directory root is used outside Backend::ApplicationController's active? gate, so
+# deactivate! has to take it away there too
 RSpec.describe "Directory root for deactivated backend users", type: :request do
   def sign_in(identity)
     allow_any_instance_of(ApplicationController).to receive(:current_identity).and_return(identity)

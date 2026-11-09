@@ -2,9 +2,6 @@
 
 require "rails_helper"
 
-# The person page only names collections the viewer can see (SPEC §8.3/§8.4): a via path
-# through a hidden group reads "via n groups you can't view", and "can manage" lists only
-# visible collections.
 RSpec.describe "Directory person page hidden collections", type: :request do
   def sign_in(identity)
     allow_any_instance_of(ApplicationController).to receive(:current_identity).and_return(identity)

@@ -2,9 +2,8 @@
 
 require "rails_helper"
 
-# Adding by email answers "does this address have an hca account?", so SPEC §3.1 promises
-# every lookup is audited and each person is rate limited. A batch is one request, so its
-# size is capped too.
+# adding by email answers "does this address have an hca account?", so lookups are audited
+# and rate limited, and batches are capped
 RSpec.describe "Directory add-by-identifier limits", type: :request do
   def sign_in(identity)
     allow_any_instance_of(ApplicationController).to receive(:current_identity).and_return(identity)

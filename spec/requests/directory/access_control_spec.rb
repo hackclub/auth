@@ -3,7 +3,6 @@
 require "rails_helper"
 
 RSpec.describe "Directory access control", type: :request do
-  # ── helpers ──────────────────────────────────────────────────────
   def sign_in(identity)
     allow_any_instance_of(ApplicationController).to receive(:current_identity).and_return(identity)
     allow_any_instance_of(ApplicationController).to receive(:identity_signed_in?).and_return(true)
@@ -30,7 +29,6 @@ RSpec.describe "Directory access control", type: :request do
     grantee
   end
 
-  # ── shared state ────────────────────────────────────────────────
   let(:community_identity) { create(:identity) }
   let(:staff_identity)     { create(:identity) }
   let(:admin_identity)     { create(:identity) }
@@ -44,12 +42,8 @@ RSpec.describe "Directory access control", type: :request do
     grant!(@staff_person, group, "view")
   end
 
-  # RoutingError → ApplicationController's rescue_from StandardError → root_path.
-  # Pundit::NotAuthorizedError → BaseController's rescue_from → directory_root_path.
-  # ExposuresController/AppRequirementsController (not under BaseController) → root_path.
-
-  # A denied write redirects, but so does a successful one, so status alone proves nothing:
-  # writes also have to leave every directory table exactly as it was.
+  # a successful write redirects too, so status alone proves nothing: a denied write has to
+  # leave every directory table as it was
   def directory_state
     [
       Directory::Collection, Directory::Membership, Directory::Grant,
@@ -65,9 +59,6 @@ RSpec.describe "Directory access control", type: :request do
     expect(directory_state).to eq(before) unless method == :get
   end
 
-  # ═══════════════════════════════════════════════════════════════
-  # 1. ensure_directory_access! gate (BaseController)
-  # ═══════════════════════════════════════════════════════════════
   describe "base access gate" do
     it "redirects unauthenticated users to welcome" do
       get directory_root_path
@@ -99,9 +90,6 @@ RSpec.describe "Directory access control", type: :request do
     end
   end
 
-  # ═══════════════════════════════════════════════════════════════
-  # 2. /directory/me — accessible without grants
-  # ═══════════════════════════════════════════════════════════════
   describe "GET /directory/me" do
     it "lets a directory person with zero grants see their own access" do
       grantless_identity = create(:identity)
@@ -121,9 +109,6 @@ RSpec.describe "Directory access control", type: :request do
     end
   end
 
-  # ═══════════════════════════════════════════════════════════════
-  # 3. Collection index scoping
-  # ═══════════════════════════════════════════════════════════════
   describe "collection scoping" do
     it "delegated user sees only collections they have grants on" do
       _other_group = create(:directory_group, slug: "other", name: "Other Team")
@@ -142,9 +127,6 @@ RSpec.describe "Directory access control", type: :request do
     end
   end
 
-  # ═══════════════════════════════════════════════════════════════
-  # 4. Collection show: view/manage_members/expose required
-  # ═══════════════════════════════════════════════════════════════
   describe "GET /directory/collections/:slug" do
     it "allows access with a view grant" do
       sign_in staff_identity
@@ -167,9 +149,6 @@ RSpec.describe "Directory access control", type: :request do
     end
   end
 
-  # ═══════════════════════════════════════════════════════════════
-  # 5. Admin-only routes
-  # ═══════════════════════════════════════════════════════════════
   describe "admin-only routes" do
     %i[directory_all_grants_path directory_reports_path directory_health_path directory_view_as_path directory_people_path].each do |path_helper|
       describe "GET #{path_helper}" do
@@ -219,9 +198,6 @@ RSpec.describe "Directory access control", type: :request do
     end
   end
 
-  # ═══════════════════════════════════════════════════════════════
-  # 6. Memberships: manage_members required
-  # ═══════════════════════════════════════════════════════════════
   describe "memberships" do
     let(:manager_identity) { create(:identity) }
     let(:manager_person)   { make_directory_person(manager_identity) }
@@ -322,9 +298,6 @@ RSpec.describe "Directory access control", type: :request do
     end
   end
 
-  # ═══════════════════════════════════════════════════════════════
-  # 7. Grants: admin-only
-  # ═══════════════════════════════════════════════════════════════
   describe "grants" do
     let(:grantee) { create(:directory_group, slug: "grantee-direct", name: "Grantee") }
 
@@ -345,9 +318,6 @@ RSpec.describe "Directory access control", type: :request do
     end
   end
 
-  # ═══════════════════════════════════════════════════════════════
-  # 8. Person show: requires shared-collection visibility
-  # ═══════════════════════════════════════════════════════════════
   describe "GET /directory/people/:id" do
     it "denies when viewer has no overlapping collection with the target" do
       other_person = make_directory_person(create(:identity))
@@ -367,9 +337,6 @@ RSpec.describe "Directory access control", type: :request do
     end
   end
 
-  # ═══════════════════════════════════════════════════════════════
-  # 9. Search: scoped to visible collections/people
-  # ═══════════════════════════════════════════════════════════════
   describe "GET /directory/search" do
     it "does not leak invisible collections" do
       _secret = create(:directory_group, slug: "secret", name: "Secret Ops Group")
@@ -385,9 +352,6 @@ RSpec.describe "Directory access control", type: :request do
     end
   end
 
-  # ═══════════════════════════════════════════════════════════════
-  # 10. Picker: requires manage_members somewhere
-  # ═══════════════════════════════════════════════════════════════
   describe "GET /directory/picker/search" do
     it "denies a user with only view grants" do
       sign_in staff_identity
@@ -403,9 +367,6 @@ RSpec.describe "Directory access control", type: :request do
     end
   end
 
-  # ═══════════════════════════════════════════════════════════════
-  # 11. Exposures: app owner + expose + hq_official
-  # ═══════════════════════════════════════════════════════════════
   describe "exposures" do
     let(:oauth_app) { create(:program, owner_identity: admin_identity, trust_level: :hq_official) }
 
@@ -434,9 +395,6 @@ RSpec.describe "Directory access control", type: :request do
     end
   end
 
-  # ═══════════════════════════════════════════════════════════════
-  # 12. App requirements: app owner + expose + hq_official / AND gate for removal
-  # ═══════════════════════════════════════════════════════════════
   describe "app requirements" do
     let(:oauth_app) { create(:program, owner_identity: admin_identity, trust_level: :hq_official) }
 

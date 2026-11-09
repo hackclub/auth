@@ -2,9 +2,6 @@
 
 require "rails_helper"
 
-# The person page's activity feed is directory activity only (SPEC §8.4): never the
-# identity's account-wide audit log, and for non-admins only rows tied to a collection
-# the viewer can see.
 RSpec.describe "Directory person page activity feed", type: :request do
   def sign_in(identity)
     allow_any_instance_of(ApplicationController).to receive(:current_identity).and_return(identity)
