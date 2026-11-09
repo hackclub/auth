@@ -210,6 +210,13 @@ Rails.application.routes.draw do
       end
     end
 
+    resources :saml_certificates, only: [ :index, :show, :new, :create ] do
+      member do
+        post :promote
+        post :retire
+      end
+    end
+
     resources :verifications, only: [ :index, :show ] do
       collection do
         get :pending

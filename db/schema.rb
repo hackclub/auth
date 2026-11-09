@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_08_27_164018) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_09_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -117,6 +117,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_27_164018) do
     t.string "seen_hints", default: [], array: true
     t.boolean "can_process_deletions", default: false, null: false
     t.boolean "can_ban", default: false, null: false
+    t.boolean "is_saml_officer", default: false, null: false
     t.index ["identity_id"], name: "index_backend_users_on_identity_id"
   end
 
@@ -319,6 +320,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_27_164018) do
     t.boolean "can_hq_officialize", default: false, null: false
     t.string "persona_account_id"
     t.boolean "disallow_slack", default: false, null: false
+    t.string "registration_ip"
     t.index "lower((primary_email)::text)", name: "idx_identities_unique_primary_email", unique: true, where: "(deleted_at IS NULL)"
     t.index ["aadhaar_number_bidx"], name: "index_identities_on_aadhaar_number_bidx", unique: true
     t.index ["deleted_at"], name: "index_identities_on_deleted_at"
@@ -596,6 +598,21 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_27_164018) do
     t.index ["program_id", "identity_id"], name: "index_program_collaborators_on_program_id_and_identity_id", unique: true
     t.index ["program_id", "invited_email"], name: "idx_program_collabs_on_program_email_visible", unique: true, where: "((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('accepted'::character varying)::text]))"
     t.index ["program_id"], name: "index_program_collaborators_on_program_id"
+  end
+
+  create_table "saml_certificates", force: :cascade do |t|
+    t.string "role", default: "rollover", null: false
+    t.text "certificate", null: false
+    t.string "key_path", null: false
+    t.string "fingerprint", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "signing_at"
+    t.datetime "retired_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fingerprint"], name: "index_saml_certificates_on_fingerprint", unique: true
+    t.index ["role"], name: "index_saml_certificates_on_role"
+    t.index ["role"], name: "index_saml_certificates_one_signing", unique: true, where: "((role)::text = 'signing'::text)"
   end
 
   create_table "settings", force: :cascade do |t|
