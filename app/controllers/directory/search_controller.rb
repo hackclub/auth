@@ -30,7 +30,9 @@ module Directory
       return render(json: results) if query.length < 2
 
       if query.include?("!")
-        prefix = query.split("!").first.downcase
+        # "!!".split("!") is [], hence the to_s
+        prefix, rest = query.split("!", 2).map(&:to_s)
+        prefix = prefix.downcase
         case prefix
         when "ident"
           identity = Identity.find_by_public_id(query)
@@ -53,7 +55,7 @@ module Directory
             results << { type: "directory_collection", id: col.public_id, label: col.name, sublabel: "#{col.kind} · #{col.slug}", path: directory_collection_path(col.slug) }
           end
         end
-        return render(json: results) if results.any? || query.split("!").last.length >= 3
+        return render(json: results) if results.any? || rest.to_s.length >= 3
       end
 
       like = "%#{ActiveRecord::Base.sanitize_sql_like(query)}%"
