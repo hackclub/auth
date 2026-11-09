@@ -195,9 +195,9 @@ RSpec.describe Directory::Rebuild, type: :model do
       rebuild!
 
       grants = effective_grants_for(person)
-      expect(grants).to include([group_a.id, 'view'])
-      expect(grants).to include([group_b.id, 'view'])
-      expect(grants).not_to include([group_c.id, 'view'])
+      expect(grants).to include([ group_a.id, 'view' ])
+      expect(grants).to include([ group_b.id, 'view' ])
+      expect(grants).not_to include([ group_c.id, 'view' ])
     end
   end
 
@@ -216,8 +216,8 @@ RSpec.describe Directory::Rebuild, type: :model do
       rebuild!
 
       grants = effective_grants_for(person)
-      expect(grants).to include([target.id, 'manage_members'])
-      expect(grants).not_to include([child.id, 'manage_members'])
+      expect(grants).to include([ target.id, 'manage_members' ])
+      expect(grants).not_to include([ child.id, 'manage_members' ])
     end
 
     it 'recursive grant extends to children' do
@@ -234,8 +234,8 @@ RSpec.describe Directory::Rebuild, type: :model do
       rebuild!
 
       grants = effective_grants_for(person)
-      expect(grants).to include([target.id, 'manage_members'])
-      expect(grants).to include([child.id, 'manage_members'])
+      expect(grants).to include([ target.id, 'manage_members' ])
+      expect(grants).to include([ child.id, 'manage_members' ])
     end
   end
 

@@ -101,7 +101,7 @@ RSpec.describe "Directory root for deactivated backend users", type: :request do
          directory_people_path directory_activity_path directory_new_import_path].each do |path_helper|
         it "is denied #{path_helper}" do
           get send(path_helper)
-          expect(response.status).to be_in([302, 404])
+          expect(response.status).to be_in([ 302, 404 ])
         end
       end
 

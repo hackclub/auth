@@ -43,7 +43,6 @@ module Directory
         .includes(:collection, member_person: :identity)
         .order(:expires_at)
         .load_async
-
     end
   end
 end

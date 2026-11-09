@@ -62,14 +62,14 @@ class CreateDirectoryTables < ActiveRecord::Migration[8.0]
       t.bigint :created_by_identity_id
       t.datetime :created_at, null: false
 
-      t.index [:grantee_group_id, :target_collection_id, :permission], unique: true, name: "idx_grants_unique"
+      t.index [ :grantee_group_id, :target_collection_id, :permission ], unique: true, name: "idx_grants_unique"
       t.check_constraint "permission IN ('view', 'manage_members', 'expose')", name: "chk_grant_permission"
       t.foreign_key :directory_collections, column: :grantee_group_id, on_delete: :cascade
       t.foreign_key :directory_collections, column: :target_collection_id, on_delete: :cascade
       t.foreign_key :identities, column: :created_by_identity_id, on_delete: :nullify
     end
 
-    create_table :directory_closure, primary_key: [:ancestor_id, :descendant_id] do |t|
+    create_table :directory_closure, primary_key: [ :ancestor_id, :descendant_id ] do |t|
       t.bigint :ancestor_id, null: false
       t.bigint :descendant_id, null: false
       t.integer :depth, null: false
@@ -78,7 +78,7 @@ class CreateDirectoryTables < ActiveRecord::Migration[8.0]
       t.foreign_key :directory_collections, column: :descendant_id, on_delete: :cascade
     end
 
-    create_table :directory_effective_memberships, primary_key: [:collection_id, :person_id] do |t|
+    create_table :directory_effective_memberships, primary_key: [ :collection_id, :person_id ] do |t|
       t.bigint :collection_id, null: false
       t.bigint :person_id, null: false
 
@@ -87,7 +87,7 @@ class CreateDirectoryTables < ActiveRecord::Migration[8.0]
       t.foreign_key :directory_people, column: :person_id, on_delete: :cascade
     end
 
-    create_table :directory_effective_grants, primary_key: [:person_id, :target_collection_id, :permission] do |t|
+    create_table :directory_effective_grants, primary_key: [ :person_id, :target_collection_id, :permission ] do |t|
       t.bigint :person_id, null: false
       t.bigint :target_collection_id, null: false
       t.string :permission, null: false

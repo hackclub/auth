@@ -14,7 +14,7 @@ RSpec.describe "Directory membership expiry", type: :model do
   def make_person(name: "test")
     identity = create(:identity, first_name: name)
     person = Directory::Person.create!(identity: identity, created_by_identity_id: admin_identity.id)
-    [identity, person]
+    [ identity, person ]
   end
 
   def make_group(slug)
