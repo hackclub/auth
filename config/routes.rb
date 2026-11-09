@@ -302,7 +302,7 @@ Rails.application.routes.draw do
           post :batch_create
         end
       end
-      resources :grants, only: [ :create, :destroy ]
+      resources :grants, only: [ :create, :update, :destroy ]
     end
 
     resources :people, only: [ :index, :show, :create, :destroy ], param: :public_id

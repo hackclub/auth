@@ -139,6 +139,33 @@ RSpec.describe "Directory review regressions", type: :request do
       expect(Directory::Grant.find_by!(grantee_group: grantee, target_collection: group)).to be_recursive
     end
 
+    it "doesn't strip recursion when re-added with the box unticked" do
+      add_grant(recursive: true)
+      add_grant
+      expect(flash[:alert]).to eq(I18n.t("directory.flash.grant_already_exists"))
+      expect(Directory::Grant.find_by!(grantee_group: grantee, target_collection: group)).to be_recursive
+    end
+
+    it "toggles recursion from the grant row" do
+      add_grant(recursive: true)
+      grant = Directory::Grant.find_by!(grantee_group: grantee, target_collection: group)
+
+      patch directory_collection_grant_path(group.slug, grant), params: { recursive: "0" }
+      expect(grant.reload).not_to be_recursive
+
+      patch directory_collection_grant_path(group.slug, grant), params: { recursive: "1" }
+      expect(grant.reload).to be_recursive
+    end
+
+    it "doesn't let non-admins toggle recursion" do
+      add_grant(recursive: true)
+      grant = Directory::Grant.find_by!(grantee_group: grantee, target_collection: group)
+      sign_in create(:identity)
+
+      patch directory_collection_grant_path(group.slug, grant), params: { recursive: "0" }
+      expect(grant.reload).to be_recursive
+    end
+
     it "redirects with an alert when the target collection doesn't exist" do
       post directory_collection_grants_path("no-such-thing"), params: { grantee_group_slug: "grantee", permission: "view" }
       expect(response).to redirect_to(directory_root_path)

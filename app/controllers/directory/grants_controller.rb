@@ -18,18 +18,17 @@ module Directory
 
       grantee = Directory::Collection.groups.find_by!(slug: params[:grantee_group_slug]&.strip)
 
-      # (grantee, target, permission) is unique, so re-adding an existing grant either
-      # flips its recursive flag (the only way to change it from the UI) or is a no-op.
+      # re-adding an existing grant can only turn recursion on: the box is unticked by
+      # default, so reading "unticked" as "off" would silently strip it
       grant = @collection.grants_as_target.find_or_initialize_by(grantee_group: grantee, permission: params[:permission])
-      recursive = params[:recursive] == "1"
-      if grant.persisted? && grant.recursive == recursive
+      updating = grant.persisted?
+      if updating && (grant.recursive || params[:recursive] != "1")
         redirect_back fallback_location: directory_collection_path(@collection.slug),
           alert: t("directory.flash.grant_already_exists")
         return
       end
 
-      updating = grant.persisted?
-      grant.recursive = recursive
+      grant.recursive = params[:recursive] == "1"
       grant.created_by_identity_id ||= current_identity.id
       cause = updating ? "grant_updated" : "grant_created"
       Directory.mutate!(cause: Directory.cause(cause, actor: current_identity.id)) { grant.save! }
@@ -43,6 +42,20 @@ module Directory
       redirect_back fallback_location: collection_fallback_path, alert: e.record.errors.full_messages.to_sentence
     rescue ActiveRecord::RecordNotUnique
       redirect_back fallback_location: collection_fallback_path, alert: t("directory.flash.grant_already_exists")
+    end
+
+    def update
+      grant = Directory::Grant.find(params[:id])
+      @collection = grant.target_collection
+      authorize grant
+
+      grant.recursive = ActiveModel::Type::Boolean.new.cast(params[:recursive]) || false
+      if grant.recursive_changed?
+        Directory.mutate!(cause: Directory.cause("grant_updated", target: grant.id, actor: current_identity.id)) { grant.save! }
+      end
+
+      redirect_back fallback_location: directory_collection_path(@collection.slug),
+        notice: t("directory.flash.grant_updated")
     end
 
     def destroy
