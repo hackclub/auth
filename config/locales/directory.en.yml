@@ -7,3 +7,33 @@ en:
           attributes:
             slug:
               used_by_saml: "can't change while SAML apps use it (%{apps}); update config/saml.yml first"
+  directory:
+    flash:
+      revoker_saved: "session revoker saved."
+      revoker_removed: "session revoker removed."
+    developer_apps:
+      remove_exposure_confirm: "stop sending %{claim} to this app? it shows up in the next token each person gets."
+      remove_requirement_confirm: "stop requiring %{name}? anyone who only qualified through it gets logged out of this app."
+      remove_last_requirement_confirm: "remove %{name}, this app's only requirement? the app opens to everyone with an HCA account."
+      revoker_heading: "session revocation"
+      revoker_explainer: "when someone loses access to this app, HCA revokes its own tokens. if the app keeps its own session, a revoker tells it to end that too."
+      revoker_none: "no revoker set up."
+      revoker_adapter: "adapter"
+      revoker_enabled: "enabled"
+      revoker_last_called: "last called %{time} ago: %{result}"
+      revoker_never_called: "never called."
+      revoker_secret_set: "set (leave blank to keep)"
+      revoker_save: "save revoker"
+      revoker_remove: "remove revoker"
+      revoker_remove_confirm: "remove this revoker? people losing access won't be logged out of the app's own session anymore."
+      revoker_fields:
+        account_id: "cloudflare account id"
+        api_token: "api token (Access: Organizations, Identity Providers, and Groups Write)"
+        url: "webhook url (https)"
+        secret: "bearer secret (optional)"
+      revoker_adapters:
+        cloudflare_access: "cloudflare access"
+        webhook: "webhook"
+      revoker_help:
+        cloudflare_access: "heads up: cloudflare can only revoke a person account-wide, so this logs them out of every Access app on the account, not just this one. set the Access app's policy to require the HCA groups claim and turn on instant auth, so their other apps quietly sign them back in through HCA."
+        webhook: "HCA POSTs {\"email\": \"…\"} as JSON to the url, with Authorization: Bearer <secret> if a secret is set. any 2xx counts as done; anything else is retried."
