@@ -52,23 +52,20 @@ RSpec.describe VerificationCase, type: :model do
       expect { kase.deny! }.to raise_error(AASM::InvalidTransition)
     end
 
-    it "revokes the flag on decision and keeps documents" do
+    it "keeps documents on decision" do
       kase = create(:verification_case, :call_held)
       doc = create(:verification_case_document, verification_case: kase)
-      Flipper.enable(described_class::FLIPPER_FLAG, kase.identity)
 
       kase.approve!
 
-      expect(Flipper.enabled?(described_class::FLIPPER_FLAG, kase.identity)).to be(false)
       expect(doc.reload.file).to be_attached
     end
   end
 
   describe "#withdraw" do
-    it "closes from any open state, drops the flag, and kills the link" do
+    it "closes from any open state and kills the link" do
       %i[requested link_sent docs_submitted call_scheduled call_held].each do |state|
         kase = create(:verification_case, state == :requested ? nil : state, access_token: "tok", access_token_expires_at: 1.day.from_now)
-        Flipper.enable(described_class::FLIPPER_FLAG, kase.identity)
 
         kase.withdraw!
 
@@ -78,7 +75,6 @@ RSpec.describe VerificationCase, type: :model do
         expect(kase).not_to be_decided
         expect(kase.access_token).to be_nil
         expect(kase.consume_access_token!("tok")).to be(false)
-        expect(Flipper.enabled?(described_class::FLIPPER_FLAG, kase.identity)).to be(false)
       end
     end
 

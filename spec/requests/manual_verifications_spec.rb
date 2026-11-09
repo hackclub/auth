@@ -15,16 +15,8 @@ RSpec.describe "Manual verifications", type: :request do
     allow_any_instance_of(ApplicationController).to receive(:identity_signed_in?).and_return(true)
   end
 
-  after { Flipper.disable(VerificationCase::FLIPPER_FLAG) }
-
   describe "gating" do
-    it "bounces users without the flipper flag" do
-      get manual_verification_path
-      expect(response).to redirect_to(root_path)
-    end
-
-    it "bounces flagged users with no open case" do
-      Flipper.enable(VerificationCase::FLIPPER_FLAG, identity)
+    it "bounces users with no open case" do
       get manual_verification_path
       expect(response).to redirect_to(root_path)
     end
@@ -32,7 +24,6 @@ RSpec.describe "Manual verifications", type: :request do
     it "requires the single-use token on first visit" do
       kase = create(:verification_case, identity: identity, status: :link_sent)
       kase.generate_access_token!
-      Flipper.enable(VerificationCase::FLIPPER_FLAG, identity)
 
       get manual_verification_path
       expect(response).to have_http_status(:forbidden)
@@ -41,7 +32,6 @@ RSpec.describe "Manual verifications", type: :request do
     it "consumes a valid token then allows session access" do
       kase = create(:verification_case, identity: identity, status: :link_sent)
       token = kase.generate_access_token!
-      Flipper.enable(VerificationCase::FLIPPER_FLAG, identity)
 
       get manual_verification_path(token: token)
       expect(response).to redirect_to(manual_verification_path)
@@ -56,7 +46,6 @@ RSpec.describe "Manual verifications", type: :request do
     it "shows the invalid-link page to a user following the old emailed link" do
       kase = create(:verification_case, identity: identity, status: :link_sent)
       token = kase.generate_access_token!
-      Flipper.enable(VerificationCase::FLIPPER_FLAG, identity)
 
       kase.withdraw!
 
@@ -78,7 +67,6 @@ RSpec.describe "Manual verifications", type: :request do
     it "puts the user back at document submission, needing the new link first" do
       kase = create(:verification_case, identity: identity, status: :docs_submitted, document_class: "government_id",
         access_token_used_at: 1.hour.ago)
-      Flipper.enable(VerificationCase::FLIPPER_FLAG, identity)
       kase.request_redo!
       token = kase.rotate_access_link!(reopen_gate: true)
 
@@ -101,10 +89,7 @@ RSpec.describe "Manual verifications", type: :request do
         access_token_used_at: Time.current)
     end
 
-    before do
-      kase
-      Flipper.enable(VerificationCase::FLIPPER_FLAG, identity)
-    end
+    before { kase }
 
     it "shows document class selection first" do
       get manual_verification_path
