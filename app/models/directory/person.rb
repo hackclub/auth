@@ -30,17 +30,24 @@ module Directory
     scope :active, -> { joins(:identity).where(identities: { locked_at: nil, deleted_at: nil }) }
 
     scope :search, ->(term) {
+      term = term.to_s.strip
       return none if term.blank?
-      like = "%#{ActiveRecord::Base.sanitize_sql_like(term)}%"
+      like = ->(v) { "%#{ActiveRecord::Base.sanitize_sql_like(v)}%" }
+      first, rest = term.split(/\s+/, 2)
+      # "Jane Doe": first word against first_name, the rest against last_name
+      full_name = rest ? sanitize_sql([ " OR (identities.first_name ILIKE ? AND identities.last_name ILIKE ?)", like.(first), like.(rest) ]) : ""
       joins(:identity).where(
-        "identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR identities.primary_email ILIKE :q",
-        q: like
+        "identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR identities.primary_email ILIKE :q#{full_name}",
+        q: like.(term)
       )
     }
 
+    # Called inside open transactions (Directory.mutate!, the Backend::User after_save), so
+    # the insert gets its own savepoint: on a lost race only the savepoint rolls back, and
+    # the lookup afterwards still runs in a live transaction.
     def self.find_or_create_for_identity!(identity, created_by:)
-      find_or_create_by!(identity: identity) do |p|
-        p.created_by_identity_id = created_by.id
+      find_by(identity: identity) || transaction(requires_new: true) do
+        create!(identity: identity, created_by_identity_id: created_by.id)
       end
     rescue ActiveRecord::RecordNotUnique
       find_by!(identity: identity)
