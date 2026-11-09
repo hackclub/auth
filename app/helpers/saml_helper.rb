@@ -1,10 +1,8 @@
 module SAMLHelper
-  # Raised by build_saml_response when the identity may not have an assertion for the SP.
-  # The message is the reason, fit to show them.
+  # the message is the reason, fit to show the user
   class AccessDenied < StandardError; end
 
-  # Every assertion is built here, so this is where access is enforced: a path that never
-  # checks (LoginsController's post-signup Slack login used to be one) still can't get one.
+  # every assertion is built here, so enforcing access here covers callers that forget to check
   def build_saml_response(identity:, sp_config:, in_response_to: nil)
     if (reason = saml_access_denial(identity, sp_config))
       raise AccessDenied, reason
@@ -74,9 +72,7 @@ module SAMLHelper
 
   private
 
-  # Why +identity+ may not have an assertion for +sp_config+, or nil if it may.
-  # build_saml_response enforces this; SAMLController also asks first, so it can show the
-  # error before doing anything else.
+  # SAMLController also asks first, so it can show the error before doing anything else
   def saml_access_denial(identity, sp_config) = SAMLService::Access.denial(identity, sp_config)
 
   def saml_issuer

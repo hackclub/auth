@@ -24,9 +24,8 @@ module SAMLService
         # Raised when a service_providers entry in config/saml.yml can't be loaded as written.
         class ConfigError < StandardError; end
 
-        # Every key a service_providers entry may set. Anything else raises: a key the loader
-        # doesn't know about would otherwise be dropped without a word, which is how
-        # required_entitlements once switched its own gate off.
+        # anything else raises: an unknown key would otherwise be dropped silently, and a
+        # dropped gate like required_entitlements opens the SP to everyone
         SP_CONFIG_KEYS = %i[
             slug entity_id friendly_name tagline icon
             assertion_consumer_services attribute_consuming_services
