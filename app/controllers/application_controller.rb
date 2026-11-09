@@ -14,7 +14,7 @@ class ApplicationController < ActionController::Base
   before_action :set_paper_trail_whodunnit
   before_action :touch_session_last_seen_at
 
-  alias_method :user_for_public_activity, :current_identity
+  def user_for_public_activity = current_identity
 
   def user_for_paper_trail = current_identity&.id
 

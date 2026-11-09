@@ -70,10 +70,6 @@ module Directory
       @_breadcrumbs || [ { label: "directory", path: directory_root_path } ]
     end
 
-    def user_for_public_activity
-      current_identity
-    end
-
     def directory_keyboard_shortcuts
       shortcuts = {}
       parent = breadcrumbs[-2]
