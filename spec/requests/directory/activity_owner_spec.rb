@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require_relative "../../support/saml_test_helpers"
 
 RSpec.describe "Directory activity owners", type: :request do
+  include SAMLTestHelpers
+
   let(:admin) { create(:identity) }
 
   before do
@@ -22,6 +25,19 @@ RSpec.describe "Directory activity owners", type: :request do
 
     delete directory_collection_path("owned")
     expect(last_activity("directory_collection.destroy").owner).to eq(admin)
+  end
+
+  it "still names a deleted collection in its membership activity" do
+    post directory_collections_path, params: { collection: { name: "Short Lived", slug: "short-lived", kind: "group" } }
+    collection = Directory::Collection.find_by!(slug: "short-lived")
+    member = create(:identity, first_name: "Mem", last_name: "Ber")
+    add_member!(collection, identity: member)
+
+    delete directory_collection_path("short-lived")
+    get directory_activity_path
+
+    expect(response.body).to include("Short Lived")
+    expect(response.body).not_to include("(deleted)")
   end
 
   it "records who created and changed a grant" do
