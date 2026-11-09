@@ -76,8 +76,8 @@ class DirectoryPicker {
     this.input.addEventListener('input', () => {
       // any input method (typing, paste, drag) invalidates previous selection
       this.hiddenInput.value = '';
+      this._onInput();
     });
-    this.input.addEventListener('keyup', (e) => this._onKeyup(e));
     this.input.addEventListener('keydown', (e) => this._onKeydown(e));
     this.input.addEventListener('paste', (e) => this._onPaste(e));
     this.input.addEventListener('blur', () => {
@@ -86,9 +86,9 @@ class DirectoryPicker {
     });
   }
 
-  _onKeyup(e) {
-    if (['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(e.key)) return;
-
+  // search on `input`, not keyup: paste, autofill and IME/mobile keyboards don't
+  // reliably fire key events, and arrow/enter keys don't change the value anyway
+  _onInput() {
     clearTimeout(this.debounceTimer);
     const q = this.input.value.trim();
 
@@ -151,7 +151,9 @@ class DirectoryPicker {
   }
 
   _renderDropdown() {
-    this._closeDropdown();
+    // only drop the old element here — _closeDropdown() would also wipe the results we're about to render
+    this._removeDropdownEl();
+    this.selectedIndex = -1;
     if (this.results.length === 0) return;
 
     this.dropdown = document.createElement('div');
@@ -209,11 +211,15 @@ class DirectoryPicker {
     this._closeDropdown();
   }
 
-  _closeDropdown() {
+  _removeDropdownEl() {
     if (this.dropdown) {
       this.dropdown.remove();
       this.dropdown = null;
     }
+  }
+
+  _closeDropdown() {
+    this._removeDropdownEl();
     this.results = [];
     this.selectedIndex = -1;
   }
@@ -244,18 +250,25 @@ class DirectoryPicker {
         if (!resp.ok) throw new Error('fetch failed');
         const data = await resp.json();
 
-        // find exact or best match
-        const match = data.find(r =>
-          r.sublabel && r.sublabel.toLowerCase() === item.email.toLowerCase()
-        ) || data[0];
+        // only an exact, unambiguous match counts — the search is an unordered ILIKE,
+        // so data[0] is whatever postgres felt like ("Ops" → "devops")
+        const needle = item.email.toLowerCase();
+        const exact = data.filter(r =>
+          [r.id, r.label, r.sublabel].some(v => v && String(v).toLowerCase() === needle)
+        );
 
-        if (match) {
+        if (exact.length === 1) {
+          const match = exact[0];
           let html = `<span>${this._esc(match.label)}</span> <span style="${STYLES.sublabel}">${this._esc(match.sublabel || '')}</span>`;
           if (match.new_directory_person) {
             html += ` <span style="${STYLES.badge}">new</span>`;
           }
           item.row.innerHTML = html;
           resolved.push(match);
+        } else if (data.length > 0) {
+          const why = exact.length > 1 ? 'ambiguous' : 'no exact match';
+          item.row.innerHTML = `<span style="${STYLES.bulkUnresolved}">${this._esc(item.email)} — ${why}, ${data.length} similar</span>`;
+          item.candidates = exact.length > 1 ? exact : data;
         } else {
           item.row.innerHTML = `<span style="${STYLES.bulkUnresolved}">${this._esc(item.email)} — not found</span>`;
         }
@@ -264,13 +277,24 @@ class DirectoryPicker {
       }
     }
 
-    // if exactly one resolved, select it immediately
-    if (resolved.length === 1) {
+    // a single pasted value with no exact match: show its candidates and let the user pick
+    if (items.length === 1 && items[0].candidates) {
+      container.remove();
+      this.input.value = items[0].email;
+      this.results = items[0].candidates;
+      this._renderDropdown();
+      this.input.focus();
+      return;
+    }
+
+    // if the paste was exactly one value and it resolved, select it — but never quietly
+    // pick one item out of a multi-line paste and drop the rest
+    if (items.length === 1 && resolved.length === 1) {
       setTimeout(() => {
         container.remove();
         this._selectResult(resolved[0]);
       }, 1200);
-    } else if (resolved.length > 1) {
+    } else if (resolved.length > 0) {
       // for multi-results, let user pick or submit the first email
       // set input to comma-separated emails for the form
       this.input.value = resolved.map(r => r.sublabel || r.label).join(', ');

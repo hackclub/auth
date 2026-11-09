@@ -9,6 +9,9 @@
   let selectedIndex = $state(0);
   let isOpen = $state(false);
   let isLoading = $state(false);
+  // the query `results` were fetched for — Enter only picks from results that match what's typed
+  let resultsQuery = $state(null);
+  let searchSeq = 0;
 
   let searchTimeout;
   let wrapperEl;
@@ -44,7 +47,8 @@
       const res = await fetch(`${searchUrl}?q=${encodeURIComponent(value)}&scope=people`);
       if (!res.ok) return;
       const data = await res.json();
-      const match = data.find(r => r.sublabel?.toLowerCase() === value.toLowerCase()) || data[0];
+      // exact match only: the search is a fuzzy ILIKE, data[0] could be anyone
+      const match = data.find(r => r.sublabel?.toLowerCase() === value.toLowerCase());
       if (match) {
         selected = selected.map(s =>
           s.value === value ? { ...s, label: match.label, sublabel: match.sublabel, resolved: 'found', new: !!match.new_directory_person } : s
@@ -78,6 +82,7 @@
 
   function doSearch(q) {
     if (searchTimeout) clearTimeout(searchTimeout);
+    const seq = ++searchSeq;
     // Don't search for ident! in the picker (privacy: bypasses autocomplete)
     if (isPublicId(q)) { results = []; isLoading = false; return; }
     if (q.length < 3 && !q.includes('@')) { results = []; isLoading = false; return; }
@@ -87,20 +92,26 @@
         const res = await fetch(`${searchUrl}?q=${encodeURIComponent(q)}&scope=people`);
         if (!res.ok) throw new Error('Search failed');
         const data = await res.json();
+        if (seq !== searchSeq) return; // a newer search superseded this one
         const excludeValues = new Set(selected.map(s => s.value));
         results = data.filter(r => !excludeValues.has(r.sublabel || r.label));
+        resultsQuery = q;
         selectedIndex = 0;
       } catch (err) {
+        if (seq !== searchSeq) return;
         console.error('Directory picker search failed:', err);
         results = [];
       } finally {
-        isLoading = false;
+        if (seq === searchSeq) isLoading = false;
       }
     }, 150);
   }
 
   function handleInput(e) {
     query = e.target.value;
+    // whatever's in results belongs to the previous text — drop it so Enter can't pick it
+    results = [];
+    resultsQuery = null;
     selectedIndex = 0;
     isOpen = true;
     doSearch(query);
@@ -126,7 +137,8 @@
     else if (e.key === 'ArrowUp' && isOpen) { e.preventDefault(); selectedIndex = Math.max(selectedIndex - 1, 0); }
     else if (e.key === 'Enter') {
       e.preventDefault();
-      if (isOpen && results.length > 0 && selectedIndex >= 0) {
+      const fresh = !isLoading && resultsQuery === query;
+      if (isOpen && fresh && results.length > 0 && selectedIndex >= 0) {
         selectItem(results[selectedIndex]);
       } else {
         commitRawInput();
