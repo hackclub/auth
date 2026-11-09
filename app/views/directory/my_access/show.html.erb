@@ -19,7 +19,7 @@
           <tbody>
             <% direct.each do |m| %>
               <tr>
-                <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+                <td><%= collection_link(m[:collection]) %></td>
                 <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
               </tr>
             <% end %>
@@ -38,11 +38,11 @@
           <tbody>
             <% via.each do |m| %>
               <tr>
-                <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+                <td><%= collection_link(m[:collection]) %></td>
                 <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
                 <td style="color: var(--foreground2);">
                   <% if m[:via_path].present? %>
-                    <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
+                    <%= safe_join(m[:via_path].map { |c| collection_link(c) }, " → ") %>
                   <% end %>
                 </td>
               </tr>
@@ -74,13 +74,11 @@
                 <td><b><%= app.name %></b></td>
                 <td>
                   <% if membership && !membership[:direct] && membership[:via_path].present? %>
-                    <% chain = membership[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) } %>
-                    <% chain << link_to(exp.entitlement.name, directory_collection_path(exp.entitlement.slug)) %>
-                    <%= chain.join(' → ').html_safe %>
+                    <%= safe_join(membership[:via_path].map { |c| collection_link(c) } + [ collection_link(exp.entitlement) ], " → ") %>
                   <% elsif membership %>
-                    member of <%= link_to exp.entitlement.name, directory_collection_path(exp.entitlement.slug) %>
+                    member of <%= collection_link(exp.entitlement) %>
                   <% else %>
-                    <%= link_to exp.entitlement.name, directory_collection_path(exp.entitlement.slug) %>
+                    <%= collection_link(exp.entitlement) %>
                   <% end %>
                 </td>
               </tr>

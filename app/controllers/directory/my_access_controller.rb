@@ -3,6 +3,7 @@
 module Directory
   class MyAccessController < BaseController
     skip_before_action :ensure_directory_access!
+    helper_method :collection_link
 
     def show
       skip_authorization
@@ -20,6 +21,15 @@ module Directory
     end
 
     private
+
+    # being a member doesn't mean you can open the collection's page
+    def collection_link(collection)
+      if policy(collection).show?
+        helpers.link_to(collection.name, directory_collection_path(collection.slug))
+      else
+        collection.name
+      end
+    end
 
     def skip_authorization?
       action_name == "show"
