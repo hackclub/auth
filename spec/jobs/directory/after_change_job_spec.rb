@@ -92,4 +92,83 @@ RSpec.describe Directory::AfterChangeJob do
     perform_enqueued_jobs { remove(staff) }
     expect(token.reload.revoked_at).to be_present
   end
+
+  context "a whole group losing an entitlement" do
+    let(:team) { create(:directory_group, slug: "team") }
+    let(:app2) { create(:program) }
+    let(:members) { Array.new(4) { create(:identity) } }
+
+    def cf_revoker(for_app, account)
+      Directory::AppRevoker.create!(app: for_app, adapter: "cloudflare_access", enabled: true,
+        config: { account_id: account, api_token: "t" }.to_json)
+    end
+
+    before do
+      [ app, app2 ].each { |a| Directory::Exposure.create!(app: a, entitlement: staff, claim_name: "staff") }
+      members.each do |m|
+        add(team, Directory::Person.create!(identity: m, created_by_identity_id: admin.id))
+        create(:oauth_token, resource_owner: m, application: app)
+        create(:oauth_token, resource_owner: m, application: app2)
+      end
+      Directory.mutate!(cause: "test") do
+        Directory::Membership.create!(collection: staff, member_group: team, created_by_identity_id: admin.id)
+      end
+    end
+
+    def cut_team_from_staff
+      Directory.mutate!(cause: "test") { Directory::Membership.where(collection: staff, member_group: team).destroy_all }
+    end
+
+    def queries_for_cut
+      cut_team_from_staff
+      queries = 0
+      counter = ->(*, payload) { queries += 1 unless payload[:name] == "SCHEMA" }
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+        perform_enqueued_jobs(only: described_class)
+      end
+      queries
+    end
+
+    it "revokes every member's tokens" do
+      queries_for_cut
+      expect(OAuthToken.where(resource_owner_id: members.map(&:id), revoked_at: nil)).to be_empty
+    end
+
+    it "doesn't query per member" do
+      small = queries_for_cut
+
+      more = Array.new(8) { create(:identity) }
+      more.each do |m|
+        add(team, Directory::Person.create!(identity: m, created_by_identity_id: admin.id))
+        create(:oauth_token, resource_owner: m, application: app)
+      end
+      Directory.mutate!(cause: "test") do
+        Directory::Membership.create!(collection: staff, member_group: team, created_by_identity_id: admin.id)
+      end
+      perform_enqueued_jobs(only: described_class)
+
+      expect(queries_for_cut).to be <= small
+    end
+
+    it "makes one revoke call per person for apps on the same cloudflare account" do
+      cf_revoker(app, "acct-1")
+      cf_revoker(app2, "acct-1")
+      cut_team_from_staff
+
+      perform_enqueued_jobs(only: described_class)
+
+      revoke_jobs = enqueued_jobs.select { |j| j["job_class"] == "Directory::RevokeSessionJob" }
+      expect(revoke_jobs.size).to eq(members.size)
+    end
+
+    it "keeps separate calls for different accounts" do
+      cf_revoker(app, "acct-1")
+      cf_revoker(app2, "acct-2")
+      cut_team_from_staff
+
+      perform_enqueued_jobs(only: described_class)
+
+      expect(enqueued_jobs.count { |j| j["job_class"] == "Directory::RevokeSessionJob" }).to eq(members.size * 2)
+    end
+  end
 end

@@ -37,6 +37,12 @@ module Directory
 
     def secret_set?(key) = settings[key].present?
 
+    # Revocations with the same scope and email are the same call. Cloudflare's revoke_user
+    # is account-wide, so every app on one account shares a scope.
+    def session_scope_key
+      adapter == "cloudflare_access" ? "cloudflare_access:#{settings['account_id']}" : "app:#{app_id}"
+    end
+
     private
 
     def required_fields_present

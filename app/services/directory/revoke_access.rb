@@ -1,28 +1,37 @@
 # frozen_string_literal: true
 
 module Directory
-  # Single source of truth for "this identity should no longer have access to this app."
-  # Revokes OAuth access tokens, authorization grants, and enqueues a session revocation
-  # webhook (if the app has one configured). Used by AfterChangeJob (individual revocations)
-  # and bulk_revoke_non_passing (when a new requirement is added to an app).
+  # Single source of truth for "these identities should no longer have access to this app."
+  # Revokes OAuth access tokens and authorization grants, and enqueues session revocation
+  # for apps with a revoker configured. Idempotent.
   class RevokeAccess
-    # Revoke everything for one (identity, app) pair. Idempotent — safe to call twice.
     def self.call(identity_id:, app_id:, email:)
-      OAuthToken.where(resource_owner_id: identity_id, application_id: app_id)
-        .where(revoked_at: nil)
-        .update_all(revoked_at: Time.current)
-      Doorkeeper::AccessGrant.where(resource_owner_id: identity_id, application_id: app_id)
-        .where(revoked_at: nil)
-        .update_all(revoked_at: Time.current)
+      revoke_tokens(app_id: app_id, identity_ids: [ identity_id ])
+      revoke_sessions([ [ app_id, email ] ])
+    end
 
-      if Directory::AppRevoker.exists?(app_id: app_id, enabled: true)
-        Directory::RevokeSessionJob.perform_later(app_id: app_id, email: email)
-      end
+    def self.revoke_tokens(app_id:, identity_ids:)
+      return if identity_ids.empty?
+
+      now = Time.current
+      OAuthToken.where(resource_owner_id: identity_ids, application_id: app_id, revoked_at: nil).update_all(revoked_at: now)
+      Doorkeeper::AccessGrant.where(resource_owner_id: identity_ids, application_id: app_id, revoked_at: nil).update_all(revoked_at: now)
+    end
+
+    # pairs: [[app_id, email], ...]. One job per (revoker scope, email): Cloudflare's
+    # revoke_user is account-wide, so apps on the same account share a single call.
+    def self.revoke_sessions(pairs)
+      return if pairs.empty?
+
+      revokers = Directory::AppRevoker.where(app_id: pairs.map(&:first).uniq, enabled: true).index_by(&:app_id)
+      pairs
+        .filter_map { |app_id, email| (revoker = revokers[app_id]) && [ revoker.session_scope_key, email, app_id ] }
+        .uniq { |scope, email, _| [ scope, email.to_s.downcase ] }
+        .each { |_, email, app_id| Directory::RevokeSessionJob.perform_later(app_id: app_id, email: email) }
     end
 
     # Bulk-revoke every token holder who doesn't meet the app's requirements.
-    # Used when a new requirement is added — everyone who doesn't qualify loses access immediately.
-    # Uses a SQL subselect so it doesn't materialize all identity IDs into ruby.
+    # Used when an app's requirement list changes.
     def self.bulk_revoke_non_passing(app:)
       passing_identity_ids = Directory::EffectiveMembership
         .where(
@@ -42,10 +51,8 @@ module Directory
       tokens_to_revoke.update_all(revoked_at: Time.current)
       non_passing.call(Doorkeeper::AccessGrant).update_all(revoked_at: Time.current)
 
-      if revoked_identity_ids.any? && Directory::AppRevoker.exists?(app_id: app.id, enabled: true)
-        Identity.where(id: revoked_identity_ids).pluck(:id, :primary_email).each do |id, email|
-          Directory::RevokeSessionJob.perform_later(app_id: app.id, email: email)
-        end
+      if revoked_identity_ids.any?
+        revoke_sessions(Identity.where(id: revoked_identity_ids).pluck(:primary_email).map { |email| [ app.id, email ] })
       end
 
       revoked_identity_ids
