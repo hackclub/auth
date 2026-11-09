@@ -959,6 +959,13 @@ en:
         group_slug_placeholder: "group slug…"
         grantee_placeholder: "group slug…"
         also_includes: "also includes %{count} through nested groups"
+        people_count:
+          one: "%{count} person"
+          other: "%{count} people"
+        groups_count:
+          one: "%{count} group"
+          other: "%{count} groups"
+        plus_expired: "+%{count} expired"
         expiry_label: "expiry date (empty for never)"
         make_direct: "make direct"
         make_direct_confirm: "stop this grant applying to nested groups?"

@@ -27,7 +27,7 @@
       </div>
       <div class="dir-meta">
         <span>
-          <%= @collection.direct_member_count %> member<%= @collection.direct_member_count == 1 ? '' : 's' %><% if @collection.effective_member_count != @collection.direct_member_count %> <span style="color: var(--foreground2);">(+<%= @collection.effective_member_count - @collection.direct_member_count %> nested)</span><% end %>
+          <%= t("directory.collections.show.people_count", count: @collection.direct_member_count) %><% if @collection.effective_member_count != @collection.direct_member_count %> <span style="color: var(--foreground2);">(+<%= @collection.effective_member_count - @collection.direct_member_count %> nested)</span><% end %>
         </span>
         <a href="<%= export_directory_collection_path(@collection.slug, format: :csv) %>" style="color: var(--foreground2);">csv ↓</a>
         <% if directory_admin? %>
@@ -89,7 +89,7 @@
 
     <div class="dir-section" data-accent="green">
       <div class="dir-section-header">
-        <span><%= t("directory.collections.show.direct_people") %> <span is-="badge" variant-="green"><%= @direct_people_memberships.total_count %></span></span>
+        <span><%= t("directory.collections.show.direct_people") %> <span is-="badge" variant-="green"><%= @row_counts.fetch([ :people, :active ], 0) %></span><% if (expired = @row_counts.fetch([ :people, :expired ], 0)).positive? %> <span class="dir-section-meta"><%= t("directory.collections.show.plus_expired", count: expired) %></span><% end %></span>
         <% if can_manage && !directory_admin? %>
           <span class="dir-section-meta"><%= t("directory.collections.show.you_can_manage") %></span>
         <% end %>
@@ -148,7 +148,7 @@
     <%# Groups: unified member list %>
     <div class="dir-section" data-accent="blue">
       <div class="dir-section-header">
-        <span><%= t("directory.collections.show.members") %> <span is-="badge" variant-="blue"><%= @all_memberships.total_count %></span></span>
+        <span><%= t("directory.collections.show.members") %> <span is-="badge" variant-="blue"><%= t("directory.collections.show.people_count", count: @row_counts.fetch([ :people, :active ], 0)) %><% if (groups = @row_counts.fetch([ :groups, :active ], 0)).positive? %> · <%= t("directory.collections.show.groups_count", count: groups) %><% end %></span><% if (expired = @row_counts.fetch([ :people, :expired ], 0) + @row_counts.fetch([ :groups, :expired ], 0)).positive? %> <span class="dir-section-meta"><%= t("directory.collections.show.plus_expired", count: expired) %></span><% end %></span>
       </div>
       <%# Add forms FIRST — most common admin action %>
       <% if can_manage %>

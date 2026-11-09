@@ -37,6 +37,12 @@ module Directory
         .includes(:member_group, :created_by)
         .order("directory_collections.name")
 
+      @row_counts = @collection.memberships
+        .group(Arel.sql("member_person_id IS NOT NULL"))
+        .group(@collection.memberships.sanitize_sql([ "expires_at IS NOT NULL AND expires_at <= ?", Time.current ]))
+        .count
+        .to_h { |(person, expired), n| [ [ person ? :people : :groups, expired ? :expired : :active ], n ] }
+
       active_direct_person_ids = @collection.member_people_memberships.active.select(:member_person_id)
       effective_people = @collection.effective_people
         .where.not(id: active_direct_person_ids)
