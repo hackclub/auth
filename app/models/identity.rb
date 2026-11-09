@@ -360,13 +360,8 @@ class Identity < ApplicationRecord
 
     # HCA-side tokens are dead above, but apps with a revoker hold their own
     # sessions; tell them too
-    directory_person&.revocation_data&.each do |rev|
-      rev[:app_ids].each do |app_id|
-        next unless Directory::AppRevoker.exists?(app_id: app_id, enabled: true)
-
-        Directory::RevokeSessionJob.perform_later(app_id: app_id, email: primary_email)
-      end
-    end
+    app_ids = directory_person&.revocation_data&.flat_map { |rev| rev[:app_ids] } || []
+    Directory::RevokeAccess.revoke_sessions(app_ids.uniq.map { |app_id| [ app_id, primary_email ] })
   end
 
   def self.calculate_age(birthday)
