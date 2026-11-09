@@ -1,0 +1,9 @@
+en:
+  activerecord:
+    errors:
+      models:
+        directory/collection:
+          used_by_saml: "can't be deleted while SAML apps use it (%{apps}); take it out of config/saml.yml first"
+          attributes:
+            slug:
+              used_by_saml: "can't change while SAML apps use it (%{apps}); update config/saml.yml first"

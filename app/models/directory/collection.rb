@@ -52,6 +52,11 @@ module Directory
                      exclusion: { in: RESERVED_SLUGS, message: "is reserved" }
     validates :name, presence: true
     validates :kind, presence: true
+    validate :slug_kept_while_saml_uses_it, on: :update, if: -> { entitlement? && slug_changed? }
+
+    # config/saml.yml names entitlements by slug; losing one would lock everyone out of an
+    # SP that requires it, or quietly drop it from the groups the SP is sent.
+    before_destroy :ensure_no_saml_service_provider_uses_it, if: :entitlement?, prepend: true
 
     def group? = kind == "group"
     def entitlement? = kind == "entitlement"
@@ -117,6 +122,23 @@ module Directory
           SELECT collection_id FROM reach
         )
       SQL
+    end
+
+    private
+
+    def saml_service_providers_using(slug) = SAMLService::Access.service_providers_using_entitlement(slug)
+
+    def slug_kept_while_saml_uses_it
+      sps = saml_service_providers_using(slug_was)
+      errors.add(:slug, :used_by_saml, apps: sps.map { |sp| sp[:friendly_name] }.to_sentence) if sps.any?
+    end
+
+    def ensure_no_saml_service_provider_uses_it
+      sps = saml_service_providers_using(slug)
+      return if sps.empty?
+
+      errors.add(:base, :used_by_saml, apps: sps.map { |sp| sp[:friendly_name] }.to_sentence)
+      throw :abort
     end
   end
 end
