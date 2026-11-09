@@ -43,7 +43,7 @@ RSpec.describe Backend::User, "directory services admin" do
       directory_admin.deactivate!
 
       expect(last_active.update(directory_services_admin: false)).to be(false)
-      expect(last_active.errors[:directory_services_admin]).to include("can't remove the last directory services admin")
+      expect(last_active.errors[:base]).to include("can't remove the last directory services admin")
       expect(last_active.reload.directory_services_admin).to be(true)
     end
 

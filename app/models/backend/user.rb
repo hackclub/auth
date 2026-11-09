@@ -51,15 +51,15 @@ module Backend
     def directory_services_admin? = active? && directory_services_admin
 
     after_save :ensure_directory_person_exists, if: -> { saved_change_to_directory_services_admin? && directory_services_admin && identity_id.present? }
-    before_save :prevent_last_admin_removal, if: -> { will_save_change_to_directory_services_admin? && !directory_services_admin && active? }
+    validate :prevent_last_admin_removal, if: -> { will_save_change_to_directory_services_admin? && !directory_services_admin && active? }
 
     # Only active admins count: an inactive one isn't root, so stripping its flag
     # never costs a working admin. deactivate! doesn't touch the flag and is never
     # blocked here, since offboarding has to work even for the last admin.
     private def prevent_last_admin_removal
       if Backend::User.where(directory_services_admin: true, active: true).where.not(id: id).none?
-        errors.add(:directory_services_admin, "can't remove the last directory services admin")
-        throw :abort
+        # a validation, not a before_save abort, so update! says why instead of "Failed to save the record"
+        errors.add(:base, "can't remove the last directory services admin")
       end
     end
 
