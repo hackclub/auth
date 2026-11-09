@@ -19,9 +19,7 @@ module Directory
 
       authorize_app_entitlement_wiring!(app, entitlement)
 
-      req = Directory::AppRequirement.create!(app: app, entitlement: entitlement)
-
-      # §3.7: writing a requirement revokes tokens for non-members
+      Directory::AppRequirement.create!(app: app, entitlement: entitlement)
       revoke_tokens_for_non_members(app, entitlement)
 
       redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.requirement_added")
@@ -39,9 +37,7 @@ module Directory
       authorize_app_entitlement_unwiring!(app, entitlement)
       req.destroy!
 
-      # Dropping one of several any-of requirements narrows who passes; holders who only
-      # qualified through this entitlement lose access, same as on create. Dropping the
-      # last one opens the app, so nobody is revoked.
+      # dropping the last requirement opens the app, so there's nobody to revoke
       revoke_tokens_for_non_members(app, entitlement) if Directory::AppRequirement.exists?(app_id: app.id)
 
       redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.requirement_removed")
