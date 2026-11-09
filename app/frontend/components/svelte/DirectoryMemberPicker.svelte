@@ -269,8 +269,10 @@
   </div>
 
   {#if selected.length > 0}
+    {@const missing = selected.filter(s => s.resolved === 'not-found').length}
+    {@const found = selected.length - missing}
     <div class="picker-submit-hint">
-      {selected.length} {selected.length === 1 ? 'person' : 'people'} selected
+      {found} {found === 1 ? 'person' : 'people'} selected{#if missing > 0} · {missing} not found{/if}
     </div>
   {/if}
 </div>
