@@ -24,7 +24,7 @@ module Directory
 
     def show
       @person = Directory::Person.find_by_public_id!(params[:public_id])
-      authorize @person
+      authorize_visible! @person
       add_breadcrumb t("directory.people.index.title"), directory_people_path
       add_breadcrumb @person.full_name
 

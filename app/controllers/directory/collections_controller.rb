@@ -25,7 +25,7 @@ module Directory
     end
 
     def show
-      authorize @collection
+      authorize_visible! @collection
       add_breadcrumb @collection.name, directory_collection_path(@collection.slug)
 
       @direct_people_memberships = @collection.member_people_memberships
@@ -184,7 +184,7 @@ module Directory
     end
 
     def activity
-      authorize @collection, :show?
+      authorize_visible! @collection
       add_breadcrumb @collection.name, directory_collection_path(@collection.slug)
       add_breadcrumb t("directory.collections.activity.title", name: @collection.name)
 
@@ -195,7 +195,7 @@ module Directory
     end
 
     def export
-      authorize @collection, :show?
+      authorize_visible! @collection
 
       direct_person_ids = @collection.member_people_memberships.active.pluck(:member_person_id).to_set
       filename = "#{@collection.slug}-members-#{Date.current.iso8601}.csv"

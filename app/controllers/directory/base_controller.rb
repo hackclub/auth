@@ -17,6 +17,14 @@ module Directory
 
     private
 
+    # For pages that only read: a record the viewer can't see answers the same 404 as one
+    # that doesn't exist, so slugs and public ids can't be probed.
+    def authorize_visible!(record, query = :show?)
+      authorize record, query
+    rescue Pundit::NotAuthorizedError
+      raise ActiveRecord::RecordNotFound
+    end
+
     # Owners, trackables and whatever the directory partials reach through them, in a
     # handful of queries instead of a few per row.
     def preload_activities(activities)
