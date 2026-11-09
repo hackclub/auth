@@ -44,10 +44,8 @@ module Backend
     def can_ban? = can_ban
     def saml_officer? = is_saml_officer
 
-    # Directory root is exercised from a normal HCA session (/directory, the app
-    # page), outside Backend::ApplicationController's active? gate, so it has to
-    # honor deactivate! itself. The stored flag is untouched: forms, pretty_roles
-    # and the hooks below read `directory_services_admin` directly.
+    # used from normal HCA sessions, outside Backend::ApplicationController's active? gate,
+    # so it has to honor deactivate! itself
     def directory_services_admin? = active? && directory_services_admin
 
     after_save :ensure_directory_person_exists, if: -> { saved_change_to_directory_services_admin? && directory_services_admin && identity_id.present? }
@@ -58,7 +56,6 @@ module Backend
     # blocked here, since offboarding has to work even for the last admin.
     private def prevent_last_admin_removal
       if Backend::User.where(directory_services_admin: true, active: true).where.not(id: id).none?
-        # a validation, not a before_save abort, so update! says why instead of "Failed to save the record"
         errors.add(:base, "can't remove the last directory services admin")
       end
     end

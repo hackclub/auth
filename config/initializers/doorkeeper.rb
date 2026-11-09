@@ -18,21 +18,17 @@ Doorkeeper.configure do
   Doorkeeper::Application.table_name = "programs" if defined?(Doorkeeper::Application)
 
   # This block will be called to check whether the resource owner is authenticated or not.
-  #
-  # It also enforces directory app requirements (HCA as the authorization server: we don't
-  # hand out codes to people who don't qualify). Doorkeeper calls it from pages with no
-  # client too (authorized_applications, the oob code page), so the check only runs when
-  # client_id resolves to an app; anything else is left to Doorkeeper's own validation.
-  # Doorkeeper instance_evals this block per request, so it must not `return`.
+  # also enforces directory app requirements. doorkeeper calls it from pages with no client
+  # too (authorized_applications, the oob page), so it only checks when client_id resolves.
+  # doorkeeper instance_evals this block, so no `return`.
   resource_owner_authenticator do
     if current_identity
       app = ::Program.find_by(uid: params[:client_id]) if params[:client_id].present?
       if app.nil? || Directory::RequirementCheck.passes?(identity: current_identity, app: app)
         current_identity
       else
-        # RFC 6749 §4.1.2.1: tell the client, don't strand the user. Never redirect anywhere
-        # the app didn't register: the requested URI only if it exactly matches a registered
-        # one, else the first registered one. oob / non-redirectable URIs get the in-app page.
+        # RFC 6749 §4.1.2.1: tell the client. only ever to a registered redirect_uri;
+        # oob / unredirectable ones get the in-app page.
         registered = app.redirect_uris
         target = registered.include?(params[:redirect_uri]) ? params[:redirect_uri] : registered.first
         uri_checker = Doorkeeper::OAuth::Helpers::URIChecker
