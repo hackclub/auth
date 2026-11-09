@@ -37,6 +37,19 @@ RSpec.describe "Directory membership expiry update", type: :request do
     expect(PublicActivity::Activity.where(key: "directory_collection.member_expiry_changed")).to exist
   end
 
+  it "logs extending a lapsed membership as a renewal and restores access" do
+    membership.update_columns(expires_at: 1.minute.ago)
+    Directory.mutate!(cause: "test") { }
+    expect(Directory::EffectiveMembership.where(person_id: person.id, collection_id: group.id)).not_to exist
+
+    patch directory_collection_membership_path(group.slug, membership), params: { expires_at: 30.days.from_now.to_date.iso8601 }
+
+    expect(PublicActivity::Activity.where(key: "directory_collection.member_expiry_changed").last.parameters["renewed"]).to be(true)
+    expect(Directory::EffectiveMembership.where(person_id: person.id, collection_id: group.id)).to exist
+    get activity_directory_collection_path(group.slug)
+    expect(response.body).to include("renewed expired person")
+  end
+
   it "clears an expiry" do
     patch directory_collection_membership_path(group.slug, membership), params: { expires_at: "" }
     expect(membership.reload.expires_at).to be_nil

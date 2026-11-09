@@ -190,6 +190,7 @@ module Directory
       expires_at = validated_expires_at
       return if expires_at == :invalid
 
+      had_expired = membership.expires_at.present? && membership.expires_at <= Time.current
       membership.expires_at = expires_at
       if membership.expires_at_changed?
         Directory.mutate!(cause: Directory.cause("membership_expiry_changed", target: membership.id, actor: current_identity.id)) do
@@ -200,7 +201,8 @@ module Directory
             params: {
               member_name: membership.member_person&.full_name || membership.member_group&.name,
               member_type: membership.member_person_id ? "person" : "group",
-              expires_at: expires_at&.iso8601
+              expires_at: expires_at&.iso8601,
+              renewed: had_expired
             }
         end
       end
