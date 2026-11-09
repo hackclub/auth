@@ -35,7 +35,6 @@
       results = [];
       isOpen = false;
       if (inputEl) inputEl.value = '';
-      // Try to resolve emails in the background
       if (isEmail(q)) resolveChip(q);
       return true;
     }
@@ -162,7 +161,6 @@
   function handlePaste(e) {
     const text = (e.clipboardData || window.clipboardData)?.getData('text');
     if (!text) return;
-    // Detect bulk paste: contains commas or newlines
     if (/[,\n]/.test(text)) {
       e.preventDefault();
       const items = text.split(/[,\n]+/).map(s => s.trim()).filter(s => s.length > 0);

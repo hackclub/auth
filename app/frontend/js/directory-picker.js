@@ -123,7 +123,6 @@ class DirectoryPicker {
     const text = (e.clipboardData || window.clipboardData).getData('text');
     if (!text) return;
 
-    // detect bulk paste: contains commas or newlines
     if (/[,\n]/.test(text)) {
       e.preventDefault();
       const emails = text.split(/[,\n]+/).map(s => s.trim()).filter(s => s.length > 0);
@@ -295,10 +294,7 @@ class DirectoryPicker {
         this._selectResult(resolved[0]);
       }, 1200);
     } else if (resolved.length > 0) {
-      // for multi-results, let user pick or submit the first email
-      // set input to comma-separated emails for the form
       this.input.value = resolved.map(r => r.sublabel || r.label).join(', ');
-      // auto-close after a moment
       setTimeout(() => container.remove(), 3000);
     } else {
       setTimeout(() => container.remove(), 2000);

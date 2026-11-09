@@ -1,5 +1,4 @@
 <% content_for :title, @collection.name %>
-<%# Expiry helper: color-code by urgency %>
 <%
   expiry_display = ->(expires_at) {
     return "—" unless expires_at
@@ -42,7 +41,6 @@
 
   <% can_manage = policy(@collection).manage_members? %>
 
-  <%# === MEMBERS === %>
   <% if @collection.entitlement? %>
     <%# Entitlements: groups (structural) then people (delegated) %>
     <div class="dir-section" data-accent="blue">
@@ -50,7 +48,6 @@
         <span><%= t("directory.collections.show.member_groups") %></span>
         <span class="dir-section-meta"><%= t("directory.collections.show.structural_admin_only") %></span>
       </div>
-      <%# Form FIRST — the most common action shouldn't require scrolling %>
       <% if directory_admin? %>
         <%= form_with url: directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
           <div class="dir-section-form">
@@ -94,7 +91,6 @@
           <span class="dir-section-meta"><%= t("directory.collections.show.you_can_manage") %></span>
         <% end %>
       </div>
-      <%# Add form FIRST %>
       <% if can_manage %>
         <%= form_with url: batch_create_directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
           <div class="dir-section-form" style="flex-direction: column; align-items: stretch; gap: 0.25lh;">
@@ -150,7 +146,6 @@
       <div class="dir-section-header">
         <span><%= t("directory.collections.show.members") %> <span is-="badge" variant-="blue"><%= t("directory.collections.show.people_count", count: @row_counts.fetch([ :people, :active ], 0)) %><% if (groups = @row_counts.fetch([ :groups, :active ], 0)).positive? %> · <%= t("directory.collections.show.groups_count", count: groups) %><% end %></span><% if (expired = @row_counts.fetch([ :people, :expired ], 0) + @row_counts.fetch([ :groups, :expired ], 0)).positive? %> <span class="dir-section-meta"><%= t("directory.collections.show.plus_expired", count: expired) %></span><% end %></span>
       </div>
-      <%# Add forms FIRST — most common admin action %>
       <% if can_manage %>
         <%= form_with url: batch_create_directory_collection_memberships_path(@collection.slug), method: :post, local: true do |f| %>
           <div class="dir-section-form" style="flex-direction: column; align-items: stretch; gap: 0.25lh;">
@@ -250,7 +245,6 @@
     <div class="dir-section-header">
       <span><%= t("directory.collections.show.managed_by") %> <span is-="badge" variant-="yellow"><%= @grants.size %></span></span>
     </div>
-    <%# Grant form FIRST %>
     <% if directory_admin? %>
       <%= form_with url: directory_collection_grants_path(@collection.slug), method: :post, local: true do |f| %>
         <div class="dir-section-form">
