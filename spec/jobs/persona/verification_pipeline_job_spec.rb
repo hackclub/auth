@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe Persona::VerificationPipelineJob, type: :job do
-  let(:identity) { create(:identity, legal_first_name: "Heidi", legal_last_name: "Trashworth") }
+  let(:identity) { create(:identity) }
   let(:record) { create(:identity_persona_record, identity: identity) }
 
   before { allow(ResemblanceNoticerEngine).to receive(:run) }

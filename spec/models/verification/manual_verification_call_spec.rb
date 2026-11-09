@@ -39,13 +39,12 @@ RSpec.describe Verification::ManualVerificationCall, type: :model do
 
   it "pings guardians but sends no shared rejection mail on a fatal rejection" do
     verification = create(:manual_verification_call)
-    ActiveJob::Base.queue_adapter.enqueued_jobs.clear
 
     expect { verification.mark_as_rejected!("fraud", "internal note") }
       .to have_enqueued_job(Slack::NotifyGuardiansJob).with(verification.identity)
 
-    mailer_jobs = ActiveJob::Base.queue_adapter.enqueued_jobs.select { |j| j[:job] == ActionMailer::MailDeliveryJob }
-    expect(mailer_jobs).to be_empty
+    expect(ActiveJob::Base.queue_adapter.enqueued_jobs.map { |j| j[:job] })
+      .not_to include(ActionMailer::MailDeliveryJob)
 
     expect(verification.reload).to be_rejected
     expect(verification.rejection_reason_details).to eq("internal note")

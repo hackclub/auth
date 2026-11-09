@@ -12,7 +12,7 @@ module Backend
       return render json: results if query.blank?
 
       # Check if it's a public ID pattern
-      prefix = query.split("!").first.to_s.downcase
+      prefix = query.split("!").first.downcase
       prefix_info = Shortcodes.public_id_prefixes[prefix]
       # directory records are for directory admins only (no directory policy runs here)
       prefix_info = nil if prefix_info && Shortcodes.directory_prefix?(prefix_info) && !current_user.directory_services_admin?

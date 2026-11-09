@@ -63,10 +63,10 @@ development:
 test:
   primary:
     <<: *default
-    database: identity_vault_test<%= ENV["TEST_ENV_NUMBER"] %>
+    database: identity_vault_test
   analytics:
     <<: *default
-    database: identity_vault_analytics_test<%= ENV["TEST_ENV_NUMBER"] %>
+    database: identity_vault_analytics_test
     migrations_paths: db/analytics_migrate
 
 # As with config/credentials.yml, you never want to store sensitive information,

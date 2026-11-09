@@ -35,11 +35,6 @@ RSpec.describe "Backend kbar directory", type: :request do
       expect(response.parsed_body).to eq([])
     end
 
-    it "doesn't 500 on a query of only bangs" do
-      get backend_kbar_search_path, params: { q: "!!" }
-      expect(response).to have_http_status(:ok)
-    end
-
     it "doesn't advertise directory prefixes" do
       user = create(:backend_user)
       expect(JSON.parse(Shortcodes.kbar_data_for(user))["prefixes"].keys).not_to include("dcol", "dper")

@@ -16,13 +16,8 @@ RSpec.describe "StepUp", type: :request do
   end
 
   describe "email step-up method blocked for email_change action" do
-    def initiate_step_up(action_type, return_to: "/security")
-      get new_step_up_path(action_type: action_type, return_to: return_to)
-    end
-
     describe "POST /step_up/send_email_code" do
       it "rejects email code request for email_change action" do
-        initiate_step_up("email_change", return_to: "/email_changes/new")
         post "/step_up/send_email_code", params: { action_type: "email_change", return_to: "/email_changes/new" }
 
         expect(response).to redirect_to(new_step_up_path(action_type: "email_change", return_to: "/email_changes/new"))
@@ -30,7 +25,6 @@ RSpec.describe "StepUp", type: :request do
       end
 
       it "allows email code request for other actions" do
-        initiate_step_up("remove_totp")
         post "/step_up/send_email_code", params: { action_type: "remove_totp", return_to: "/security" }
 
         expect(response).to redirect_to(new_step_up_path(action_type: "remove_totp", method: :email, return_to: "/security", code_sent: true))
@@ -48,7 +42,6 @@ RSpec.describe "StepUp", type: :request do
       it "rejects email method verification for email_change action" do
         login_code = identity.v2_login_codes.create!
 
-        initiate_step_up("email_change", return_to: "/email_changes/new")
         post "/step_up/verify", params: {
           action_type: "email_change",
           method: "email",
@@ -63,7 +56,6 @@ RSpec.describe "StepUp", type: :request do
       it "allows TOTP verification for email_change action" do
         code = ROTP::TOTP.new(totp.secret).now
 
-        initiate_step_up("email_change", return_to: "/email_changes/new")
         post "/step_up/verify", params: {
           action_type: "email_change",
           method: "totp",
@@ -79,7 +71,6 @@ RSpec.describe "StepUp", type: :request do
       it "binds step-up to specific action type" do
         code = ROTP::TOTP.new(totp.secret).now
 
-        initiate_step_up("oidc_reauth", return_to: "/oauth/authorize")
         post "/step_up/verify", params: {
           action_type: "oidc_reauth",
           method: "totp",
@@ -95,7 +86,6 @@ RSpec.describe "StepUp", type: :request do
 
     describe "POST /step_up/resend_email" do
       it "rejects resend for email_change action" do
-        initiate_step_up("email_change", return_to: "/email_changes/new")
         post "/step_up/resend_email", params: { action_type: "email_change", return_to: "/email_changes/new" }
 
         expect(response).to redirect_to(new_step_up_path(action_type: "email_change", return_to: "/email_changes/new"))

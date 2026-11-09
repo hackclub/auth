@@ -183,10 +183,10 @@ RSpec.describe Verification::PersonaVerification, type: :model do
       expect(identity.ysws_eligible).to be false
     end
 
-    it "does not send the mailer — callers are responsible for delivery strategy" do
+    it "sends the approved mailer" do
       expect {
         verification.approve!
-      }.not_to have_enqueued_mail(VerificationMailer, :approved)
+      }.to have_enqueued_mail(VerificationMailer, :approved)
     end
   end
 
