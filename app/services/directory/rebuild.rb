@@ -214,7 +214,7 @@ module Directory
       person_ids = rows.map { |r| r["person_id"] }.uniq
       collection_ids = rows.map { |r| r["collection_id"] }.uniq
 
-      people_by_id = Directory::Person.where(id: person_ids).index_by(&:id)
+      people_by_id = Directory::Person.where(id: person_ids).includes(:identity).index_by(&:id)
       entitlements_by_id = Directory::Collection.where(id: collection_ids, kind: "entitlement").index_by(&:id)
 
       entitlement_ids = entitlements_by_id.keys
