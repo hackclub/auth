@@ -5,7 +5,7 @@ module Directory
     # For each membership about to be removed from `collection`, what it costs: the collections
     # the affected people stop reaching and the apps they lose (a requirement they no longer
     # meet, or a groups claim through an exposure — the same apps AfterChangeJob revokes).
-    # Returns { membership_id => "will lose: …" }. Collections `viewer` can't see are counted,
+    # Returns { membership_id => "will lose …" }. Collections `viewer` can't see are counted,
     # not named, and so are apps lost only through them.
     def self.batch_removal_summaries(memberships:, collection:, viewer:)
       new(memberships:, collection:, viewer:).summaries
@@ -126,7 +126,9 @@ module Directory
         lost_apps(person_lost, after).each { |app_id, via| apps[app_id].merge(via) }
       end
 
-      named = lost.reject { |id| id == @collection.id }
+      # a person row's own collection is already in the prompt ("remove X from Y?"); a group
+      # row's people lose it too, and that isn't obvious
+      named = group_row ? lost.to_a : lost.reject { |id| id == @collection.id }
       names = named.filter_map { |id| @visible[id] }.sort
       hidden = named.count { |id| !@visible.key?(id) }
 
@@ -141,12 +143,12 @@ module Directory
       app_names = app_names.compact.sort
 
       parts = []
-      parts << (names.size <= 3 ? names.join(", ") : "#{names.size} memberships including #{names.first(2).join(', ')}") if names.any?
-      parts << "apps: #{app_names.join(', ')}" if app_names.any?
+      parts << (names.size <= 3 ? names.to_sentence : "#{names.size} memberships including #{names.first(2).join(' and ')}") if names.any?
+      parts << "access to #{app_names.to_sentence}" if app_names.any?
       return nil if parts.empty? && hidden.zero?
 
       text = if parts.any?
-        "will lose: #{parts.join('; ')}#{" (+#{hidden} you can't see)" if hidden.positive?}"
+        "will lose #{parts.join(' and ')}#{" (+#{hidden} you can't see)" if hidden.positive?}"
       else
         "will lose access through #{hidden} #{hidden == 1 ? 'thing' : 'things'} you can't see"
       end

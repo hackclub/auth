@@ -136,7 +136,7 @@ RSpec.describe Directory::Consequence, type: :model do
       viewer = Directory::Context.new(identity: viewer_person.identity, person: viewer_person, admin: false)
       batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: team, viewer: viewer)
 
-      expect(batch[m.id]).to eq("will lose: Open Ent (+1 you can't see)")
+      expect(batch[m.id]).to eq("will lose Open Ent (+1 you can't see)")
       expect(batch[m.id]).not_to include("Top Secret")
     end
 
@@ -152,7 +152,7 @@ RSpec.describe Directory::Consequence, type: :model do
 
         batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: ent, viewer: admin)
 
-        expect(batch[m.id]).to eq("will lose: apps: Gated App")
+        expect(batch[m.id]).to eq("will lose access to Gated App")
       end
 
       it "doesn't count a requirement app the person still qualifies for another way" do
@@ -173,7 +173,7 @@ RSpec.describe Directory::Consequence, type: :model do
         rebuild!
 
         batch = Directory::Consequence.batch_removal_summaries(memberships: [ m2 ], collection: e1, viewer: admin)
-        expect(batch[m2.id]).to eq("will lose: apps: Gated App")
+        expect(batch[m2.id]).to eq("will lose access to Gated App")
       end
 
       it "summarises a nested group's removal across its people" do
@@ -190,7 +190,7 @@ RSpec.describe Directory::Consequence, type: :model do
 
         batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: ent, viewer: admin)
 
-        expect(batch[m.id]).to eq("1 person will lose: apps: Gated App")
+        expect(batch[m.id]).to eq("1 person will lose Staff and access to Gated App")
       end
 
       it "counts apps lost only through hidden entitlements instead of naming them" do
