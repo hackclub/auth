@@ -145,8 +145,9 @@ class OAuthScope
 
   BY_NAME = ALL.index_by(&:name).freeze
 
-  COMMUNITY_ALLOWED = %w[openid profile email name slack_id verification_status groups].freeze
-  HQ_OFFICIAL_SCOPES = (COMMUNITY_ALLOWED + %w[basic_info birthdate phone address]).freeze
+  COMMUNITY_ALLOWED = %w[openid profile email name slack_id verification_status].freeze
+  # groups is official-only: entitlements can only be exposed to hq_official apps
+  HQ_OFFICIAL_SCOPES = (COMMUNITY_ALLOWED + %w[basic_info birthdate phone address groups]).freeze
   SUPER_ADMIN_SCOPES = (HQ_OFFICIAL_SCOPES + %w[legal_name]).freeze
   # set_slack_id intentionally omitted from all tiers — valid but not assignable via UI
 

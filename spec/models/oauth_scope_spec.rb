@@ -134,8 +134,13 @@ RSpec.describe OAuthScope do
   describe "COMMUNITY_ALLOWED" do
     it "contains only safe scopes for community apps" do
       expect(described_class::COMMUNITY_ALLOWED).to contain_exactly(
-        "openid", "profile", "email", "name", "slack_id", "verification_status", "groups"
+        "openid", "profile", "email", "name", "slack_id", "verification_status"
       )
+    end
+
+    it "keeps groups official-only, since only hq_official apps can have exposures" do
+      expect(described_class::COMMUNITY_ALLOWED).not_to include("groups")
+      expect(described_class::HQ_OFFICIAL_SCOPES).to include("groups")
     end
   end
 end
