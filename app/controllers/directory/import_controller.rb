@@ -12,6 +12,7 @@ module Directory
 
     def preview
       csv_string = read_csv_from_params
+      return if performed?
       unless csv_string
         redirect_to directory_new_import_path, alert: t("directory.import.no_file")
         return
@@ -23,6 +24,7 @@ module Directory
 
     def create
       csv_string = read_csv_from_params
+      return if performed?
       unless csv_string
         redirect_to directory_new_import_path, alert: t("directory.import.no_file")
         return
