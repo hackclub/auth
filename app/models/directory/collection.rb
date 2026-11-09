@@ -44,19 +44,28 @@ module Directory
     scope :groups, -> { where(kind: "group") }
     scope :entitlements, -> { where(kind: "entitlement") }
 
-    validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/ }
+    # Slugs that collide with routes under /directory/collections (resources :collections,
+    # param: :slug): /directory/collections/new is the new-collection form, not a collection.
+    RESERVED_SLUGS = %w[new].freeze
+
+    validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/ },
+                     exclusion: { in: RESERVED_SLUGS, message: "is reserved" }
     validates :name, presence: true
     validates :kind, presence: true
 
     def group? = kind == "group"
     def entitlement? = kind == "entitlement"
     def to_param = slug
+    # People only, on both sides: views show "N members (+M nested)" as the difference, and
+    # nested-group rows aren't members of anything effective_memberships counts.
     def direct_member_count
-      has_attribute?(:preloaded_direct_count) ? preloaded_direct_count : memberships.active.count
+      has_attribute?(:preloaded_direct_count) ? preloaded_direct_count : member_people_memberships.active.count
     end
 
     def effective_member_count
-      has_attribute?(:preloaded_effective_count) ? preloaded_effective_count : effective_memberships.count
+      return preloaded_effective_count if has_attribute?(:preloaded_effective_count)
+
+      effective_memberships.where("expires_at IS NULL OR expires_at > ?", Time.current).count
     end
 
     def exposure_count
