@@ -83,11 +83,11 @@ module Directory
 
       @recent_activities = visible_activities.order(created_at: :desc).limit(5)
 
-      # Computed from the rows the page actually renders: groups show @all_memberships
-      # (its own pagination and order), entitlements show @direct_people_memberships.
+      # groups render @all_memberships, entitlements @direct_people_memberships
       @consequences = if policy(@collection).manage_members?
         Directory::Consequence.batch_removal_summaries(
-          memberships: (@collection.group? ? @all_memberships : @direct_people_memberships).to_a, collection: @collection
+          memberships: (@collection.group? ? @all_memberships : @direct_people_memberships).to_a,
+          collection: @collection, viewer: pundit_user
         )
       else
         {}

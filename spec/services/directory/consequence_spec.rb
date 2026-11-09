@@ -8,13 +8,15 @@ RSpec.describe Directory::Consequence, type: :model do
   end
 
   describe '.batch_removal_summaries' do
+    let(:admin) { Directory::Context.new(identity: nil, person: nil, admin: true) }
+
     it 'single direct member in a flat group has no consequence' do
       person = create(:directory_person)
       group = create(:directory_group, name: 'Alpha')
       m = create(:directory_membership, :person, collection: group, member_person: person)
       rebuild!
 
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: group)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: group, viewer: admin)
 
       expect(batch[m.id]).to be_nil
     end
@@ -27,7 +29,7 @@ RSpec.describe Directory::Consequence, type: :model do
       m = create(:directory_membership, :person, collection: group_a, member_person: person)
       rebuild!
 
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: group_a)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: group_a, viewer: admin)
 
       expect(batch[m.id]).to include('B')
       expect(batch[m.id]).not_to include('A')
@@ -44,7 +46,7 @@ RSpec.describe Directory::Consequence, type: :model do
       create(:directory_membership, :person, collection: group_b, member_person: person)
       rebuild!
 
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m_a ], collection: group_a)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m_a ], collection: group_a, viewer: admin)
 
       expect(batch[m_a.id]).to be_nil
     end
@@ -58,7 +60,7 @@ RSpec.describe Directory::Consequence, type: :model do
       create(:directory_membership, :person, collection: subgroup, member_person: person)
       rebuild!
 
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m_direct ], collection: group)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m_direct ], collection: group, viewer: admin)
 
       # Person still reaches group via subgroup → group closure
       expect(batch[m_direct.id]).to be_nil
@@ -75,7 +77,7 @@ RSpec.describe Directory::Consequence, type: :model do
       m2 = create(:directory_membership, :person, collection: group, member_person: p2)
       rebuild!
 
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m1, m2 ], collection: group)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m1, m2 ], collection: group, viewer: admin)
 
       expect(batch[m1.id]).to include('Org')
       expect(batch[m1.id]).not_to include('Team')
@@ -95,7 +97,7 @@ RSpec.describe Directory::Consequence, type: :model do
       m = create(:directory_membership, :person, collection: a, member_person: person)
       rebuild!
 
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: a)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: a, viewer: admin)
 
       expect(batch[m.id]).to include('B')
       expect(batch[m.id]).to include('C')
@@ -111,10 +113,31 @@ RSpec.describe Directory::Consequence, type: :model do
       m = create(:directory_membership, :person, collection: group, member_person: person)
       rebuild!
 
-      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: group)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: group, viewer: admin)
 
       expect(batch[m.id]).to include('ProdAccess')
       expect(batch[m.id]).not_to include('Engineers')
+    end
+
+    it "only names collections the viewer can see" do
+      viewer_person = create(:directory_person)
+      person = create(:directory_person)
+      team = create(:directory_group, slug: "team", name: "Team")
+      secret = create(:directory_entitlement, slug: "secret", name: "Top Secret Ent")
+      open_ent = create(:directory_entitlement, slug: "open", name: "Open Ent")
+      grantee = create(:directory_group, slug: "grantee")
+      create(:directory_membership, :group, collection: secret, member_group: team)
+      create(:directory_membership, :group, collection: open_ent, member_group: team)
+      create(:directory_membership, :person, collection: grantee, member_person: viewer_person)
+      Directory::Grant.create!(grantee_group: grantee, target_collection: open_ent, permission: "view")
+      m = create(:directory_membership, :person, collection: team, member_person: person)
+      rebuild!
+
+      viewer = Directory::Context.new(identity: viewer_person.identity, person: viewer_person, admin: false)
+      batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: team, viewer: viewer)
+
+      expect(batch[m.id]).to eq("will lose: Open Ent (+1 you can't see)")
+      expect(batch[m.id]).not_to include("Top Secret")
     end
   end
 end

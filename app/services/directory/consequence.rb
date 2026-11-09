@@ -2,11 +2,10 @@
 
 module Directory
   class Consequence
-    # For each person membership in a collection, computes what they'd lose if removed.
-    # Uses the closure table to find which ancestor collections the person reaches through
-    # this collection, then checks if they have an alternate path. Returns { membership_id =>
-    # "will lose: X, Y, Z" } for display in the UI next to the remove button.
-    def self.batch_removal_summaries(memberships:, collection:)
+    # For each person membership in a collection, what they'd lose if removed: the ancestor
+    # collections reached only through this one. Returns { membership_id => "will lose: …" }.
+    # Only names collections `viewer` can see; the rest are counted.
+    def self.batch_removal_summaries(memberships:, collection:, viewer:)
       person_ids = memberships.filter_map(&:member_person_id).uniq
       return {} if person_ids.empty?
 
@@ -45,19 +44,25 @@ module Directory
 
       return {} if losses_by_membership.empty?
 
-      names = Directory::Collection.where(id: all_lost_ids.to_a).pluck(:id, :name).to_h
+      visible_names = Directory::Collection.where(id: all_lost_ids.to_a).select(:id, :name)
+        .select { |c| Directory::CollectionPolicy.new(viewer, c).show? }
+        .to_h { |c| [ c.id, c.name ] }
 
       losses_by_membership.transform_values do |lost_ids|
-        format_losses(lost_ids.map { |id| names[id] }.compact.sort)
+        format_losses(lost_ids.filter_map { |id| visible_names[id] }.sort, hidden: lost_ids.count { |id| !visible_names.key?(id) })
       end
     end
 
-    def self.format_losses(names)
-      if names.size <= 3
+    def self.format_losses(names, hidden:)
+      text = if names.empty?
+        "will lose access through #{hidden} #{hidden == 1 ? 'collection' : 'collections'} you can't see"
+      elsif names.size <= 3
         "will lose: #{names.join(', ')}"
       else
         "will lose #{names.size} memberships including #{names.first(2).join(', ')}"
       end
+      text += " (+#{hidden} you can't see)" if hidden.positive? && names.any?
+      text
     end
     private_class_method :format_losses
   end

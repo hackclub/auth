@@ -242,7 +242,7 @@ RSpec.describe "Directory review regressions", type: :request do
       add!(group, person: person)
       add!(parent, person: person)
 
-      expect(Directory::Consequence).to receive(:batch_removal_summaries) do |memberships:, collection:|
+      expect(Directory::Consequence).to receive(:batch_removal_summaries) do |memberships:, collection:, viewer:|
         expect(memberships.map(&:id)).to match_array(Directory::Membership.where(collection: group).pluck(:id))
         {}
       end
