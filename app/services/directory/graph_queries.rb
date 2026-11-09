@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-# Shared SQL for computing the directory's derived tables (closure,
-# effective memberships, effective grants). Used by both Rebuild (which
-# writes the production tables) and Validate (which diffs against them).
-# Keeping one copy prevents the two from diverging.
 module Directory
   # Raw SQL for computing derived tables. Shared by Rebuild (production writes)
   # and Validate (read-only drift check) so the two can't diverge.
@@ -14,8 +10,10 @@ module Directory
     # triple. Self-loops included (depth 0). Used to flatten "person in A, A nested in B" into
     # "person is effective member of both A and B."
     ACTIVE_MEMBERSHIP = "(m.expires_at IS NULL OR m.expires_at > NOW())"
+    # lapsed rows the expiry sweep hasn't processed yet are still in the derived tables
+    ACTIVE_OR_UNSWEPT_MEMBERSHIP = "(m.expires_at IS NULL OR m.expires_at > NOW() OR m.expiry_recorded_at IS NULL)"
 
-    def create_closure(conn, table: "_closure", on_commit_drop: false)
+    def create_closure(conn, table: "_closure", on_commit_drop: false, active: ACTIVE_MEMBERSHIP)
       drop_clause = on_commit_drop ? "ON COMMIT DROP" : ""
       conn.execute(<<~SQL)
         CREATE TEMP TABLE #{table} #{drop_clause} AS
@@ -30,7 +28,7 @@ module Directory
           FROM closure c
           INNER JOIN directory_memberships m ON m.collection_id = c.descendant_id
           WHERE m.member_group_id IS NOT NULL
-            AND #{ACTIVE_MEMBERSHIP}
+            AND #{active}
             AND c.depth < #{Directory::MAX_DEPTH}
         )
         SELECT ancestor_id, descendant_id, min(depth) AS depth,
@@ -43,7 +41,7 @@ module Directory
 
     # Joins direct person→collection memberships through the closure to produce every
     # (collection, person) pair where the person is an effective member — directly or via nesting.
-    def create_effective_memberships(conn, table: "_em", closure_table: "_closure", on_commit_drop: false)
+    def create_effective_memberships(conn, table: "_em", closure_table: "_closure", on_commit_drop: false, active: ACTIVE_MEMBERSHIP)
       drop_clause = on_commit_drop ? "ON COMMIT DROP" : ""
       conn.execute(<<~SQL)
         CREATE TEMP TABLE #{table} #{drop_clause} AS
@@ -58,7 +56,7 @@ module Directory
           FROM directory_memberships m
           INNER JOIN #{closure_table} c ON c.descendant_id = m.collection_id
           WHERE m.member_person_id IS NOT NULL
-            AND #{ACTIVE_MEMBERSHIP}
+            AND #{active}
         ) raw
         GROUP BY collection_id, person_id
       SQL
@@ -68,7 +66,7 @@ module Directory
     # recursive=true expands to X's child groups (and their children, etc.), stopping at
     # collections marked protected=true. The result is (person, target_collection, permission)
     # for every person in the grantee group.
-    def create_effective_grants(conn, table: "_eg", em_table: "_em", on_commit_drop: false)
+    def create_effective_grants(conn, table: "_eg", em_table: "_em", on_commit_drop: false, active: ACTIVE_MEMBERSHIP)
       drop_clause = on_commit_drop ? "ON COMMIT DROP" : ""
       conn.execute(<<~SQL)
         CREATE TEMP TABLE #{table} #{drop_clause} AS
@@ -83,7 +81,7 @@ module Directory
           INNER JOIN directory_grants g2 ON g2.id = gt.grant_id
           INNER JOIN directory_memberships m ON m.collection_id = gt.collection_id
           WHERE m.member_group_id IS NOT NULL
-            AND #{ACTIVE_MEMBERSHIP}
+            AND #{active}
             AND g2.recursive = true
             AND gt.depth < #{Directory::MAX_DEPTH}
             AND NOT EXISTS (

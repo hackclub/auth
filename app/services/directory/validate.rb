@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
 module Directory
-  # Drift detector: recomputes all derived tables from scratch (using the same GraphQueries
-  # as Rebuild) and diffs them against the live tables. Returns mismatches per table.
-  # Used by the /directory/health page to verify the rebuild hasn't diverged from truth.
+  # Drift detector: recomputes the derived tables with the same GraphQueries as Rebuild and
+  # diffs them against the live ones.
+  #
+  # Two expected sets, because a membership that has lapsed but not been swept yet may or
+  # may not still be in the live tables (any rebuild since the lapse drops it; only the
+  # sweep records it). "missing" is checked against the strict set, "extra" against one
+  # that still counts unswept lapses as active.
   class Validate
     Result = Struct.new(:mismatches, keyword_init: true) do
       def valid? = mismatches.values.all? { |v| v[:missing].empty? && v[:extra].empty? }
@@ -39,6 +43,11 @@ module Directory
       GraphQueries.create_closure(@conn, table: "_expected_closure", on_commit_drop: true)
       GraphQueries.create_effective_memberships(@conn, table: "_expected_em", closure_table: "_expected_closure", on_commit_drop: true)
       GraphQueries.create_effective_grants(@conn, table: "_expected_eg", em_table: "_expected_em", on_commit_drop: true)
+
+      lenient = GraphQueries::ACTIVE_OR_UNSWEPT_MEMBERSHIP
+      GraphQueries.create_closure(@conn, table: "_allowed_closure", on_commit_drop: true, active: lenient)
+      GraphQueries.create_effective_memberships(@conn, table: "_allowed_em", closure_table: "_allowed_closure", on_commit_drop: true, active: lenient)
+      GraphQueries.create_effective_grants(@conn, table: "_allowed_eg", em_table: "_allowed_em", on_commit_drop: true, active: lenient)
     end
 
     def diff_closure
@@ -56,7 +65,7 @@ module Directory
         SELECT dc.ancestor_id, dc.descendant_id, dc.depth
         FROM directory_closure dc
         WHERE NOT EXISTS (
-          SELECT 1 FROM _expected_closure ec
+          SELECT 1 FROM _allowed_closure ec
           WHERE ec.ancestor_id = dc.ancestor_id
             AND ec.descendant_id = dc.descendant_id
         )
@@ -80,7 +89,7 @@ module Directory
         SELECT dem.collection_id, dem.person_id
         FROM directory_effective_memberships dem
         WHERE NOT EXISTS (
-          SELECT 1 FROM _expected_em ee
+          SELECT 1 FROM _allowed_em ee
           WHERE ee.collection_id = dem.collection_id
             AND ee.person_id = dem.person_id
         )
@@ -105,7 +114,7 @@ module Directory
         SELECT deg.person_id, deg.target_collection_id, deg.permission
         FROM directory_effective_grants deg
         WHERE NOT EXISTS (
-          SELECT 1 FROM _expected_eg ee
+          SELECT 1 FROM _allowed_eg ee
           WHERE ee.person_id = deg.person_id
             AND ee.target_collection_id = deg.target_collection_id
             AND ee.permission = deg.permission
@@ -116,7 +125,7 @@ module Directory
     end
 
     def drop_temp_tables
-      %w[_expected_closure _expected_em _expected_eg].each do |t|
+      %w[_expected_closure _expected_em _expected_eg _allowed_closure _allowed_em _allowed_eg].each do |t|
         @conn.execute("DROP TABLE IF EXISTS #{t}")
       end
     end
