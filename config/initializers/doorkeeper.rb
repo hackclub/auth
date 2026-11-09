@@ -18,14 +18,36 @@ Doorkeeper.configure do
   Doorkeeper::Application.table_name = "programs" if defined?(Doorkeeper::Application)
 
   # This block will be called to check whether the resource owner is authenticated or not.
+  #
+  # It also enforces directory app requirements (HCA as the authorization server: we don't
+  # hand out codes to people who don't qualify). Doorkeeper calls it from pages with no
+  # client too (authorized_applications, the oob code page), so the check only runs when
+  # client_id resolves to an app; anything else is left to Doorkeeper's own validation.
+  # Doorkeeper instance_evals this block per request, so it must not `return`.
   resource_owner_authenticator do
     if current_identity
-      app = ::Program.find_by(uid: params[:client_id])
-      if app && !Directory::RequirementCheck.passes?(identity: current_identity, app: app)
-        redirect_to directory_requirement_denied_path
-        nil
-      else
+      app = ::Program.find_by(uid: params[:client_id]) if params[:client_id].present?
+      if app.nil? || Directory::RequirementCheck.passes?(identity: current_identity, app: app)
         current_identity
+      else
+        # RFC 6749 §4.1.2.1: tell the client, don't strand the user. Never redirect anywhere
+        # the app didn't register: the requested URI only if it exactly matches a registered
+        # one, else the first registered one. oob / non-redirectable URIs get the in-app page.
+        registered = app.redirect_uris
+        target = registered.include?(params[:redirect_uri]) ? params[:redirect_uri] : registered.first
+        uri_checker = Doorkeeper::OAuth::Helpers::URIChecker
+        if target && !uri_checker.oob_uri?(target) && uri_checker.valid?(target)
+          error_uri = Doorkeeper::OAuth::Authorization::URIBuilder.uri_with_query(
+            target,
+            error: "access_denied",
+            error_description: "You do not meet this application's access requirements.",
+            state: params[:state]
+          )
+          redirect_to error_uri, allow_other_host: true
+        else
+          redirect_to directory_requirement_denied_path
+        end
+        nil
       end
     else
       redirect_to "/oauth/welcome?return_to=#{CGI.escape(request.fullpath)}"
