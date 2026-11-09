@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 module Directory
-  # Manages exposure wiring (telling an app about an entitlement).
-  #
-  # Inherits from ::ApplicationController, not Directory::BaseController,
-  # because these actions live on the app page (/developer_apps/:id) and
-  # must be reachable by app owners who are not directory people.
+  # not a Directory::BaseController: this lives on the developer app page, and app
+  # owners there needn't be directory people.
   class ExposuresController < ::ApplicationController
     include DirectoryAppAuthorization
     rescue_from Pundit::NotAuthorizedError do

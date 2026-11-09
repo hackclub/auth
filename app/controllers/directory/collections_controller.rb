@@ -155,7 +155,7 @@ module Directory
         return
       end
 
-      # Capture revocation data BEFORE destroy wipes effective_memberships
+      # before destroy wipes effective_memberships
       revocations = []
       if @collection.entitlement?
         app_ids = @collection.affected_app_ids
@@ -181,7 +181,7 @@ module Directory
         return
       end
 
-      # Enqueue revocations directly since the rebuild diff won't find them
+      # the rebuild diff won't see people of a deleted collection
       if revocations.any?
         Directory::AfterChangeJob.perform_later(change_ids: [], revocations: revocations)
       end
@@ -231,8 +231,8 @@ module Directory
 
     private
 
-    # Lookup misses hold the raw address someone typed. They're the audit trail for people
-    # who can add members (SPEC §3.1), not something every viewer gets to read.
+    # lookup misses hold the raw address someone typed: they're for people who can add
+    # members, not every viewer.
     def visible_activities
       scope = PublicActivity::Activity.where(trackable: @collection)
       return scope if policy(@collection).manage_members?

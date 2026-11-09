@@ -72,14 +72,14 @@ module Directory
       @person = Directory::Person.find_by_public_id!(params[:public_id])
       authorize @person
 
-      # Capture revocation data BEFORE destroy wipes effective_memberships
+      # before destroy wipes effective_memberships
       revocations = @person.revocation_data
 
       Directory.mutate!(cause: Directory.cause("person_removed", target: @person.id, actor: current_identity.id)) do
         @person.destroy!
       end
 
-      # Enqueue revocations directly since the rebuild diff won't find them
+      # the rebuild diff won't see a deleted person
       if revocations.any?
         Directory::AfterChangeJob.perform_later(change_ids: [], revocations: revocations)
       end
@@ -89,10 +89,8 @@ module Directory
 
     private
 
-    # Directory activity about this person: rows where they're the subject (trackable, or
-    # recipient of "added to x") plus directory rows they wrote as a manager. Never the
-    # identity's account-wide audit log (logins, legal name, email changes, oauth grants).
-    # Non-admins only get rows that belong to a collection they can see.
+    # directory rows only, never the identity's account-wide audit log (logins, legal
+    # name, email changes)
     def directory_activities_for(person)
       activities = PublicActivity::Activity
       about_person = activities.where(trackable: person)
@@ -104,10 +102,8 @@ module Directory
       preload_activities(scope.order(created_at: :desc).limit(20))
     end
 
-    # Keeps directory activity that belongs to a collection the viewer can see, in SQL so the
-    # 20-row window is filled with rows they may see. Grant and exposure rows are placed
-    # through their live record; once it's deleted there's nothing to place the row by, so it
-    # stays hidden.
+    # in SQL so the 20-row window fills with visible rows. grant/exposure rows are placed by
+    # their live record, so once it's deleted the row stays hidden.
     def activities_in_visible_collections
       activities = PublicActivity::Activity
       visible = policy_scope(Directory::Collection).select(:id)

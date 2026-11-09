@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 module Directory
-  # Manages login requirements (must be in entitlement X to use app Y).
-  #
-  # Inherits from ::ApplicationController, not Directory::BaseController,
-  # because these actions live on the app page (/developer_apps/:id) and
-  # must be reachable by app owners who are not directory people.
+  # not a Directory::BaseController: this lives on the developer app page, and app
+  # owners there needn't be directory people.
   class AppRequirementsController < ::ApplicationController
     include DirectoryAppAuthorization
     rescue_from Pundit::NotAuthorizedError do

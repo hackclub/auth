@@ -75,9 +75,8 @@ module Directory
       @collection ? directory_collection_path(@collection.slug) : directory_root_path
     end
 
-    # The collection lookup itself failed, so nothing was authorized. Admins get a flash
-    # (people/show's add-to-group form builds the URL from whatever they typed); anyone
-    # else gets the plain 404 so a missing slug and a hidden one look the same.
+    # admins get a flash (people/show builds this URL from whatever they typed); everyone
+    # else gets the same 404 as a hidden slug.
     def missing_collection!
       raise ActiveRecord::RecordNotFound unless directory_admin?
 

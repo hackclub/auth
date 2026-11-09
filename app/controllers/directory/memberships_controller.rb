@@ -2,10 +2,9 @@
 
 module Directory
   class MembershipsController < BaseController
-    # Adding by email answers "does this address have an hca account?", so SPEC §3.1 has
-    # every lookup audited and each person rate limited. One budget covers both add
-    # actions, and since a batch is one request its size is capped too. Admins are exempt:
-    # the admin people page already searches every identity.
+    # adding by email answers "does this address have an hca account?", so lookups are
+    # audited and rate limited (one budget for both add actions; batches capped). admins
+    # are exempt: the admin people page already searches every identity.
     ADD_RATE_LIMIT = 20
     ADD_RATE_WINDOW = 10.minutes
     MAX_BATCH_IDENTIFIERS = 100
@@ -31,8 +30,7 @@ module Directory
       )
 
       if params[:email].present?
-        # Add by email or public ID — find identity, create directory person if needed.
-        # Goes through the same audited lookup as batch_create (SPEC §3.1).
+        # same audited lookup as batch_create
         identifier = params[:email].strip
         identity = bulk_lookup_identities([ identifier ])[identifier]
         unless identity
@@ -242,20 +240,16 @@ module Directory
       @collection ? directory_collection_path(@collection.slug) : directory_root_path
     end
 
-    # The collection lookup itself failed, so nothing was authorized. Admins get a flash
-    # (people/show's add-to-group form builds the URL from whatever they typed); anyone
-    # else gets the plain 404 so a missing slug and a hidden one look the same.
+    # admins get a flash (people/show builds this URL from whatever they typed); everyone
+    # else gets the same 404 as a hidden slug.
     def missing_collection!
       raise ActiveRecord::RecordNotFound unless directory_admin?
 
       skip_authorization
     end
 
-    # Removes expired rows for this member so the unique index lets the re-add through.
-    # Covers groups too: an expired nesting row is hidden on entitlement pages (that list is
-    # .active only), so without this there's no way to clear it.
-    # destroy (not delete_all) so the expired row leaves a paper_trail version, and
-    # records its expiry activity if the sweep hasn't already.
+    # expired rows still hold the unique index. groups too: expired nesting rows are hidden
+    # on entitlement pages, so there's no remove button for them.
     def clear_expired!(member_person_id: nil, member_group_id: nil)
       Directory::Membership.purge_expired!(@collection.memberships.where(member_person_id:)) if member_person_id
       Directory::Membership.purge_expired!(@collection.memberships.where(member_group_id:)) if member_group_id
@@ -330,12 +324,10 @@ module Directory
       end
     end
 
-    # Why a non-admin can't nest `child` under @collection, or nil if they can (authorize
-    # already covered the parent). Nesting carries every recursive grant that reaches
-    # @collection, the actor's own included, down into child and its unprotected
-    # sub-groups, so the actor must already manage all of them. Otherwise a recursive grant
-    # on one group plus a plain one on another adds up to manage_members on everything
-    # nested inside the second.
+    # nesting carries every recursive grant reaching @collection down into child, so the
+    # actor must already manage child and its unprotected sub-groups. otherwise a recursive
+    # grant on one group plus a plain one on another adds up to manage_members on
+    # everything nested in the second.
     def nesting_refusal(child)
       ctx = pundit_user
       return t("directory.flash.need_manage_on_child_group") unless ctx.can?(:manage_members, child)
