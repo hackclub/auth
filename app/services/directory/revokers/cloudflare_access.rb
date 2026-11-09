@@ -2,6 +2,8 @@
 
 module Directory
   module Revokers
+    # revoke_user is account-wide: it ends the person's sessions in every Access app on the
+    # account, not just this one. Cloudflare has no per-user, per-app revoke.
     class CloudflareAccess < Base
       def call(email:)
         response = HTTP.timeout(connect: 5, write: 5, read: 10)

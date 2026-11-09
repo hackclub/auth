@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity, owner_component: Components::IdentityMention.new(activity.owner)) do %>
+  set up the <%= activity.parameters[:adapter].to_s.humanize(capitalize: false) %> session revoker.
+<% end %>

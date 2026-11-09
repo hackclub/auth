@@ -238,6 +238,10 @@
       <% else %>
         <p style="color: var(--pico-muted-color);"><%= t("directory.developer_apps.not_official") %></p>
       <% end %>
+
+      <% if current_identity.backend_user&.directory_services_admin? %>
+        <%= render "developer_apps/session_revoker", app: @app, revoker: @app.directory_revoker %>
+      <% end %>
     </section>
 
     <%# Activity Log (async) %>
