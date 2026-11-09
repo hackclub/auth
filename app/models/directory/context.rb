@@ -43,6 +43,13 @@ module Directory
       end
     end
 
+    def can_on_any?(permission)
+      return true if admin?
+      return false unless person
+
+      Directory::EffectiveGrant.where(person_id: person.id, permission: permission.to_s).exists?
+    end
+
     def has_any_grants?
       return true if admin?
       return false unless person

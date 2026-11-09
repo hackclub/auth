@@ -25,6 +25,11 @@ module DirectoryAppAuthorization
     directory_context.admin? || (app_owner?(app) && directory_context.can?(:expose, entitlement))
   end
 
+  # whether to show the wire/require forms at all
+  def can_wire_any_entitlement?(app)
+    directory_context.admin? || (app_owner?(app) && directory_context.can_on_any?(:expose))
+  end
+
   def authorize_app_entitlement_wiring!(app, entitlement)
     raise Pundit::NotAuthorizedError unless app.hq_official? && can_manage_app_wiring?(app, entitlement)
   end

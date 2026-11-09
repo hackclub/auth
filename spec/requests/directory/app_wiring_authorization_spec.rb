@@ -83,12 +83,30 @@ RSpec.describe "App wiring authorization", type: :request do
     end
 
     include_examples "can do both"
+
+    it "sees the wiring forms and remove buttons" do
+      exposure = Directory::Exposure.create!(app: oauth_app, entitlement: entitlement, claim_name: "docs")
+      get developer_app_path(oauth_app)
+
+      expect(response.body).to include(directory_exposures_path)
+      expect(response.body).to include(directory_exposure_path(exposure))
+    end
   end
 
   context "app owner without expose" do
     before { sign_in owner }
 
     include_examples "can do neither"
+
+    it "doesn't see the wiring forms or remove buttons" do
+      Directory::Exposure.create!(app: oauth_app, entitlement: entitlement, claim_name: "docs")
+      get developer_app_path(oauth_app)
+
+      expect(response.body).to include("docs")
+      expect(response.body).not_to include(directory_exposures_path)
+      expect(response.body).not_to include(directory_app_requirements_path)
+      expect(response.body).not_to include(directory_exposure_path(Directory::Exposure.last))
+    end
   end
 
   context "expose holder who doesn't own the app" do
