@@ -77,38 +77,7 @@ module SAMLHelper
   # Why +identity+ may not have an assertion for +sp_config+, or nil if it may.
   # build_saml_response enforces this; SAMLController also asks first, so it can show the
   # error before doing anything else.
-  def saml_access_denial(identity, sp_config)
-    if sp_config[:allowed_emails].present? && !sp_config[:allowed_emails].include?(identity.primary_email)
-      return I18n.t("saml.denial.not_allowed")
-    end
-
-    if (reason = saml_directory_requirement_denial(identity, sp_config))
-      return reason
-    end
-
-    I18n.t("saml.denial.disallow_slack") if sp_config[:slug] == "slack" && identity.disallow_slack
-  end
-
-  # required_entitlements: any one of them admits. A slug that doesn't resolve shuts
-  # everyone out (SPEC §7.2) rather than quietly shrinking the list.
-  def saml_directory_requirement_denial(identity, sp_config)
-    required = sp_config[:required_entitlements]
-    return if required.blank?
-
-    entitlements = Directory::Collection.entitlements.where(slug: required)
-    missing_slugs = required - entitlements.pluck(:slug)
-
-    if missing_slugs.any?
-      Rails.logger.error("[SAML] required_entitlements references missing slugs: #{missing_slugs.join(', ')} for SP #{sp_config[:slug]}")
-      Sentry.capture_message("SAML requirement references missing entitlement", level: :error, extra: { sp: sp_config[:slug], missing_slugs: missing_slugs }) if defined?(Sentry)
-      return I18n.t("saml.denial.misconfigured")
-    end
-
-    person = saml_directory_person(identity)
-    unless person && Directory::EffectiveMembership.where(collection_id: entitlements.select(:id), person_id: person.id).exists?
-      I18n.t("saml.denial.no_access")
-    end
-  end
+  def saml_access_denial(identity, sp_config) = SAMLService::Access.denial(identity, sp_config)
 
   def saml_issuer
     @saml_issuer ||= SAML2::NameID.new(SAMLService::Entities.idp_entity.entity_id)
