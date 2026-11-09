@@ -101,16 +101,17 @@ class ApplicationController < ActionController::Base
     :basic_info
   end
 
-  rescue_from ActiveRecord::RecordNotFound do |e|
-    Sentry.capture_exception(e)
-    render "errors/not_found", layout: "errors", status: :not_found
-  end
-
+  # rescue_from matches the most recently declared handler first, so the
+  # catch-all has to come before the specific ones or it shadows them
   rescue_from StandardError do |e|
     raise e if Rails.env.local?
 
     @event_id = Sentry.capture_exception(e)&.event_id
     render "errors/internal_server_error", layout: "errors", status: :internal_server_error
+  end
+
+  rescue_from ActiveRecord::RecordNotFound, ActionController::RoutingError do
+    render "errors/not_found", layout: "errors", status: :not_found
   end
 
   private
