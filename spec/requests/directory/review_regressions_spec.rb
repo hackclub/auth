@@ -200,7 +200,7 @@ RSpec.describe "Directory review regressions", type: :request do
 
     it "accepts a valid ISO date" do
       post directory_collection_memberships_path(group.slug), params: { email: person.primary_email, expires_at: "2099-03-01" }
-      expect(Directory::Membership.find_by!(collection: group).expires_at).to eq(Time.zone.parse("2099-03-01"))
+      expect(Directory::Expiry.date_for(Directory::Membership.find_by!(collection: group).expires_at)).to eq(Date.new(2099, 3, 1))
     end
 
     it "says a past expiry is in the past, not that everyone was not found" do

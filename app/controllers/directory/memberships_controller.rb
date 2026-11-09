@@ -261,14 +261,12 @@ module Directory
       Directory::Membership.purge_expired!(@collection.memberships.where(member_group_id:)) if member_group_id
     end
 
-    # Same rule as the CSV import (Directory::Import#parse_expires_at): unambiguous ISO 8601
-    # only, because Time.zone.parse rolls 2027-02-30 into March 2. Must be in the future,
-    # checked here once so a batch reports the real reason instead of N "not found"s.
+    # Checked once up front so a batch reports the real reason instead of N "not found"s.
     def validated_expires_at
       raw = params[:expires_at].to_s.strip.presence
       return nil unless raw
 
-      parsed = parse_strict_expires_at(raw)
+      parsed = Directory::Expiry.parse(raw)
       alert = if parsed.nil? then t("directory.flash.invalid_expires_at")
       elsif parsed <= Time.current then t("directory.flash.expires_at_in_past")
       end
@@ -276,15 +274,6 @@ module Directory
 
       redirect_back fallback_location: collection_fallback_path, alert: alert
       :invalid
-    end
-
-    def parse_strict_expires_at(raw)
-      date = Directory::Import::EXPIRES_AT_FORMAT.match(raw)&.captures&.map(&:to_i)
-      return unless date && Date.valid_date?(*date)
-
-      Time.zone.iso8601(raw.sub(" ", "T"))
-    rescue ArgumentError
-      nil
     end
 
     def refuse_rate_limited

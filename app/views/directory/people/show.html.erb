@@ -104,7 +104,7 @@
         <div class="dir-section-form">
           <%= f.text_field :collection_slug, placeholder: t("directory.people.show.pick_group"), style: "flex: 1;", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path }, onchange: "this.form.action = this.form.dataset.membershipUrlTemplate.replace('__SLUG__', this.value)" %>
           <input type="hidden" name="member_person_id" value="<%= @person.id %>">
-          <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" style="border: none; width: auto;" title="expiry (optional)">
+          <input type="date" name="expires_at" min="<%= Directory::Expiry.first_selectable_date.iso8601 %>" style="border: none; width: auto;" title="expiry (optional)">
           <button type="submit" size-="small"><%= t("directory.people.show.add_btn") %></button>
         </div>
       <% end %>

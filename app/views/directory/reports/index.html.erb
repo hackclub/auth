@@ -18,7 +18,7 @@
               <tr>
                 <td><%= link_to m.member_person.full_name, directory_person_path(m.member_person) %></td>
                 <td><%= link_to m.collection.name, directory_collection_path(m.collection.slug) %></td>
-                <td><%= m.expires_at.strftime("%Y-%m-%d") %> <span style="color: var(--yellow);">(in <%= distance_of_time_in_words_to_now(m.expires_at) %>)</span></td>
+                <td><%= Directory::Expiry.label(m.expires_at) %> <span style="color: var(--yellow);">(in <%= distance_of_time_in_words_to_now(m.expires_at) %>)</span></td>
               </tr>
             <% end %>
           </tbody>

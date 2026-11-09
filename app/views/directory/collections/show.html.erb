@@ -8,7 +8,7 @@
     color = expired ? "red" : (expiring_soon ? "yellow" : "foreground2")
     label = distance_of_time_in_words_to_now(expires_at)
     label = expired ? "expired #{label} ago" : "in #{label}"
-    %(<span style="color: var(--#{color});" title="#{expires_at.strftime('%Y-%m-%d %H:%M %Z')}">#{label}</span>).html_safe
+    %(<span style="color: var(--#{color});" title="#{Directory::Expiry.label(expires_at)}">#{label}</span>).html_safe
   }
 %>
 <div class="dir-page">
@@ -102,7 +102,7 @@
               <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
             </div>
             <row gap-="1" align-="center" style="justify-content: flex-end;">
-              <label style="color: var(--foreground2); white-space: nowrap; font-size: 0.85em;">expires: <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" aria-label="expiry date" style="border: none; width: auto;"></label>
+              <label style="color: var(--foreground2); white-space: nowrap; font-size: 0.85em;">expires: <input type="date" name="expires_at" min="<%= Directory::Expiry.first_selectable_date.iso8601 %>" aria-label="expiry date" style="border: none; width: auto;"></label>
               <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
             </row>
           </div>
@@ -158,7 +158,7 @@
               <script type="application/json" class="picker-initial-data"><%= { searchUrl: directory_picker_search_path, name: "identifiers", placeholder: t("directory.collections.show.email_placeholder") }.to_json.html_safe %></script>
             </div>
             <row gap-="1" align-="center" style="justify-content: flex-end;">
-              <label style="color: var(--foreground2); white-space: nowrap; font-size: 0.85em;">expires: <input type="date" name="expires_at" min="<%= Date.tomorrow.iso8601 %>" aria-label="expiry date" style="border: none; width: auto;"></label>
+              <label style="color: var(--foreground2); white-space: nowrap; font-size: 0.85em;">expires: <input type="date" name="expires_at" min="<%= Directory::Expiry.first_selectable_date.iso8601 %>" aria-label="expiry date" style="border: none; width: auto;"></label>
               <button type="submit" size-="small"><%= t("directory.collections.show.add_person") %></button>
             </row>
           </div>

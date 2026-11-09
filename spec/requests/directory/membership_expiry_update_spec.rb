@@ -32,8 +32,8 @@ RSpec.describe "Directory membership expiry update", type: :request do
     }.not_to change { Directory::MembershipChange.where(op: "removed").count }
 
     expect(flash[:notice]).to eq(I18n.t("directory.flash.expiry_updated"))
-    expect(membership.reload.expires_at.to_date).to eq(new_date)
-    expect(Directory::EffectiveMembership.find_by!(person_id: person.id, collection_id: group.id).expires_at.to_date).to eq(new_date)
+    expect(Directory::Expiry.date_for(membership.reload.expires_at)).to eq(new_date)
+    expect(Directory::Expiry.date_for(Directory::EffectiveMembership.find_by!(person_id: person.id, collection_id: group.id).expires_at)).to eq(new_date)
     expect(PublicActivity::Activity.where(key: "directory_collection.member_expiry_changed")).to exist
   end
 

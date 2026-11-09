@@ -1,6 +1,6 @@
 <%= render Components::PublicActivity::Snippet.new(activity) do %>
   <% if activity.parameters["expires_at"].present? %>
-    set <%= activity.parameters["member_type"] || "member" %> <b><%= activity.parameters["member_name"] || "(unknown)" %></b> in <b><%= activity.trackable&.name || "(deleted)" %></b> to expire <%= Time.zone.parse(activity.parameters["expires_at"]).strftime("%Y-%m-%d") %>.
+    set <%= activity.parameters["member_type"] || "member" %> <b><%= activity.parameters["member_name"] || "(unknown)" %></b> in <b><%= activity.trackable&.name || "(deleted)" %></b> to expire <%= Directory::Expiry.label(Time.zone.parse(activity.parameters["expires_at"])) %>.
   <% else %>
     removed the expiry on <%= activity.parameters["member_type"] || "member" %> <b><%= activity.parameters["member_name"] || "(unknown)" %></b> in <b><%= activity.trackable&.name || "(deleted)" %></b>.
   <% end %>

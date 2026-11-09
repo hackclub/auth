@@ -34,7 +34,7 @@ RSpec.describe "Directory import expires_at", type: :request do
       get directory_new_import_path
 
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body.text).to include("YYYY-MM-DD (midnight UTC)")
+      expect(response.parsed_body.text).to include("through the end of that day, anywhere on earth")
     end
   end
 

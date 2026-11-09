@@ -12,9 +12,6 @@ module Directory
     # Applies to every way CSV reaches us (file upload, pasted text, the preview's re-post).
     MAX_CSV_BYTES = 2.megabytes
 
-    # YYYY-MM-DD, optionally followed by a time (after T or a space) and a Z or ±HH:MM offset.
-    EXPIRES_AT_FORMAT = /\A(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-](?:[01]\d|2[0-3])(?::?[0-5]\d)?)?)?\z/i
-
     def self.call(csv_string:, dry_run: false, created_by:)
       new(csv_string:, dry_run:, created_by:).call
     end
@@ -86,7 +83,7 @@ module Directory
 
         expires_at = nil
         if expires_at_raw
-          expires_at = parse_expires_at(expires_at_raw)
+          expires_at = Directory::Expiry.parse(expires_at_raw)
           if expires_at.nil?
             @errors << { row: idx + 1, email:, message: "invalid expires_at: #{expires_at_raw} (use YYYY-MM-DD or an ISO 8601 datetime)" }
             next
@@ -101,19 +98,6 @@ module Directory
 
         @rows << { email:, slug:, expires_at:, row_num: idx + 1 }
       end
-    end
-
-    # Strict on purpose, because Time.zone.parse guesses: nil for "tomorrow" (a membership that
-    # never expires), today's midnight for "next friday", Feb 1 for "1/2/2027", and March 2 for
-    # "2027-02-30". For an access expiry a wrong guess is worse than a row error, so anything but
-    # unambiguous ISO 8601 returns nil. A bare date means midnight in Time.zone (UTC).
-    def parse_expires_at(raw)
-      date = EXPIRES_AT_FORMAT.match(raw)&.captures&.map(&:to_i)
-      return unless date && Date.valid_date?(*date)
-
-      Time.zone.iso8601(raw.sub(" ", "T"))
-    rescue ArgumentError # out-of-range time, e.g. hour 25
-      nil
     end
 
     def resolve_rows
