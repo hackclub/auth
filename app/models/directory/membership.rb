@@ -7,9 +7,15 @@ module Directory
 
     after_create :track_membership_change
     after_destroy :track_membership_change
+    # an extended membership can lapse (and be swept) again
+    before_update -> { self.expiry_recorded_at = nil }, if: :expires_at_changed?
 
     scope :active, -> { where("expires_at IS NULL OR expires_at > ?", Time.current) }
     scope :expired, -> { where("expires_at <= ?", Time.current) }
+    # Lapsed but not yet swept. Compared against the database's NOW() (transaction start),
+    # the same clock GraphQueries uses, so anything swept here is already gone from the
+    # rebuild that runs in the same transaction.
+    scope :expiry_unrecorded, -> { where(expiry_recorded_at: nil).where("expires_at <= NOW()") }
 
     belongs_to :collection, class_name: "Directory::Collection"
     belongs_to :member_person, class_name: "Directory::Person", optional: true
@@ -20,6 +26,31 @@ module Directory
     validate :member_group_must_be_group, if: -> { member_group_id.present? }
     validate :no_cycles_and_depth_within_limit, if: -> { member_group_id.present? }
     validate :expires_at_in_future, if: -> { expires_at.present? && expires_at_changed? }
+
+    # Writes the audit trail for every membership that has lapsed since the last sweep:
+    # a "membership expired" activity on the collection and a paper_trail version stamping
+    # expiry_recorded_at. Run inside Directory.mutate! so the rebuild drops them in the
+    # same transaction. Returns how many were recorded.
+    def self.record_expiries!
+      count = 0
+      expiry_unrecorded.includes(:collection, :member_group, member_person: :identity).find_each do |membership|
+        membership.record_expiry!
+        count += 1
+      end
+      count
+    end
+
+    def record_expiry!
+      create_membership_activity(:member_removed, owner: nil, reason: "expired")
+      paper_trail.update_columns(expiry_recorded_at: Time.current)
+    end
+
+    # Deletes lapsed rows so a re-add gets past the unique index. Goes through destroy
+    # (not delete_all) so each row leaves a paper_trail destroy version; the activity is
+    # skipped for rows the sweep already recorded, and says "expired" for any it hasn't.
+    def self.purge_expired!(relation)
+      relation.expired.find_each(&:destroy!)
+    end
 
     private
 
@@ -93,8 +124,16 @@ module Directory
     end
 
     def track_membership_change
-      action = destroyed? ? :member_removed : :member_added
-      owner = activity_owner
+      if destroyed?
+        return if expiry_recorded_at.present?
+        reason = (expires_at.present? && expires_at <= Time.current) ? "expired" : "removed"
+        create_membership_activity(:member_removed, owner: activity_owner, reason: reason)
+      else
+        create_membership_activity(:member_added, owner: activity_owner)
+      end
+    end
+
+    def create_membership_activity(action, owner:, reason: nil)
       member = member_person || member_group
       return unless member
 
@@ -102,7 +141,7 @@ module Directory
       type = member_person_id ? "person" : "group"
 
       params = { member_name: name, member_type: type }
-      params[:reason] = (expires_at.present? && expires_at <= Time.current) ? "expired" : "removed" if destroyed?
+      params[:reason] = reason if reason
 
       collection&.create_activity action,
         owner: owner,

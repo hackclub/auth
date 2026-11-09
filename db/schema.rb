@@ -276,8 +276,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_000003) do
     t.bigint "created_by_identity_id"
     t.datetime "expires_at"
     t.datetime "created_at", null: false
+    t.datetime "expiry_recorded_at"
     t.index ["collection_id", "member_group_id"], name: "idx_membership_group_unique", unique: true, where: "(member_group_id IS NOT NULL)"
     t.index ["collection_id", "member_person_id"], name: "idx_membership_person_unique", unique: true, where: "(member_person_id IS NOT NULL)"
+    t.index ["collection_id"], name: "index_directory_memberships_on_collection_id"
     t.index ["member_group_id"], name: "index_directory_memberships_on_member_group_id", where: "(member_group_id IS NOT NULL)"
     t.index ["member_person_id"], name: "index_directory_memberships_on_member_person_id", where: "(member_person_id IS NOT NULL)"
     t.check_constraint "member_group_id <> collection_id", name: "chk_membership_no_self_reference"
