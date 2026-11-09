@@ -32,7 +32,7 @@ module Directory
 
       if params[:email].present?
         # Add by email or public ID — find identity, create directory person if needed
-        identity = lookup_identity(params[:email].strip)
+        identity = resolve_identifier(params[:email].strip)
         unless identity
           redirect_back fallback_location: directory_collection_path(@collection.slug),
             alert: t("directory.flash.email_not_found")
