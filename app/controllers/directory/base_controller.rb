@@ -13,7 +13,8 @@ module Directory
     before_action :ensure_directory_access!
     after_action :verify_authorized, unless: :skip_authorization?
 
-    helper_method :current_directory_person, :directory_admin?, :breadcrumbs, :directory_keyboard_shortcuts
+    helper_method :current_directory_person, :directory_admin?, :breadcrumbs, :directory_keyboard_shortcuts,
+      :directory_activity_owner
 
     private
 
@@ -30,6 +31,12 @@ module Directory
     def preload_activities(activities)
       records = activities.to_a
       ActiveRecord::Associations::Preloader.new(records: records, associations: :owner).call
+
+      owners = records.map(&:owner).grep(::Identity).uniq
+      ActiveRecord::Associations::Preloader.new(records: owners, associations: :directory_person).call
+      owner_people = owners.filter_map(&:directory_person)
+      visible = policy_scope(Directory::Person).where(id: owner_people.map(&:id)).pluck(:id).to_set
+      activity_owner_visibility.merge!(owner_people.to_h { |p| [ p.id, visible.include?(p.id) ] })
       ActiveRecord::Associations::Preloader.new(records: records, associations: :trackable).call
 
       trackables = records.filter_map(&:trackable).group_by(&:class)
@@ -41,6 +48,22 @@ module Directory
         ActiveRecord::Associations::Preloader.new(records: trackables[klass], associations: associations).call
       end
       activities
+    end
+
+    # Activity owners link to their directory page when the viewer can open it, else plain
+    # text: the backend identity page the shared snippet would link to isn't theirs to open.
+    def directory_activity_owner(owner)
+      person = owner.directory_person
+      href = directory_person_path(person) if person && activity_owner_visible?(person)
+      Components::DirectoryOwnerMention.new(name: "#{owner.first_name} #{owner.last_name}", href:)
+    end
+
+    def activity_owner_visible?(person)
+      activity_owner_visibility.fetch(person.id) { activity_owner_visibility[person.id] = policy(person).show? }
+    end
+
+    def activity_owner_visibility
+      @activity_owner_visibility ||= {}
     end
 
     def current_directory_person

@@ -17,6 +17,8 @@ class Components::PublicActivity::Snippet < Components::Base
 
           if owner.nil?
             i { "System" }
+          elsif owner.is_a?(::Identity) && view_context.respond_to?(:directory_activity_owner)
+            render view_context.directory_activity_owner(owner)
           elsif owner.is_a?(::Backend::User) || owner.is_a?(::Identity)
             render Components::UserMention.new(owner)
           elsif owner.is_a?(::Program)
