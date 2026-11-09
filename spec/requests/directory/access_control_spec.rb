@@ -48,9 +48,21 @@ RSpec.describe "Directory access control", type: :request do
   # Pundit::NotAuthorizedError → BaseController's rescue_from → directory_root_path.
   # ExposuresController/AppRequirementsController (not under BaseController) → root_path.
 
+  # A denied write redirects, but so does a successful one, so status alone proves nothing:
+  # writes also have to leave every directory table exactly as it was.
+  def directory_state
+    [
+      Directory::Collection, Directory::Membership, Directory::Grant,
+      Directory::Exposure, Directory::AppRequirement, Directory::Person
+    ].to_h { |m| [ m.name, m.unscoped.map(&:attributes).sort_by { |a| a.values.map(&:to_s) } ] }
+  end
+
   def expect_denied(method, path, **opts)
+    before = directory_state
     send(method, path, **opts)
-    expect(response.status).to be_in([302, 404])
+    expect(response.status).to be_in([ 302, 403, 404 ])
+    expect(flash[:notice]).to be_blank
+    expect(directory_state).to eq(before) unless method == :get
   end
 
   # ═══════════════════════════════════════════════════════════════
