@@ -4,7 +4,11 @@
     <div class="error-icon"><%= inline_icon("private", size: 80) %></div>
 
     <h1 class="error-title">can't log in</h1>
-    <p class="error-description"><%= @error %></p>
+    <% if @missing_message %>
+      <p class="error-description">this login link is missing its SAML request. head back to the app you were signing in to and start the login from there.</p>
+    <% else %>
+      <p class="error-description"><%= @error %></p>
+    <% end %>
 
     <a href="/" role="button">go home →</a>
   </div>
