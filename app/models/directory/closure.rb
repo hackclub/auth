@@ -32,18 +32,5 @@ module Directory
 
       best_by_ancestor.transform_values { |desc_id| collections[desc_id] ? [ collections[desc_id] ] : [] }
     end
-
-    # Single-ancestor version of batch_via_paths. Currently unused (batch version preferred).
-    def self.via_path(direct_collection_ids, ancestor_id)
-      link = where(ancestor_id: ancestor_id)
-        .where(descendant_id: direct_collection_ids.to_a)
-        .where.not(descendant_id: ancestor_id)
-        .order(:depth)
-        .first
-      return [] unless link
-
-      child = Directory::Collection.find_by(id: link.descendant_id)
-      child ? [ child ] : []
-    end
   end
 end

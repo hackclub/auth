@@ -5,7 +5,6 @@ module Directory
     TRACKABLE_TYPES = %w[
       Directory::Collection
       Directory::Person
-      Directory::Membership
       Directory::Grant
       Directory::Exposure
     ].freeze
