@@ -75,8 +75,12 @@ module Directory
         .where(entitlement_id: ent_ids).group_by(&:app)
     end
 
-    def revocation_entry(app_ids)
-      { identity_id: identity_id, email: primary_email, app_ids: app_ids }
+    # entitlement_ids: which entitlements were lost, so AfterChangeJob can tell whether the
+    # loss still stands when it runs. Omit when the loss is permanent (person/collection deleted).
+    def revocation_entry(app_ids, entitlement_ids: nil)
+      entry = { identity_id: identity_id, email: primary_email, app_ids: app_ids }
+      entry[:entitlement_ids] = entitlement_ids if entitlement_ids
+      entry
     end
 
     def revocation_data
