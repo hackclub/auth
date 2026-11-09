@@ -116,7 +116,6 @@ module Directory
       miss = Directory::CollectionsController::EMAIL_LOOKUP_MISS_KEY
       activities.where(trackable_type: "Directory::Collection", trackable_id: visible).where.not(key: miss)
         .or(activities.where(trackable_type: "Directory::Collection", key: miss, trackable_id: manageable_collection_ids))
-        .or(activities.where(trackable_type: "Directory::Membership", recipient_type: "Directory::Collection", recipient_id: visible))
         .or(activities.where(trackable_type: "Directory::Grant", trackable_id: Directory::Grant.where(target_collection_id: visible).select(:id)))
         .or(activities.where(trackable_type: "Directory::Exposure", trackable_id: Directory::Exposure.where(entitlement_id: visible).select(:id)))
         .or(activities.where(trackable_type: "Directory::Person", trackable_id: policy_scope(Directory::Person).select(:id)))
