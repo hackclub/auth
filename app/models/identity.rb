@@ -357,6 +357,16 @@ class Identity < ApplicationRecord
     update!(locked_at: Time.current)
     sessions.update_all(expires_at: Time.current)
     all_access_tokens.update_all(revoked_at: Time.current)
+
+    # HCA-side tokens are dead above, but apps with a revoker hold their own
+    # sessions; tell them too
+    directory_person&.revocation_data&.each do |rev|
+      rev[:app_ids].each do |app_id|
+        next unless Directory::AppRevoker.exists?(app_id: app_id, enabled: true)
+
+        Directory::RevokeSessionJob.perform_later(app_id: app_id, email: primary_email)
+      end
+    end
   end
 
   def self.calculate_age(birthday)
