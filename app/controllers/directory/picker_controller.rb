@@ -26,14 +26,11 @@ module Directory
 
     private
 
-    # Intentionally unscoped — the directory only contains affiliated people,
-    # and the picker needs to find them regardless of collection visibility.
+    # Partial search only covers people the viewer can already see; adding someone new
+    # takes their exact email, which resolves regardless. ident! ids skip the picker.
     def search_people(query)
-      # Public IDs bypass the picker — they're submitted directly via the form
-      # to avoid exposing profile data for the 50k identities outside the directory.
       return [] if query.start_with?("ident!")
 
-      # Exact email match — always works, even below 3 chars
       if query.include?("@")
         person = Directory::Person.joins(:identity).find_by("lower(identities.primary_email) = ?", query.downcase)
         return [ person_result(person) ] if person
@@ -48,7 +45,7 @@ module Directory
 
       return [] if query.length < 3
 
-      Directory::Person.search(query)
+      policy_scope(Directory::Person).search(query)
         .includes(:identity)
         .limit(20)
         .map { |p| person_result(p) }
