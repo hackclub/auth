@@ -31,8 +31,10 @@ module Directory
       )
 
       if params[:email].present?
-        # Add by email or public ID — find identity, create directory person if needed
-        identity = resolve_identifier(params[:email].strip)
+        # Add by email or public ID — find identity, create directory person if needed.
+        # Goes through the same audited lookup as batch_create (SPEC §3.1).
+        identifier = params[:email].strip
+        identity = bulk_lookup_identities([ identifier ])[identifier]
         unless identity
           redirect_back fallback_location: directory_collection_path(@collection.slug),
             alert: t("directory.flash.email_not_found")
@@ -91,7 +93,7 @@ module Directory
       end
 
       Directory.mutate!(cause: Directory.cause("membership_created", actor: current_identity.id)) do
-        @collection.memberships.expired.where(member_person_id: membership.member_person_id).delete_all if membership.member_person_id
+        clear_expired!(member_person_id: membership.member_person_id, member_group_id: membership.member_group_id)
         membership.save!
       end
 
@@ -99,17 +101,14 @@ module Directory
         notice: t("directory.flash.member_added")
 
     rescue ActiveRecord::RecordNotFound
-      redirect_back fallback_location: directory_collection_path(@collection.slug),
-        alert: t("directory.flash.member_not_found")
+      missing_collection! unless @collection
+      redirect_back fallback_location: collection_fallback_path, alert: t("directory.flash.member_not_found")
     rescue ActiveRecord::RecordInvalid => e
-      redirect_back fallback_location: directory_collection_path(@collection.slug),
-        alert: e.record.errors.full_messages.to_sentence
+      redirect_back fallback_location: collection_fallback_path, alert: e.record.errors.full_messages.to_sentence
     rescue ActiveRecord::InvalidForeignKey
-      redirect_back fallback_location: directory_collection_path(@collection.slug),
-        alert: t("directory.flash.member_not_found")
+      redirect_back fallback_location: collection_fallback_path, alert: t("directory.flash.member_not_found")
     rescue ActiveRecord::RecordNotUnique
-      redirect_back fallback_location: directory_collection_path(@collection.slug),
-        alert: t("directory.flash.already_a_member")
+      redirect_back fallback_location: collection_fallback_path, alert: t("directory.flash.already_a_member")
     end
 
     def batch_create
@@ -135,7 +134,7 @@ module Directory
 
       added = []
       skipped = []
-      not_found = []
+      failed = []
 
       identities_by_identifier = bulk_lookup_identities(identifiers)
       not_found = identifiers.reject { |id| identities_by_identifier.key?(id) }
@@ -150,7 +149,7 @@ module Directory
               next
             end
 
-            @collection.memberships.expired.where(member_person: person).delete_all
+            clear_expired!(member_person_id: person.id)
 
             Directory::Membership.create!(
               collection: @collection,
@@ -162,7 +161,9 @@ module Directory
           rescue ActiveRecord::RecordNotUnique
             skipped << identifier
           rescue ActiveRecord::RecordInvalid
-            not_found << identifier
+            # the identity exists, so this isn't "not found"; expiry is checked up front,
+            # so whatever's left is a row-level validation failure
+            failed << identifier
           end
         end
       end
@@ -171,6 +172,7 @@ module Directory
       parts << t("directory.flash.batch_added", count: added.size) if added.any?
       parts << t("directory.flash.batch_skipped", count: skipped.size) if skipped.any?
       parts << t("directory.flash.batch_not_found", count: not_found.size, items: not_found.first(3).join(", ")) if not_found.any?
+      parts << t("directory.flash.batch_failed", count: failed.size, items: failed.first(3).join(", ")) if failed.any?
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         notice: parts.join(". ")
@@ -212,20 +214,53 @@ module Directory
       Directory::Person.find_or_create_for_identity!(identity, created_by: current_identity)
     end
 
+    def collection_fallback_path
+      @collection ? directory_collection_path(@collection.slug) : directory_root_path
+    end
+
+    # The collection lookup itself failed, so nothing was authorized. Admins get a flash
+    # (people/show's add-to-group form builds the URL from whatever they typed); anyone
+    # else gets the plain 404 so a missing slug and a hidden one look the same.
+    def missing_collection!
+      raise ActiveRecord::RecordNotFound unless directory_admin?
+
+      skip_authorization
+    end
+
+    # Removes expired rows for this member so the unique index lets the re-add through.
+    # Covers groups too: an expired nesting row is hidden on entitlement pages (that list is
+    # .active only), so without this there's no way to clear it.
+    # destroy (not delete_all) so the expired row leaves a paper_trail version, and
+    # records its expiry activity if the sweep hasn't already.
+    def clear_expired!(member_person_id: nil, member_group_id: nil)
+      Directory::Membership.purge_expired!(@collection.memberships.where(member_person_id:)) if member_person_id
+      Directory::Membership.purge_expired!(@collection.memberships.where(member_group_id:)) if member_group_id
+    end
+
+    # Same rule as the CSV import (Directory::Import#parse_expires_at): unambiguous ISO 8601
+    # only, because Time.zone.parse rolls 2027-02-30 into March 2. Must be in the future,
+    # checked here once so a batch reports the real reason instead of N "not found"s.
     def validated_expires_at
-      raw = params[:expires_at].presence
+      raw = params[:expires_at].to_s.strip.presence
       return nil unless raw
-      parsed = Time.zone.parse(raw.to_s)
-      unless parsed
-        redirect_back fallback_location: directory_collection_path(@collection.slug),
-          alert: t("directory.flash.invalid_expires_at")
-        return :invalid
+
+      parsed = parse_strict_expires_at(raw)
+      alert = if parsed.nil? then t("directory.flash.invalid_expires_at")
+      elsif parsed <= Time.current then t("directory.flash.expires_at_in_past")
       end
-      parsed
-    rescue ArgumentError
-      redirect_back fallback_location: directory_collection_path(@collection.slug),
-        alert: t("directory.flash.invalid_expires_at")
+      return parsed unless alert
+
+      redirect_back fallback_location: collection_fallback_path, alert: alert
       :invalid
+    end
+
+    def parse_strict_expires_at(raw)
+      date = Directory::Import::EXPIRES_AT_FORMAT.match(raw)&.captures&.map(&:to_i)
+      return unless date && Date.valid_date?(*date)
+
+      Time.zone.iso8601(raw.sub(" ", "T"))
+    rescue ArgumentError
+      nil
     end
 
     def refuse_rate_limited
@@ -261,15 +296,6 @@ module Directory
       end
 
       result
-    end
-
-    def resolve_identifier(input)
-      return Identity.find_by("lower(primary_email) = ?", input.downcase) unless input.start_with?("ident!")
-
-      identity = Identity.find_by_public_id(input)
-      return identity if identity.nil? || directory_admin?
-
-      identity if Directory::Person.exists?(identity_id: identity.id)
     end
 
     def group_membership_refusal(group)

@@ -4,6 +4,8 @@ require "csv"
 
 module Directory
   class CollectionsController < BaseController
+    EMAIL_LOOKUP_MISS_KEY = "directory_collection.email_lookup_miss"
+
     before_action :set_collection, only: %i[show edit update destroy activity export]
 
     def index
@@ -11,7 +13,7 @@ module Directory
         .select(
           "directory_collections.*",
           Arel.sql(ActiveRecord::Base.sanitize_sql_array([
-            "(SELECT COUNT(*) FROM directory_memberships WHERE directory_memberships.collection_id = directory_collections.id AND (directory_memberships.expires_at IS NULL OR directory_memberships.expires_at > ?)) AS preloaded_direct_count", Time.current
+            "(SELECT COUNT(*) FROM directory_memberships WHERE directory_memberships.collection_id = directory_collections.id AND directory_memberships.member_person_id IS NOT NULL AND (directory_memberships.expires_at IS NULL OR directory_memberships.expires_at > ?)) AS preloaded_direct_count", Time.current
           ])),
           Arel.sql(ActiveRecord::Base.sanitize_sql_array([
             "(SELECT COUNT(*) FROM directory_effective_memberships WHERE directory_effective_memberships.collection_id = directory_collections.id AND (directory_effective_memberships.expires_at IS NULL OR directory_effective_memberships.expires_at > ?)) AS preloaded_effective_count", Time.current
@@ -79,14 +81,13 @@ module Directory
         @wired_exposures = Directory::Exposure.where(entitlement_id: @collection.id).includes(:app, :created_by)
       end
 
-      @recent_activities = PublicActivity::Activity
-        .where(trackable: @collection)
-        .order(created_at: :desc)
-        .limit(5)
+      @recent_activities = visible_activities.order(created_at: :desc).limit(5)
 
+      # Computed from the rows the page actually renders: groups show @all_memberships
+      # (its own pagination and order), entitlements show @direct_people_memberships.
       @consequences = if policy(@collection).manage_members?
         Directory::Consequence.batch_removal_summaries(
-          memberships: @direct_people_memberships.to_a, collection: @collection
+          memberships: (@collection.group? ? @all_memberships : @direct_people_memberships).to_a, collection: @collection
         )
       else
         {}
@@ -183,8 +184,7 @@ module Directory
       add_breadcrumb @collection.name, directory_collection_path(@collection.slug)
       add_breadcrumb t("directory.collections.activity.title", name: @collection.name)
 
-      @activities = PublicActivity::Activity
-        .where(trackable: @collection)
+      @activities = visible_activities
         .order(created_at: :desc)
         .page(params[:page])
         .per(50)
@@ -220,6 +220,15 @@ module Directory
     end
 
     private
+
+    # Lookup misses hold the raw address someone typed. They're the audit trail for people
+    # who can add members (SPEC §3.1), not something every viewer gets to read.
+    def visible_activities
+      scope = PublicActivity::Activity.where(trackable: @collection)
+      return scope if policy(@collection).manage_members?
+
+      scope.where.not(key: EMAIL_LOOKUP_MISS_KEY)
+    end
 
     def set_collection
       @collection = Directory::Collection.find_by!(slug: params[:slug])

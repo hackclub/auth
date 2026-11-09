@@ -46,7 +46,10 @@ module Directory
         .select { |c| policy(c).show? }
 
       @activities = directory_activities_for(@person)
-      @app_exposures = @person.app_exposures
+      # Same rule as the memberships above: an entitlement the viewer can't see doesn't get
+      # named, linked, or hinted at through the app it's exposed to.
+      @app_exposures = @person.app_exposures.transform_values { |exps| exps.select { |e| policy(e.entitlement).show? } }
+        .reject { |_, exps| exps.empty? }
     end
 
     def create
@@ -110,11 +113,21 @@ module Directory
       activities = PublicActivity::Activity
       visible = policy_scope(Directory::Collection).select(:id)
 
-      activities.where(trackable_type: "Directory::Collection", trackable_id: visible)
+      miss = Directory::CollectionsController::EMAIL_LOOKUP_MISS_KEY
+      activities.where(trackable_type: "Directory::Collection", trackable_id: visible).where.not(key: miss)
+        .or(activities.where(trackable_type: "Directory::Collection", key: miss, trackable_id: manageable_collection_ids))
         .or(activities.where(trackable_type: "Directory::Membership", recipient_type: "Directory::Collection", recipient_id: visible))
         .or(activities.where(trackable_type: "Directory::Grant", trackable_id: Directory::Grant.where(target_collection_id: visible).select(:id)))
         .or(activities.where(trackable_type: "Directory::Exposure", trackable_id: Directory::Exposure.where(entitlement_id: visible).select(:id)))
         .or(activities.where(trackable_type: "Directory::Person", trackable_id: policy_scope(Directory::Person).select(:id)))
+    end
+
+    # Lookup misses (raw typed addresses) only show on collections the viewer manages.
+    def manageable_collection_ids
+      person = pundit_user.person
+      return Directory::Collection.none.select(:id) unless person
+
+      Directory::EffectiveGrant.where(person_id: person.id, permission: "manage_members").select(:target_collection_id)
     end
   end
 end

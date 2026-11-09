@@ -8,14 +8,16 @@ module Directory
             params: {
               grantee_name: ->(_c, model) { model.grantee_group&.name },
               target_name: ->(_c, model) { model.target_collection&.name },
-              permission: ->(_c, model) { model.permission }
+              permission: ->(_c, model) { model.permission },
+              recursive: ->(_c, model) { model.recursive }
             }
 
     belongs_to :grantee_group, class_name: "Directory::Collection"
     belongs_to :target_collection, class_name: "Directory::Collection"
     belongs_to :created_by, class_name: "Identity", foreign_key: :created_by_identity_id, optional: true
 
-    validates :permission, inclusion: { in: %w[view manage_members expose] }
+    validates :permission, inclusion: { in: %w[view manage_members expose] },
+                           uniqueness: { scope: %i[grantee_group_id target_collection_id], message: "grant already exists" }
 
     validate :grantee_must_be_group
     validate :recursive_requires_group_target, if: -> { recursive? }
