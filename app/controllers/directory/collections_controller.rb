@@ -81,7 +81,7 @@ module Directory
         @wired_exposures = Directory::Exposure.where(entitlement_id: @collection.id).includes(:app, :created_by)
       end
 
-      @recent_activities = visible_activities.order(created_at: :desc).limit(5)
+      @recent_activities = preload_activities(visible_activities.order(created_at: :desc).limit(5))
 
       # groups render @all_memberships, entitlements @direct_people_memberships
       @consequences = if policy(@collection).manage_members?
@@ -184,10 +184,10 @@ module Directory
       add_breadcrumb @collection.name, directory_collection_path(@collection.slug)
       add_breadcrumb t("directory.collections.activity.title", name: @collection.name)
 
-      @activities = visible_activities
+      @activities = preload_activities(visible_activities
         .order(created_at: :desc)
         .page(params[:page])
-        .per(50)
+        .per(50))
     end
 
     def export

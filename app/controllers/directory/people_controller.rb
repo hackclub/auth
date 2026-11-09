@@ -101,14 +101,13 @@ module Directory
 
       scope = activities.where(trackable_type: Directory::ActivityController::TRACKABLE_TYPES).and(about_person)
       scope = scope.and(activities_in_visible_collections) unless directory_admin?
-      scope.order(created_at: :desc).limit(20)
+      preload_activities(scope.order(created_at: :desc).limit(20))
     end
 
     # Keeps directory activity that belongs to a collection the viewer can see, in SQL so the
-    # 20-row window is filled with rows they may see. Membership rows name their collection as
-    # the recipient, which outlives the membership. Grant and exposure rows are placed through
-    # their live record, and person rows count when the viewer can see that person; once the
-    # record is deleted there's nothing to place the row by, so it stays hidden.
+    # 20-row window is filled with rows they may see. Grant and exposure rows are placed
+    # through their live record; once it's deleted there's nothing to place the row by, so it
+    # stays hidden.
     def activities_in_visible_collections
       activities = PublicActivity::Activity
       visible = policy_scope(Directory::Collection).select(:id)

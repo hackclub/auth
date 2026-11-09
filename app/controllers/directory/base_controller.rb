@@ -17,6 +17,24 @@ module Directory
 
     private
 
+    # Owners, trackables and whatever the directory partials reach through them, in a
+    # handful of queries instead of a few per row.
+    def preload_activities(activities)
+      records = activities.to_a
+      ActiveRecord::Associations::Preloader.new(records: records, associations: :owner).call
+      ActiveRecord::Associations::Preloader.new(records: records, associations: :trackable).call
+
+      trackables = records.filter_map(&:trackable).group_by(&:class)
+      {
+        Directory::Grant => %i[grantee_group target_collection],
+        Directory::Person => :identity
+      }.each do |klass, associations|
+        next unless trackables[klass]
+        ActiveRecord::Associations::Preloader.new(records: trackables[klass], associations: associations).call
+      end
+      activities
+    end
+
     def current_directory_person
       return @current_directory_person if instance_variable_defined?(:@current_directory_person)
       @current_directory_person = Directory::Person.find_by(identity: current_identity)

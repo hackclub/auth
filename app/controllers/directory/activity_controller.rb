@@ -13,11 +13,11 @@ module Directory
       authorize :directory, :admin?
       add_breadcrumb t("directory.activity.title")
 
-      @activities = PublicActivity::Activity
+      @activities = preload_activities(PublicActivity::Activity
         .where(trackable_type: TRACKABLE_TYPES)
         .order(created_at: :desc)
         .page(params[:page])
-        .per(50)
+        .per(50))
     end
   end
 end
