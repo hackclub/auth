@@ -51,6 +51,11 @@ module Shortcodes
         shortcuts << Shortcode.new(code: "DELS", label: "Deletions", controller: "backend/deletions", action: "index", icon: "⭢", role: :super_admin, path_override: nil)
       end
 
+      # SAML certificate management
+      if user&.saml_officer?
+        shortcuts << Shortcode.new(code: "SAML", label: "SAML certificates", controller: "backend/saml_certificates", action: "index", icon: "⭢", role: :saml_officer, path_override: nil)
+      end
+
       # Super admin (less frequent)
       if user&.super_admin?
         shortcuts += [

@@ -42,6 +42,7 @@ module Backend
     def can_break_glass? = can_break_glass
     def can_process_deletions? = can_process_deletions
     def can_ban? = can_ban
+    def saml_officer? = is_saml_officer
 
     # Returns a human-readable string of the user's roles
     def pretty_roles
@@ -51,6 +52,7 @@ module Backend
       roles << "Manual Document Verifier" if manual_document_verifier?
       roles << "Human Endorser" if human_endorser?
       roles << "All Fields Access" if all_fields_access?
+      roles << "SAML Officer" if saml_officer?
       roles << "Ban" if can_ban?
       roles.presence&.join(", ") || "None"
     end

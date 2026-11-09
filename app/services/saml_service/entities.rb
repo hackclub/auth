@@ -1,51 +1,54 @@
 module SAMLService
     module Entities
+        # Signing state as of one SAMLCertificate.version: cert, parsed key and rollover cert read
+        # together, plus anything built from them (idp, metadata). Swapped whole, never mutated piecemeal,
+        # so a request can't end up with one cert's key and another's KeyInfo.
+        class Keys
+            attr_reader :version, :certificate, :private_key, :rollover_certificate
+
+            def initialize(version:, certificate: nil, private_key: nil, rollover_certificate: nil)
+                @version = version
+                @certificate = certificate
+                @private_key = private_key
+                @rollover_certificate = rollover_certificate
+                @memo = {}
+            end
+
+            def signing? = certificate.present? && private_key.present?
+
+            def memo(name) = @memo.fetch(name) { @memo[name] = yield }
+        end
+
+        LOCK = Mutex.new
+
         class << self
-        # returns a SAML2::IdentityProvider object
-        def idp
-            @idp ||= begin
-                idp = SAML2::IdentityProvider.new
+        # one cheap max(updated_at) per call; rebuilds when any worker (or a console) rotated
+        def keys
+            version = SAMLCertificate.version
+            current = @keys
+            return current if current && current.version == version
 
-                # contacts:
-                idp.contacts = idp_meta.dig(:contacts).map { |details| yaml_to_saml(details, SAML2::Contact.new) }
-
-                # organization metadata:
-                idp.organization = SAML2::Organization.new(
-                    idp_meta.dig(:organization, :name),
-                    idp_meta.dig(:organization, :display_name),
-                    idp_meta.dig(:organization, :url)
-                )
-
-                idp.want_authn_requests_signed = false
-                idp.instance_variable_set(:@name_id_formats, [ SAML2::NameID::Format::UNSPECIFIED ])
-
-                # single sign-on services:
-                idp_meta.dig(:single_sign_on_services)&.each do |sso_config|
-                    endpoint = SAML2::Endpoint.new(sso_config[:location], sso_config[:binding])
-                    idp.single_sign_on_services << endpoint
-                end
-
-                idp.keys << signing_key if signing_key.present?
-
-                idp
+            LOCK.synchronize do
+                @keys = load_keys(version) unless @keys && @keys.version == version
+                @keys
             end
         end
 
-        def idp_entity = @idp_entity ||= begin
-            ent = SAML2::Entity.new
-            ent.entity_id = idp_meta.dig(:entity_id)
-            ent.instance_variable_set(:@roles, [ idp ])
-            ent
-        end
+        # returns a SAML2::IdentityProvider object
+        def idp = idp_for(keys)
+
+        def idp_entity = idp_entity_for(keys)
 
         def metadata_xml
-          @metadata_xml ||= begin
-                              xml = idp_entity.to_xml
-                              xml.root.add_child Nokogiri::XML::Comment.new(xml, " haiii :3 ")
-                              xml.add_child Nokogiri::XML::Comment.new(xml, " curious thing, aren't you? – https://hack.af/gh/auth , glory awaits")
-                              xml.to_s
-                            end
+            k = keys
+            k.memo(:metadata_xml) do
+                xml = idp_entity_for(k).to_xml
+                xml.root.add_child Nokogiri::XML::Comment.new(xml, " haiii :3 ")
+                xml.add_child Nokogiri::XML::Comment.new(xml, " curious thing, aren't you? – https://hack.af/gh/auth , glory awaits")
+                xml.to_s
+            end
         end
+
         def service_providers
             @service_providers ||= cfg.dig(:service_providers)&.each_with_object({}) do |sp_config, hash|
             sp = SAML2::ServiceProvider.new
@@ -99,48 +102,71 @@ module SAMLService
 
         def sp_by_slug(slug) = service_providers.values.find { |sp_data| sp_data[:slug] == slug }
 
-        def x509_certificate
-            @cert ||= begin
-                return nil unless (cert_path = ENV["SAML_IDP_CERT_PATH"])
-                File.read(cert_path)
-                    .gsub(/-----(BEGIN|END) CERTIFICATE-----/, "")
-                    .gsub(/\n/, "")
-            end
-        end
-
-        def private_key
-            @key ||= begin
-                return nil unless (key_path = ENV["SAML_IDP_KEY_PATH"])
-                File.read(key_path)
-            end
-        end
-
-        def signing_key
-            @signing_key ||= begin
-                return nil unless x509_certificate && private_key
-
-                SAML2::KeyDescriptor.new(x509_certificate, SAML2::KeyDescriptor::Type::SIGNING)
-            end
-        end
-
-        def validate_keys!
-            raise "SAML IdP private key not configured. Set SAML_IDP_KEY_PATH environment variable." unless private_key.present?
-            raise "SAML IdP certificate not configured. Set SAML_IDP_CERT_PATH environment variable." unless x509_certificate.present?
-
-            # Verify key and cert match
-            cert = OpenSSL::X509::Certificate.new("-----BEGIN CERTIFICATE-----\n#{x509_certificate}\n-----END CERTIFICATE-----")
-            key = OpenSSL::PKey::RSA.new(private_key)
-
-            unless cert.check_private_key(key)
-              raise "SAML IdP certificate and private key do not match!"
-            end
-
-            true
-          rescue OpenSSL::PKey::PKeyError, OpenSSL::X509::CertificateError => e
-            raise "Invalid SAML IdP certificate or key: #{e.message}"
-        end
+        # Bust the snapshot in this process; other processes notice via SAMLCertificate.version
+        def reset! = @keys = nil
 
         private
+
+        # DB-backed with env var fallback. Both roles in one query so a promote can't land between them.
+        def load_keys(version)
+            certs = SAMLCertificate.where(role: %w[signing rollover]).order(:id).to_a if version
+            signing = certs&.find(&:signing?)
+            rollover = certs&.find(&:rollover?)
+
+            if signing
+                Keys.new(version:, certificate: signing.x509_certificate_base64, private_key: signing.private_key,
+                         rollover_certificate: rollover&.x509_certificate_base64)
+            elsif (cert_path = ENV["SAML_IDP_CERT_PATH"]) && (key_path = ENV["SAML_IDP_KEY_PATH"])
+                Keys.new(version:,
+                         certificate: Base64.strict_encode64(OpenSSL::X509::Certificate.new(File.read(cert_path)).to_der),
+                         private_key: OpenSSL::PKey::RSA.new(File.read(key_path)),
+                         rollover_certificate: rollover&.x509_certificate_base64)
+            else
+                Keys.new(version:, rollover_certificate: rollover&.x509_certificate_base64)
+            end
+        end
+
+        def idp_entity_for(k)
+            k.memo(:idp_entity) do
+                ent = SAML2::Entity.new
+                ent.entity_id = idp_meta.dig(:entity_id)
+                ent.instance_variable_set(:@roles, [ idp_for(k) ])
+                ent
+            end
+        end
+
+        def idp_for(k) = k.memo(:idp) { build_idp(k) }
+
+        def build_idp(k)
+            idp = SAML2::IdentityProvider.new
+
+            # contacts:
+            idp.contacts = idp_meta.dig(:contacts).map { |details| yaml_to_saml(details, SAML2::Contact.new) }
+
+            # organization metadata:
+            idp.organization = SAML2::Organization.new(
+                idp_meta.dig(:organization, :name),
+                idp_meta.dig(:organization, :display_name),
+                idp_meta.dig(:organization, :url)
+            )
+
+            idp.want_authn_requests_signed = false
+            idp.instance_variable_set(:@name_id_formats, [ SAML2::NameID::Format::UNSPECIFIED ])
+
+            # single sign-on services:
+            idp_meta.dig(:single_sign_on_services)&.each do |sso_config|
+                endpoint = SAML2::Endpoint.new(sso_config[:location], sso_config[:binding])
+                idp.single_sign_on_services << endpoint
+            end
+
+            idp.keys << SAML2::KeyDescriptor.new(k.certificate, SAML2::KeyDescriptor::Type::SIGNING) if k.signing?
+            # rollover cert published in metadata so SPs can pre-trust it
+            if k.rollover_certificate
+                idp.keys << SAML2::KeyDescriptor.new(k.rollover_certificate, SAML2::KeyDescriptor::Type::SIGNING)
+            end
+
+            idp
+        end
 
         def load_sp_certificate(cert_config)
             return nil unless cert_config.present?
