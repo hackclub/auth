@@ -18,16 +18,18 @@ module DirectoryAppAuthorization
     end
   end
 
+  # Directory admins can wire and unwire any app; owners can on their own app, for
+  # entitlements they hold expose on. Only hq_official apps get new wiring, but anyone
+  # allowed to wire can always unwire (e.g. after an app is downgraded).
+  def can_manage_app_wiring?(app, entitlement)
+    directory_context.admin? || (app_owner?(app) && directory_context.can?(:expose, entitlement))
+  end
+
   def authorize_app_entitlement_wiring!(app, entitlement)
-    unless app_owner?(app) && directory_context.can?(:expose, entitlement) && app.hq_official?
-      raise Pundit::NotAuthorizedError
-    end
+    raise Pundit::NotAuthorizedError unless app.hq_official? && can_manage_app_wiring?(app, entitlement)
   end
 
   def authorize_app_entitlement_unwiring!(app, entitlement)
-    return if directory_context.admin?
-    unless app_owner?(app) && directory_context.can?(:expose, entitlement)
-      raise Pundit::NotAuthorizedError
-    end
+    raise Pundit::NotAuthorizedError unless can_manage_app_wiring?(app, entitlement)
   end
 end
