@@ -178,26 +178,50 @@ module Directory
         notice: parts.join(". ")
     end
 
+    def update
+      membership = Directory::Membership.find(params[:id])
+      @collection = membership.collection
+      authorize membership
+
+      refusal = group_edge_refusal(membership)
+      if refusal
+        redirect_back fallback_location: directory_collection_path(@collection.slug), alert: refusal
+        return
+      end
+
+      expires_at = validated_expires_at
+      return if expires_at == :invalid
+
+      membership.expires_at = expires_at
+      if membership.expires_at_changed?
+        Directory.mutate!(cause: Directory.cause("membership_expiry_changed", target: membership.id, actor: current_identity.id)) do
+          membership.save!
+          @collection.create_activity :member_expiry_changed,
+            owner: current_identity,
+            recipient: membership.member_person,
+            params: {
+              member_name: membership.member_person&.full_name || membership.member_group&.name,
+              member_type: membership.member_person_id ? "person" : "group",
+              expires_at: expires_at&.iso8601
+            }
+        end
+      end
+
+      redirect_back fallback_location: directory_collection_path(@collection.slug),
+        notice: t("directory.flash.expiry_updated")
+    rescue ActiveRecord::RecordInvalid => e
+      redirect_back fallback_location: directory_collection_path(@collection.slug), alert: e.record.errors.full_messages.to_sentence
+    end
+
     def destroy
       membership = Directory::Membership.find(params[:id])
       @collection = membership.collection
       authorize membership
 
-      # Admin only for removing member groups from entitlements (§4)
-      if membership.member_group_id.present? && @collection.entitlement? && !directory_admin?
-        redirect_back fallback_location: directory_collection_path(@collection.slug),
-          alert: t("directory.flash.admin_only_remove_group")
+      refusal = group_edge_refusal(membership)
+      if refusal
+        redirect_back fallback_location: directory_collection_path(@collection.slug), alert: refusal
         return
-      end
-
-      # Bilateral check: removing a group from a group requires permission on both
-      if membership.member_group_id.present? && @collection.group? && !directory_admin?
-        child = Directory::Collection.find_by(id: membership.member_group_id)
-        if child && !pundit_user.can?(:manage_members, child)
-          redirect_back fallback_location: directory_collection_path(@collection.slug),
-            alert: t("directory.flash.need_manage_on_child_group")
-          return
-        end
       end
 
       Directory.mutate!(cause: Directory.cause("membership_removed", target: membership.id, actor: current_identity.id)) do
@@ -296,6 +320,16 @@ module Directory
       end
 
       result
+    end
+
+    # Changing a group edge changes what flows through it: only admins touch groups on
+    # entitlements, and group-in-group needs manage_members on both sides.
+    def group_edge_refusal(membership)
+      return if membership.member_group_id.blank? || directory_admin?
+      return t("directory.flash.admin_only_remove_group") if @collection.entitlement?
+
+      child = Directory::Collection.find_by(id: membership.member_group_id)
+      t("directory.flash.need_manage_on_child_group") if child && !pundit_user.can?(:manage_members, child)
     end
 
     def group_membership_refusal(group)

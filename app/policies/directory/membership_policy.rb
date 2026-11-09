@@ -9,6 +9,10 @@ module Directory
       user.can?(:manage_members, collection)
     end
 
+    def update?
+      create?
+    end
+
     def destroy?
       create?
     end

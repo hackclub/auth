@@ -1,0 +1,4 @@
+<%= form_with url: directory_collection_membership_path(collection.slug, membership), method: :patch, local: true, class: "dir-expiry-form", style: "display: inline-flex; gap: 0.25em; align-items: center;" do |f| %>
+  <input type="date" name="expires_at" value="<%= membership.expires_at&.to_date&.iso8601 %>" min="<%= Date.tomorrow.iso8601 %>" aria-label="<%= t("directory.collections.show.expiry_label") %>" style="border: none; width: auto;">
+  <button type="submit" size-="small"><%= t("directory.collections.show.save_expiry") %></button>
+<% end %>

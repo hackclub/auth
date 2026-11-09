@@ -959,6 +959,7 @@ en:
         group_slug_placeholder: "group slug…"
         grantee_placeholder: "group slug…"
         also_includes: "also includes %{count} through nested groups"
+        expiry_label: "expiry date (empty for never)"
         make_direct: "make direct"
         make_direct_confirm: "stop this grant applying to nested groups?"
         make_recursive: "make recursive"
@@ -974,6 +975,7 @@ en:
         recursive_label: "recursive"
         remove_confirm: "remove %{name}?"
         remove_grant_confirm: "remove this grant?"
+        save_expiry: "set"
         remove_group_confirm: "remove this group?"
         structural_admin_only: "group membership · admin only"
         type_slug_confirm: "type slug to confirm…"
@@ -1031,6 +1033,7 @@ en:
       expires_at_in_past: "expiration date has to be in the future."
       grant_already_exists: "that grant already exists."
       grant_updated: "grant updated."
+      expiry_updated: "expiry updated."
       batch_failed:
         one: "%{count} couldn't be added: %{items}"
         other: "%{count} couldn't be added: %{items}"
