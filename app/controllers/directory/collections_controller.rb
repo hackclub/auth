@@ -169,6 +169,10 @@ module Directory
         redirect_to directory_collection_path(@collection.slug),
           alert: t("directory.collections.cannot_destroy_in_use")
         return
+      rescue ActiveRecord::RecordNotDestroyed => e
+        redirect_to directory_collection_path(@collection.slug),
+          alert: e.record.errors.full_messages.to_sentence
+        return
       end
 
       # Enqueue revocations directly since the rebuild diff won't find them

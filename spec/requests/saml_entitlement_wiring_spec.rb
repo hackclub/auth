@@ -76,6 +76,19 @@ RSpec.describe "SAML SPs and directory entitlements", type: :request do
       expect(required.memberships.reload).not_to be_empty
     end
 
+    it "refuses the delete from the directory UI with a flash" do
+      admin = create(:identity)
+      create(:backend_user, identity: admin, directory_services_admin: true)
+      allow_any_instance_of(ApplicationController).to receive(:current_identity).and_return(admin.reload)
+      allow_any_instance_of(ApplicationController).to receive(:identity_signed_in?).and_return(true)
+
+      delete directory_collection_path(required.slug)
+
+      expect(response).to redirect_to(directory_collection_path(required.slug))
+      expect(flash[:alert]).to include("Gated Sp")
+      expect(Directory::Collection.exists?(required.id)).to be(true)
+    end
+
     it "can't be renamed to a different slug" do
       expect(required.update(slug: "renamed")).to be(false)
       expect(required.errors[:slug].join).to include("Gated Sp")
