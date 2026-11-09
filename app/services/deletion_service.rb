@@ -443,10 +443,10 @@ module DeletionService
     scope = scope.or(PublicActivity::Activity.where(recipient_type: "Directory::Person", recipient_id: dir_person_ids)) if dir_person_ids.any?
 
     # lookup misses from before they had an account sit on the collection with the raw
-    # email in parameters. a separate statement: OR-ing an ILIKE into the scope above
-    # costs it its indexes
+    # email in parameters. a separate statement (OR-ing an ILIKE into the scope above
+    # costs it its indexes), narrowed by trackable_type so it can use the trackable index
     if original_email.present?
-      PublicActivity::Activity.where(key: "directory_collection.email_lookup_miss")
+      PublicActivity::Activity.where(trackable_type: "Directory::Collection", key: "directory_collection.email_lookup_miss")
         .where("parameters ILIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(original_email)}%")
         .update_all(parameters: nil)
     end
