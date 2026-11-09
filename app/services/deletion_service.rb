@@ -438,16 +438,17 @@ module DeletionService
       identity.id, identity.id, identity.id
     )
 
-    # directory rows name the person by Directory::Person, not Identity: added/removed
-    # from a collection (recipient), plus misses from before they had an account, which
-    # sit on the collection with the raw email in parameters
+    # directory rows name the person by Directory::Person, not Identity
     dir_person_ids = activity_trackables.filter_map { |type, id| id if type == "Directory::Person" }
     scope = scope.or(PublicActivity::Activity.where(recipient_type: "Directory::Person", recipient_id: dir_person_ids)) if dir_person_ids.any?
+
+    # lookup misses from before they had an account sit on the collection with the raw
+    # email in parameters. a separate statement: OR-ing an ILIKE into the scope above
+    # costs it its indexes
     if original_email.present?
-      scope = scope.or(
-        PublicActivity::Activity.where(key: "directory_collection.email_lookup_miss")
-          .where("parameters ILIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(original_email)}%")
-      )
+      PublicActivity::Activity.where(key: "directory_collection.email_lookup_miss")
+        .where("parameters ILIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(original_email)}%")
+        .update_all(parameters: nil)
     end
 
     activity_trackables.each_slice(100) do |batch|
