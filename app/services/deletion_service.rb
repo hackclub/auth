@@ -431,9 +431,12 @@ module DeletionService
   SAFE_ACTIVITY_KEY_PREFIXES = %w[verification.].freeze
 
   def self.scrub_activities(identity, activity_trackables, original_email)
+    # directory rows they only authored hold other people's names and the event's structure
+    # (expiry, recursion, reason), never the author's PII; scrubbing them makes the audit
+    # log describe events that didn't happen
     scope = PublicActivity::Activity.where(
       "(trackable_type = 'Identity' AND trackable_id = ?) OR " \
-      "(owner_type = 'Identity' AND owner_id = ?) OR " \
+      "(owner_type = 'Identity' AND owner_id = ? AND key NOT LIKE 'directory\\_%') OR " \
       "(recipient_type = 'Identity' AND recipient_id = ?)",
       identity.id, identity.id, identity.id
     )

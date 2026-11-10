@@ -258,6 +258,20 @@ RSpec.describe DeletionService do
       expect(Sentry).not_to have_received(:capture_exception)
     end
 
+    it "keeps the details of directory changes they made to other people" do
+      other = Directory::Person.create!(identity: create(:identity, first_name: "Bystander"), created_by_identity_id: admin.id)
+      Directory.mutate!(cause: "test") do
+        Directory::Membership.create!(collection: group, member_person: other, created_by_identity_id: admin.id)
+      end
+      group.create_activity :member_expiry_changed, owner: victim, recipient: other,
+        params: { member_name: "Bystander X", member_type: "person", expires_at: "2027-01-01T04:59:59Z" }
+
+      delete!(victim)
+
+      row = PublicActivity::Activity.find_by!(key: "directory_collection.member_expiry_changed")
+      expect(row.parameters).to include("expires_at" => "2027-01-01T04:59:59Z", "member_name" => "Bystander X")
+    end
+
     it "still revokes the deleted person's app access" do
       app = create(:program, :with_groups)
       entitlement = create(:directory_entitlement)
