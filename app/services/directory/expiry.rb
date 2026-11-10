@@ -2,7 +2,8 @@
 
 module Directory
   # Membership expiry dates. A bare date D means "valid through the end of D, eastern time"
-  # (hack club runs on it); an explicit ISO 8601 datetime is taken as given.
+  # (hack club runs on it); an ISO 8601 datetime is taken as given, in eastern time unless
+  # it carries an offset.
   module Expiry
     ZONE = ActiveSupport::TimeZone["America/New_York"]
 
@@ -23,7 +24,8 @@ module Directory
       # whole microseconds, so storage can't round it into the next day
       return ZONE.local(*ymd).end_of_day.change(usec: 999_999) unless match[4]
 
-      Time.zone.iso8601(raw.strip.sub(" ", "T"))
+      # no offset means eastern, same as a bare date
+      ZONE.iso8601(raw.strip.sub(" ", "T"))
     rescue ArgumentError # out-of-range time, e.g. hour 25
       nil
     end

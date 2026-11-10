@@ -11,6 +11,11 @@ RSpec.describe Directory::Expiry do
       expect(described_class.parse("2027-07-01")).to eq(Time.utc(2027, 7, 2, 3, 59, 59.999999r))
     end
 
+    it "reads a datetime without an offset as eastern" do
+      expect(described_class.parse("2027-03-01T12:30")).to eq(Time.utc(2027, 3, 1, 17, 30))
+      expect(described_class.parse("2027-07-01 12:30:00")).to eq(Time.utc(2027, 7, 1, 16, 30))
+    end
+
     it "takes an explicit datetime as given" do
       expect(described_class.parse("2027-03-01T12:30:00-05:00")).to eq(Time.utc(2027, 3, 1, 17, 30))
       expect(described_class.parse("2027-03-01 12:30Z")).to eq(Time.utc(2027, 3, 1, 12, 30))
