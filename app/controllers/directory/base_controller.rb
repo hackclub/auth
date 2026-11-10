@@ -15,7 +15,8 @@ module Directory
 
     helper_method :current_directory_person, :directory_admin?, :breadcrumbs, :directory_keyboard_shortcuts,
       :directory_activity_owner, :directory_browsable?, :directory_home_path,
-      :collection_link, :collection_label, :activity_member_name, :activity_grantee_name
+      :collection_link, :collection_label, :activity_member_name, :activity_grantee_name,
+      :group_edge_refusal
 
     private
 
@@ -25,6 +26,34 @@ module Directory
       authorize record, query
     rescue Pundit::NotAuthorizedError
       raise ActiveRecord::RecordNotFound
+    end
+
+    # Why the current actor can't change this group edge, or nil. only admins touch groups on
+    # entitlements; group-in-group needs manage_members on the child, and anything that keeps
+    # or adds access through the edge (adding, extending, renewing) also needs nesting_refusal.
+    # the collection page uses it to hide controls the server would refuse.
+    def group_edge_refusal(membership, collection: @collection, adds_access: false)
+      return if membership.member_group_id.blank? || directory_admin?
+      return t("directory.flash.admin_only_remove_group") if collection.entitlement?
+
+      child = membership.member_group || Directory::Collection.find_by(id: membership.member_group_id)
+      return unless child
+      return t("directory.flash.need_manage_on_child_group") unless pundit_user.can?(:manage_members, child)
+
+      nesting_refusal(child) if adds_access
+    end
+
+    # nesting carries every recursive grant reaching the parent down into child, so the
+    # actor must already manage child and its unprotected sub-groups. otherwise a recursive
+    # grant on one group plus a plain one on another adds up to manage_members on
+    # everything nested in the second.
+    def nesting_refusal(child)
+      ctx = pundit_user
+      return t("directory.flash.need_manage_on_child_group") unless ctx.can?(:manage_members, child)
+
+      unless child.recursive_grant_reach.all? { |c| ctx.can?(:manage_members, c) }
+        t("directory.flash.need_manage_on_child_subgroups")
+      end
     end
 
     # For writes: look up a collection the way a read would see it, so "exists but hidden"

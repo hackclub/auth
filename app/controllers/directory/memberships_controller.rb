@@ -186,17 +186,16 @@ module Directory
       @collection = membership.collection
       authorize membership
 
-      # extending or clearing an expiry keeps (or brings back) the edge, so it needs what
-      # adding it would
-      refusal = group_edge_refusal(membership) ||
-        (membership.member_group && group_membership_refusal(membership.member_group))
+      expires_at = validated_expires_at
+      return if expires_at == :invalid
+
+      # extending, clearing or renewing keeps (or brings back) what flows through the edge,
+      # so it needs what adding it would; only shortening a live one is like removing it
+      refusal = group_edge_refusal(membership, adds_access: !shortens_live_expiry?(membership, expires_at))
       if refusal
         redirect_back fallback_location: directory_collection_path(@collection.slug), alert: refusal
         return
       end
-
-      expires_at = validated_expires_at
-      return if expires_at == :invalid
 
       had_expired = membership.expires_at.present? && membership.expires_at <= Time.current
       membership.expires_at = expires_at
@@ -318,14 +317,11 @@ module Directory
       result
     end
 
-    # Changing a group edge changes what flows through it: only admins touch groups on
-    # entitlements, and group-in-group needs manage_members on both sides.
-    def group_edge_refusal(membership)
-      return if membership.member_group_id.blank? || directory_admin?
-      return t("directory.flash.admin_only_remove_group") if @collection.entitlement?
+    def shortens_live_expiry?(membership, new_expires_at)
+      current = membership.expires_at
+      return false if current.nil? ? new_expires_at.nil? : current <= Time.current
 
-      child = Directory::Collection.find_by(id: membership.member_group_id)
-      t("directory.flash.need_manage_on_child_group") if child && !pundit_user.can?(:manage_members, child)
+      new_expires_at.present? && (current.nil? || new_expires_at < current)
     end
 
     def group_membership_refusal(group)
@@ -334,19 +330,6 @@ module Directory
       end
       if @collection.group? && !directory_admin?
         nesting_refusal(group)
-      end
-    end
-
-    # nesting carries every recursive grant reaching @collection down into child, so the
-    # actor must already manage child and its unprotected sub-groups. otherwise a recursive
-    # grant on one group plus a plain one on another adds up to manage_members on
-    # everything nested in the second.
-    def nesting_refusal(child)
-      ctx = pundit_user
-      return t("directory.flash.need_manage_on_child_group") unless ctx.can?(:manage_members, child)
-
-      unless child.recursive_grant_reach.all? { |c| ctx.can?(:manage_members, c) }
-        t("directory.flash.need_manage_on_child_subgroups")
       end
     end
   end

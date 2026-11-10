@@ -149,4 +149,21 @@ RSpec.describe "Directory nesting subtree escalation", type: :request do
     expect(edge.reload.expires_at).to be < Time.current
     expect(manages?(actor, hq_finance)).to be(false)
   end
+
+  # renewing a lapsed edge is refused above; a live edge already carries the grants, so
+  # the add rules pass for it, and shortening or removing only needs the removal rules
+  describe "changing a live edge" do
+    let!(:edge) do
+      nest!(hq, under: events)
+      Directory::Membership.find_by!(collection: events, member_group: hq).tap { |m| m.update_columns(expires_at: 30.days.from_now) }
+    end
+
+    it "lets the actor shorten or remove it, like a removal" do
+      patch directory_collection_membership_path(events.slug, edge), params: { expires_at: 5.days.from_now.to_date.iso8601 }
+      expect(flash[:notice]).to eq(I18n.t!("directory.flash.expiry_updated"))
+
+      delete directory_collection_membership_path(events.slug, edge)
+      expect(nested?(hq, under: events)).to be(false)
+    end
+  end
 end
