@@ -12,7 +12,7 @@ module Directory
 
     def create
       app = Program.find(params[:app_id])
-      entitlement = Directory::Collection.entitlements.find_by!(slug: params[:entitlement_slug])
+      entitlement = find_visible_entitlement!(params[:entitlement_slug])
 
       authorize_app_entitlement_wiring!(app, entitlement)
 

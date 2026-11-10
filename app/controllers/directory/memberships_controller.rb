@@ -43,6 +43,9 @@ module Directory
 
       elsif params[:group_slug].present?
         group = Directory::Collection.groups.find_by!(slug: params[:group_slug].strip)
+        # a group you can't see answers like one that doesn't exist
+        raise ActiveRecord::RecordNotFound unless policy(group).show?
+
         refusal = group_membership_refusal(group)
         if refusal
           redirect_back fallback_location: directory_collection_path(@collection.slug), alert: refusal

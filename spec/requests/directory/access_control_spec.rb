@@ -253,6 +253,7 @@ RSpec.describe "Directory access control", type: :request do
     describe "group nesting escalation prevention" do
       it "requires manage_members on the child group too" do
         child_group = create(:directory_group, slug: "child", name: "Child")
+        grant!(manager_person, child_group, "view")
         sign_in manager_identity
         post directory_collection_memberships_path(target_group.slug), params: {
           group_slug: child_group.slug

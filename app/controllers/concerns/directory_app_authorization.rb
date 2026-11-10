@@ -25,6 +25,14 @@ module DirectoryAppAuthorization
     directory_context.admin? || (app_owner?(app) && directory_context.can?(:expose, entitlement))
   end
 
+  # an entitlement the actor can't see answers like one that doesn't exist
+  def find_visible_entitlement!(slug)
+    entitlement = Directory::Collection.entitlements.find_by!(slug: slug)
+    raise ActiveRecord::RecordNotFound unless Directory::CollectionPolicy.new(directory_context, entitlement).show?
+
+    entitlement
+  end
+
   # whether to show the wire/require forms at all
   def can_wire_any_entitlement?(app)
     directory_context.admin? || (app_owner?(app) && directory_context.can_on_any?(:expose))

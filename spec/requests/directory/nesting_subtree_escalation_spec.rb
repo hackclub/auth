@@ -128,6 +128,7 @@ RSpec.describe "Directory nesting subtree escalation", type: :request do
 
   it "still refuses a child the actor can't manage at all" do
     stranger = create(:directory_group, slug: "stranger")
+    grant!(actor, stranger, "view")
 
     nest_via_request(stranger, under: events)
 
