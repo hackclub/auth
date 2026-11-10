@@ -23,11 +23,11 @@ module Directory
         created_by_identity_id: current_identity.id
       )
 
-      redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.exposure_added")
+      redirect_to wiring_return_path(app), notice: t("directory.flash.exposure_added")
     rescue ActiveRecord::RecordInvalid => e
-      redirect_back fallback_location: developer_app_path(app), alert: e.record.errors.full_messages.to_sentence
+      redirect_to wiring_return_path(app), alert: e.record.errors.full_messages.to_sentence
     rescue ActiveRecord::RecordNotUnique
-      redirect_back fallback_location: developer_app_path(app), alert: t("directory.flash.already_wired")
+      redirect_to wiring_return_path(app), alert: t("directory.flash.already_wired")
     end
 
     def destroy
@@ -37,7 +37,7 @@ module Directory
       authorize_app_entitlement_unwiring!(app, exposure.entitlement)
       exposure.destroy!
 
-      redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.exposure_removed")
+      redirect_to wiring_return_path(app), notice: t("directory.flash.exposure_removed")
     end
   end
 end

@@ -9,6 +9,16 @@ en:
               used_by_saml: "can't change while SAML apps use it (%{apps}); update config/saml.yml first"
   directory:
     hidden_group: "a group you can't see"
+    apps:
+      title: "apps"
+      explainer: "official apps, and any app that's already wired. groups claims, login requirements and session revokers for each — no credentials here."
+      col_app: "app"
+      col_groups_claims: "groups claims"
+      col_requirements: "requirements"
+      col_revoker: "session revoker"
+      not_official_badge: "not official"
+      disabled: "disabled"
+      none: "no apps yet."
     flash:
       revoker_saved: "session revoker saved."
       revoker_removed: "session revoker removed."

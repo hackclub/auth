@@ -147,6 +147,7 @@ module Directory
         shortcuts += [
           { code: "DPPL", label: "People", path: directory_people_path, icon: "⭢" },
           { code: "DGRT", label: "Grants", path: directory_all_grants_path, icon: "⭢" },
+          { code: "DAPP", label: "Apps", path: directory_apps_path, icon: "⭢" },
           { code: "DRPT", label: "Reports", path: directory_reports_path, icon: "⭢" },
           { code: "DHLT", label: "Health", path: directory_health_path, icon: "⭢" },
           { code: "DIMP", label: "Import", path: directory_new_import_path, icon: "⭢" },

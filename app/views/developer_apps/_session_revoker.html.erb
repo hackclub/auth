@@ -17,6 +17,7 @@
 
   <%= form_with url: developer_app_session_revoker_path(app), method: revoker ? :patch : :post, scope: :revoker, local: true,
         html: { "x-data": { adapter: revoker&.adapter || Directory::AppRevoker::ADAPTERS.first }.to_json } do |f| %>
+    <%= hidden_field_tag :return_to, local_assigns[:return_to] %>
     <label>
       <%= t("#{scope}.revoker_adapter") %>
       <%= f.select :adapter,
@@ -54,7 +55,7 @@
   <% end %>
 
   <% if revoker %>
-    <%= button_to t("#{scope}.revoker_remove"), developer_app_session_revoker_path(app), method: :delete, class: "danger small-btn",
+    <%= button_to t("#{scope}.revoker_remove"), developer_app_session_revoker_path(app), method: :delete, class: "danger small-btn", params: { return_to: local_assigns[:return_to] },
           data: { confirm: t("#{scope}.revoker_remove_confirm") } %>
   <% end %>
 </div>

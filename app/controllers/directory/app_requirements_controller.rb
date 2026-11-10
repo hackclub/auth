@@ -20,11 +20,11 @@ module Directory
       log_requirement(:requirement_added, app, entitlement)
       revoke_tokens_for_non_members(app, entitlement)
 
-      redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.requirement_added")
+      redirect_to wiring_return_path(app), notice: t("directory.flash.requirement_added")
     rescue ActiveRecord::RecordInvalid => e
-      redirect_back fallback_location: developer_app_path(app), alert: e.record.errors.full_messages.to_sentence
+      redirect_to wiring_return_path(app), alert: e.record.errors.full_messages.to_sentence
     rescue ActiveRecord::RecordNotUnique
-      redirect_back fallback_location: developer_app_path(app), alert: t("directory.flash.requirement_already_exists")
+      redirect_to wiring_return_path(app), alert: t("directory.flash.requirement_already_exists")
     end
 
     def destroy
@@ -39,7 +39,7 @@ module Directory
       # dropping the last requirement opens the app, so there's nobody to revoke
       revoke_tokens_for_non_members(app, entitlement) if Directory::AppRequirement.exists?(app_id: app.id)
 
-      redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.requirement_removed")
+      redirect_to wiring_return_path(app), notice: t("directory.flash.requirement_removed")
     end
 
     private

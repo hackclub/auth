@@ -1,0 +1,42 @@
+<% content_for :title, t("directory.apps.title") %>
+<div class="dir-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.apps.title") %></h2></div>
+    </div>
+    <p style="color: var(--foreground2);"><%= t("directory.apps.explainer") %></p>
+  </div>
+
+  <div class="dir-section">
+    <table>
+      <thead>
+        <tr>
+          <th><%= t("directory.apps.col_app") %></th>
+          <th><%= t("directory.apps.col_groups_claims") %></th>
+          <th><%= t("directory.apps.col_requirements") %></th>
+          <th><%= t("directory.apps.col_revoker") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @apps.each do |app| %>
+          <tr>
+            <td>
+              <%= link_to app.name, directory_app_path(app) %>
+              <% unless app.hq_official? %><span is-="badge" variant-="background2"><%= t("directory.apps.not_official_badge") %></span><% end %>
+            </td>
+            <td><%= @exposure_counts.fetch(app.id, 0) %></td>
+            <td><%= @requirement_counts.fetch(app.id, 0) %></td>
+            <td>
+              <% if (revoker = @revokers[app.id]) %>
+                <%= t("directory.developer_apps.revoker_adapters.#{revoker.adapter}") %><%= " (#{t('directory.apps.disabled')})" unless revoker.enabled %>
+              <% else %>
+                —
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <% if @apps.empty? %><p style="color: var(--foreground2);"><%= t("directory.apps.none") %></p><% end %>
+  </div>
+</div>

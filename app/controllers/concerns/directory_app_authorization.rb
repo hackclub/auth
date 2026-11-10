@@ -33,6 +33,13 @@ module DirectoryAppAuthorization
     entitlement
   end
 
+  # the page the wiring form was on: the developer app page or the directory's app page,
+  # never anywhere else
+  def wiring_return_path(app)
+    allowed = [ developer_app_path(app), directory_app_path(app) ]
+    allowed.include?(params[:return_to]) ? params[:return_to] : developer_app_path(app)
+  end
+
   # whether to show the wire/require forms at all
   def can_wire_any_entitlement?(app)
     directory_context.admin? || (app_owner?(app) && directory_context.can_on_any?(:expose))

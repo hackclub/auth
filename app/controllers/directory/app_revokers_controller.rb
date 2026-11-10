@@ -29,7 +29,7 @@ module Directory
       adapter = revoker!.adapter
       revoker!.destroy!
       @app.create_activity :session_revoker_removed, owner: current_identity, parameters: { adapter: adapter }
-      redirect_to developer_app_path(@app), notice: t("directory.flash.revoker_removed")
+      redirect_to wiring_return_path(@app), notice: t("directory.flash.revoker_removed")
     end
 
     private
@@ -50,9 +50,9 @@ module Directory
       if revoker.save
         @app.create_activity activity_key, owner: current_identity,
           parameters: { adapter: revoker.adapter, enabled: revoker.enabled }
-        redirect_to developer_app_path(@app), notice: t("directory.flash.revoker_saved")
+        redirect_to wiring_return_path(@app), notice: t("directory.flash.revoker_saved")
       else
-        redirect_to developer_app_path(@app), alert: revoker.errors.full_messages.to_sentence
+        redirect_to wiring_return_path(@app), alert: revoker.errors.full_messages.to_sentence
       end
     end
   end
