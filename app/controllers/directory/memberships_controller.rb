@@ -297,7 +297,12 @@ module Directory
       public_ids.each do |pid|
         identity = Identity.find_by_public_id(pid)
         next unless identity
-        next unless directory_admin? || Directory::Person.exists?(identity_id: identity.id)
+        # ids are guessable, so a non-admin only reaches people they can already see, the same
+        # rule as adding by member_person_id
+        unless directory_admin?
+          person = Directory::Person.find_by(identity_id: identity.id)
+          next unless person && policy(person).show?
+        end
         result[pid] = identity
       end
 
