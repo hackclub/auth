@@ -80,4 +80,18 @@ RSpec.describe "Directory app pages", type: :request do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  it "marks exposures on an app without the groups scope as not sent, and doesn't count them" do
+    sign_in admin
+    inert = create(:program, name: "No Groups App", trust_level: :hq_official, owner_identity: create(:identity))
+    exposure = Directory::Exposure.new(app: inert, entitlement: entitlement, claim_name: "staff")
+    exposure.save!(validate: false)
+
+    get directory_app_path(inert)
+    expect(response.body).to include(CGI.escapeHTML(I18n.t("directory.developer_apps.exposure_not_sent")))
+
+    get directory_apps_path
+    row = response.parsed_body.css("tr").find { |tr| tr.text.include?("No Groups App") }
+    expect(row.css("td").map { |td| td.text.strip }).to include("0")
+  end
 end

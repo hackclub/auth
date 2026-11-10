@@ -16,7 +16,7 @@ module Directory
         .or(Program.where(id: Directory::AppRequirement.select(:app_id)))
         .or(Program.where(id: Directory::AppRevoker.select(:app_id)))
         .order(:name)
-      @exposure_counts = Directory::Exposure.group(:app_id).count
+      @exposure_counts = Directory::Exposure.live.group(:app_id).count
       @requirement_counts = Directory::AppRequirement.group(:app_id).count
       @revokers = Directory::AppRevoker.where(app_id: @apps.select(:id)).index_by(&:app_id)
     end
