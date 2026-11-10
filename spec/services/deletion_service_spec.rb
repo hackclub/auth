@@ -244,6 +244,20 @@ RSpec.describe DeletionService do
       expect(Directory::Person.exists?(person.id)).to be(false)
     end
 
+    it "records their removal from each collection, redacted" do
+      person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
+      Directory.mutate!(cause: "test") do
+        Directory::Membership.create!(collection: group, member_person: person, created_by_identity_id: admin.id)
+      end
+      allow(Sentry).to receive(:capture_exception)
+
+      delete!(victim)
+
+      removed = PublicActivity::Activity.where(key: "directory_collection.member_removed", trackable: group).sole
+      expect(removed.parameters["member_name"]).to eq("[REDACTED] [REDACTED]")
+      expect(Sentry).not_to have_received(:capture_exception)
+    end
+
     it "still revokes the deleted person's app access" do
       app = create(:program, :with_groups)
       entitlement = create(:directory_entitlement)
