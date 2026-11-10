@@ -6,6 +6,12 @@ module Directory
   class AfterChangeJob < ApplicationJob
     queue_as :default
 
+    # the only path from a lost entitlement to revoked tokens and sessions; nothing re-emits
+    # the work if it's dropped. safe to rerun: every step is idempotent.
+    retry_on StandardError, wait: :polynomially_longer, attempts: 10 do |job, error|
+      Sentry.capture_exception(error, extra: { job_id: job.job_id, change_count: Array(job.arguments.first&.dig(:change_ids)).size })
+    end
+
     # revocations: pre-resolved { identity_id, email, app_ids, entitlement_ids? } for entities
     #   that may be deleted by the time this job runs (person removed, collection deleted).
     #   entitlement_ids names the entitlements that were lost; when absent (collection or

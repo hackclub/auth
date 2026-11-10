@@ -171,4 +171,12 @@ RSpec.describe Directory::AfterChangeJob do
       expect(enqueued_jobs.count { |j| j["job_class"] == "Directory::RevokeSessionJob" }).to eq(members.size * 2)
     end
   end
+
+  it "retries instead of dropping the revocations when something transient fails" do
+    revocations = [ { identity_id: identity.id, email: identity.primary_email, app_ids: [ app.id ] } ]
+    allow(Directory::RevokeAccess).to receive(:revoke_tokens).and_raise(ActiveRecord::Deadlocked)
+
+    expect { described_class.perform_now(change_ids: [], revocations: revocations) }
+      .to have_enqueued_job(described_class).with(change_ids: [], revocations: revocations)
+  end
 end
