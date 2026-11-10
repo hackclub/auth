@@ -27,10 +27,11 @@ Doorkeeper.configure do
       if app.nil? || Directory::RequirementCheck.passes?(identity: current_identity, app: app)
         current_identity
       else
-        # RFC 6749 §4.1.2.1: tell the client, but only at a redirect_uri doorkeeper itself
-        # would accept for this app; anything else gets the in-app page. memoizing the nil
+        # RFC 6749 §4.1.2.1: tell the client, but only from the authorization endpoint and
+        # only at a redirect_uri doorkeeper itself would accept for this app; anything else
+        # (other doorkeeper pages run this block too) gets the in-app page. memoizing the nil
         # owner first stops the error handler's pre_auth from re-entering this block.
-        if params[:redirect_uri].present? &&
+        if is_a?(Doorkeeper::AuthorizationsController) && params[:redirect_uri].present? &&
             Doorkeeper::OAuth::Helpers::URIChecker.valid_for_authorization?(params[:redirect_uri], app.redirect_uri) &&
             !Doorkeeper::OAuth::Helpers::URIChecker.oob_uri?(params[:redirect_uri])
           @current_resource_owner = nil
@@ -574,4 +575,17 @@ Doorkeeper.configure do
   # WWW-Authenticate Realm (default: "Doorkeeper").
   #
   # realm "Doorkeeper"
+end
+
+Rails.application.config.to_prepare do
+  Doorkeeper::AuthorizationsController.rescue_from Directory::RequirementDenied do
+    redirect_or_render(
+      Doorkeeper::OAuth::ErrorResponse.new(
+        name: :access_denied,
+        state: params[:state],
+        redirect_uri: pre_auth.redirect_uri,
+        response_on_fragment: pre_auth.response_on_fragment?
+      )
+    )
+  end
 end

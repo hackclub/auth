@@ -96,6 +96,23 @@ RSpec.describe "OAuth resource owner authenticator", type: :request do
         expect(location_query).to include("error" => "access_denied", "state" => "st4te")
       end
 
+      it "answers a form_post client with an auto-submitting html form carrying access_denied" do
+        get oauth_authorization_path, params: authorize_params(program, response_mode: "form_post")
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("text/html")
+        form = response.parsed_body.at_css("form[name=redirect_form]")
+        expect(form["action"]).to eq("https://app.example/callback")
+        values = form.css("input").to_h { |i| [ i["name"], i["value"] ] }
+        expect(values).to include("error" => "access_denied", "state" => "st4te")
+      end
+
+      it "doesn't break other doorkeeper pages that run the authenticator with a client_id" do
+        get oauth_authorized_applications_path, params: { client_id: program.uid, redirect_uri: program.redirect_uris.first }
+
+        expect(response.status).to be < 500
+      end
+
       it "matches loopback redirect URIs the way doorkeeper does (any port)" do
         native = create(:program, redirect_uri: "http://127.0.0.1/cb")
         require_entitlement!(native)
