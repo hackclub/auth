@@ -18,7 +18,7 @@ RSpec.describe Identity, "#lock_account!", type: :model do
     Directory::AppRevoker.create!(app: app, adapter: "webhook", config: { url: "https://example.com" }.to_json, enabled: true)
 
     expect { identity.lock_account! }
-      .to have_enqueued_job(Directory::RevokeSessionJob).with(app_id: app.id, email: identity.primary_email)
+      .to have_enqueued_job(Directory::RevokeSessionJob).with(app_id: app.id, email: identity.primary_email, fallback_app_ids: [])
   end
 
   it "doesn't care about identities outside the directory" do

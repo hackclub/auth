@@ -20,17 +20,33 @@ module Directory
       Sentry.capture_exception(error, extra: { app_id: job.arguments.first[:app_id] })
     end
 
-    def perform(app_id:, email:)
-      revoker = Directory::AppRevoker.find_by(app_id: app_id, enabled: true)
-      return unless revoker
+    # fallback_app_ids: other apps sharing this revoker scope; tried in order if this app's
+    # revoker is gone, disabled or failing. one success is enough.
+    def perform(app_id:, email:, fallback_app_ids: [])
+      revokers = Directory::AppRevoker.where(app_id: [ app_id, *fallback_app_ids ], enabled: true).index_by(&:app_id)
+      candidates = [ app_id, *fallback_app_ids ].filter_map { |id| revokers[id] }
+      return if candidates.empty?
 
+      last_error = nil
+      candidates.each do |revoker|
+        return if attempt(revoker, email)
+      rescue => e
+        last_error = e
+      end
+      raise last_error
+    end
+
+    private
+
+    def attempt(revoker, email)
       Directory::Revokers.for(revoker).call(email: email)
       revoker.update(last_called_at: Time.current, last_result: "ok")
+      true
     rescue RevocationFailed, HTTP::Error, HTTP::TimeoutError => e
-      revoker&.update(last_called_at: Time.current, last_result: "failed: #{e.message}")
+      revoker.update(last_called_at: Time.current, last_result: "failed: #{e.message}")
       raise
     rescue => e
-      revoker&.update(last_called_at: Time.current, last_result: "config_error: #{e.message}")
+      revoker.update(last_called_at: Time.current, last_result: "config_error: #{e.message}")
       raise
     end
   end

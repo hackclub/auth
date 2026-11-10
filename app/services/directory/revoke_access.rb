@@ -17,15 +17,19 @@ module Directory
     end
 
     # pairs: [[app_id, email], ...]. One job per (revoker scope, email): Cloudflare's
-    # revoke_user is account-wide, so apps on the same account share a single call.
+    # revoke_user is account-wide, so apps on the same account share a single call. The
+    # other apps in the scope ride along as fallbacks in case the first revoker is broken.
     def self.revoke_sessions(pairs)
       return if pairs.empty?
 
       revokers = Directory::AppRevoker.where(app_id: pairs.map(&:first).uniq, enabled: true).index_by(&:app_id)
       pairs
-        .filter_map { |app_id, email| (revoker = revokers[app_id]) && [ revoker.session_scope_key, email, app_id ] }
-        .uniq { |scope, email, _| [ scope, email.to_s.downcase ] }
-        .each { |_, email, app_id| Directory::RevokeSessionJob.perform_later(app_id: app_id, email: email) }
+        .filter_map { |app_id, email| (revoker = revokers[app_id]) && [ [ revoker.session_scope_key, email.to_s.downcase ], email, app_id ] }
+        .group_by(&:first)
+        .each_value do |rows|
+          app_ids = rows.map(&:last).uniq
+          Directory::RevokeSessionJob.perform_later(app_id: app_ids.first, email: rows.first[1], fallback_app_ids: app_ids.drop(1))
+        end
     end
 
     # Bulk-revoke every token holder who doesn't meet the app's requirements.

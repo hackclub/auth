@@ -42,7 +42,7 @@ RSpec.describe Directory::AfterChangeJob do
       Directory::AppRevoker.create!(app: app, adapter: "webhook", config: { url: "https://example.com" }.to_json, enabled: true)
       remove(staff)
       expect { perform_enqueued_jobs(only: described_class) }
-        .to have_enqueued_job(Directory::RevokeSessionJob).with(app_id: app.id, email: identity.primary_email)
+        .to have_enqueued_job(Directory::RevokeSessionJob).with(app_id: app.id, email: identity.primary_email, fallback_app_ids: [])
     end
 
     it "revokes everyone when the entitlement is deleted" do
