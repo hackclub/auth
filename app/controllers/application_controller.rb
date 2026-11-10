@@ -22,6 +22,19 @@ class ApplicationController < ActionController::Base
 
   def identity_signed_in? = !!current_identity
 
+  helper_method :directory_admin_session?
+
+  # directory admin powers need the same session as /backend: one that passed TOTP or a
+  # passkey. without it a directory admin is just a person with whatever grants they hold.
+  def directory_admin_session?
+    !!current_identity&.backend_user&.directory_services_admin? && two_factor_session?
+  end
+
+  def two_factor_session?
+    login_attempt = current_session&.login_attempt
+    !!(login_attempt&.authenticated_with_totp || login_attempt&.authenticated_with_webauthn)
+  end
+
 
   def invalidate_v1_sessions
     if cookies["_identity_vault_session"]

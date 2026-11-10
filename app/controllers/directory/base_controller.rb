@@ -71,9 +71,7 @@ module Directory
       @current_directory_person = Directory::Person.find_by(identity: current_identity)
     end
 
-    def directory_admin?
-      current_identity&.backend_user&.directory_services_admin?
-    end
+    def directory_admin? = directory_admin_session?
 
     def ensure_directory_access!
       raise ActionController::RoutingError, "Not Found" unless directory_browsable?

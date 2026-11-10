@@ -13,7 +13,7 @@ module DirectoryAppAuthorization
   def directory_context
     @directory_context ||= begin
       person = Directory::Person.find_by(identity: current_identity)
-      admin = current_identity.backend_user&.directory_services_admin?
+      admin = directory_admin_session?
       Directory::Context.new(identity: current_identity, person: person, admin: admin)
     end
   end

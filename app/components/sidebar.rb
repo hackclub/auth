@@ -6,6 +6,7 @@ class Components::Sidebar < Components::Base
 
   register_value_helper :current_identity
   register_value_helper :signed_in?
+  register_value_helper :directory_admin_session?
   register_output_helper :copy_to_clipboard
   register_output_helper :vite_image_tag
 
@@ -51,7 +52,7 @@ class Components::Sidebar < Components::Base
     items << { label: t("sidebar.security"), path: security_path, icon: "private" }
 
     if current_identity.present?
-      if current_identity.backend_user&.directory_services_admin?
+      if directory_admin_session?
         items << { label: t("sidebar.directory"), path: directory_root_path, icon: "admin" }
       elsif (person_id = Directory::Person.where(identity_id: current_identity.id).pick(:id))
         if Directory::EffectiveGrant.where(person_id: person_id).exists?

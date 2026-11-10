@@ -243,7 +243,7 @@
         </div>
       <% end %>
 
-      <% if current_identity.backend_user&.directory_services_admin? %>
+      <% if directory_admin_session? %>
         <%= render "developer_apps/session_revoker", app: @app, revoker: @app.directory_revoker %>
       <% end %>
     </section>
