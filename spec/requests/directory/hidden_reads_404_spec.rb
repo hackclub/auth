@@ -27,6 +27,8 @@ RSpec.describe "Directory read pages for things the viewer can't see", type: :re
       expect(response).to have_http_status(:not_found), "activity #{slug}"
       get export_directory_collection_path(slug)
       expect(response).to have_http_status(:not_found), "export #{slug}"
+      get edit_directory_collection_path(slug)
+      expect(response).to have_http_status(:not_found), "edit #{slug}"
     end
   end
 

@@ -121,6 +121,7 @@ module Directory
     end
 
     def edit
+      authorize_visible! @collection
       authorize @collection
       add_breadcrumb @collection.name, directory_collection_path(@collection.slug)
       add_breadcrumb t("directory.collections.edit.heading", name: @collection.name)
