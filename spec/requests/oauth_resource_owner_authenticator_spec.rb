@@ -83,11 +83,27 @@ RSpec.describe "OAuth resource owner authenticator", type: :request do
         expect(location_query).to include("keep" => "1", "error" => "access_denied", "state" => "st4te")
       end
 
-      it "falls back to the first registered URI rather than an unregistered one" do
+      it "never redirects to an unregistered URI" do
         get oauth_authorization_path, params: authorize_params(program, redirect_uri: "https://evil.example/callback")
+
+        expect(response.location).not_to include("evil.example")
+      end
+
+      it "answers prompt=none with access_denied, not login_required" do
+        get oauth_authorization_path, params: authorize_params(program, scope: "openid", prompt: "none")
 
         expect(response.location).to start_with("https://app.example/callback?")
         expect(location_query).to include("error" => "access_denied", "state" => "st4te")
+      end
+
+      it "matches loopback redirect URIs the way doorkeeper does (any port)" do
+        native = create(:program, redirect_uri: "http://127.0.0.1/cb")
+        require_entitlement!(native)
+
+        get oauth_authorization_path, params: authorize_params(native, redirect_uri: "http://127.0.0.1:53111/cb")
+
+        expect(response.location).to start_with("http://127.0.0.1:53111/cb?")
+        expect(location_query).to include("error" => "access_denied")
       end
 
       it "shows the requirement-denied page when the registered URI is oob" do

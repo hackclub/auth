@@ -27,22 +27,17 @@ Doorkeeper.configure do
       if app.nil? || Directory::RequirementCheck.passes?(identity: current_identity, app: app)
         current_identity
       else
-        # RFC 6749 §4.1.2.1: tell the client. only ever to a registered redirect_uri;
-        # oob / unredirectable ones get the in-app page.
-        registered = app.redirect_uris
-        target = registered.include?(params[:redirect_uri]) ? params[:redirect_uri] : registered.first
-        uri_checker = Doorkeeper::OAuth::Helpers::URIChecker
-        if target && !uri_checker.oob_uri?(target) && uri_checker.valid?(target)
-          error_uri = Doorkeeper::OAuth::Authorization::URIBuilder.uri_with_query(
-            target,
-            error: "access_denied",
-            error_description: "You do not meet this application's access requirements.",
-            state: params[:state]
-          )
-          redirect_to error_uri, allow_other_host: true
-        else
-          redirect_to directory_requirement_denied_path
+        # RFC 6749 §4.1.2.1: tell the client, but only at a redirect_uri doorkeeper itself
+        # would accept for this app; anything else gets the in-app page. memoizing the nil
+        # owner first stops the error handler's pre_auth from re-entering this block.
+        if params[:redirect_uri].present? &&
+            Doorkeeper::OAuth::Helpers::URIChecker.valid_for_authorization?(params[:redirect_uri], app.redirect_uri) &&
+            !Doorkeeper::OAuth::Helpers::URIChecker.oob_uri?(params[:redirect_uri])
+          @current_resource_owner = nil
+          raise Directory::RequirementDenied
         end
+
+        redirect_to directory_requirement_denied_path
         nil
       end
     else
