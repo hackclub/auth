@@ -34,12 +34,10 @@ module Directory
       return none if term.blank?
       like = ->(v) { "%#{ActiveRecord::Base.sanitize_sql_like(v)}%" }
       first, rest = term.split(/\s+/, 2)
+      sql = "identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR identities.primary_email ILIKE :q"
       # "Jane Doe": first word against first_name, the rest against last_name
-      full_name = rest ? sanitize_sql([ " OR (identities.first_name ILIKE ? AND identities.last_name ILIKE ?)", like.(first), like.(rest) ]) : ""
-      joins(:identity).where(
-        "identities.first_name ILIKE :q OR identities.last_name ILIKE :q OR identities.primary_email ILIKE :q#{full_name}",
-        q: like.(term)
-      )
+      sql += " OR (identities.first_name ILIKE :first AND identities.last_name ILIKE :rest)" if rest
+      joins(:identity).where(sql, q: like.(term), first: like.(first), rest: like.(rest.to_s))
     }
 
     # called inside open transactions, so the insert gets a savepoint: a lost race rolls

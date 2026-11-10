@@ -13,6 +13,12 @@ RSpec.describe Directory::Person do
       expect(described_class.search("Jane Doe")).to contain_exactly(jane)
     end
 
+    it "treats colons in the term as text, not binds" do
+      expect(described_class.search("jane doe:x")).to be_empty
+      expect(described_class.search("jane doe:q")).to be_empty
+      expect(described_class.search("jane :first")).to be_empty
+    end
+
     it "still matches a single name" do
       expect(described_class.search("Doe")).to contain_exactly(jane, jim)
     end
