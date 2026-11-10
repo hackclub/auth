@@ -137,11 +137,12 @@ module Directory
     end
 
     def directory_kbar_data
-      shortcuts = [
-        { code: "DRCT", label: "Directory home", path: directory_root_path, icon: "⌂" },
-        { code: "MYAX", label: "My access", path: directory_my_access_path, icon: "⭢" },
-        { code: "DSRC", label: "Search", path: directory_search_path, icon: "⌕" }
-      ]
+      shortcuts = [ { code: "MYAX", label: "My access", path: directory_my_access_path, icon: "⭢" } ]
+      # grantless members can only open their own access page; everything else 404s for them
+      if directory_browsable?
+        shortcuts.unshift({ code: "DRCT", label: "Directory home", path: directory_root_path, icon: "⌂" })
+        shortcuts << { code: "DSRC", label: "Search", path: directory_search_path, icon: "⌕" }
+      end
       if directory_admin?
         shortcuts += [
           { code: "DPPL", label: "People", path: directory_people_path, icon: "⭢" },
@@ -157,9 +158,10 @@ module Directory
         shortcuts << { code: "BKND", label: "Backend", path: backend_root_path, icon: "⭠" }
       end
 
-      search_scopes = [ { key: "directory", label: "Directory", icon: "⭢" } ]
+      # keep searchUrl even with no scopes, or the palette falls back to the backend endpoint
+      search_scopes = directory_browsable? ? [ { key: "directory", label: "Directory", icon: "⭢" } ] : []
 
-      { shortcuts: shortcuts, searchScopes: search_scopes, searchUrl: directory_search_kbar_path, defaultScope: "directory" }
+      { shortcuts: shortcuts, searchScopes: search_scopes, searchUrl: directory_search_kbar_path, defaultScope: (search_scopes.any? ? "directory" : nil) }
     end
     helper_method :directory_kbar_data
   end

@@ -38,6 +38,16 @@ RSpec.describe "Directory my access page", type: :request do
     expect(response.parsed_body.css(%(a[href="#{directory_root_path}"]))).to be_empty
   end
 
+  it "doesn't offer a grantless member kbar shortcuts or search that 404 for them" do
+    sign_in create(:directory_person).identity
+
+    get directory_my_access_path
+
+    expect(response.body).to include("MYAX")
+    expect(response.body).not_to include("DRCT")
+    expect(response.body).not_to include("DSRC")
+  end
+
   it "only links collections the person can open" do
     person = create(:directory_person)
     hidden = create(:directory_group, slug: "hidden-team", name: "Hidden Team")
