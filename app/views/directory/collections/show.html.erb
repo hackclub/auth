@@ -64,7 +64,7 @@
               <% expired = m.expires_at && m.expires_at <= Time.current %>
               <tr style="<%= 'opacity: 0.5;' if expired %>">
                 <td>
-                  <%= link_to m.member_group.name, directory_collection_path(m.member_group.slug) %>
+                  <%= collection_link(m.member_group) %>
                   <span is-="badge" variant-="blue"><%= t("directory.badges.group") %></span>
                   <% if expired %><span is-="badge" variant-="red"><%= t("directory.badges.expired") %></span><% end %>
                 </td>
@@ -178,7 +178,7 @@
                   <% if m.member_person %>
                     <%= link_to m.member_person.full_name, directory_person_path(m.member_person) %>
                   <% elsif m.member_group %>
-                    <%= link_to m.member_group.name, directory_collection_path(m.member_group.slug) %>
+                    <%= collection_link(m.member_group) %>
                     <span is-="badge" variant-="blue"><%= t("directory.badges.group") %></span>
                   <% end %>
                   <% if expired %><span is-="badge" variant-="red"><%= t("directory.badges.expired") %></span><% end %>
@@ -191,7 +191,7 @@
                 </td>
                 <% if can_manage %>
                   <td style="text-align: right;">
-                    <% member_name = m.member_person&.full_name || m.member_group&.name %>
+                    <% member_name = m.member_person&.full_name || (m.member_group && collection_label(m.member_group)) %>
                     <% confirm_msg = t("directory.collections.show.remove_confirm", name: member_name) %>
                     <% if @consequences[m.id] %>
                       <% confirm_msg += "\n#{@consequences[m.id]}" %>
@@ -261,7 +261,7 @@
         <tbody>
           <% @grants.each do |grant| %>
             <tr>
-              <td><%= link_to grant.grantee_group.name, directory_collection_path(grant.grantee_group.slug) %></td>
+              <td><%= collection_link(grant.grantee_group) %></td>
               <td><code><%= grant.permission.tr('_', ' ') %></code></td>
               <td><% if grant.recursive %><span is-="badge" variant-="background2"><%= t("directory.badges.recursive") %></span><% else %>—<% end %></td>
               <td style="color: var(--foreground2);"><%= grant.created_by&.full_name || "—" %></td>

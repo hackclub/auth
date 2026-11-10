@@ -14,7 +14,8 @@ module Directory
     after_action :verify_authorized, unless: :skip_authorization?
 
     helper_method :current_directory_person, :directory_admin?, :breadcrumbs, :directory_keyboard_shortcuts,
-      :directory_activity_owner, :directory_browsable?, :directory_home_path
+      :directory_activity_owner, :directory_browsable?, :directory_home_path,
+      :collection_link, :collection_label, :activity_member_name
 
     private
 
@@ -56,6 +57,28 @@ module Directory
       person = owner.directory_person
       href = directory_person_path(person) if person && activity_owner_visible?(person)
       Components::DirectoryOwnerMention.new(name: "#{owner.first_name} #{owner.last_name}", href:)
+    end
+
+    # Collections the viewer can't open are named "a group you can't see", never linked.
+    def collection_link(collection)
+      return helpers.tag.span(t("directory.hidden_group"), style: "opacity: 0.5;") unless collection_visible?(collection)
+
+      helpers.link_to(collection.name, directory_collection_path(collection.slug))
+    end
+
+    def collection_label(collection) = collection_visible?(collection) ? collection.name : t("directory.hidden_group")
+
+    def activity_member_name(activity)
+      params = activity.parameters
+      return params["member_name"] unless params["member_type"] == "group"
+
+      group = Directory::Collection.find_by(id: params["member_group_id"]) if params["member_group_id"]
+      group && collection_visible?(group) ? params["member_name"] : t("directory.hidden_group")
+    end
+
+    def collection_visible?(collection)
+      @collection_visibility ||= {}
+      @collection_visibility.fetch(collection.id) { @collection_visibility[collection.id] = policy(collection).show? }
     end
 
     def activity_owner_visible?(person)

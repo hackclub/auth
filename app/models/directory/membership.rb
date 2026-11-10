@@ -135,6 +135,7 @@ module Directory
       type = member_person_id ? "person" : "group"
 
       params = { member_name: name, member_type: type }
+      params[:member_group_id] = member_group_id if member_group_id
       params[:reason] = reason if reason
 
       collection&.create_activity action,
