@@ -209,6 +209,7 @@ module Directory
             params: {
               member_name: membership.member_person&.full_name || membership.member_group&.name,
               member_type: membership.member_person_id ? "person" : "group",
+              member_group_id: membership.member_group_id,
               expires_at: expires_at&.iso8601,
               renewed: had_expired
             }

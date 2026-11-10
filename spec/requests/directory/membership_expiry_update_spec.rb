@@ -72,4 +72,15 @@ RSpec.describe "Directory membership expiry update", type: :request do
     expect(response.body).to include(directory_collection_membership_path(group.slug, membership))
     expect(response.body).to include(I18n.t("directory.collections.show.save_expiry"))
   end
+
+  it "names a nested group in its expiry-change activity" do
+    child = create(:directory_group, name: "Oncall Crew")
+    edge = nil
+    Directory.mutate!(cause: "test") { edge = Directory::Membership.create!(collection: group, member_group: child) }
+
+    patch directory_collection_membership_path(group.slug, edge), params: { expires_at: 30.days.from_now.to_date.iso8601 }
+    get activity_directory_collection_path(group.slug)
+
+    expect(response.parsed_body.text.squish).to include("set group Oncall Crew in")
+  end
 end
