@@ -125,6 +125,8 @@ class DirectoryPicker {
 
     if (/[,\n]/.test(text)) {
       e.preventDefault();
+      // preventDefault means no input event, so drop the old selection here
+      this.hiddenInput.value = '';
       const emails = text.split(/[,\n]+/).map(s => s.trim()).filter(s => s.length > 0);
       if (emails.length > 0) {
         this._resolveBulk(emails);
