@@ -63,4 +63,12 @@ RSpec.describe Directory::RevokeSessionJob do
       expect(a_request(:post, url).with(headers: { "Authorization" => "Bearer good" })).to have_been_made.once
     end
   end
+
+  it "retries a TLS failure instead of calling it a config error" do
+    stub_request(:post, "https://hooks.example.test/revoke").to_raise(OpenSSL::SSL::SSLError.new("SSL_connect returned=1 errno=0 state=error: unexpected eof"))
+
+    expect { described_class.perform_now(app_id: app.id, email: "p@example.test") }
+      .to have_enqueued_job(described_class)
+    expect(revoker.reload.last_result).to start_with("failed")
+  end
 end

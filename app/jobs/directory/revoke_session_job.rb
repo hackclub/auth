@@ -8,6 +8,9 @@ module Directory
 
     class RevocationFailed < StandardError; end
 
+    # http.rb wraps socket errors in HTTP::Error, but not TLS failures or bare timeouts
+    TRANSIENT = [ RevocationFailed, HTTP::Error, OpenSSL::SSL::SSLError, Timeout::Error, EOFError ].freeze
+
     # Cloudflare's API allows ~1200 requests per 5 minutes per token; stay under it per
     # account. Throttled jobs are rescheduled by GoodJob, not counted as failures.
     good_job_control_concurrency_with(
@@ -16,7 +19,7 @@ module Directory
     )
 
     # ~4 hours of backoff, so a burst that trips the provider's own rate limit still lands.
-    retry_on RevocationFailed, HTTP::Error, HTTP::TimeoutError, wait: :polynomially_longer, attempts: 10 do |job, error|
+    retry_on(*TRANSIENT, wait: :polynomially_longer, attempts: 10) do |job, error|
       Sentry.capture_exception(error, extra: { app_id: job.arguments.first[:app_id] })
     end
 
@@ -42,7 +45,7 @@ module Directory
       Directory::Revokers.for(revoker).call(email: email)
       revoker.update(last_called_at: Time.current, last_result: "ok")
       true
-    rescue RevocationFailed, HTTP::Error, HTTP::TimeoutError => e
+    rescue *TRANSIENT => e
       revoker.update(last_called_at: Time.current, last_result: "failed: #{e.message}")
       raise
     rescue => e
