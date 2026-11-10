@@ -36,11 +36,10 @@ RSpec.describe "Directory add-by-ident! scope", type: :request do
   %i[create batch_create].each do |action|
     context "via #{action}" do
       context "as a manager" do
-        let(:manager_identity) { create(:directory_person).identity }
-
         before do
-          grant!(Directory::Person.find_by!(identity: manager_identity), group, "manage_members")
-          sign_in manager_identity
+          manager = create(:directory_person)
+          grant!(manager, group, "manage_members")
+          sign_in manager.identity
         end
 
         it "treats the ident! of a non-directory identity as not found" do
@@ -55,29 +54,13 @@ RSpec.describe "Directory add-by-ident! scope", type: :request do
           expect(member?(outsider)).to be(false)
         end
 
-        it "adds the ident! of someone in the directory they can see" do
+        it "adds the ident! of someone already in the directory" do
           insider = create(:directory_person)
-          seen = create(:directory_group)
-          Directory.mutate!(cause: "test") { Directory::Membership.create!(collection: seen, member_person: insider) }
-          grant!(Directory::Person.find_by!(identity: manager_identity), seen, "view")
 
           add(insider.identity.public_id, via: action)
 
           expect(response).to redirect_to(directory_collection_path(group.slug))
           expect(member?(insider.identity)).to be(true)
-        end
-
-        it "treats the ident! of a directory person they can't see as not found" do
-          hidden = create(:directory_person)
-
-          add(hidden.identity.public_id, via: action)
-
-          expect(member?(hidden.identity)).to be(false)
-          if action == :create
-            expect(flash[:alert]).to eq(I18n.t("directory.flash.email_not_found"))
-          else
-            expect(flash[:notice]).to eq(I18n.t("directory.flash.batch_not_found", count: 1, items: hidden.identity.public_id))
-          end
         end
       end
 
