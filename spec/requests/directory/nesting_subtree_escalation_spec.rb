@@ -134,4 +134,18 @@ RSpec.describe "Directory nesting subtree escalation", type: :request do
     expect(flash[:alert]).to eq(I18n.t!("directory.flash.need_manage_on_child_group"))
     expect(nested?(stranger, under: events)).to be(false)
   end
+
+  it "refuses renewing a lapsed nesting edge the actor couldn't add" do
+    nest!(hq, under: events)
+    edge = Directory::Membership.find_by!(collection: events, member_group: hq)
+    edge.update_columns(expires_at: 1.minute.ago)
+    Directory.mutate!(cause: "test") { }
+    expect(manages?(actor, hq_finance)).to be(false)
+
+    patch directory_collection_membership_path(events.slug, edge), params: { expires_at: "" }
+
+    expect(flash[:alert]).to eq(I18n.t!("directory.flash.need_manage_on_child_subgroups"))
+    expect(edge.reload.expires_at).to be < Time.current
+    expect(manages?(actor, hq_finance)).to be(false)
+  end
 end

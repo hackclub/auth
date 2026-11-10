@@ -181,7 +181,10 @@ module Directory
       @collection = membership.collection
       authorize membership
 
-      refusal = group_edge_refusal(membership)
+      # extending or clearing an expiry keeps (or brings back) the edge, so it needs what
+      # adding it would
+      refusal = group_edge_refusal(membership) ||
+        (membership.member_group && group_membership_refusal(membership.member_group))
       if refusal
         redirect_back fallback_location: directory_collection_path(@collection.slug), alert: refusal
         return
