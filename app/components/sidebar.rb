@@ -54,8 +54,9 @@ class Components::Sidebar < Components::Base
     if current_identity.present?
       if directory_admin_session?
         items << { label: t("sidebar.directory"), path: directory_root_path, icon: "admin" }
-      elsif (person_id = Directory::Person.where(identity_id: current_identity.id).pick(:id))
-        if Directory::EffectiveGrant.where(person_id: person_id).exists?
+      elsif (person = sidebar_directory_person)
+        _person_id, has_grants = person
+        if has_grants
           items << { label: t("sidebar.directory"), path: directory_root_path, icon: "admin" }
         else
           items << { label: t("sidebar.directory"), path: directory_my_access_path, icon: "admin" }
@@ -180,5 +181,16 @@ class Components::Sidebar < Components::Base
         }
       JS
     end
+  end
+
+  # one query on every page: is this identity a directory person, and do they hold a live grant
+  def sidebar_directory_person
+    Directory::Person.where(identity_id: current_identity.id).pick(
+      :id,
+      Arel.sql(<<~SQL.squish)
+        EXISTS (SELECT 1 FROM directory_effective_grants g
+                WHERE g.person_id = directory_people.id AND (g.expires_at IS NULL OR g.expires_at > NOW()))
+      SQL
+    )
   end
 end
