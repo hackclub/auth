@@ -29,9 +29,12 @@ module SAMLTestHelpers
 
   # SAMLService::Signing reads the IdP key and certificate from the files ENV points at.
   def stub_saml_signing
-    allow(SAMLService::Entities).to receive_messages(
-      private_key: SAMLTestHelpers.idp_key.to_pem,
-      x509_certificate: Base64.strict_encode64(SAMLTestHelpers.idp_certificate.to_der)
+    allow(SAMLService::Entities).to receive(:keys).and_return(
+      SAMLService::Entities::Keys.new(
+        version: :test,
+        certificate: Base64.strict_encode64(SAMLTestHelpers.idp_certificate.to_der),
+        private_key: SAMLTestHelpers.idp_key
+      )
     )
   end
 
