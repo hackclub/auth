@@ -3,6 +3,9 @@
   <label><%= t("#{scope}.revoker_heading") %></label>
   <p style="color: var(--pico-muted-color);"><%= t("#{scope}.revoker_explainer") %></p>
 
+  <% if revoker && !revoker.readable? %>
+    <p style="color: var(--pico-del-color);"><%= t("#{scope}.revoker_unreadable", default: "this revoker's config can't be read (wrong key or corrupt). replace it below or remove it.") %></p>
+  <% end %>
   <% if revoker %>
     <p style="color: var(--pico-muted-color);">
       <% if revoker.last_called_at %>
@@ -30,7 +33,7 @@
       <fieldset data-revoker-fields="<%= adapter %>">
         <legend><%= t("#{scope}.revoker_adapters.#{adapter}") %></legend>
         <small><%= t("#{scope}.revoker_help.#{adapter}") %></small>
-        <% current = revoker&.adapter == adapter %>
+        <% current = revoker&.adapter == adapter && revoker.readable? %>
         <% fields.each do |key, opts| %>
           <label>
             <%= t("#{scope}.revoker_fields.#{key}") %>

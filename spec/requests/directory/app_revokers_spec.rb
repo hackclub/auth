@@ -24,6 +24,19 @@ RSpec.describe "Session revokers on the developer app page", type: :request do
   context "as a directory admin" do
     before { sign_in admin }
 
+    it "renders the page and lets the revoker be replaced when its config can't be read" do
+      Directory::AppRevoker.create!(app: oauth_app, adapter: "webhook", config: { url: "https://a.example/r" }.to_json)
+        .update_columns(config_ciphertext: "not-a-ciphertext")
+
+      get developer_app_path(oauth_app)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("can&#39;t be read")
+
+      patch developer_app_session_revoker_path(oauth_app),
+        params: { revoker: { adapter: "webhook", enabled: "1", fields: { url: "https://b.example/r", secret: "s" } } }
+      expect(Directory::AppRevoker.find_by!(app_id: oauth_app.id).settings).to eq("url" => "https://b.example/r", "secret" => "s")
+    end
+
     it "creates a revoker and logs it on the app" do
       post developer_app_session_revoker_path(oauth_app), params: cf_params
 

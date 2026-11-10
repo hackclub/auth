@@ -22,15 +22,27 @@ module Directory
     def self.revoke_sessions(pairs)
       return if pairs.empty?
 
-      revokers = Directory::AppRevoker.where(app_id: pairs.map(&:first).uniq, enabled: true).index_by(&:app_id)
+      scopes = Directory::AppRevoker.where(app_id: pairs.map(&:first).uniq, enabled: true).to_h do |revoker|
+        [ revoker.app_id, session_scope_for(revoker) ]
+      end
       pairs
-        .filter_map { |app_id, email| (revoker = revokers[app_id]) && [ [ revoker.session_scope_key, email.to_s.downcase ], email, app_id ] }
+        .filter_map { |app_id, email| (scope = scopes[app_id]) && [ [ scope, email.to_s.downcase ], email, app_id ] }
         .group_by(&:first)
         .each_value do |rows|
           app_ids = rows.map(&:last).uniq
           Directory::RevokeSessionJob.perform_later(app_id: app_ids.first, email: rows.first[1], fallback_app_ids: app_ids.drop(1))
         end
     end
+
+    # one unreadable revoker config mustn't cancel everyone else's revocations; it still gets
+    # its own job, which fails loudly where the error belongs
+    def self.session_scope_for(revoker)
+      revoker.session_scope_key
+    rescue *Directory::AppRevoker::UNREADABLE => e
+      Sentry.capture_exception(e, extra: { app_id: revoker.app_id })
+      "app:#{revoker.app_id}"
+    end
+    private_class_method :session_scope_for
 
     # Bulk-revoke every token holder who doesn't meet the app's requirements.
     # Used when an app's requirement list changes.

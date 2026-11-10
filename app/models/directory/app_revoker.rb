@@ -22,7 +22,17 @@ module Directory
     validate :webhook_url_is_https, if: -> { adapter == "webhook" }
     validate :rebound_secrets_reentered
 
+    UNREADABLE = [ Lockbox::Error, JSON::ParserError ].freeze
+
     def settings = config.present? ? JSON.parse(config) : {}
+
+    # a row encrypted with another key, or hand-edited into bad json
+    def readable?
+      settings
+      true
+    rescue *UNREADABLE
+      false
+    end
 
     # Blank secret fields keep what's stored, so secrets never need rendering back to survive
     # an edit. Switching adapter starts from scratch, and so does a secret whose destination
@@ -30,7 +40,7 @@ module Directory
     def assign_settings(adapter:, fields:)
       allowed = FIELDS.fetch(adapter, {})
       submitted = fields.to_h.slice(*allowed.keys).transform_values { |v| v.to_s.strip }
-      kept = adapter == self.adapter ? settings : {}
+      kept = adapter == self.adapter && readable? ? settings : {}
       @rebound_secrets = allowed.filter_map do |key, opts|
         bound = opts[:bound_to]
         key if bound && kept[key].present? && submitted[key].blank? &&
@@ -43,7 +53,7 @@ module Directory
       self.config = merged.compact_blank.to_json
     end
 
-    def secret_set?(key) = settings[key].present?
+    def secret_set?(key) = readable? && settings[key].present?
 
     # Revocations with the same scope and email are the same call. Cloudflare's revoke_user
     # is account-wide, so every app on one account shares a scope.
