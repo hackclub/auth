@@ -185,18 +185,21 @@
                 </td>
                 <td style="color: var(--foreground2);"><%= m.created_at.strftime("%Y-%m-%d") %></td>
                 <td style="color: var(--foreground2);"><%= m.created_by&.full_name || "—" %></td>
+                <% editable = can_manage && (m.member_person_id || group_edge_refusal(m).nil?) %>
                 <td>
                   <%= expiry_display.call(m.expires_at) %>
-                  <% if can_manage %><%= render "expiry_form", collection: @collection, membership: m %><% end %>
+                  <% if editable %><%= render "expiry_form", collection: @collection, membership: m %><% end %>
                 </td>
                 <% if can_manage %>
                   <td style="text-align: right;">
+                    <% if editable %>
                     <% member_name = m.member_person&.full_name || (m.member_group && collection_label(m.member_group)) %>
                     <% confirm_msg = t("directory.collections.show.remove_confirm", name: member_name) %>
                     <% if @consequences[m.id] %>
                       <% confirm_msg += "\n#{@consequences[m.id]}" %>
                     <% end %>
                     <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, class: "btn-destructive" %>
+                    <% end %>
                   </td>
                 <% end %>
               </tr>

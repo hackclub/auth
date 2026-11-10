@@ -42,7 +42,7 @@ module DirectoryAppAuthorization
 
   # whether to show the wire/require forms at all
   def can_wire_any_entitlement?(app)
-    directory_context.admin? || (app_owner?(app) && directory_context.can_on_any?(:expose))
+    directory_context.admin? || (app_owner?(app) && directory_context.can_expose_any_entitlement?)
   end
 
   def authorize_app_entitlement_wiring!(app, entitlement)
