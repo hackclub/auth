@@ -37,7 +37,7 @@ module DeletionService
     deferred_attachments = []
     dir_person = Directory::Person.find_by(identity: identity)
     # captured up front: revocations need the real email to reach app revokers
-    dir_revocations = dir_person ? dir_person.revocation_data : []
+    dir_revocations = dir_person ? Directory::DestroyRevocations.for_person(dir_person) : []
 
     ActiveRecord::Base.transaction do
       log.call "step 1: locking account..."

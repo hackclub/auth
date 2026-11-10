@@ -156,16 +156,7 @@ module Directory
       end
 
       # before destroy wipes effective_memberships
-      revocations = []
-      if @collection.entitlement?
-        app_ids = @collection.affected_app_ids
-
-        if app_ids.any?
-          @collection.effective_people.includes(:identity).find_each do |person|
-            revocations << person.revocation_entry(app_ids)
-          end
-        end
-      end
+      revocations = Directory::DestroyRevocations.for_entitlement(@collection)
 
       begin
         Directory.mutate!(cause: Directory.cause("collection_deleted", target: @collection.id, actor: current_identity.id)) do

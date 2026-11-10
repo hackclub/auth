@@ -73,7 +73,7 @@ module Directory
       authorize @person
 
       # before destroy wipes effective_memberships
-      revocations = @person.revocation_data
+      revocations = Directory::DestroyRevocations.for_person(@person)
 
       Directory.mutate!(cause: Directory.cause("person_removed", target: @person.id, actor: current_identity.id)) do
         @person.destroy!
