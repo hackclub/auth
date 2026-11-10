@@ -27,7 +27,6 @@ module Directory
     has_many :member_group_memberships, -> { where.not(member_group_id: nil) },
              class_name: "Directory::Membership", foreign_key: :collection_id
     has_many :direct_people, through: :member_people_memberships, source: :member_person
-    has_many :direct_groups, through: :member_group_memberships, source: :member_group
 
     has_many :effective_memberships, dependent: :delete_all
     has_many :effective_people, through: :effective_memberships, source: :person
@@ -39,7 +38,6 @@ module Directory
 
     has_many :parent_memberships, -> { where.not(member_group_id: nil) },
              class_name: "Directory::Membership", foreign_key: :member_group_id, dependent: :destroy
-    has_many :parent_collections, through: :parent_memberships, source: :collection
 
     enum :kind, { group: "group", entitlement: "entitlement" }, scopes: false, instance_methods: false
 

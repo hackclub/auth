@@ -18,7 +18,6 @@ module Directory
     has_many :memberships, class_name: "Directory::Membership", foreign_key: :member_person_id, dependent: :destroy
     has_many :effective_memberships, class_name: "Directory::EffectiveMembership", dependent: :delete_all
     has_many :effective_grants, class_name: "Directory::EffectiveGrant", dependent: :delete_all
-    has_many :effective_collections, through: :effective_memberships, source: :collection
 
     validates :identity_id, uniqueness: true
     validate :identity_not_deleted, on: :create
