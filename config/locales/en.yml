@@ -851,8 +851,6 @@ en:
       import: "import"
       reports: "reports"
     actions:
-      back_to_collection: "back to collection"
-      back_to_directory: "back to directory"
       cancel: "cancel"
       remove: "remove"
     activity:
@@ -869,7 +867,6 @@ en:
       recursive: "recursive"
       locked: "locked"
       expired: "expired"
-      holds_nothing: "no memberships"
       already_in: "already in"
       add: "add"
       skip: "skip"
@@ -878,7 +875,6 @@ en:
         empty: "no activity recorded."
         heading: "activity"
         title: "activity — %{name}"
-        back_to_collection: "← back to collection"
       created: "collection created."
       cannot_destroy_in_use: "can't delete this collection — it's still required by one or more apps."
       destroyed: "collection deleted."
@@ -902,11 +898,7 @@ en:
         protected: "protected"
         slug: "slug"
       index:
-        col_apps: "apps"
-        col_direct: "direct"
         col_name: "name"
-        col_total: "total"
-        col_you_can: "you can"
         empty_message: "nothing here yet. create a group or entitlement to get started."
         entitlements: "entitlements"
         groups: "groups"
@@ -978,7 +970,6 @@ en:
         no_apps_wired: "no apps wired"
         no_direct_people: "no direct people"
         no_grants: "no grants"
-        no_member_groups: "no member groups"
         no_members: "no members yet"
         recent_activity: "recent activity"
         recursive_label: "recursive"
@@ -995,9 +986,6 @@ en:
         col_email: "email"
         col_via: "via"
       updated: "collection updated."
-    confirmations:
-      remove_grant: "remove this grant?"
-      remove_member: "remove this member?"
     export:
       email: "email"
       membership_type: "membership type"
@@ -1062,11 +1050,9 @@ en:
     health:
       invalid: "drift detected"
       show:
-        col_actual: "actual"
         col_adapter: "adapter"
         col_app: "app"
         col_enabled: "enabled"
-        col_expected: "expected"
         col_last_called: "last called"
         col_record: "record"
         col_result: "result"
@@ -1100,8 +1086,6 @@ en:
       file_too_large: "CSV file is too large (2MB max)."
       no_file: "please upload a CSV file or paste CSV text."
       preview:
-        action_add: "add"
-        action_skip: "skip"
         already_member: "already a member"
         duplicate_of: "duplicate of row %{row}"
         apply_button: "apply import"
@@ -1153,8 +1137,6 @@ en:
         col_status: "status"
         email_placeholder: "search by email…"
         heading: "people"
-        holds_nothing: "no memberships"
-        holds_nothing_heading: "no memberships"
         no_people: "no people in the directory yet."
         remove: "remove"
         remove_confirm: "remove %{name}?"
