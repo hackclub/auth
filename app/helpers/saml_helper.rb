@@ -87,8 +87,10 @@ module SAMLHelper
       all_attrs = all_attrs.select { |attr| allowed.include?(attr.name) }
     end
 
-    groups_values = saml_directory_groups(identity, sp_config)
-    if groups_values.any?
+    # an SP that maps entitlements gets the attribute even when it's empty, so one that syncs
+    # groups from the assertion drops the ones this person no longer holds
+    if sp_config[:entitlements].present?
+      groups_values = saml_directory_groups(identity, sp_config)
       attr_name = sp_config[:groups_attribute] || "groups"
       if sp_config[:allowed_attributes].blank? || sp_config[:allowed_attributes].include?(attr_name)
         all_attrs << SAML2::Attribute.new(attr_name, groups_values)

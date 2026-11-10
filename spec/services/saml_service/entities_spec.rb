@@ -145,5 +145,24 @@ RSpec.describe SAMLService::Entities do
       attributes = response.assertions.first.statements.grep(SAML2::AttributeStatement).flat_map(&:attributes)
       expect(attributes.find { |attr| attr.name == "groups" }&.value).to eq([ "airtable" ])
     end
+
+    it "sends the groups attribute empty when the person holds none, so SPs drop stale groups" do
+      Directory::Collection.create!(kind: "entitlement", slug: "airtable-users", name: "Airtable Users")
+
+      sp = load_sp(entitlements: { "airtable-users": "airtable" })
+      response = helper.build_saml_response(identity:, sp_config: sp)
+
+      attributes = response.assertions.first.statements.grep(SAML2::AttributeStatement).flat_map(&:attributes)
+      groups = attributes.find { |attr| attr.name == "groups" }
+      expect(groups).to be_present
+      expect(Array(groups.value)).to be_empty
+    end
+
+    it "leaves the groups attribute out for an SP that doesn't map entitlements" do
+      response = helper.build_saml_response(identity:, sp_config: load_sp)
+
+      attributes = response.assertions.first.statements.grep(SAML2::AttributeStatement).flat_map(&:attributes)
+      expect(attributes.map(&:name)).not_to include("groups")
+    end
   end
 end
