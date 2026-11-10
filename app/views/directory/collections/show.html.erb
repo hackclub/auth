@@ -76,7 +76,8 @@
                   <td style="text-align: right;">
                     <% confirm_msg = t("directory.collections.show.remove_group_confirm") %>
                     <% confirm_msg += "\n#{@consequences[m.id]}" if @consequences[m.id] %>
-                    <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, class: "btn-destructive" %>
+                    <%= render "expiry_form", collection: @collection, membership: m %>
+                    <%= button_to t("directory.actions.remove"), directory_collection_membership_path(@collection.slug, m), method: :delete, data: { confirm: confirm_msg }, class: "btn-destructive", form: { style: "display: inline;" } %>
                   </td>
                 <% end %>
               </tr>

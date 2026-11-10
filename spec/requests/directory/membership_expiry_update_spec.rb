@@ -83,4 +83,18 @@ RSpec.describe "Directory membership expiry update", type: :request do
 
     expect(response.parsed_body.text.squish).to include("set group Oncall Crew in")
   end
+
+  it "lets an admin set the expiry of a group nested in an entitlement from the entitlement page" do
+    entitlement = create(:directory_entitlement, slug: "staff-ent")
+    Directory.mutate!(cause: "test") do
+      Directory::Membership.create!(collection: entitlement, member_group: group, created_by_identity_id: admin.id)
+    end
+    edge = Directory::Membership.find_by!(collection: entitlement, member_group: group)
+
+    get directory_collection_path(entitlement.slug)
+    expect(response.parsed_body.css(%(form[action="#{directory_collection_membership_path(entitlement.slug, edge)}"] input[name="expires_at"]))).to be_present
+
+    patch directory_collection_membership_path(entitlement.slug, edge), params: { expires_at: 10.days.from_now.to_date.iso8601 }
+    expect(edge.reload.expires_at).to be_present
+  end
 end
