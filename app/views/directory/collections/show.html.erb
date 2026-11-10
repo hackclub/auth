@@ -26,7 +26,9 @@
       </div>
       <div class="dir-meta">
         <span>
-          <%= t("directory.collections.show.people_count", count: @collection.direct_member_count) %><% if @collection.effective_member_count != @collection.direct_member_count %> <span style="color: var(--foreground2);">(+<%= @collection.effective_member_count - @collection.direct_member_count %> nested)</span><% end %>
+          <% direct_count = @collection.direct_member_count %>
+          <% effective_count = @collection.effective_member_count %>
+          <%= t("directory.collections.show.people_count", count: direct_count) %><% if effective_count != direct_count %> <span style="color: var(--foreground2);">(+<%= effective_count - direct_count %> nested)</span><% end %>
         </span>
         <a href="<%= export_directory_collection_path(@collection.slug, format: :csv) %>" style="color: var(--foreground2);">csv ↓</a>
         <% if directory_admin? %>
