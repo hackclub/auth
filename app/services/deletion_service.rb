@@ -26,7 +26,8 @@ module DeletionService
     name_hashes = Deletion.name_combo_hashes_for_identity(identity)
     ip_hashes = identity.sessions.where.not(ip: nil).distinct.pluck(:ip).map { |ip| Deletion.hash_ip(ip) }
     version_items = collect_version_items(identity)
-    activity_trackables = collect_activity_trackables(identity)
+    past_emails = collect_past_emails(identity)
+    activity_trackables = collect_activity_trackables(identity, past_emails)
 
     log.call "identity ##{identity.id} (#{identity.public_id})"
     log.call "name: #{identity.first_name} #{identity.last_name}"
@@ -132,7 +133,7 @@ module DeletionService
       delete_versions(version_items)
 
       log.call "step 10: scrubbing activity parameters..."
-      scrub_activities(identity, activity_trackables, original_email)
+      scrub_activities(identity, activity_trackables, past_emails)
 
       log.call "step 11: removing Flipper actor gates..."
       gates = ActiveRecord::Base.connection.delete(
@@ -258,7 +259,28 @@ module DeletionService
     items
   end
 
-  def self.collect_activity_trackables(identity)
+  # every address the identity has had: the current one, email change requests, and
+  # primary_email changes in its versions (both are gone after steps 2 and 9)
+  def self.collect_past_emails(identity)
+    emails = [ identity.primary_email ]
+    Identity::EmailChangeRequest.where(identity_id: identity.id).find_each { |ecr| emails.push(ecr.old_email, ecr.new_email) }
+    PaperTrail::Version.where(item_type: "Identity", item_id: identity.id).where("object_changes ? 'primary_email'")
+      .pluck(Arel.sql("object_changes -> 'primary_email'")).each { |change| emails.concat(Array(change)) }
+    emails.compact_blank.map(&:downcase).uniq
+  end
+
+  # directory people they used to be (removed, maybe re-added): only their own activity
+  # rows remember them, by the email they had then
+  def self.former_directory_person_ids(past_emails)
+    return [] if past_emails.empty?
+
+    rows = PublicActivity::Activity.where(trackable_type: "Directory::Person", key: %w[directory_person.create directory_person.destroy])
+    past_emails.flat_map do |email|
+      rows.where("parameters ILIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(email)}%").distinct.pluck(:trackable_id)
+    end.uniq
+  end
+
+  def self.collect_activity_trackables(identity, past_emails)
     trackables = [ [ "Identity", identity.id ] ]
 
     {
@@ -270,7 +292,7 @@ module DeletionService
       "Identity::TOTP" => Identity::TOTP.where(identity_id: identity.id).pluck(:id),
       "Identity::WebauthnCredential" => Identity::WebauthnCredential.where(identity_id: identity.id).pluck(:id),
       "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id),
-      "Directory::Person" => Directory::Person.where(identity_id: identity.id).pluck(:id)
+      "Directory::Person" => (Directory::Person.where(identity_id: identity.id).pluck(:id) + former_directory_person_ids(past_emails)).uniq
     }.each do |type, ids|
       ids.each { |id| trackables << [ type, id ] }
     end
@@ -430,7 +452,7 @@ module DeletionService
 
   SAFE_ACTIVITY_KEY_PREFIXES = %w[verification.].freeze
 
-  def self.scrub_activities(identity, activity_trackables, original_email)
+  def self.scrub_activities(identity, activity_trackables, past_emails)
     # directory rows they only authored hold other people's names and the event's structure
     # (expiry, recursion, reason), never the author's PII; scrubbing them makes the audit
     # log describe events that didn't happen
@@ -448,9 +470,9 @@ module DeletionService
     # lookup misses from before they had an account sit on the collection with the raw
     # email in parameters. a separate statement (OR-ing an ILIKE into the scope above
     # costs it its indexes), narrowed by trackable_type so it can use the trackable index
-    if original_email.present?
+    past_emails.each do |email|
       PublicActivity::Activity.where(trackable_type: "Directory::Collection", key: "directory_collection.email_lookup_miss")
-        .where("parameters ILIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(original_email)}%")
+        .where("parameters ILIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(email)}%")
         .update_all(parameters: nil)
     end
 
@@ -473,5 +495,6 @@ module DeletionService
   private_class_method :collect_version_items, :collect_activity_trackables, :purge_attachments,
                        :purge_or_detach, :delete_versions, :discard_pending_jobs, :scrub_activities,
                        :collect_attachments, :detach_attachments, :scrub_manual_call_checklists,
-                       :scrub_verification_cases, :scrub_event_data
+                       :scrub_verification_cases, :scrub_event_data,
+                       :collect_past_emails, :former_directory_person_ids
 end

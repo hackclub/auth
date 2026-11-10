@@ -244,6 +244,24 @@ RSpec.describe DeletionService do
       expect(Directory::Person.exists?(person.id)).to be(false)
     end
 
+    it "scrubs rows tied to a directory person they no longer have, and lookups of a past email" do
+      old_email = victim.primary_email
+      person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
+      Directory.mutate!(cause: "test") do
+        Directory::Membership.create!(collection: group, member_person: person, created_by_identity_id: admin.id)
+      end
+      Directory.mutate!(cause: "test") { person.reload.destroy! }
+      group.create_activity :email_lookup_miss, owner: admin, params: { email: old_email }
+      victim.update!(primary_email: "zelda.new@example.com")
+
+      delete!(victim)
+
+      leftovers = PublicActivity::Activity.where(
+        "parameters ILIKE ? OR parameters ILIKE ? OR parameters ILIKE ?", "%Zelda%", "%Quixote%", "%#{old_email}%"
+      )
+      expect(leftovers.map(&:key)).to be_empty
+    end
+
     it "records their removal from each collection, redacted" do
       person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
       Directory.mutate!(cause: "test") do
