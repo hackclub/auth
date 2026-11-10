@@ -17,4 +17,15 @@ RSpec.describe "Logging in to a locked account", type: :request do
     expect(response).to redirect_to(login_path)
     expect(flash[:error]).to eq("Your account has been locked.")
   end
+
+  it "finishing with a passkey redirects back to login with the lock message" do
+    attempt = LoginAttempt.create!(identity:, authentication_factors: {}, provenance: "login")
+    identity.update!(locked_at: Time.current)
+    allow_any_instance_of(LoginsController).to receive(:verify_webauthn_credential).and_return(double("credential"))
+
+    post verify_webauthn_login_attempt_path(id: attempt.to_param), params: { credential_data: "{}" }
+
+    expect(response).to redirect_to(login_path)
+    expect(flash[:error]).to eq("Your account has been locked.")
+  end
 end

@@ -233,6 +233,8 @@ class LoginsController < ApplicationController
         Rails.logger.warn "Login blocked: compromised credential detected for identity #{@identity.id}"
         flash.now[:error] = "Security issue detected with your passkey. It has been disabled for your protection. Please use another login method or register a new passkey."
         render :webauthn, status: :unprocessable_entity
+    rescue SessionsHelper::AccountLockedError
+        raise # the rescue_from above shows the lock message; the catch-all below would hide it
     rescue WebAuthn::Error => e
         Rails.logger.error "WebAuthn authentication error: #{e.message}"
         flash.now[:error] = "Passkey verification failed. Please try again or use email code."
