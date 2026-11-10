@@ -269,7 +269,7 @@
                 <td style="text-align: right; white-space: nowrap;">
                   <% if grant.recursive %>
                     <%= button_to t("directory.collections.show.make_direct"), directory_collection_grant_path(@collection.slug, grant), method: :patch, params: { recursive: "0" }, data: { confirm: t("directory.collections.show.make_direct_confirm") }, form: { style: "display: inline;" } %>
-                  <% else %>
+                  <% elsif @collection.group? %>
                     <%= button_to t("directory.collections.show.make_recursive"), directory_collection_grant_path(@collection.slug, grant), method: :patch, params: { recursive: "1" }, form: { style: "display: inline;" } %>
                   <% end %>
                   <%= button_to t("directory.actions.remove"), directory_collection_grant_path(@collection.slug, grant), method: :delete, data: { confirm: t("directory.collections.show.remove_grant_confirm") }, class: "btn-destructive", form: { style: "display: inline;" } %>

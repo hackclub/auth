@@ -25,4 +25,16 @@ RSpec.describe "Directory grant recursion toggle", type: :request do
     expect(flash[:alert]).to include("must be a group")
     expect(grant.reload.recursive).to be(false)
   end
+
+  it "doesn't offer 'make recursive' on an entitlement's grants" do
+    entitlement = create(:directory_entitlement)
+    grantee = create(:directory_group)
+    Directory.mutate!(cause: "test") do
+      Directory::Grant.create!(grantee_group: grantee, target_collection: entitlement, permission: "view")
+    end
+
+    get directory_collection_path(entitlement.slug)
+
+    expect(response.body).not_to include(I18n.t("directory.collections.show.make_recursive"))
+  end
 end
