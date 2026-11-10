@@ -71,7 +71,9 @@ module Directory
       records = activities.to_a
       ActiveRecord::Associations::Preloader.new(records: records, associations: :owner).call
 
-      owners = records.map(&:owner).grep(::Identity).uniq
+      backend_owners = records.map(&:owner).grep(::Backend::User).uniq
+      ActiveRecord::Associations::Preloader.new(records: backend_owners, associations: :identity).call
+      owners = (records.map(&:owner).grep(::Identity) + backend_owners.filter_map(&:identity)).uniq
       ActiveRecord::Associations::Preloader.new(records: owners, associations: :directory_person).call
       owner_people = owners.filter_map(&:directory_person)
       visible = policy_scope(Directory::Person).where(id: owner_people.map(&:id)).pluck(:id).to_set
@@ -85,6 +87,14 @@ module Directory
       }.each do |klass, associations|
         next unless trackables[klass]
         ActiveRecord::Associations::Preloader.new(records: trackables[klass], associations: associations).call
+      end
+
+      group_ids = records.filter_map { |a| a.parameters["member_group_id"] }.uniq
+      if group_ids.any?
+        @activity_groups = Directory::Collection.where(id: group_ids).index_by(&:id)
+        visible_ids = policy_scope(Directory::Collection).where(id: group_ids).pluck(:id).to_set
+        @collection_visibility ||= {}
+        @activity_groups.each_key { |id| @collection_visibility[id] = visible_ids.include?(id) }
       end
       activities
     end
@@ -115,7 +125,8 @@ module Directory
       params = activity.parameters
       return params["member_name"] unless params["member_type"] == "group"
 
-      group = Directory::Collection.find_by(id: params["member_group_id"]) if params["member_group_id"]
+      group_id = params["member_group_id"]
+      group = (@activity_groups || {}).fetch(group_id) { Directory::Collection.find_by(id: group_id) } if group_id
       group && collection_visible?(group) ? params["member_name"] : t("directory.hidden_group")
     end
 
