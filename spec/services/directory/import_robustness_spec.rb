@@ -47,6 +47,12 @@ RSpec.describe Directory::Import, "input robustness" do
     expect(result.created_count).to eq(1)
   end
 
+  it "reports a row with an empty email cell instead of raising" do
+    result = import(",staff\n", dry_run: true)
+
+    expect(result.errors).to contain_exactly(hash_including(row: 1, message: "missing email"))
+  end
+
   it "turns malformed CSV into a row error instead of raising" do
     result = import(%(jane@example.com,"team\n))
     expect(result).not_to be_valid
