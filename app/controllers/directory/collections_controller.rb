@@ -158,11 +158,11 @@ module Directory
         return
       end
 
-      # before destroy wipes effective_memberships
-      revocations = Directory::DestroyRevocations.for_entitlement(@collection)
-
+      revocations = nil
       begin
         Directory.mutate!(cause: Directory.cause("collection_deleted", target: @collection.id, actor: current_identity.id)) do
+          # under the lock and before destroy wipes effective_memberships
+          revocations = Directory::DestroyRevocations.for_entitlement(@collection)
           @collection.destroy!
         end
       rescue ActiveRecord::InvalidForeignKey
@@ -176,7 +176,7 @@ module Directory
       end
 
       # the rebuild diff won't see people of a deleted collection
-      if revocations.any?
+      if revocations&.any?
         Directory::AfterChangeJob.perform_later(change_ids: [], revocations: revocations)
       end
 

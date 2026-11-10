@@ -262,6 +262,27 @@ RSpec.describe DeletionService do
       expect(leftovers.map(&:key)).to be_empty
     end
 
+    it "looks the directory person up under the directory lock" do
+      Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
+      held = nil
+      allow(Directory::Person).to receive(:find_by).and_wrap_original do |original, *args, **kwargs|
+        held ||= ActiveRecord::Base.connection.select_value(
+          "SELECT count(*) FROM pg_locks WHERE locktype = 'advisory' AND pid = pg_backend_pid() AND objid = #{Directory::Rebuild::LOCK_KEY}"
+        ).to_i.positive?
+        original.call(*args, **kwargs)
+      end
+
+      delete!(victim)
+
+      expect(held).to be(true)
+    end
+
+    it "can't be undone by adding the deleted identity back afterwards" do
+      delete!(victim)
+      person = Directory::Person.new(identity: victim, created_by_identity_id: admin.id)
+      expect(person).not_to be_valid
+    end
+
     it "records their removal from each collection, redacted" do
       person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
       Directory.mutate!(cause: "test") do

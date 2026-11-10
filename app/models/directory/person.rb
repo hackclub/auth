@@ -21,6 +21,7 @@ module Directory
     has_many :effective_collections, through: :effective_memberships, source: :collection
 
     validates :identity_id, uniqueness: true
+    validate :identity_not_deleted, on: :create
 
     delegate :full_name, :primary_email, :locked?, to: :identity
 
@@ -48,6 +49,12 @@ module Directory
       end
     rescue ActiveRecord::RecordNotUnique
       find_by!(identity: identity)
+    end
+
+    # from the table, not the caller's (possibly stale) identity object: a GDPR deletion
+    # that committed while this request waited on the directory lock must win
+    private def identity_not_deleted
+      errors.add(:identity, "has been deleted") unless Identity.where(id: identity_id).exists?
     end
 
     # for "member of X (via Y)"

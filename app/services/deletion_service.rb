@@ -36,11 +36,20 @@ module DeletionService
     log.call ""
 
     deferred_attachments = []
-    dir_person = Directory::Person.find_by(identity: identity)
-    # captured up front: revocations need the real email to reach app revokers
-    dir_revocations = dir_person ? Directory::DestroyRevocations.for_person(dir_person) : []
+    dir_person = nil
+    dir_revocations = []
 
     ActiveRecord::Base.transaction do
+      # held to commit: no directory write (an add by email included) can create or change
+      # this identity's Directory::Person between the lookup here and its removal in 12b
+      ActiveRecord::Base.connection.execute("SELECT pg_advisory_xact_lock(#{Directory::Rebuild::LOCK_KEY})")
+      dir_person = Directory::Person.find_by(identity: identity)
+      if dir_person
+        activity_trackables << [ "Directory::Person", dir_person.id ] unless activity_trackables.include?([ "Directory::Person", dir_person.id ])
+        # before redaction: revocations need the real email to reach app revokers
+        dir_revocations = Directory::DestroyRevocations.for_person(dir_person)
+      end
+
       log.call "step 1: locking account..."
       identity.lock_account! unless identity.locked?
 

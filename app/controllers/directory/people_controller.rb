@@ -73,10 +73,11 @@ module Directory
       @person = Directory::Person.find_by_public_id!(params[:public_id])
       authorize @person
 
-      # before destroy wipes effective_memberships
-      revocations = Directory::DestroyRevocations.for_person(@person)
-
+      revocations = nil
       Directory.mutate!(cause: Directory.cause("person_removed", target: @person.id, actor: current_identity.id)) do
+        # under the lock and before destroy wipes effective_memberships, so a concurrent add
+        # can't slip in between capture and delete
+        revocations = Directory::DestroyRevocations.for_person(@person.reload)
         @person.destroy!
       end
 
