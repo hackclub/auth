@@ -25,21 +25,21 @@ RSpec.describe Directory::RevokeSessionJob do
 
   it "throttles per cloudflare account, not per app" do
     other = create(:program)
-    cf = ->(a) { Directory::AppRevoker.create!(app: a, adapter: "cloudflare_access", enabled: true, config: { account_id: "acct", api_token: "t" }.to_json) }
+    cf = ->(a) { Directory::AppRevoker.create!(app: a, adapter: "cloudflare_access", enabled: true, config: { account_id: "0123456789abcdef0123456789abcdef", api_token: "t" }.to_json) }
     cf.(other)
-    revoker.update!(adapter: "cloudflare_access", config: { account_id: "acct", api_token: "t" }.to_json)
+    revoker.update!(adapter: "cloudflare_access", config: { account_id: "0123456789abcdef0123456789abcdef", api_token: "t" }.to_json)
 
     keys = [ app, other ].map { |a| described_class.new(app_id: a.id, email: "x@example.test").good_job_concurrency_key }
-    expect(keys.uniq).to eq([ "directory-revoke:cloudflare_access:acct" ])
+    expect(keys.uniq).to eq([ "directory-revoke:cloudflare_access:0123456789abcdef0123456789abcdef" ])
   end
 
   context "with several apps on one cloudflare account" do
     let(:other) { create(:program) }
-    let(:url) { "https://api.cloudflare.com/client/v4/accounts/acct/access/organizations/revoke_user" }
+    let(:url) { "https://api.cloudflare.com/client/v4/accounts/0123456789abcdef0123456789abcdef/access/organizations/revoke_user" }
 
     before do
-      revoker.update!(adapter: "cloudflare_access", config: { account_id: "acct", api_token: "expired" }.to_json)
-      Directory::AppRevoker.create!(app: other, adapter: "cloudflare_access", enabled: true, config: { account_id: "acct", api_token: "good" }.to_json)
+      revoker.update!(adapter: "cloudflare_access", config: { account_id: "0123456789abcdef0123456789abcdef", api_token: "expired" }.to_json)
+      Directory::AppRevoker.create!(app: other, adapter: "cloudflare_access", enabled: true, config: { account_id: "0123456789abcdef0123456789abcdef", api_token: "good" }.to_json)
       stub_request(:post, url).with(headers: { "Authorization" => "Bearer expired" }).to_return(status: 403)
       stub_request(:post, url).with(headers: { "Authorization" => "Bearer good" }).to_return(status: 200)
     end
@@ -81,5 +81,21 @@ RSpec.describe Directory::RevokeSessionJob do
     expect { described_class.perform_now(app_id: app.id, email: "p@example.test") }
       .to have_enqueued_job(described_class)
     expect(revoker.reload.last_result).to start_with("failed")
+  end
+
+  it "keeps only an excerpt of a huge error body" do
+    stub_request(:post, "https://hooks.example.test/revoke").to_return(status: 500, body: "x" * 2_000_000)
+
+    expect { described_class.perform_now(app_id: app.id, email: "p@example.test") }.to have_enqueued_job(described_class)
+    expect(revoker.reload.last_result.length).to be <= 500
+  end
+
+  it "won't call a webhook whose host now resolves to a private address" do
+    allow(Directory::AppRevoker).to receive(:internal_host?).and_return(true)
+    allow(Sentry).to receive(:capture_exception)
+
+    expect { described_class.perform_now(app_id: app.id, email: "p@example.test") }.to raise_error(ArgumentError)
+    expect(a_request(:post, "https://hooks.example.test/revoke")).not_to have_been_made
+    expect(revoker.reload.last_result).to start_with("config_error")
   end
 end

@@ -42,14 +42,25 @@ module Directory
 
     def revoker! = @revoker ||= Directory::AppRevoker.find_by!(app_id: @app.id)
 
+    # old -> new for every non-secret field; secrets only ever as "replaced"
+    def audit_changes(before, revoker, submitted)
+      after = { "adapter" => revoker.adapter, "enabled" => revoker.enabled }.merge(revoker.public_settings)
+      changes = (before.keys | after.keys).filter_map { |key| [ key, [ before[key], after[key] ] ] unless before[key] == after[key] }.to_h
+      Directory::AppRevoker::FIELDS.fetch(revoker.adapter, {}).each do |key, opts|
+        changes[key] = "replaced" if opts[:secret] && submitted.to_h[key].present?
+      end
+      changes
+    end
+
     def save(revoker, activity_key)
       revoker_params = params.require(:revoker).permit(:adapter, :enabled, fields: {})
+      before = { "adapter" => revoker.adapter, "enabled" => revoker.enabled }.merge(revoker.public_settings)
       revoker.assign_settings(adapter: revoker_params[:adapter].to_s, fields: revoker_params[:fields] || {})
       revoker.enabled = ActiveModel::Type::Boolean.new.cast(revoker_params[:enabled]) if revoker_params.key?(:enabled)
 
       if revoker.save
         @app.create_activity activity_key, owner: current_identity,
-          parameters: { adapter: revoker.adapter, enabled: revoker.enabled }
+          parameters: { adapter: revoker.adapter, enabled: revoker.enabled, changes: audit_changes(before, revoker, revoker_params[:fields]) }
         redirect_to wiring_return_path(@app), notice: t("directory.flash.revoker_saved")
       else
         redirect_to wiring_return_path(@app), alert: revoker.errors.full_messages.to_sentence

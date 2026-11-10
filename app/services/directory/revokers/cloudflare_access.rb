@@ -14,7 +14,7 @@ module Directory
           )
 
         unless response.status.success?
-          raise Directory::RevokeSessionJob::RevocationFailed, "cloudflare access revocation failed: #{response.status} #{response.body}"
+          raise Directory::RevokeSessionJob::RevocationFailed, "cloudflare access revocation failed: #{response.status} #{body_excerpt(response)}"
         end
 
         :ok

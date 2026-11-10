@@ -51,7 +51,7 @@ RSpec.describe "Directory app pages", type: :request do
 
     it "sets up and removes a session revoker from this page" do
       post developer_app_session_revoker_path(oauth_app),
-        params: { return_to: page, revoker: { adapter: "cloudflare_access", enabled: "1", fields: { account_id: "acct", api_token: "tok-s3cret" } } }
+        params: { return_to: page, revoker: { adapter: "cloudflare_access", enabled: "1", fields: { account_id: "0123456789abcdef0123456789abcdef", api_token: "tok-s3cret" } } }
       expect(response).to redirect_to(page)
       expect(Directory::AppRevoker.find_by!(app_id: oauth_app.id).settings["api_token"]).to eq("tok-s3cret")
 

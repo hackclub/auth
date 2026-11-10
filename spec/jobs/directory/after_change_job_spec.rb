@@ -177,8 +177,8 @@ RSpec.describe Directory::AfterChangeJob do
     end
 
     it "makes one revoke call per person for apps on the same cloudflare account" do
-      cf_revoker(app, "acct-1")
-      cf_revoker(app2, "acct-1")
+      cf_revoker(app, "0123456789abcdef0123456789abcdef")
+      cf_revoker(app2, "0123456789abcdef0123456789abcdef")
       cut_team_from_staff
 
       perform_enqueued_jobs(only: described_class)
@@ -188,8 +188,8 @@ RSpec.describe Directory::AfterChangeJob do
     end
 
     it "keeps separate calls for different accounts" do
-      cf_revoker(app, "acct-1")
-      cf_revoker(app2, "acct-2")
+      cf_revoker(app, "0123456789abcdef0123456789abcdef")
+      cf_revoker(app2, "fedcba9876543210fedcba9876543210")
       cut_team_from_staff
 
       perform_enqueued_jobs(only: described_class)

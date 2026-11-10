@@ -18,7 +18,7 @@ RSpec.describe "Session revokers on the developer app page", type: :request do
   let(:oauth_app) { create(:program, owner_identity: owner, trust_level: :hq_official) }
 
   def cf_params(**fields)
-    { revoker: { adapter: "cloudflare_access", enabled: "1", fields: { account_id: "acct", api_token: "s3cr3t-token-value" }.merge(fields) } }
+    { revoker: { adapter: "cloudflare_access", enabled: "1", fields: { account_id: "0123456789abcdef0123456789abcdef", api_token: "s3cr3t-token-value" }.merge(fields) } }
   end
 
   context "as a directory admin" do
@@ -41,7 +41,7 @@ RSpec.describe "Session revokers on the developer app page", type: :request do
       post developer_app_session_revoker_path(oauth_app), params: cf_params
 
       revoker = Directory::AppRevoker.find_by!(app_id: oauth_app.id)
-      expect(revoker.settings).to eq("account_id" => "acct", "api_token" => "s3cr3t-token-value")
+      expect(revoker.settings).to eq("account_id" => "0123456789abcdef0123456789abcdef", "api_token" => "s3cr3t-token-value")
       expect(PublicActivity::Activity.where(trackable: oauth_app, key: "program.session_revoker_added")).to exist
     end
 
@@ -50,10 +50,37 @@ RSpec.describe "Session revokers on the developer app page", type: :request do
 
       get developer_app_path(oauth_app)
       expect(response.body).not_to include("s3cr3t-token-value")
-      expect(response.body).to include("acct")
+      expect(response.body).to include("0123456789abcdef0123456789abcdef")
 
-      patch developer_app_session_revoker_path(oauth_app), params: cf_params(account_id: "acct2", api_token: "")
-      expect(Directory::AppRevoker.find_by!(app_id: oauth_app.id).settings).to eq("account_id" => "acct2", "api_token" => "s3cr3t-token-value")
+      patch developer_app_session_revoker_path(oauth_app), params: cf_params(api_token: "")
+      expect(Directory::AppRevoker.find_by!(app_id: oauth_app.id).settings).to eq("account_id" => "0123456789abcdef0123456789abcdef", "api_token" => "s3cr3t-token-value")
+    end
+
+    it "needs the api token re-entered when the account changes, and audits the change" do
+      post developer_app_session_revoker_path(oauth_app), params: cf_params
+
+      patch developer_app_session_revoker_path(oauth_app), params: cf_params(account_id: "fedcba9876543210fedcba9876543210", api_token: "")
+      expect(flash[:alert]).to eq("re-enter the API token when changing the account")
+
+      patch developer_app_session_revoker_path(oauth_app), params: cf_params(account_id: "fedcba9876543210fedcba9876543210", api_token: "new-token")
+      changes = PublicActivity::Activity.where(trackable: oauth_app, key: "program.session_revoker_changed").last.parameters["changes"]
+      expect(changes).to include("account_id" => [ "0123456789abcdef0123456789abcdef", "fedcba9876543210fedcba9876543210" ], "api_token" => "replaced")
+      expect(changes.to_s).not_to include("new-token")
+      expect(PaperTrail::Version.where(item_type: "Directory::AppRevoker").last.object_changes.to_s).not_to include("ciphertext")
+    end
+
+    it "refuses an account id that isn't cloudflare's hex id" do
+      post developer_app_session_revoker_path(oauth_app), params: cf_params(account_id: "../../zones/x")
+      expect(flash[:alert]).to include("32-character hex id")
+      expect(Directory::AppRevoker.exists?(app_id: oauth_app.id)).to be(false)
+    end
+
+    it "refuses a webhook pointed at a private or local address" do
+      %w[https://127.0.0.1/r https://10.1.2.3/r https://[::1]/r https://169.254.169.254/latest].each do |url|
+        post developer_app_session_revoker_path(oauth_app),
+          params: { revoker: { adapter: "webhook", enabled: "1", fields: { url: url } } }
+        expect(Directory::AppRevoker.exists?(app_id: oauth_app.id)).to be(false), url
+      end
     end
 
     it "starts from scratch when switching adapter" do

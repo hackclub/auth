@@ -58,10 +58,10 @@ module Directory
       revoker.update_columns(last_called_at: Time.current, last_result: "ok")
       true
     rescue *TRANSIENT => e
-      revoker.update_columns(last_called_at: Time.current, last_result: "failed: #{e.message}")
+      revoker.update_columns(last_called_at: Time.current, last_result: "failed: #{e.message}".truncate(500))
       raise
     rescue => e
-      revoker.update_columns(last_called_at: Time.current, last_result: "config_error: #{e.message}")
+      revoker.update_columns(last_called_at: Time.current, last_result: "config_error: #{e.message}".truncate(500))
       raise
     end
   end
