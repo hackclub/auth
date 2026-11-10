@@ -13,6 +13,12 @@ class LoginsController < ApplicationController
     before_action :validate_browser_token, except: [ :new, :create ]
     before_action :ensure_no_user!
 
+    # every verify path ends in sign_in, which refuses locked accounts
+    rescue_from SessionsHelper::AccountLockedError do |e|
+        flash[:error] = e.message
+        redirect_to login_path
+    end
+
     def new
         @prefill_email = params[:email] if params[:email].present?
     end
