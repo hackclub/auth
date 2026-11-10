@@ -12,8 +12,8 @@ module Directory
 
     def self.summary(result)
       result.mismatches.filter_map do |table, diff|
-        next if diff[:missing].empty? && diff[:extra].empty?
-        "#{table}: #{diff[:missing].size} missing, #{diff[:extra].size} extra"
+        next if diff.values.all?(&:empty?)
+        "#{table}: #{diff.fetch(:missing, []).size} missing, #{diff.fetch(:extra, []).size} extra, #{diff.fetch(:stale, []).size} stale expiry"
       end.join("; ")
     end
 

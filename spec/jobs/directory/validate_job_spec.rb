@@ -23,4 +23,13 @@ RSpec.describe Directory::ValidateJob do
 
     expect { described_class.perform_now }.to raise_error(described_class::DriftDetected, /effective_memberships: 0 missing, 1 extra/)
   end
+
+  it "names expiry-only drift in the summary" do
+    person = create(:directory_person)
+    group = create(:directory_group)
+    Directory.mutate!(cause: "test") { Directory::Membership.create!(collection: group, member_person: person) }
+    Directory::EffectiveMembership.where(person_id: person.id, collection_id: group.id).update_all(expires_at: 1.day.from_now)
+
+    expect { described_class.perform_now }.to raise_error(described_class::DriftDetected, /effective_memberships: 0 missing, 0 extra, 1 stale expiry/)
+  end
 end
