@@ -1,5 +1,5 @@
 <%= render Components::PublicActivity::Snippet.new(activity) do %>
-  made <b><%= activity.trackable&.grantee_group&.name || activity.parameters["grantee_name"] || "?" %></b>'s
+  made <b><%= respond_to?(:activity_grantee_name) ? activity_grantee_name(activity) : (activity.parameters["grantee_name"] || "?") %></b>'s
   <code><%= activity.trackable&.permission || activity.parameters["permission"] %></code> grant
   on <b><%= activity.trackable&.target_collection&.name || activity.parameters["target_name"] || "?" %></b>
   <%= activity.parameters["recursive"] ? "recursive" : "non-recursive" %>.

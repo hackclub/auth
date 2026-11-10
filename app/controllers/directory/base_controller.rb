@@ -15,7 +15,7 @@ module Directory
 
     helper_method :current_directory_person, :directory_admin?, :breadcrumbs, :directory_keyboard_shortcuts,
       :directory_activity_owner, :directory_browsable?, :directory_home_path,
-      :collection_link, :collection_label, :activity_member_name
+      :collection_link, :collection_label, :activity_member_name, :activity_grantee_name
 
     private
 
@@ -79,6 +79,16 @@ module Directory
 
       group = Directory::Collection.find_by(id: params["member_group_id"]) if params["member_group_id"]
       group && collection_visible?(group) ? params["member_name"] : t("directory.hidden_group")
+    end
+
+    # a grant row names its grantee group only to viewers who can see that group; once the
+    # grant is gone there's nothing left to check, so only admins get the stored name
+    def activity_grantee_name(activity)
+      group = activity.trackable.try(:grantee_group)
+      return collection_label(group) if group
+      return activity.parameters["grantee_name"] || "?" if directory_admin?
+
+      t("directory.hidden_group")
     end
 
     def collection_visible?(collection)
