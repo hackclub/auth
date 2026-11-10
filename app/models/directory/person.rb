@@ -72,8 +72,9 @@ module Directory
       ent_ids = effective_memberships.joins(:collection)
         .where(directory_collections: { kind: "entitlement" }).pluck(:collection_id)
       return {} unless ent_ids.any?
-      Directory::Exposure.includes(:app, :entitlement)
-        .where(entitlement_id: ent_ids).group_by(&:app)
+      exposures = Directory::Exposure.includes(:app, :entitlement).where(entitlement_id: ent_ids).to_a
+      claims = Directory::Exposure.claim_pairs(app_ids: exposures.map(&:app_id), identity_ids: [ identity_id ])
+      exposures.select { |exp| claims.include?([ exp.app_id, identity_id ]) }.group_by(&:app)
     end
 
     # entitlement_ids: what was lost, so AfterChangeJob can tell whether the loss still
@@ -91,10 +92,8 @@ module Directory
         .pluck(:collection_id)
       return [] if entitlement_ids.empty?
 
-      app_ids = Directory::Collection.affected_app_ids(entitlement_ids)
-      return [] if app_ids.empty?
-
-      [ revocation_entry(app_ids) ]
+      app_ids = Directory::Collection.revocation_app_ids(entitlement_ids, [ identity_id ])[identity_id]
+      app_ids.any? ? [ revocation_entry(app_ids) ] : []
     end
   end
 end

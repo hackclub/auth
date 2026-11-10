@@ -74,7 +74,7 @@ module Directory
     end
 
     def exposure_count
-      has_attribute?(:preloaded_exposure_count) ? preloaded_exposure_count : Directory::Exposure.where(entitlement_id: id).count
+      has_attribute?(:preloaded_exposure_count) ? preloaded_exposure_count : Directory::Exposure.live.where(entitlement_id: id).count
     end
 
     # apps with an exposure or a requirement on any of these entitlements
@@ -91,6 +91,18 @@ module Directory
 
     def affected_app_ids
       self.class.affected_app_ids(id)
+    end
+
+    # { identity_id => app_ids } a permanent loss of these entitlements should revoke: every
+    # app requiring one, and every app exposing one whose groups claim reaches that person
+    def self.revocation_app_ids(entitlement_ids, identity_ids)
+      required = Directory::AppRequirement.where(entitlement_id: entitlement_ids).distinct.pluck(:app_id)
+      exposed = Directory::Exposure.where(entitlement_id: entitlement_ids).distinct.pluck(:app_id)
+      claims = Directory::Exposure.claim_pairs(app_ids: exposed, identity_ids: identity_ids)
+
+      identity_ids.uniq.to_h do |identity_id|
+        [ identity_id, (required + exposed.select { |app_id| claims.include?([ app_id, identity_id ]) }).uniq ]
+      end
     end
 
     # what a recursive grant covers once it flows into this collection: itself plus every

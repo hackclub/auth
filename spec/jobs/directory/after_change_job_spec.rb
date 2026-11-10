@@ -26,6 +26,32 @@ RSpec.describe Directory::AfterChangeJob do
 
   def token = @token ||= create(:oauth_token, resource_owner: identity, application: app)
 
+  context "app that stopped requesting groups" do
+    before do
+      Directory::Exposure.create!(app: app, entitlement: staff, claim_name: "staff")
+      add(staff)
+    end
+
+    it "still revokes a person whose token was issued with the groups claim" do
+      groups_token = create(:oauth_token, resource_owner: identity, application: app, scopes: "basic_info groups")
+      app.update_columns(scopes: "basic_info email name")
+
+      perform_enqueued_jobs { remove(staff) }
+
+      expect(groups_token.reload.revoked_at).to be_present
+    end
+
+    it "leaves a person alone whose tokens never carried the claim" do
+      plain = create(:oauth_token, resource_owner: identity, application: app, scopes: "basic_info")
+      app.update_columns(scopes: "basic_info email name")
+
+      perform_enqueued_jobs { remove(staff) }
+      expect(plain.reload.revoked_at).to be_nil
+
+      expect(Directory::DestroyRevocations.for_entitlement(staff)).to be_empty
+    end
+  end
+
   context "app that only receives the entitlement as a groups claim" do
     before do
       Directory::Exposure.create!(app: app, entitlement: staff, claim_name: "staff")

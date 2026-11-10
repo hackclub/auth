@@ -92,7 +92,7 @@ module Directory
         .to_h { |c| [ c.id, c.name ] }
       entitlement_ids = collections.values.select(&:entitlement?).map(&:id)
 
-      @exposed_apps = Directory::Exposure.where(entitlement_id: entitlement_ids)
+      @exposed_apps = Directory::Exposure.live.where(entitlement_id: entitlement_ids)
         .pluck(:entitlement_id, :app_id)
         .group_by(&:first).transform_values { |rows| rows.map(&:last) }
 

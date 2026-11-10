@@ -10,11 +10,12 @@ module Directory
     def for_entitlement(collection)
       return [] unless collection.entitlement?
 
-      app_ids = collection.affected_app_ids
-      return [] if app_ids.empty?
+      return [] if collection.affected_app_ids.empty?
 
       person_ids = Directory::EffectiveMembership.unscoped.where(collection_id: collection.id).select(:person_id)
-      Directory::Person.where(id: person_ids).includes(:identity).map { |person| person.revocation_entry(app_ids) }
+      people = Directory::Person.where(id: person_ids).includes(:identity).to_a
+      app_ids = Directory::Collection.revocation_app_ids([ collection.id ], people.map(&:identity_id))
+      people.filter_map { |person| person.revocation_entry(app_ids[person.identity_id]) if app_ids[person.identity_id].any? }
     end
 
     def for_person(person)
@@ -25,10 +26,8 @@ module Directory
         .pluck(:collection_id)
       return [] if entitlement_ids.empty?
 
-      app_ids = Directory::Collection.affected_app_ids(entitlement_ids)
-      return [] if app_ids.empty?
-
-      [ person.revocation_entry(app_ids) ]
+      app_ids = Directory::Collection.revocation_app_ids(entitlement_ids, [ person.identity_id ])[person.identity_id]
+      app_ids.any? ? [ person.revocation_entry(app_ids) ] : []
     end
   end
 end
