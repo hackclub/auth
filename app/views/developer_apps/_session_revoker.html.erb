@@ -16,18 +16,18 @@
   <% end %>
 
   <%= form_with url: developer_app_session_revoker_path(app), method: revoker ? :patch : :post, scope: :revoker, local: true,
-        html: { "x-data": { adapter: revoker&.adapter || Directory::AppRevoker::ADAPTERS.first }.to_json } do |f| %>
+        html: { data: { revoker_form: true } } do |f| %>
     <%= hidden_field_tag :return_to, local_assigns[:return_to] %>
     <label>
       <%= t("#{scope}.revoker_adapter") %>
       <%= f.select :adapter,
             Directory::AppRevoker::ADAPTERS.map { |a| [ t("#{scope}.revoker_adapters.#{a}"), a ] },
-            { selected: revoker&.adapter }, { "x-model": "adapter" } %>
+            { selected: revoker&.adapter }, { data: { revoker_adapter: true } } %>
     </label>
 
     <% Directory::AppRevoker::FIELDS.each do |adapter, fields| %>
       <%# disabled while hidden so the other adapter's fields aren't submitted %>
-      <fieldset x-show="adapter === '<%= adapter %>'" :disabled="adapter !== '<%= adapter %>'">
+      <fieldset data-revoker-fields="<%= adapter %>">
         <legend><%= t("#{scope}.revoker_adapters.#{adapter}") %></legend>
         <small><%= t("#{scope}.revoker_help.#{adapter}") %></small>
         <% current = revoker&.adapter == adapter %>

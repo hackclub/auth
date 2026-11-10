@@ -2,6 +2,7 @@ import "../js/alpine.js";
 import "../js/lightswitch.js";
 import "../js/click-to-copy";
 import "../js/data-confirm.js";
+import "../js/revoker-adapter-fields.js";
 import "../js/otp-input.js";
 import "../js/persona-verify.js";
 import "../js/camera-capture.js";
