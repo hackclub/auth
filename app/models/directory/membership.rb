@@ -7,8 +7,9 @@ module Directory
 
     after_create :track_membership_change
     after_destroy :track_membership_change
-    # an extended membership can lapse (and be swept) again
-    before_update -> { self.expiry_recorded_at = nil }, if: :expires_at_changed?
+    # an extended membership can lapse (and be swept) again. forced into the UPDATE: this
+    # record may have been loaded before the sweep stamped it, so nil wouldn't look dirty
+    before_update -> { self.expiry_recorded_at = nil; expiry_recorded_at_will_change! }, if: :expires_at_changed?
 
     scope :active, -> { where("expires_at IS NULL OR expires_at > ?", Time.current) }
     scope :expired, -> { where("expires_at <= ?", Time.current) }
