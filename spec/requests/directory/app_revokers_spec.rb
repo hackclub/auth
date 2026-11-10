@@ -24,6 +24,17 @@ RSpec.describe "Session revokers on the developer app page", type: :request do
   context "as a directory admin" do
     before { sign_in admin }
 
+    it "shows what changed in the app's activity log, without the secret" do
+      post developer_app_session_revoker_path(oauth_app), params: cf_params
+      patch developer_app_session_revoker_path(oauth_app),
+        params: cf_params(account_id: "fedcba9876543210fedcba9876543210", api_token: "n3w-t0ken-value")
+
+      get activity_log_developer_app_path(oauth_app)
+
+      expect(response.body).to include("0123456789abcdef0123456789abcdef", "fedcba9876543210fedcba9876543210", "replaced")
+      expect(response.body).not_to include("n3w-t0ken-value", "s3cr3t-token-value")
+    end
+
     it "renders the page and lets the revoker be replaced when its config can't be read" do
       Directory::AppRevoker.create!(app: oauth_app, adapter: "webhook", config: { url: "https://a.example/r" }.to_json)
         .update_columns(config_ciphertext: "not-a-ciphertext")
