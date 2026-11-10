@@ -22,8 +22,27 @@ module Directory
     validate :entitlement_must_be_entitlement
     validate :app_must_request_groups, on: :create
 
+    REQUESTS_GROUPS_SQL = "' ' || %s || ' ' LIKE '%% groups %%'"
+
     # an app without the groups scope never receives the claim, so its exposures are inert
-    def self.live = joins(:app).where("' ' || oauth_applications.scopes || ' ' LIKE '% groups %'")
+    def self.live = joins(:app).where(format(REQUESTS_GROUPS_SQL, "oauth_applications.scopes"))
+
+    # [app_id, identity_id] pairs where the groups claim reaches that person in that app: the
+    # app requests groups now, or the person still holds an unrevoked token issued with it
+    # (after a downgrade the old tokens and id_tokens keep carrying the claim)
+    def self.claim_pairs(app_ids:, identity_ids:)
+      app_ids = app_ids.uniq
+      identity_ids = identity_ids.uniq
+      return Set.new if app_ids.empty? || identity_ids.empty?
+
+      requesting = Program.where(id: app_ids).where(format(REQUESTS_GROUPS_SQL, "oauth_applications.scopes")).pluck(:id)
+      pairs = requesting.product(identity_ids).to_set
+      OAuthToken.where(application_id: app_ids - requesting, resource_owner_id: identity_ids, revoked_at: nil)
+        .where(format(REQUESTS_GROUPS_SQL, "oauth_access_tokens.scopes"))
+        .distinct.pluck(:application_id, :resource_owner_id)
+        .each { |pair| pairs << pair }
+      pairs
+    end
 
     def self.claim_names_for(person:, app:)
       where(app_id: app.id)
