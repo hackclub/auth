@@ -205,9 +205,16 @@ class DirectoryPicker {
   }
 
   _selectResult(result) {
-    this.input.value = result.sublabel || result.label;
+    this._setValue(result.sublabel || result.label);
     this.hiddenInput.value = result.id || '';
     this._closeDropdown();
+  }
+
+  // programmatic value changes don't fire `change`, and forms listen for it (people/show
+  // builds its action URL from the picked slug)
+  _setValue(value) {
+    this.input.value = value;
+    this.input.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   _removeDropdownEl() {
@@ -294,7 +301,7 @@ class DirectoryPicker {
         this._selectResult(resolved[0]);
       }, 1200);
     } else if (resolved.length > 0) {
-      this.input.value = resolved.map(r => r.sublabel || r.label).join(', ');
+      this._setValue(resolved.map(r => r.sublabel || r.label).join(', '));
       setTimeout(() => container.remove(), 3000);
     } else {
       setTimeout(() => container.remove(), 2000);
