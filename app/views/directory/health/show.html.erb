@@ -74,7 +74,7 @@
       <% end %>
     <% end %>
 
-    <%= form_with url: directory_health_validate_path, method: :post, local: true do |f| %>
+    <%= form_with url: directory_health_validate_path, method: :get, local: true do |f| %>
       <button type="submit" size-="small"><%= t("directory.health.show.run_now") %></button>
     <% end %>
   </div>

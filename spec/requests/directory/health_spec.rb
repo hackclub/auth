@@ -36,7 +36,7 @@ RSpec.describe "Directory health page", type: :request do
   end
 
   it "runs a check on demand and shows the result" do
-    post directory_health_validate_path
+    get directory_health_validate_path
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include(I18n.t("directory.health.checked_just_now"))

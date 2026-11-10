@@ -290,7 +290,7 @@ Rails.application.routes.draw do
     get "activity", to: "activity#index", as: :activity
     get "reports", to: "reports#index", as: :reports
     get "health", to: "health#show", as: :health
-    post "health/validate", to: "health#validate", as: :health_validate
+    get "health/validate", to: "health#validate", as: :health_validate
 
     resources :collections, param: :slug do
       member do

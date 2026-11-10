@@ -7,7 +7,8 @@ module Directory
       load_health
     end
 
-    # runs the check right here so the page can show the full diff, not just the summary
+    # runs the check right here so the page can show the full diff. read-only, so a GET:
+    # refreshing the page just checks again
     def validate
       authorize :directory, :admin?
       load_health
