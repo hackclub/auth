@@ -32,6 +32,8 @@ module Directory
     has_many :effective_memberships, dependent: :delete_all
     has_many :effective_people, through: :effective_memberships, source: :person
 
+    # destroyed (not left to the FK cascade) so each one leaves the same audit trail as an unwire
+    has_many :exposures, class_name: "Directory::Exposure", foreign_key: :entitlement_id, dependent: :destroy
     has_many :grants_as_target, class_name: "Directory::Grant", foreign_key: :target_collection_id, dependent: :destroy
     has_many :grants_as_grantee, class_name: "Directory::Grant", foreign_key: :grantee_group_id, dependent: :destroy
 
