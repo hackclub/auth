@@ -53,7 +53,12 @@ module Directory
 
     # Activity owners link to their directory page when the viewer can open it, else plain
     # text: the backend identity page the shared snippet would link to isn't theirs to open.
+    # a Backend::User owner (backend actions like GDPR deletion) is shown as its identity;
+    # backend usernames and links aren't for directory viewers
     def directory_activity_owner(owner)
+      owner = owner.identity if owner.is_a?(::Backend::User)
+      return Components::DirectoryOwnerMention.new(name: t("directory.activity.staff")) unless owner
+
       person = owner.directory_person
       href = directory_person_path(person) if person && activity_owner_visible?(person)
       Components::DirectoryOwnerMention.new(name: "#{owner.first_name} #{owner.last_name}", href:)

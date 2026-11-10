@@ -860,7 +860,9 @@ en:
         empty: "no activity"
         heading: "activity"
         title: "activity"
+      staff: "staff"
       title: "activity"
+      staff: "staff"
     badges:
       group: "group"
       protected: "protected"

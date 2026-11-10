@@ -32,4 +32,27 @@ RSpec.describe "Directory activity owner links", type: :request do
     expect(page.text).to include(hidden_owner.identity.first_name)
     expect(page.css("a[href^='/backend/']")).to be_empty
   end
+
+  it "shows a backend user owner as their identity, with no backend link or username" do
+    staffer = create(:identity, first_name: "Staff", last_name: "Person")
+    backend_user = create(:backend_user, identity: staffer, username: "secret-staff-handle", super_admin: true)
+    group.create_activity :member_removed, owner: backend_user, parameters: { member_name: "someone", member_type: "person" }
+
+    get activity_directory_collection_path(group.slug)
+
+    page = response.parsed_body
+    expect(page.css("a[href^='/backend/']")).to be_empty
+    expect(page.text).not_to include("secret-staff-handle")
+    expect(page.text).to include("Staff Person")
+  end
+
+  it "shows a deleted owner as a deleted user, not the system" do
+    gone = create(:identity)
+    group.create_activity :member_added, owner: gone, parameters: { member_name: "someone", member_type: "person" }
+    gone.destroy
+
+    get activity_directory_collection_path(group.slug)
+
+    expect(response.parsed_body.text).to include("[deleted user]")
+  end
 end
