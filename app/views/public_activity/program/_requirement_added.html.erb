@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity, owner_component: Components::IdentityMention.new(activity.owner)) do %>
+  required entitlement <b><%= activity.parameters[:entitlement_name] || activity.parameters[:entitlement_slug] %></b> to log in.
+<% end %>

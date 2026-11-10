@@ -17,6 +17,7 @@ module Directory
       authorize_app_entitlement_wiring!(app, entitlement)
 
       Directory::AppRequirement.create!(app: app, entitlement: entitlement)
+      log_requirement(:requirement_added, app, entitlement)
       revoke_tokens_for_non_members(app, entitlement)
 
       redirect_back fallback_location: developer_app_path(app), notice: t("directory.flash.requirement_added")
@@ -33,6 +34,7 @@ module Directory
 
       authorize_app_entitlement_unwiring!(app, entitlement)
       req.destroy!
+      log_requirement(:requirement_removed, app, entitlement)
 
       # dropping the last requirement opens the app, so there's nobody to revoke
       revoke_tokens_for_non_members(app, entitlement) if Directory::AppRequirement.exists?(app_id: app.id)
@@ -41,6 +43,13 @@ module Directory
     end
 
     private
+
+    # on the app, for its developer activity log, and on the entitlement, for the directory's
+    def log_requirement(key, app, entitlement)
+      params = { app_name: app.name, entitlement_name: entitlement.name, entitlement_slug: entitlement.slug }
+      app.create_activity key, owner: current_identity, parameters: params
+      entitlement.create_activity key, owner: current_identity, params: params
+    end
 
     def revoke_tokens_for_non_members(app, _entitlement)
       Directory::RevokeAccess.bulk_revoke_non_passing(app: app)
