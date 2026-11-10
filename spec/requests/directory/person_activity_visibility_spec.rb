@@ -126,7 +126,7 @@ RSpec.describe "Directory person page activity feed", type: :request do
       shown_entitlement = create(:directory_entitlement, slug: "shown-access")
       hidden_entitlement = create(:directory_entitlement, slug: "hidden-access")
       grant!(viewer, shown_entitlement, "view")
-      app = create(:program)
+      app = create(:program, :with_groups)
       acting_as(member_identity) do
         Directory::Exposure.create!(app: app, entitlement: shown_entitlement, claim_name: "shown")
         Directory::Exposure.create!(app: app, entitlement: hidden_entitlement, claim_name: "hidden")

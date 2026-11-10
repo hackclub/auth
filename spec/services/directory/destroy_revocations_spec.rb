@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Directory::DestroyRevocations do
-  let(:app) { create(:program) }
+  let(:app) { create(:program, :with_groups) }
   let(:entitlement) { create(:directory_entitlement) }
   let(:person) { create(:directory_person) }
 

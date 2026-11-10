@@ -11,6 +11,11 @@ FactoryBot.define do
       scopes { "verification_status basic_info email name slack_id legal_name address" }
     end
 
+    trait :with_groups do
+      trust_level { :hq_official }
+      scopes { "basic_info email name groups" }
+    end
+
     trait :inactive do
       active { false }
     end

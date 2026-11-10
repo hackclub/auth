@@ -368,7 +368,7 @@ RSpec.describe "Directory access control", type: :request do
   end
 
   describe "exposures" do
-    let(:oauth_app) { create(:program, owner_identity: admin_identity, trust_level: :hq_official) }
+    let(:oauth_app) { create(:program, :with_groups, owner_identity: admin_identity) }
 
     it "denies when not app owner" do
       sign_in staff_identity

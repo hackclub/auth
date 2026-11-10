@@ -245,7 +245,7 @@ RSpec.describe DeletionService do
     end
 
     it "still revokes the deleted person's app access" do
-      app = create(:program)
+      app = create(:program, :with_groups)
       entitlement = create(:directory_entitlement)
       Directory::Exposure.create!(app: app, entitlement: entitlement, claim_name: "staff")
       person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)

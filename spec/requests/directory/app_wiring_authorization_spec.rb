@@ -18,7 +18,7 @@ RSpec.describe "App wiring authorization", type: :request do
 
   let(:entitlement) { create(:directory_entitlement, slug: "docs-access") }
   let(:owner) { create(:identity) }
-  let(:oauth_app) { create(:program, owner_identity: owner, trust_level: :hq_official) }
+  let(:oauth_app) { create(:program, :with_groups, owner_identity: owner) }
 
   let(:admin) do
     create(:identity).tap do |i|
@@ -31,7 +31,8 @@ RSpec.describe "App wiring authorization", type: :request do
   def require! = post(directory_app_requirements_path, params: { app_id: oauth_app.id, entitlement_slug: entitlement.slug })
 
   def unwire!
-    exposure = Directory::Exposure.create!(app: oauth_app, entitlement: entitlement, claim_name: "docs")
+    # may predate the app losing its groups scope or official status
+    exposure = Directory::Exposure.new(app: oauth_app, entitlement: entitlement, claim_name: "docs").tap { |e| e.save!(validate: false) }
     delete directory_exposure_path(exposure)
   end
 

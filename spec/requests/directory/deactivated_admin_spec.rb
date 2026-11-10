@@ -23,7 +23,7 @@ RSpec.describe "Directory root for deactivated backend users", type: :request do
   let(:staffer_person) { Directory::Person.find_by!(identity: staffer) }
 
   # someone else's app, gated on an entitlement the staffer holds nothing on
-  let(:oauth_app) { create(:program, owner_identity: create(:identity), trust_level: :hq_official) }
+  let(:oauth_app) { create(:program, :with_groups, owner_identity: create(:identity)) }
   let(:entitlement) { create(:directory_entitlement, slug: "staff-only", name: "Staff Only Entitlement") }
 
   before { Directory::AppRequirement.create!(app: oauth_app, entitlement: entitlement) }

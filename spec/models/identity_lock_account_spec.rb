@@ -6,7 +6,7 @@ RSpec.describe Identity, "#lock_account!", type: :model do
   include ActiveJob::TestHelper
 
   let(:identity) { create(:identity) }
-  let(:app) { create(:program) }
+  let(:app) { create(:program, :with_groups) }
   let(:staff) { create(:directory_entitlement) }
 
   it "fires the revoker of every app the identity reaches through the directory" do

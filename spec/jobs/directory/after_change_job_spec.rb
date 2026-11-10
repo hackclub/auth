@@ -8,7 +8,7 @@ RSpec.describe Directory::AfterChangeJob do
   let(:admin) { create(:identity) }
   let(:identity) { create(:identity) }
   let!(:person) { Directory::Person.create!(identity: identity, created_by_identity_id: admin.id) }
-  let(:app) { create(:program) }
+  let(:app) { create(:program, :with_groups) }
   let(:staff) { create(:directory_entitlement, slug: "staff") }
   let(:other) { create(:directory_entitlement, slug: "other") }
 
@@ -95,7 +95,7 @@ RSpec.describe Directory::AfterChangeJob do
 
   context "a whole group losing an entitlement" do
     let(:team) { create(:directory_group, slug: "team") }
-    let(:app2) { create(:program) }
+    let(:app2) { create(:program, :with_groups) }
     let(:members) { Array.new(4) { create(:identity) } }
 
     def cf_revoker(for_app, account)
@@ -178,5 +178,16 @@ RSpec.describe Directory::AfterChangeJob do
 
     expect { described_class.perform_now(change_ids: [], revocations: revocations) }
       .to have_enqueued_job(described_class).with(change_ids: [], revocations: revocations)
+  end
+
+  it "ignores exposures on apps that never asked for the groups claim" do
+    plain = create(:program)
+    Directory::Exposure.new(app: plain, entitlement: staff, claim_name: "staff").save!(validate: false)
+    add(staff)
+    plain_token = create(:oauth_token, resource_owner: identity, application: plain)
+
+    perform_enqueued_jobs { remove(staff) }
+
+    expect(plain_token.reload.revoked_at).to be_nil
   end
 end

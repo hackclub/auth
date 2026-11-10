@@ -141,7 +141,7 @@ RSpec.describe Directory::Consequence, type: :model do
     end
 
     describe "apps" do
-      let(:app) { create(:program, name: "Gated App") }
+      let(:app) { create(:program, :with_groups, name: "Gated App") }
 
       it "names the apps a person loses when removed from the entitlement itself" do
         person = create(:directory_person)

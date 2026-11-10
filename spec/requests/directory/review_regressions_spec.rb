@@ -45,7 +45,7 @@ RSpec.describe "Directory review regressions", type: :request do
       viewer = create(:directory_person)
       visible_ent = create(:directory_entitlement, slug: "visible-ent", name: "Visible Ent")
       hidden_ent = create(:directory_entitlement, slug: "hidden-ent", name: "Hidden Secret Ent")
-      app = create(:program, name: "Some App")
+      app = create(:program, :with_groups, name: "Some App")
       Directory::Exposure.create!(app: app, entitlement: visible_ent, claim_name: "visible_claim")
       Directory::Exposure.create!(app: app, entitlement: hidden_ent, claim_name: "hidden_claim")
       add!(group, person: person)

@@ -79,7 +79,7 @@ module Directory
       app_ids = candidates.map { |c| c[:app_id] }.uniq
       @requirements = Directory::AppRequirement.where(app_id: app_ids).pluck(:app_id, :entitlement_id)
         .group_by(&:first).transform_values { |rows| rows.map(&:last).to_set }
-      @exposures = Directory::Exposure.where(app_id: app_ids).pluck(:app_id, :entitlement_id)
+      @exposures = Directory::Exposure.live.where(app_id: app_ids).pluck(:app_id, :entitlement_id)
         .group_by(&:first).transform_values { |rows| rows.map(&:last).to_set }
 
       relevant = (@requirements.values + @exposures.values).reduce(Set.new, :|)

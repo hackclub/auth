@@ -20,6 +20,10 @@ module Directory
     validates :app_id, uniqueness: { scope: :entitlement_id }
     validates :claim_name, uniqueness: { scope: :app_id }
     validate :entitlement_must_be_entitlement
+    validate :app_must_request_groups, on: :create
+
+    # an app without the groups scope never receives the claim, so its exposures are inert
+    def self.live = joins(:app).where("' ' || oauth_applications.scopes || ' ' LIKE '% groups %'")
 
     def self.claim_names_for(person:, app:)
       where(app_id: app.id)
@@ -28,6 +32,12 @@ module Directory
     end
 
     private
+
+    def app_must_request_groups
+      return unless app
+
+      errors.add(:base, "this app doesn't request the groups scope, so it would never receive the claim. ask an admin to add the scope first") unless app.has_scope?(:groups)
+    end
 
     def entitlement_must_be_entitlement
       return unless entitlement
