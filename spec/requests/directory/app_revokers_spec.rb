@@ -54,6 +54,23 @@ RSpec.describe "Session revokers on the developer app page", type: :request do
       expect(revoker.settings).to eq("url" => "https://app.example/revoke")
     end
 
+    it "won't carry a webhook secret over to a new url" do
+      webhook = ->(url, secret) { { revoker: { adapter: "webhook", enabled: "1", fields: { url: url, secret: secret } } } }
+      post developer_app_session_revoker_path(oauth_app), params: webhook.("https://a.example/r", "hook-secret")
+
+      patch developer_app_session_revoker_path(oauth_app), params: webhook.("https://other.example/x", "")
+      expect(flash[:alert]).to include("re-enter the secret")
+      expect(Directory::AppRevoker.find_by!(app_id: oauth_app.id).settings)
+        .to eq("url" => "https://a.example/r", "secret" => "hook-secret")
+
+      patch developer_app_session_revoker_path(oauth_app), params: webhook.("https://a.example/r", "")
+      expect(Directory::AppRevoker.find_by!(app_id: oauth_app.id).settings["secret"]).to eq("hook-secret")
+
+      patch developer_app_session_revoker_path(oauth_app), params: webhook.("https://other.example/x", "new-secret")
+      expect(Directory::AppRevoker.find_by!(app_id: oauth_app.id).settings)
+        .to eq("url" => "https://other.example/x", "secret" => "new-secret")
+    end
+
     it "refuses a missing required field or a non-https webhook" do
       post developer_app_session_revoker_path(oauth_app), params: cf_params(api_token: "")
       expect(Directory::AppRevoker.count).to eq(0)

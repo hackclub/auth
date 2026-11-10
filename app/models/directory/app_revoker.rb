@@ -9,7 +9,7 @@ module Directory
     # Per adapter: config keys, and whether each is secret (never rendered back) or required.
     FIELDS = {
       "cloudflare_access" => { "account_id" => { required: true }, "api_token" => { required: true, secret: true } },
-      "webhook" => { "url" => { required: true }, "secret" => { secret: true } }
+      "webhook" => { "url" => { required: true }, "secret" => { secret: true, bound_to: "url" } }
     }.freeze
 
     belongs_to :app, class_name: "Program"
@@ -20,15 +20,23 @@ module Directory
     validates :config_ciphertext, presence: true
     validate :required_fields_present
     validate :webhook_url_is_https, if: -> { adapter == "webhook" }
+    validate :rebound_secrets_reentered
 
     def settings = config.present? ? JSON.parse(config) : {}
 
     # Blank secret fields keep what's stored, so secrets never need rendering back to survive
-    # an edit. Switching adapter starts from scratch.
+    # an edit. Switching adapter starts from scratch, and so does a secret whose destination
+    # changed: a kept webhook secret would otherwise be sent to the new url.
     def assign_settings(adapter:, fields:)
       allowed = FIELDS.fetch(adapter, {})
       submitted = fields.to_h.slice(*allowed.keys).transform_values { |v| v.to_s.strip }
       kept = adapter == self.adapter ? settings : {}
+      @rebound_secrets = allowed.filter_map do |key, opts|
+        bound = opts[:bound_to]
+        key if bound && kept[key].present? && submitted[key].blank? &&
+          submitted[bound].present? && submitted[bound] != kept[bound]
+      end
+      kept = kept.except(*@rebound_secrets)
       merged = kept.merge(submitted.reject { |key, value| value.blank? && allowed.dig(key, :secret) })
 
       self.adapter = adapter
@@ -48,6 +56,13 @@ module Directory
     def required_fields_present
       FIELDS.fetch(adapter.to_s, {}).each do |key, opts|
         errors.add(:base, "#{key.humanize(capitalize: false)} is required") if opts[:required] && settings[key].blank?
+      end
+    end
+
+    def rebound_secrets_reentered
+      (@rebound_secrets || []).each do |key|
+        bound = FIELDS.dig(adapter.to_s, key, :bound_to)
+        errors.add(:base, "re-enter the #{key.humanize(capitalize: false)} when changing the #{bound}")
       end
     end
 
