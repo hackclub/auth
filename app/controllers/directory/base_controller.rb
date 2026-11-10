@@ -27,6 +27,15 @@ module Directory
       raise ActiveRecord::RecordNotFound
     end
 
+    # For writes: look up a collection the way a read would see it, so "exists but hidden"
+    # and "doesn't exist" give the same answer before authorization says anything.
+    def find_visible_collection!(slug)
+      collection = Directory::Collection.find_by(slug: slug)
+      raise ActiveRecord::RecordNotFound unless collection && (directory_admin? || collection_visible?(collection))
+
+      collection
+    end
+
     # Owners, trackables and whatever the directory partials reach through them, in a
     # handful of queries instead of a few per row.
     def preload_activities(activities)

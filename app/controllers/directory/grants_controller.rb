@@ -13,7 +13,7 @@ module Directory
     end
 
     def create
-      @collection = Directory::Collection.find_by!(slug: params[:collection_slug])
+      @collection = find_visible_collection!(params[:collection_slug])
       authorize Directory::Grant
 
       grantee = Directory::Collection.groups.find_by!(slug: params[:grantee_group_slug]&.strip)
@@ -46,6 +46,8 @@ module Directory
 
     def update
       grant = Directory::Grant.find(params[:id])
+      raise ActiveRecord::RecordNotFound unless directory_admin? || collection_visible?(grant.target_collection)
+
       @collection = grant.target_collection
       authorize grant
 
@@ -62,6 +64,8 @@ module Directory
 
     def destroy
       grant = Directory::Grant.find(params[:id])
+      raise ActiveRecord::RecordNotFound unless directory_admin? || collection_visible?(grant.target_collection)
+
       @collection = grant.target_collection
       authorize grant
 
@@ -78,7 +82,7 @@ module Directory
     end
 
     # admins get a flash (people/show builds this URL from whatever they typed); everyone
-    # else gets the same 404 as a hidden slug.
+    # else gets a 404, the same as a slug they can't see (find_visible_collection!).
     def missing_collection!
       raise ActiveRecord::RecordNotFound unless directory_admin?
 

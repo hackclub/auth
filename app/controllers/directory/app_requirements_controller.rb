@@ -29,10 +29,10 @@ module Directory
 
     def destroy
       app = Program.find(params[:app_id])
-      entitlement = Directory::Collection.find_by!(slug: params[:id])
-      req = Directory::AppRequirement.find_by!(app_id: app.id, entitlement_id: entitlement.id)
-
+      entitlement = find_visible_entitlement!(params[:id])
+      # authorized before the requirement lookup, so whether one exists isn't an answer
       authorize_app_entitlement_unwiring!(app, entitlement)
+      req = Directory::AppRequirement.find_by!(app_id: app.id, entitlement_id: entitlement.id)
       req.destroy!
       log_requirement(:requirement_removed, app, entitlement)
 

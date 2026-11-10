@@ -130,6 +130,7 @@ module Directory
     end
 
     def update
+      authorize_visible! @collection
       authorize @collection
 
       @collection.assign_attributes(collection_params_for_update)

@@ -18,7 +18,7 @@ module Directory
       only: %i[create batch_create], unless: :directory_admin?
 
     def create
-      @collection = Directory::Collection.find_by!(slug: params[:collection_slug])
+      @collection = find_visible_collection!(params[:collection_slug])
       authorize @collection, policy_class: Directory::MembershipPolicy
 
       expires_at = validated_expires_at
@@ -113,7 +113,7 @@ module Directory
     end
 
     def batch_create
-      @collection = Directory::Collection.find_by!(slug: params[:collection_slug])
+      @collection = find_visible_collection!(params[:collection_slug])
       # a batch is N single adds, so it needs exactly what create does. explicit because
       # pundit would otherwise ask the policy for batch_create?, which doesn't exist.
       authorize @collection, :create?, policy_class: Directory::MembershipPolicy
@@ -181,6 +181,8 @@ module Directory
 
     def update
       membership = Directory::Membership.find(params[:id])
+      raise ActiveRecord::RecordNotFound unless directory_admin? || collection_visible?(membership.collection)
+
       @collection = membership.collection
       authorize membership
 
@@ -221,6 +223,8 @@ module Directory
 
     def destroy
       membership = Directory::Membership.find(params[:id])
+      raise ActiveRecord::RecordNotFound unless directory_admin? || collection_visible?(membership.collection)
+
       @collection = membership.collection
       authorize membership
 
@@ -249,7 +253,7 @@ module Directory
     end
 
     # admins get a flash (people/show builds this URL from whatever they typed); everyone
-    # else gets the same 404 as a hidden slug.
+    # else gets a 404, the same as a slug they can't see (find_visible_collection!).
     def missing_collection!
       raise ActiveRecord::RecordNotFound unless directory_admin?
 

@@ -64,7 +64,8 @@ RSpec.describe "Directory root for deactivated backend users", type: :request do
 
     it "cannot unwire a requirement through the admin path" do
       unwire_requirement
-      expect(response).to redirect_to(root_path)
+      # the entitlement isn't visible to them any more, so it answers like a missing one
+      expect(response).to have_http_status(:not_found)
       expect(requirement).to exist
     end
 
@@ -113,7 +114,7 @@ RSpec.describe "Directory root for deactivated backend users", type: :request do
 
       it "cannot add people to an entitlement it holds nothing on" do
         post directory_collection_memberships_path(entitlement.slug), params: { email: create(:identity).primary_email }
-        expect(response).to redirect_to(directory_root_path)
+        expect(response).to have_http_status(:not_found)
         expect(Directory::Membership.where(collection: entitlement)).not_to exist
       end
 
