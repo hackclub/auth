@@ -120,14 +120,24 @@ class ApplicationController < ActionController::Base
     raise e if Rails.env.local?
 
     @event_id = Sentry.capture_exception(e)&.event_id
-    render "errors/internal_server_error", layout: "errors", status: :internal_server_error
+    render_error_page "errors/internal_server_error", :internal_server_error
+  end
+
+  # a stale form (session reset in another tab) is the client's problem, not a 500
+  rescue_from ActionController::InvalidAuthenticityToken do
+    render_error_page "errors/unprocessable_entity", :unprocessable_content
   end
 
   rescue_from ActiveRecord::RecordNotFound, ActionController::RoutingError do
-    render "errors/not_found", layout: "errors", status: :not_found
+    render_error_page "errors/not_found", :not_found
   end
 
   private
+
+  # html whatever was asked for (an export.csv 404 has no csv template to render)
+  def render_error_page(template, status)
+    render template, layout: "errors", status: status, formats: [ :html ], content_type: "text/html"
+  end
 
   def touch_session_last_seen_at = current_session&.touch_last_seen_at
 end

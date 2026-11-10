@@ -30,6 +30,24 @@ RSpec.describe "Error pages", type: :request do
     expect(response).to have_http_status(:not_found)
   end
 
+  it "renders a 422, not a 500, for a stale form" do
+    allow_any_instance_of(StaticPagesController).to receive(:home).and_raise(ActionController::InvalidAuthenticityToken)
+
+    get root_path
+
+    expect(response).to have_http_status(:unprocessable_content)
+  end
+
+  it "renders the html 404 for a non-html request" do
+    create(:backend_user, identity: identity, directory_services_admin: true)
+    identity.reload
+
+    get export_directory_collection_path("no-such-collection", format: :csv)
+
+    expect(response).to have_http_status(:not_found)
+    expect(response.media_type).to eq("text/html")
+  end
+
   it "still renders a 500 for everything else" do
     allow_any_instance_of(StaticPagesController).to receive(:home).and_raise(RuntimeError, "boom")
 
