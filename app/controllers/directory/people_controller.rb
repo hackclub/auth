@@ -41,6 +41,7 @@ module Directory
       @manageable_collections = Directory::Collection
         .joins("INNER JOIN directory_effective_grants ON directory_effective_grants.target_collection_id = directory_collections.id")
         .where(directory_effective_grants: { person_id: @person.id, permission: "manage_members" })
+        .where("directory_effective_grants.expires_at IS NULL OR directory_effective_grants.expires_at > NOW()")
         .distinct
         .order(:name)
         .select { |c| policy(c).show? }

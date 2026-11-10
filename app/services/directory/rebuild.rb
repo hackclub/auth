@@ -131,8 +131,8 @@ module Directory
       SQL
 
       @conn.execute(<<~SQL)
-        INSERT INTO directory_effective_grants (person_id, target_collection_id, permission)
-        SELECT ng.person_id, ng.target_collection_id, ng.permission
+        INSERT INTO directory_effective_grants (person_id, target_collection_id, permission, expires_at)
+        SELECT ng.person_id, ng.target_collection_id, ng.permission, ng.expires_at
         FROM _new_eg ng
         WHERE NOT EXISTS (
           SELECT 1 FROM directory_effective_grants deg
@@ -140,6 +140,15 @@ module Directory
             AND deg.target_collection_id = ng.target_collection_id
             AND deg.permission = ng.permission
         )
+      SQL
+
+      @conn.execute(<<~SQL)
+        UPDATE directory_effective_grants SET expires_at = ng.expires_at
+        FROM _new_eg ng
+        WHERE directory_effective_grants.person_id = ng.person_id
+          AND directory_effective_grants.target_collection_id = ng.target_collection_id
+          AND directory_effective_grants.permission = ng.permission
+          AND directory_effective_grants.expires_at IS DISTINCT FROM ng.expires_at
       SQL
     end
 
