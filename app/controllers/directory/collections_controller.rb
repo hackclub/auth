@@ -151,6 +151,7 @@ module Directory
     end
 
     def destroy
+      authorize_visible! @collection
       authorize @collection
 
       if @collection.confirm_destroy && params[:confirm_slug] != @collection.slug
