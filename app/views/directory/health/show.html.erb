@@ -46,7 +46,7 @@
       <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.health.show.mismatches") %></span>
 
       <% @result.mismatches.each do |table_name, diff| %>
-        <% next if diff[:missing].empty? && diff[:extra].empty? %>
+        <% next if diff.values.all?(&:empty?) %>
         <span style="color: var(--foreground2); font-style: italic;"><%= table_name %></span>
 
         <table>
@@ -66,6 +66,12 @@
             <% diff[:extra].each do |row| %>
               <tr>
                 <td style="color: var(--red);"><%= t("directory.health.show.extra") %></td>
+                <td><code><%= row.to_json %></code></td>
+              </tr>
+            <% end %>
+            <% diff.fetch(:stale, []).each do |row| %>
+              <tr>
+                <td style="color: var(--yellow);"><%= t("directory.health.show.stale_expiry") %></td>
                 <td><code><%= row.to_json %></code></td>
               </tr>
             <% end %>

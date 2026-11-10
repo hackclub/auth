@@ -1077,6 +1077,7 @@ en:
         last_run: "last run %{time} ago"
         mismatches: "mismatches"
         missing: "missing"
+        stale_expiry: "wrong expiry"
         never_run: "never run"
         no_revokers: "no revokers configured"
         revokers: "revokers"

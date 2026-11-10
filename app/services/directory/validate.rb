@@ -7,10 +7,11 @@ module Directory
   # Two expected sets, because a membership that has lapsed but not been swept yet may or
   # may not still be in the live tables (any rebuild since the lapse drops it; only the
   # sweep records it). "missing" is checked against the strict set, "extra" against one
-  # that still counts unswept lapses as active.
+  # that still counts unswept lapses as active. rows in both are also checked for a stale
+  # expires_at, since that's what decides when access ends.
   class Validate
     Result = Struct.new(:mismatches, keyword_init: true) do
-      def valid? = mismatches.values.all? { |v| v[:missing].empty? && v[:extra].empty? }
+      def valid? = mismatches.values.all? { |v| v.values.all?(&:empty?) }
     end
 
     def self.call
@@ -95,7 +96,15 @@ module Directory
         )
       SQL
 
-      { missing:, extra: }
+      stale = @conn.execute(<<~SQL).to_a
+        SELECT ee.collection_id, ee.person_id, ee.expires_at AS expected_expires_at, dem.expires_at
+        FROM _expected_em ee
+        JOIN directory_effective_memberships dem
+          ON dem.collection_id = ee.collection_id AND dem.person_id = ee.person_id
+        WHERE dem.expires_at IS DISTINCT FROM ee.expires_at
+      SQL
+
+      { missing:, extra:, stale: }
     end
 
     def diff_effective_grants
@@ -121,7 +130,15 @@ module Directory
         )
       SQL
 
-      { missing:, extra: }
+      stale = @conn.execute(<<~SQL).to_a
+        SELECT ee.person_id, ee.target_collection_id, ee.permission, ee.expires_at AS expected_expires_at, deg.expires_at
+        FROM _expected_eg ee
+        JOIN directory_effective_grants deg
+          ON deg.person_id = ee.person_id AND deg.target_collection_id = ee.target_collection_id AND deg.permission = ee.permission
+        WHERE deg.expires_at IS DISTINCT FROM ee.expires_at
+      SQL
+
+      { missing:, extra:, stale: }
     end
 
     def drop_temp_tables
