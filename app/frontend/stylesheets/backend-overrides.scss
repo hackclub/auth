@@ -263,8 +263,8 @@ $gate-red: #cc241d;
 .deletion-tool { @include admin-gate($gate-red, 'deletion processor'); }
 .dev-tool { @include admin-gate($gate-green, 'dev only'); }
 
-/* Tables scroll horizontally on narrow viewports */
-#hca-body table {
+/* Directory tables scroll horizontally on narrow viewports (backend tables keep their layout) */
+main#hca-body table {
   display: block;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
