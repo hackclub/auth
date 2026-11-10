@@ -56,6 +56,8 @@ module Directory
 
       redirect_back fallback_location: directory_collection_path(@collection.slug),
         notice: t("directory.flash.grant_updated")
+    rescue ActiveRecord::RecordInvalid => e
+      redirect_back fallback_location: directory_collection_path(@collection.slug), alert: e.record.errors.full_messages.to_sentence
     end
 
     def destroy
