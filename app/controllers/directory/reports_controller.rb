@@ -13,9 +13,11 @@ module Directory
         .order(:name)
         .load_async
 
+      # effective grants: counts recursive grants on a parent, and a grant to an empty group
+      # doesn't mean anyone can manage
       @unmanaged_collections = Directory::Collection
         .where.not(
-          id: Directory::Grant.where(permission: "manage_members").select(:target_collection_id)
+          id: Directory::EffectiveGrant.where(permission: "manage_members").select(:target_collection_id)
         )
         .order(:name)
         .load_async
