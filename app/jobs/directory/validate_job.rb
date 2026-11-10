@@ -4,20 +4,32 @@ module Directory
   class ValidateJob < ApplicationJob
     queue_as :default
 
+    # raised so the run is recorded as failed in good_jobs, which /directory/health reads
+    class DriftDetected < StandardError; end
+
     # change rows only matter to the AfterChangeJob enqueued alongside them
     CHANGE_RETENTION = 30.days
+
+    def self.summary(result)
+      result.mismatches.filter_map do |table, diff|
+        next if diff[:missing].empty? && diff[:extra].empty?
+        "#{table}: #{diff[:missing].size} missing, #{diff[:extra].size} extra"
+      end.join("; ")
+    end
+
+    def self.last_run
+      GoodJob::Job.where(job_class: name).where.not(finished_at: nil).order(finished_at: :desc).first
+    end
 
     def perform
       Directory::MembershipChange.where(created_at: ...CHANGE_RETENTION.ago).in_batches(of: 10_000).delete_all
 
       result = Directory::Validate.call
-      Rails.cache.write("directory:validate_result", { result: result, at: Time.current })
-
       if result.valid?
         Rails.logger.info("[Directory] Validate: OK")
       else
         Rails.logger.error("[Directory] Validate: DRIFT DETECTED — #{result.mismatches}")
-        Sentry.capture_message("Directory drift detected", level: :error, extra: { mismatches: result.mismatches }) if defined?(Sentry)
+        raise DriftDetected, "directory drift detected — #{self.class.summary(result)}"
       end
     end
   end

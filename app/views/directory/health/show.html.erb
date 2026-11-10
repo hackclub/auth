@@ -6,9 +6,31 @@
     </div>
   </div>
 
+  <% last_ok = @last_run && @last_run.error.blank? %>
+  <div class="dir-section" data-accent="<%= @last_run.nil? ? nil : (last_ok ? 'green' : 'red') %>">
+    <div class="dir-section-header">
+      <span><%= t("directory.health.nightly_check") %></span>
+      <span class="dir-section-meta">
+        <% if @last_run %>
+          <% if last_ok %>
+            <span is-="badge" variant-="green"><%= t("directory.health.show.valid") %></span>
+          <% else %>
+            <span is-="badge" variant-="red"><%= t("directory.health.show.invalid") %></span>
+          <% end %>
+          <%= t("directory.health.show.last_run", time: time_ago_in_words(@last_run.finished_at)) %>
+        <% end %>
+      </span>
+    </div>
+    <% if @last_run.nil? %>
+      <div class="dir-section-empty"><%= t("directory.health.show.never_run") %></div>
+    <% elsif !last_ok %>
+      <code><%= @last_run.error %></code>
+    <% end %>
+  </div>
+
   <div class="dir-section" data-accent="<%= @result.nil? ? nil : (@result.valid? ? 'green' : 'red') %>">
     <div class="dir-section-header">
-      <span>validation status</span>
+      <span><%= t("directory.health.manual_check") %></span>
       <span class="dir-section-meta">
         <% if @result %>
           <% if @result.valid? %>
@@ -16,47 +38,40 @@
           <% else %>
             <span is-="badge" variant-="red"><%= t("directory.health.show.invalid") %></span>
           <% end %>
-          <% if @validated_at %>
-            <%= t("directory.health.show.last_run", time: time_ago_in_words(@validated_at)) %>
-          <% end %>
+          <%= t("directory.health.checked_just_now") %>
         <% end %>
       </span>
     </div>
-    <% if @result %>
+    <% if @result && !@result.valid? %>
+      <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.health.show.mismatches") %></span>
 
-      <% unless @result.valid? %>
-        <span style="color: var(--foreground2); font-style: italic;"><%= t("directory.health.show.mismatches") %></span>
+      <% @result.mismatches.each do |table_name, diff| %>
+        <% next if diff[:missing].empty? && diff[:extra].empty? %>
+        <span style="color: var(--foreground2); font-style: italic;"><%= table_name %></span>
 
-        <% @result.mismatches.each do |table_name, diff| %>
-          <% next if diff[:missing].empty? && diff[:extra].empty? %>
-          <span style="color: var(--foreground2); font-style: italic;"><%= table_name %></span>
-
-          <table>
-            <thead>
+        <table>
+          <thead>
+            <tr>
+              <th><%= t("directory.health.show.col_status") %></th>
+              <th><%= t("directory.health.show.col_record") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% diff[:missing].each do |row| %>
               <tr>
-                <th><%= t("directory.health.show.col_status") %></th>
-                <th><%= t("directory.health.show.col_record") %></th>
+                <td style="color: var(--yellow);"><%= t("directory.health.show.missing") %></td>
+                <td><code><%= row.to_json %></code></td>
               </tr>
-            </thead>
-            <tbody>
-              <% diff[:missing].each do |row| %>
-                <tr>
-                  <td style="color: var(--yellow);"><%= t("directory.health.show.missing") %></td>
-                  <td><code><%= row.to_json %></code></td>
-                </tr>
-              <% end %>
-              <% diff[:extra].each do |row| %>
-                <tr>
-                  <td style="color: var(--red);"><%= t("directory.health.show.extra") %></td>
-                  <td><code><%= row.to_json %></code></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        <% end %>
+            <% end %>
+            <% diff[:extra].each do |row| %>
+              <tr>
+                <td style="color: var(--red);"><%= t("directory.health.show.extra") %></td>
+                <td><code><%= row.to_json %></code></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
       <% end %>
-    <% else %>
-      <div class="dir-section-empty"><%= t("directory.health.show.never_run") %></div>
     <% end %>
 
     <%= form_with url: directory_health_validate_path, method: :post, local: true do |f| %>
