@@ -16,7 +16,7 @@ module OnboardingScenarios
 
     def next_action = :home
 
-    def logo_path = "images/phantom/phantom_hc_logo.png"
+    def logo_path = "images/phantom/phantom.png"
     def background_path = "images/phantom/bg.png"
 
     def card_attributes = { wide_logo: true }
