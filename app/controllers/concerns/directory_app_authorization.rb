@@ -28,7 +28,7 @@ module DirectoryAppAuthorization
   # an entitlement the actor can't see answers like one that doesn't exist
   def find_visible_entitlement!(slug)
     entitlement = Directory::Collection.entitlements.find_by!(slug: slug)
-    raise ActiveRecord::RecordNotFound unless Directory::CollectionPolicy.new(directory_context, entitlement).show?
+    raise ActiveRecord::RecordNotFound unless entitlement_visible?(entitlement)
 
     entitlement
   end
