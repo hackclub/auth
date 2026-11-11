@@ -21,6 +21,11 @@ the directory is where hack club keeps track of **who's on which team** and **wh
 
 membership flows down through nesting: if `design` is inside `staff`, everyone in `design` counts as being in `staff`.
 
+<div class="banner info">
+<b>need a new group or entitlement, or a whole team added to one?</b>
+<p>file an infra ticket under "Hack Club Auth (internal)". creating collections and putting groups into entitlements is directory-admin only. once something exists, people with <code>manage_members</code> on it can add and remove individuals themselves.</p>
+</div>
+
 ### seeing what you're in
 
 [my access](<%= directory_my_access_path %>) lists every group and entitlement you're in (directly or through nesting), when anything expires, and which apps that gets you into. anyone in the directory can see their own.
