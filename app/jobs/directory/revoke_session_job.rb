@@ -38,30 +38,27 @@ module Directory
       return if candidates.empty?
 
       errors = []
+      newly_broken = []
       candidates.each do |revoker|
+        before = revoker.last_result
         return if attempt(revoker, email)
       rescue => e
         errors << e
+        newly_broken << e if !transient?(e) && revoker.last_result != before
       end
 
-      # a transient failure anywhere means a retry can still land, whatever failed last
-      transient, broken = errors.partition { |e| TRANSIENT.any? { |klass| e.is_a?(klass) } }
-      # a broken revoker stays broken across retries, so say so once, on the first real
-      # attempt. when nothing is transient the last one is raised and the job error reports it
-      reported = transient.any? ? broken : broken[0...-1]
-      reported.each { |e| Sentry.capture_exception(e, extra: { app_id: app_id }) } if first_real_attempt?
-      raise transient.first if transient.any?
-
-      raise broken.last
+      # a transient failure anywhere means a retry can still land, whatever failed last.
+      # a broken revoker is reported when it breaks (or breaks differently), not on every
+      # retry, every job, or a dashboard retry of the same breakage: the revoker row
+      # remembers what it last said. whatever's raised is reported as the job's own error.
+      raised = errors.find { |e| transient?(e) } || errors.last
+      (newly_broken - [ raised ]).each { |e| Sentry.capture_exception(e, extra: { app_id: app_id }) }
+      raise raised
     end
 
     private
 
-    # executions also counts GoodJob's throttle retries, which never reached perform's work;
-    # only retries for our own transient failures mean this already ran (and reported)
-    def first_real_attempt?
-      (exception_executions || {})[TRANSIENT.to_s].to_i.zero?
-    end
+    def transient?(error) = TRANSIENT.any? { |klass| error.is_a?(klass) }
 
     def attempt(revoker, email)
       Directory::Revokers.for(revoker).call(email: email)

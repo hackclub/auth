@@ -85,11 +85,25 @@ RSpec.describe Directory::RevokeSessionJob do
       job = described_class.new(app_id: app.id, email: "p@example.test", fallback_app_ids: [ other.id ])
       # what GoodJob leaves behind after one throttled run
       job.executions = 1
-      job.exception_executions = { "[GoodJob::ActiveJobExtensions::Concurrency::ThrottleExceededError]" => 1 }
+      job.exception_executions = { "[GoodJob::ActiveJobExtensions::Concurrency::ConcurrencyExceededError]" => 1 }
 
       job.perform_now
 
       expect(Sentry).to have_received(:capture_exception).with(kind_of(Lockbox::Error), extra: { app_id: app.id }).once
+    end
+
+    it "reports a breakage once across jobs, and again when it breaks differently" do
+      Directory::AppRevoker.find(other.id).update_columns(config_ciphertext: "not-a-ciphertext")
+      stub_request(:post, url).with(headers: { "Authorization" => "Bearer expired" }).to_return(status: 503)
+      allow(Sentry).to receive(:capture_exception)
+      run = -> { described_class.new(app_id: app.id, email: "p@example.test", fallback_app_ids: [ other.id ]).perform_now }
+
+      2.times { run.call }
+      expect(Sentry).to have_received(:capture_exception).with(kind_of(Lockbox::Error), extra: { app_id: app.id }).once
+
+      Directory::AppRevoker.find(other.id).update_columns(last_result: "config_error: something else")
+      run.call
+      expect(Sentry).to have_received(:capture_exception).with(kind_of(Lockbox::Error), extra: { app_id: app.id }).twice
     end
 
     it "falls back when the first app's revoker is disabled" do
