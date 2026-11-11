@@ -5,6 +5,14 @@ require "net/http"
 module Directory
   module Revokers
     class Webhook < Base
+      BODY_CAP = 4096
+      # whole call, headers and all: per-read timeouts alone let a slow drip hold a worker
+      DEADLINE = 20
+
+      # raised out of Net::HTTP's response block so it drops the connection instead of
+      # reading the rest of the body after the block returns
+      class StopReading < StandardError; end
+
       # the addresses are all checked already, so a dead one just means try the next
       CONNECT_ERRORS = [ Errno::ECONNREFUSED, Errno::ENETUNREACH, Errno::EHOSTUNREACH, Errno::EADDRNOTAVAIL, Net::OpenTimeout ].freeze
 
@@ -19,29 +27,32 @@ module Directory
           raise ArgumentError, "webhook url resolves to a private or local address"
         end
 
-        http = connect(uri, addresses)
-
         request = Net::HTTP::Post.new(uri.request_uri, webhook_headers)
         request.body = { email: email }.to_json
 
         status = nil
         excerpt = +""
-        begin
-          http.request(request) do |response|
-            status = response.code.to_i
-            next if status.between?(200, 299)
+        Timeout.timeout(DEADLINE) do
+          http = connect(uri, addresses)
+          begin
+            http.request(request) do |response|
+              status = response.code.to_i
+              raise StopReading if status.between?(200, 299)
 
-            response.read_body do |chunk|
-              excerpt << chunk
-              break if excerpt.bytesize >= 4096
+              response.read_body do |chunk|
+                excerpt << chunk
+                raise StopReading if excerpt.bytesize >= BODY_CAP
+              end
             end
+          rescue StopReading
+            nil
+          ensure
+            http.finish if http.started?
           end
-        ensure
-          http.finish if http.started?
         end
 
         unless status.between?(200, 299)
-          raise Directory::RevokeSessionJob::RevocationFailed, "webhook revocation failed: #{status} #{excerpt.byteslice(0, 4096).scrub.truncate(500)}"
+          raise Directory::RevokeSessionJob::RevocationFailed, "webhook revocation failed: #{status} #{excerpt.byteslice(0, BODY_CAP).scrub.truncate(500)}"
         end
 
         :ok
