@@ -8,7 +8,7 @@ audience: directory
 
 building something internal and don't want to maintain yet another list of who's allowed in? don't. the directory can gate your login on an entitlement, tell your app which entitlements someone has, or both. you don't write any directory code. it all comes through the normal [OIDC](<%= doc_path("oidc-guide") %>) / [OAuth](<%= doc_path("oauth-guide") %>) flow you're already doing.
 
-that means no invite flow and no user admin page. create the account the first time someone signs in, give them whatever role their groups claim says, and let the team that owns them handle who's in and who's out. when someone leaves, their tokens for your app get revoked without you lifting a finger.
+that means no invite flow and no user admin page. create the account the first time someone signs in, give them whatever role their groups claim says, and let the team that owns them handle who's in and who's out. when someone loses access they can't sign in again. if your app keeps its own sessions (it probably does), read the bit about sessions below, or they'll stay signed in until that session runs out.
 
 your app has to be `hq_official` for any of this. community apps can't be wired up.
 
@@ -30,7 +30,7 @@ add one or more entitlements as requirements. being in any one of them is enough
 
 anyone who doesn't qualify gets sent back to your redirect URI with `error=access_denied` and your `state`, same as if they'd hit cancel. that works for `prompt=none` and `response_mode=form_post` too. if the redirect URI isn't one you registered, they end up on one of our pages instead.
 
-we only check when someone signs in. if they lose the entitlement later (someone removes them, their team gets removed, it expires), we revoke their tokens for your app, so their next refresh fails and they have to sign in again.
+we only check when someone signs in. if they lose the entitlement later (someone removes them, their team gets removed, it expires), we revoke their tokens for your app. that only does something if your app uses those tokens again, by refreshing or calling userinfo. most apps don't, so if you actually need people kicked out, keep your sessions short, set up a session revoker, or refresh every so often.
 
 careful when you remove requirements. removing one logs out anyone who only got in through it. removing the last one opens your app to everyone with a hack club auth account. the confirm box will yell at you about that.
 
@@ -42,11 +42,11 @@ ask for the `groups` scope and expose your entitlements, each with whatever name
 { "groups": ["staff", "design"] }
 ```
 
-that's only the names you set, and only for entitlements they're in right now. tokens don't update themselves, but when someone loses an exposed entitlement we revoke their tokens for your app, so you get a fresh list the next time they sign in. don't hang on to the claim longer than your session lasts.
+that's only the names you set, and only for entitlements they were in when they signed in. it won't change until they sign in again, so if your app makes decisions off it, keep sessions short or refresh to re-check.
 
 ### if your app has its own sessions
 
-revoking our tokens doesn't do much if your app already handed out its own session cookie. a directory admin can set up a session revoker for your app on [directory apps](<%= directory_apps_path %>), and then we'll tell you when someone loses access.
+if you only take one thing from this page: our tokens don't log anyone out of your app. your session does. keep it short, or have a directory admin set up a session revoker for your app on [directory apps](<%= directory_apps_path %>), and we'll tell you when someone loses access.
 
 with a webhook, we `POST` `{"email": "person@example.com"}` to your https URL with `Authorization: Bearer <your secret>`. kill their sessions and send back a 2xx. if you error we'll keep retrying for a few hours. the URL has to be public, and changing it means re-entering the secret.
 
