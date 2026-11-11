@@ -1,0 +1,65 @@
+---
+title: Directory for app builders
+description: gate your internal app on a team, or get told who's on which team.
+category: Directory
+order: 41
+audience: directory
+---
+
+building something internal? the directory can do two things for your app, separately or together:
+
+1. **gate login**: only people in an entitlement can sign in.
+2. **send a groups claim**: tell your app which entitlements someone has, as a list of names you pick.
+
+either way you write no directory code. you ask the directory, and handle what comes back through normal [OIDC](<%= doc_path("oidc-guide") %>) / [OAuth](<%= doc_path("oauth-guide") %>).
+
+<div class="banner info">
+<b>your app needs to be <code>hq_official</code>.</b>
+<p>community apps can't be wired to the directory. if your app is official and you want a groups claim, it also needs the <code>groups</code> scope: ask whoever can make apps official (or a program admin) to add it.</p>
+</div>
+
+### who does the wiring
+
+- **directory admins** can wire any official app from [directory apps](<%= directory_apps_path %>).
+- **app owners and collaborators** can wire entitlements they hold `expose` on, from their app's page under [developer apps](<%= developer_apps_path %>).
+
+### gating login (requirements)
+
+add one or more entitlements as requirements. someone can sign in if they're in **any** of them.
+
+- people who don't qualify are sent back to your redirect URI the standard way: `error=access_denied` with your `state` (also for `prompt=none` and `response_mode=form_post`). handle it like any other denied login.
+- if the redirect URI isn't one you registered, they land on a hack club auth page instead.
+- the check happens when someone signs in. when they later lose the entitlement (removed, group removed, expired), their tokens for your app are revoked, so refreshes fail and they're bounced to sign in again.
+- removing a requirement logs out anyone who only qualified through it. removing the **last** one opens your app to every hack club auth account, and the confirm dialog says so.
+
+### the groups claim (exposures)
+
+request the `groups` scope, then expose entitlements to your app with a claim name each. the id token and userinfo get:
+
+```json
+{ "groups": ["staff", "design"] }
+```
+
+- it's only the claim names you configured, only for entitlements the person is in right now.
+- tokens are a snapshot. when someone loses an exposed entitlement, their tokens for your app are revoked, so the next sign-in gets an accurate list.
+- don't trust a cached copy of the claim longer than your session lasts.
+
+### session revokers (if your app keeps its own sessions)
+
+revoking tokens doesn't help if your app gave the person its own session cookie. set a revoker (directory admins, from [directory apps](<%= directory_apps_path %>)) and hack club auth will tell your app when someone loses access.
+
+- **webhook**: we `POST` `{"email": "person@example.com"}` to your https URL with `Authorization: Bearer <your secret>`. answer 2xx once you've ended their sessions. failures are retried with backoff for a few hours. the URL has to be public (no private or local addresses), and changing it means re-entering the secret.
+- **cloudflare access**: we call cloudflare's revoke for that email. heads up: cloudflare can only do this **account-wide**, so it signs them out of every access app on that account. set it up so that's harmless:
+  - make the app's access policy check hack club auth's `groups` claim.
+  - turn on instant auth, with hack club auth as the only identity provider.
+
+  then every other app quietly signs them back in, and only the one they lost refuses.
+
+### SAML apps
+
+SAML apps are configured in `config/saml.yml` (changes go through a PR):
+
+- `entitlements: { staff: "Staff" }` sends a `groups` attribute with those values (rename it with `groups_attribute`). the SP's `attribute_consuming_services` must request it, or the config is refused at boot. people with none get the attribute empty, so SPs that sync groups drop stale ones.
+- `required_entitlements: [staff]` gates sign-in the same any-of way.
+- losing an entitlement can't end an existing SAML session (there's no token to revoke). it only stops the next sign-in.
+- an entitlement a SAML app uses can't be deleted or renamed until it's removed from `saml.yml`.
