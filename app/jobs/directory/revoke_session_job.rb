@@ -45,7 +45,10 @@ module Directory
 
       # a transient failure anywhere means a retry can still land, whatever failed last
       transient, broken = errors.partition { |e| TRANSIENT.any? { |klass| e.is_a?(klass) } }
-      broken.each { |e| Sentry.capture_exception(e, extra: { app_id: app_id }) }
+      # a broken revoker stays broken across retries, so say so once, on the first attempt.
+      # when nothing is transient the last one is raised and the job error reports it
+      reported = transient.any? ? broken : broken[0...-1]
+      reported.each { |e| Sentry.capture_exception(e, extra: { app_id: app_id }) } if executions == 1
       raise transient.first if transient.any?
 
       raise broken.last

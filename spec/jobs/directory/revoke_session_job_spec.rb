@@ -68,6 +68,16 @@ RSpec.describe Directory::RevokeSessionJob do
       expect(Sentry).to have_received(:capture_exception).with(kind_of(Lockbox::Error), extra: { app_id: app.id })
     end
 
+    it "reports a broken fallback once, not on every retry" do
+      Directory::AppRevoker.find(other.id).update_columns(config_ciphertext: "not-a-ciphertext")
+      stub_request(:post, url).with(headers: { "Authorization" => "Bearer expired" }).to_return(status: 503)
+      allow(Sentry).to receive(:capture_exception)
+
+      perform_enqueued_jobs { described_class.perform_later(app_id: app.id, email: "p@example.test", fallback_app_ids: [ other.id ]) }
+
+      expect(Sentry).to have_received(:capture_exception).with(kind_of(Lockbox::Error), extra: { app_id: app.id }).once
+    end
+
     it "falls back when the first app's revoker is disabled" do
       revoker.update!(enabled: false)
 
