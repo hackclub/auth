@@ -37,6 +37,7 @@
                 <% if g.protected %>
                   <span is-="badge" variant-="yellow"><%= t("directory.badges.protected") %></span>
                 <% end %>
+                <%= render "directory/description", collection: g %>
               </td>
               <td style="text-align: right;">
                 <%= g.direct_member_count %><% if g.effective_member_count != g.direct_member_count %> <span style="color: var(--foreground2);">(+<%= g.effective_member_count - g.direct_member_count %> nested)</span><% end %>
@@ -78,6 +79,7 @@
                 <% if e.protected %>
                   <span is-="badge" variant-="yellow"><%= t("directory.badges.protected") %></span>
                 <% end %>
+                <%= render "directory/description", collection: e %>
               </td>
               <td style="text-align: right;">
                 <%= e.direct_member_count %><% if e.effective_member_count != e.direct_member_count %> <span style="color: var(--foreground2);">(+<%= e.effective_member_count - e.direct_member_count %> nested)</span><% end %>

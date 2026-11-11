@@ -16,7 +16,7 @@ module Directory
     helper_method :current_directory_person, :directory_admin?, :breadcrumbs, :directory_keyboard_shortcuts,
       :directory_activity_owner, :directory_browsable?, :directory_home_path,
       :collection_link, :collection_label, :activity_member_name, :activity_grantee_name,
-      :group_edge_refusal
+      :group_edge_refusal, :collection_visible?
 
     private
 

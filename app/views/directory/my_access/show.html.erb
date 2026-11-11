@@ -19,7 +19,10 @@
           <tbody>
             <% direct.each do |m| %>
               <tr>
-                <td><%= collection_link(m[:collection]) %></td>
+                <td>
+                  <%= collection_link(m[:collection]) %>
+                  <% if collection_visible?(m[:collection]) %><%= render "directory/description", collection: m[:collection] %><% end %>
+                </td>
                 <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
               </tr>
             <% end %>
@@ -38,7 +41,10 @@
           <tbody>
             <% via.each do |m| %>
               <tr>
-                <td><%= collection_link(m[:collection]) %></td>
+                <td>
+                  <%= collection_link(m[:collection]) %>
+                  <% if collection_visible?(m[:collection]) %><%= render "directory/description", collection: m[:collection] %><% end %>
+                </td>
                 <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
                 <td style="color: var(--foreground2);">
                   <% if m[:via_path].present? %>
