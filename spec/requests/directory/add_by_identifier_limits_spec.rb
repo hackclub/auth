@@ -146,4 +146,10 @@ RSpec.describe "Directory add-by-identifier limits", type: :request do
       expect(response).to have_http_status(:ok)
     end
   end
+
+  it "doesn't 500 on an array email param" do
+    sign_in manager_of(group).identity
+    post directory_collection_memberships_path(group.slug), params: { email: [ "x@example.com" ] }
+    expect(response.status).to be < 500
+  end
 end

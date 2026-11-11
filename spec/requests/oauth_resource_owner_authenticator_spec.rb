@@ -170,4 +170,9 @@ RSpec.describe "OAuth resource owner authenticator", type: :request do
       end
     end
   end
+
+  it "doesn't 500 on a non-string client_id" do
+    get oauth_authorization_path, params: { client_id: { a: "b" }, response_type: "code" }
+    expect(response.status).to be < 500
+  end
 end

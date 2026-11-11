@@ -23,7 +23,7 @@ Doorkeeper.configure do
   # doorkeeper instance_evals this block, so no `return`.
   resource_owner_authenticator do
     if current_identity
-      app = ::Program.find_by(uid: params[:client_id]) if params[:client_id].present?
+      app = ::Program.find_by(uid: params[:client_id].to_s) if params[:client_id].is_a?(String) && params[:client_id].present?
       if app.nil? || Directory::RequirementCheck.passes?(identity: current_identity, app: app)
         current_identity
       else

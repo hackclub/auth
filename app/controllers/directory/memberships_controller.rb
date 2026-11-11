@@ -31,7 +31,7 @@ module Directory
 
       if params[:email].present?
         # same audited lookup as batch_create
-        identifier = params[:email].strip
+        identifier = params[:email].to_s.strip
         identity = bulk_lookup_identities([ identifier ])[identifier]
         unless identity
           redirect_back fallback_location: directory_collection_path(@collection.slug),
