@@ -89,6 +89,8 @@ module Directory
         ActiveRecord::Associations::Preloader.new(records: trackables[klass], associations: associations).call
       end
 
+      @activity_identities = Directory::ActivityPeople.preload(records)
+
       group_ids = records.filter_map { |a| a.parameters["member_group_id"] }.uniq
       if group_ids.any?
         @activity_groups = Directory::Collection.where(id: group_ids).index_by(&:id)
@@ -123,7 +125,7 @@ module Directory
 
     def activity_member_name(activity)
       params = activity.parameters
-      return params["member_name"] unless params["member_type"] == "group"
+      return Directory::ActivityPeople.member_name(activity, @activity_identities) unless params["member_type"] == "group"
 
       group_id = params["member_group_id"]
       group = (@activity_groups || {}).fetch(group_id) { Directory::Collection.find_by(id: group_id) } if group_id

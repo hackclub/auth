@@ -132,11 +132,12 @@ module Directory
       member = member_person || member_group
       return unless member
 
-      name = member_person ? person_display_name : member.name
-      type = member_person_id ? "person" : "group"
-
-      params = { member_name: name, member_type: type }
-      params[:member_group_id] = member_group_id if member_group_id
+      # people by id only (rendered live); a group's name is kept for when it's deleted
+      params = if member_person
+        { member_type: "person", member_identity_id: member_person.identity_id }
+      else
+        { member_type: "group", member_name: member.name, member_group_id: member_group_id }
+      end
       params[:reason] = reason if reason
 
       collection&.create_activity action,
@@ -146,13 +147,6 @@ module Directory
     rescue StandardError => e
       Rails.logger.error("[Directory] Activity tracking failed: #{e.message}")
       Sentry.capture_exception(e) if defined?(Sentry)
-    end
-
-    # with_deleted: GDPR deletion soft-deletes the identity before destroying the person, and
-    # these rows should read "[REDACTED]", not vanish
-    def person_display_name
-      identity = Identity.with_deleted.find_by(id: member_person.identity_id)
-      identity ? identity.full_name : "(deleted)"
     end
 
     def activity_owner
