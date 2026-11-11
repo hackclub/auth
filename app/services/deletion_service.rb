@@ -268,25 +268,38 @@ module DeletionService
     items
   end
 
-  # every address the identity has had: the current one, email change requests, and
-  # primary_email changes in its versions (both are gone after steps 2 and 9)
+  # every address the identity actually held: the current one, both ends of completed email
+  # changes, and primary_email changes in its versions (both gone after steps 2 and 9).
+  # requested-but-never-completed addresses were never theirs, and an address someone else
+  # holds now belongs to that person's history, not this one's.
   def self.collect_past_emails(identity)
     emails = [ identity.primary_email ]
-    Identity::EmailChangeRequest.where(identity_id: identity.id).find_each { |ecr| emails.push(ecr.old_email, ecr.new_email) }
+    Identity::EmailChangeRequest.where(identity_id: identity.id).where.not(completed_at: nil)
+      .find_each { |ecr| emails.push(ecr.old_email, ecr.new_email) }
     PaperTrail::Version.where(item_type: "Identity", item_id: identity.id).where("object_changes ? 'primary_email'")
       .pluck(Arel.sql("object_changes -> 'primary_email'")).each { |change| emails.concat(Array(change)) }
-    emails.compact_blank.map(&:downcase).uniq
+    emails = emails.compact_blank.map(&:downcase).uniq
+
+    held_by_others = Identity.where("lower(primary_email) IN (?)", emails).where.not(id: identity.id).pluck(:primary_email).map(&:downcase)
+    emails - held_by_others
+  end
+
+  # activity rows whose stored email param is exactly one of these addresses. the LIKE is
+  # only a prefilter (parameters is serialized text); the comparison is on the parsed value
+  def self.activities_with_email(scope, emails)
+    return [] if emails.empty?
+
+    wanted = emails.to_set
+    emails.flat_map do |email|
+      scope.where("parameters ILIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(email)}%").to_a
+    end.uniq.select { |activity| wanted.include?(activity.parameters.to_h.with_indifferent_access[:email].to_s.downcase) }
   end
 
   # directory people they used to be (removed, maybe re-added): only their own activity
   # rows remember them, by the email they had then
   def self.former_directory_person_ids(past_emails)
-    return [] if past_emails.empty?
-
     rows = PublicActivity::Activity.where(trackable_type: "Directory::Person", key: %w[directory_person.create directory_person.destroy])
-    past_emails.flat_map do |email|
-      rows.where("parameters ILIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(email)}%").distinct.pluck(:trackable_id)
-    end.uniq
+    activities_with_email(rows, past_emails).map(&:trackable_id).uniq
   end
 
   def self.collect_activity_trackables(identity, past_emails)
@@ -479,11 +492,9 @@ module DeletionService
     # lookup misses from before they had an account sit on the collection with the raw
     # email in parameters. a separate statement (OR-ing an ILIKE into the scope above
     # costs it its indexes), narrowed by trackable_type so it can use the trackable index
-    past_emails.each do |email|
-      PublicActivity::Activity.where(trackable_type: "Directory::Collection", key: "directory_collection.email_lookup_miss")
-        .where("parameters ILIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(email)}%")
-        .update_all(parameters: nil)
-    end
+    misses = PublicActivity::Activity.where(trackable_type: "Directory::Collection", key: "directory_collection.email_lookup_miss")
+    miss_ids = activities_with_email(misses, past_emails).map(&:id)
+    PublicActivity::Activity.where(id: miss_ids).update_all(parameters: nil) if miss_ids.any?
 
     activity_trackables.each_slice(100) do |batch|
       batch.group_by(&:first).each do |type, pairs|

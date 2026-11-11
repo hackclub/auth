@@ -262,6 +262,28 @@ RSpec.describe DeletionService do
       expect(leftovers.map(&:key)).to be_empty
     end
 
+    it "only scrubs exact past addresses, not other people whose email contains one" do
+      victim.update!(primary_email: "al@example.com")
+      sal = create(:identity, first_name: "Sal", last_name: "Other", primary_email: "sal@example.com")
+      sal_person = Directory::Person.create!(identity: sal, created_by_identity_id: admin.id)
+      group.create_activity :email_lookup_miss, owner: admin, params: { email: "sal@example.com" }
+
+      delete!(victim)
+
+      expect(PublicActivity::Activity.where(trackable: sal_person, key: "directory_person.create").sole.parameters["email"]).to eq("sal@example.com")
+      expect(PublicActivity::Activity.where(key: "directory_collection.email_lookup_miss").sole.parameters).to include("email" => "sal@example.com")
+    end
+
+    it "doesn't treat an email change they never completed as an address they held" do
+      create(:email_change_request, identity: victim, new_email: "bob@example.com")
+      bob = create(:identity, first_name: "Bob", last_name: "Else", primary_email: "bob@example.com")
+      bob_person = Directory::Person.create!(identity: bob, created_by_identity_id: admin.id)
+
+      delete!(victim)
+
+      expect(PublicActivity::Activity.where(trackable: bob_person, key: "directory_person.create").sole.parameters["email"]).to eq("bob@example.com")
+    end
+
     it "looks the directory person up under the directory lock" do
       Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
       held = nil
