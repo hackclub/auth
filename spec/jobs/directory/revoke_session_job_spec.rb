@@ -155,4 +155,21 @@ RSpec.describe Directory::RevokeSessionJob do
 
     expect(Net::HTTP).to have_received(:new).with("2606:4700::1", 443)
   end
+
+  it "tries the next checked address when one refuses the connection" do
+    allow(Directory::AppRevoker).to receive(:resolve).and_return([ IPAddr.new("93.184.216.34"), IPAddr.new("93.184.216.35") ])
+    stub_request(:post, "https://hooks.example.test/revoke").to_return(status: 200)
+    tried = []
+    allow_any_instance_of(Net::HTTP).to receive(:start).and_wrap_original do |original, *args, &block|
+      tried << original.receiver.ipaddr
+      raise Errno::ECONNREFUSED if original.receiver.ipaddr == "93.184.216.34"
+
+      original.call(*args, &block)
+    end
+
+    described_class.perform_now(app_id: app.id, email: "p@example.test")
+
+    expect(tried).to eq([ "93.184.216.34", "93.184.216.35" ])
+    expect(revoker.reload.last_result).to eq("ok")
+  end
 end
