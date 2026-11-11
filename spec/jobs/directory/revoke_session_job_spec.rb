@@ -139,7 +139,8 @@ RSpec.describe Directory::RevokeSessionJob do
   end
 
   it "treats cgnat, nat64, 6to4 and reserved space as internal" do
-    %w[100.64.0.1 64:ff9b::7f00:1 2002:7f00:1:: 198.18.0.1 192.0.0.8 224.0.0.1 240.0.0.1 ::ffff:127.0.0.1].each do |ip|
+    %w[100.64.0.1 64:ff9b::7f00:1 2002:7f00:1:: 198.18.0.1 192.0.0.8 224.0.0.1 240.0.0.1 ::ffff:127.0.0.1
+       ::7f00:1 ::ffff:0:7f00:1 ::8.8.8.8 3fff::1 5f00::1 2001:2::1].each do |ip|
       expect(Directory::AppRevoker.internal_ip?(IPAddr.new(ip))).to be(true), ip
     end
     expect(Directory::AppRevoker.internal_ip?(IPAddr.new("93.184.216.34"))).to be(false)
