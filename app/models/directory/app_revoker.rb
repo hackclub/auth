@@ -15,7 +15,8 @@ module Directory
     belongs_to :app, class_name: "Program"
 
     has_encrypted :config
-    has_paper_trail skip: [ :config_ciphertext ]
+    # skip the plaintext virtual attribute too, or paper_trail records it in object_changes
+    has_paper_trail skip: [ :config, :config_ciphertext ]
 
     validates :adapter, presence: true, inclusion: { in: ADAPTERS }
     validates :config_ciphertext, presence: true
