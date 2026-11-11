@@ -78,6 +78,20 @@ RSpec.describe Directory::RevokeSessionJob do
       expect(Sentry).to have_received(:capture_exception).with(kind_of(Lockbox::Error), extra: { app_id: app.id }).once
     end
 
+    it "still reports a broken fallback when the first run was throttled" do
+      Directory::AppRevoker.find(other.id).update_columns(config_ciphertext: "not-a-ciphertext")
+      stub_request(:post, url).with(headers: { "Authorization" => "Bearer expired" }).to_return(status: 503)
+      allow(Sentry).to receive(:capture_exception)
+      job = described_class.new(app_id: app.id, email: "p@example.test", fallback_app_ids: [ other.id ])
+      # what GoodJob leaves behind after one throttled run
+      job.executions = 1
+      job.exception_executions = { "[GoodJob::ActiveJobExtensions::Concurrency::ThrottleExceededError]" => 1 }
+
+      job.perform_now
+
+      expect(Sentry).to have_received(:capture_exception).with(kind_of(Lockbox::Error), extra: { app_id: app.id }).once
+    end
+
     it "falls back when the first app's revoker is disabled" do
       revoker.update!(enabled: false)
 
