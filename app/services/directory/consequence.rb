@@ -25,7 +25,7 @@ module Directory
       outcomes = @memberships.to_h { |m| [ m.id, outcomes_for(m) ] }.reject { |_, o| o.empty? }
       return {} if outcomes.empty?
 
-      load_collections_and_apps(outcomes.values.flatten(1).flat_map { |lost, _| lost.to_a })
+      load_collections_and_apps(outcomes.values.flatten(1).flat_map { |lost, _, _| lost.to_a }, outcomes.values.flatten(1).map(&:last))
       outcomes.to_h { |id, o| [ id, describe(o, group_row: @memberships.find { |m| m.id == id }.member_group_id.present?) ] }.compact
     end
 
@@ -50,24 +50,24 @@ module Directory
         .group_by(&:first).transform_values { |rows| rows.map(&:last).to_set }
     end
 
-    # [[lost collection ids, collection ids still reached], …] — one pair per affected person
+    # [[lost collection ids, collection ids still reached, person id], …] — one per affected person
     def outcomes_for(membership)
       if membership.member_person_id
         direct = @direct[membership.member_person_id] || Set.new
-        [ outcome(direct, reach(direct - [ @collection.id ])) ]
+        [ outcome(direct, reach(direct - [ @collection.id ]), membership.member_person_id) ]
       elsif membership.member_group_id
         edge = [ membership.member_group_id, @collection.id ]
         (@people_in_group[membership.member_group_id] || []).map do |person_id|
           direct = @direct[person_id] || Set.new
-          outcome(direct, reach(direct, without: edge))
+          outcome(direct, reach(direct, without: edge), person_id)
         end
       else
         []
-      end.reject { |lost, _| lost.empty? }
+      end.reject { |lost, _, _| lost.empty? }
     end
 
-    def outcome(direct, after)
-      [ reach(direct) - after, after ]
+    def outcome(direct, after, person_id)
+      [ reach(direct) - after, after, person_id ]
     end
 
     def reach(start, without: nil)
@@ -85,16 +85,20 @@ module Directory
       end
     end
 
-    def load_collections_and_apps(lost_ids)
+    def load_collections_and_apps(lost_ids, person_ids)
       collections = Directory::Collection.where(id: lost_ids.uniq).index_by(&:id)
       @visible = collections.values
         .select { |c| c.id == @collection.id || Directory::CollectionPolicy.new(@viewer, c).show? }
         .to_h { |c| [ c.id, c.name ] }
       entitlement_ids = collections.values.select(&:entitlement?).map(&:id)
 
-      @exposed_apps = Directory::Exposure.live.where(entitlement_id: entitlement_ids)
+      @exposed_apps = Directory::Exposure.where(entitlement_id: entitlement_ids)
         .pluck(:entitlement_id, :app_id)
         .group_by(&:first).transform_values { |rows| rows.map(&:last) }
+      # same per-person rule as revocation: the claim reaches them if the app requests groups
+      # or they still hold a token issued with it
+      @identity_of = Directory::Person.where(id: person_ids.uniq).pluck(:id, :identity_id).to_h
+      @claim_pairs = Directory::Exposure.claim_pairs(app_ids: @exposed_apps.values.flatten, identity_ids: @identity_of.values)
 
       required_app_ids = Directory::AppRequirement.where(entitlement_id: entitlement_ids).distinct.pluck(:app_id)
       @requirements = Directory::AppRequirement.where(app_id: required_app_ids)
@@ -106,10 +110,11 @@ module Directory
     end
 
     # { app_id => lost entitlement ids that cost it }
-    def lost_apps(lost, after)
+    def lost_apps(lost, after, person_id)
       apps = Hash.new { |h, k| h[k] = Set.new }
+      identity_id = @identity_of[person_id]
       lost.each do |eid|
-        (@exposed_apps[eid] || []).each { |app_id| apps[app_id] << eid }
+        (@exposed_apps[eid] || []).each { |app_id| apps[app_id] << eid if @claim_pairs.include?([ app_id, identity_id ]) }
       end
       @requirements.each do |app_id, required|
         hit = required & lost
@@ -121,9 +126,9 @@ module Directory
     def describe(outcomes, group_row:)
       lost = Set.new
       apps = Hash.new { |h, k| h[k] = Set.new }
-      outcomes.each do |person_lost, after|
+      outcomes.each do |person_lost, after, person_id|
         lost.merge(person_lost)
-        lost_apps(person_lost, after).each { |app_id, via| apps[app_id].merge(via) }
+        lost_apps(person_lost, after, person_id).each { |app_id, via| apps[app_id].merge(via) }
       end
 
       # a person row's own collection is already in the prompt ("remove X from Y?"); a group

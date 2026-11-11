@@ -19,7 +19,7 @@ module Directory
             "(SELECT COUNT(*) FROM directory_effective_memberships WHERE directory_effective_memberships.collection_id = directory_collections.id AND (directory_effective_memberships.expires_at IS NULL OR directory_effective_memberships.expires_at > ?)) AS preloaded_effective_count", Time.current
           ])),
           "(SELECT COUNT(*) FROM directory_exposures INNER JOIN oauth_applications ON oauth_applications.id = directory_exposures.app_id " \
-          "WHERE directory_exposures.entitlement_id = directory_collections.id AND #{format(Directory::Exposure::REQUESTS_GROUPS_SQL, 'oauth_applications.scopes')}) " \
+          "WHERE directory_exposures.entitlement_id = directory_collections.id AND #{Directory::Exposure::REACHES_SQL}) " \
           "AS preloaded_exposure_count"
         )
         .order(:name)
@@ -86,7 +86,7 @@ module Directory
       end
 
       if @collection.entitlement?
-        @wired_exposures = Directory::Exposure.live.where(entitlement_id: @collection.id).includes(:app, :created_by)
+        @wired_exposures = Directory::Exposure.reaching.where(entitlement_id: @collection.id).includes(:app, :created_by)
       end
 
       @recent_activities = preload_activities(visible_activities.order(created_at: :desc).limit(5))

@@ -72,7 +72,7 @@ module Directory
     end
 
     def exposure_count
-      has_attribute?(:preloaded_exposure_count) ? preloaded_exposure_count : Directory::Exposure.live.where(entitlement_id: id).count
+      has_attribute?(:preloaded_exposure_count) ? preloaded_exposure_count : Directory::Exposure.reaching.where(entitlement_id: id).count
     end
 
     # apps with an exposure or a requirement on any of these entitlements

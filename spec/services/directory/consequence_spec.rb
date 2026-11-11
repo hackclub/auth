@@ -155,6 +155,25 @@ RSpec.describe Directory::Consequence, type: :model do
         expect(batch[m.id]).to eq("will lose access to Gated App")
       end
 
+      it "still names an app that dropped the groups scope while the person holds a token carrying the claim" do
+        person = create(:directory_person)
+        ent = create(:directory_entitlement, name: "Staff")
+        Directory::Exposure.create!(app: app, entitlement: ent, claim_name: "staff")
+        create(:oauth_token, application: app, resource_owner: person.identity, scopes: "openid groups")
+        app.update_columns(scopes: "openid profile")
+        m = create(:directory_membership, :person, collection: ent, member_person: person)
+        rebuild!
+
+        batch = Directory::Consequence.batch_removal_summaries(memberships: [ m ], collection: ent, viewer: admin)
+        expect(batch[m.id]).to eq("will lose access to Gated App")
+
+        bystander = create(:directory_person)
+        m2 = create(:directory_membership, :person, collection: ent, member_person: bystander)
+        rebuild!
+        batch = Directory::Consequence.batch_removal_summaries(memberships: [ m2 ], collection: ent, viewer: admin)
+        expect(batch[m2.id]).to be_nil
+      end
+
       it "doesn't count a requirement app the person still qualifies for another way" do
         person = create(:directory_person)
         e1 = create(:directory_entitlement, name: "E1")

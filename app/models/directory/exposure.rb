@@ -24,8 +24,14 @@ module Directory
 
     REQUESTS_GROUPS_SQL = "' ' || %s || ' ' LIKE '%% groups %%'"
 
-    # an app without the groups scope never receives the claim, so its exposures are inert
-    def self.live = joins(:app).where(format(REQUESTS_GROUPS_SQL, "oauth_applications.scopes"))
+    # exposures the claim still reaches someone through: the app requests groups, or someone
+    # still holds an unrevoked token issued with it. per entitlement, the same rule
+    # claim_pairs applies per person, so pages and revocation agree
+    REACHES_SQL = "(#{format(REQUESTS_GROUPS_SQL, 'oauth_applications.scopes')} OR EXISTS (" \
+      "SELECT 1 FROM oauth_access_tokens WHERE oauth_access_tokens.application_id = directory_exposures.app_id " \
+      "AND oauth_access_tokens.revoked_at IS NULL AND #{format(REQUESTS_GROUPS_SQL, 'oauth_access_tokens.scopes')}))"
+
+    def self.reaching = joins(:app).where(REACHES_SQL)
 
     # [app_id, identity_id] pairs where the groups claim reaches that person in that app: the
     # app requests groups now, or the person still holds an unrevoked token issued with it
