@@ -150,11 +150,10 @@ module DeletionService
       if dir_person
         # before redaction: revocations need the real email to reach app revokers
         dir_revocations = Directory::DestroyRevocations.for_person(dir_person)
-        # a person created after the trackables were collected missed step 10's scrub. this
-        # runs before 12b, so the redacted rows the destroy writes are kept
-        unless activity_trackables.include?([ "Directory::Person", dir_person.id ])
-          scrub_activities(identity, [ [ "Directory::Person", dir_person.id ] ], [])
-        end
+        # step 10 ran before the lock, so a directory write could have landed rows about
+        # this person since (or created the person). scrubbing again under the lock and before
+        # 12b catches those, and keeps the redacted rows the destroy writes
+        scrub_activities(identity, [ [ "Directory::Person", dir_person.id ] ], [])
       end
 
       log.call "step 12: scrubbing identity PII..."

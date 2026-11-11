@@ -299,6 +299,24 @@ RSpec.describe DeletionService do
       expect(held).to be(true)
     end
 
+    it "scrubs directory rows written about an existing person after step 10 but before the lock" do
+      person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
+      raced = false
+      allow(Directory).to receive(:lock!).and_wrap_original do |original|
+        # a concurrent add that committed between the step 10 scrub and the lock
+        unless raced
+          raced = true
+          group.create_activity :member_added, owner: admin, recipient: person,
+            params: { member_name: "Zelda Quixote", member_type: "person" }
+        end
+        original.call
+      end
+
+      delete!(victim)
+
+      expect(PublicActivity::Activity.where("parameters ILIKE ?", "%Zelda%").map(&:key)).to be_empty
+    end
+
     it "makes person creation wait on the directory lock" do
       locked = nil
       allow(Directory).to receive(:lock!).and_wrap_original do |original|
