@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_10_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_11_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -663,6 +663,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_000001) do
     t.string "resource_owner_type"
     t.text "token_ciphertext"
     t.string "token_bidx"
+    t.index ["application_id"], name: "index_oauth_access_tokens_live_groups_by_application", where: "((revoked_at IS NULL) AND (((' '::text || (scopes)::text) || ' '::text) ~~ '% groups %'::text))"
     t.index ["application_id"], name: "index_oauth_access_tokens_on_application_id"
     t.index ["refresh_token"], name: "index_oauth_access_tokens_on_refresh_token", unique: true
     t.index ["resource_owner_id", "resource_owner_type"], name: "polymorphic_owner_oauth_access_tokens"
