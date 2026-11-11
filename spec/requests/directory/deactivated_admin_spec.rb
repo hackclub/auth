@@ -72,7 +72,8 @@ RSpec.describe "Directory root for deactivated backend users", type: :request do
     it "cannot unwire an exposure through the admin path" do
       exposure = Directory::Exposure.create!(app: oauth_app, entitlement: entitlement, claim_name: "staff")
       delete directory_exposure_path(exposure)
-      expect(response).to redirect_to(root_path)
+      # same as the requirement case: no longer visible, so it answers like a missing one
+      expect(response).to have_http_status(:not_found)
       expect(Directory::Exposure.where(id: exposure.id)).to exist
     end
 

@@ -45,9 +45,9 @@ module DirectoryAppAuthorization
     directory_context.admin? || (app_owner?(app) && directory_context.can_expose_any_entitlement?)
   end
 
-  # app pages are seen by collaborators with no directory rights; descriptions are directory
-  # content, so they follow directory visibility
-  def entitlement_description_visible?(entitlement)
+  # app pages are seen by collaborators with no directory rights, so directory content on
+  # them (descriptions, whether an exposure exists) follows directory visibility
+  def entitlement_visible?(entitlement)
     Directory::CollectionPolicy.new(directory_context, entitlement).show?
   end
 

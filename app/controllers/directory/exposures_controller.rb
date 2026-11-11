@@ -33,6 +33,8 @@ module Directory
     def destroy
       exposure = Directory::Exposure.find(params[:id])
       app = exposure.app
+      # an exposure of an entitlement you can't see answers like a missing id
+      raise ActiveRecord::RecordNotFound unless entitlement_visible?(exposure.entitlement)
 
       authorize_app_entitlement_unwiring!(app, exposure.entitlement)
       exposure.destroy!

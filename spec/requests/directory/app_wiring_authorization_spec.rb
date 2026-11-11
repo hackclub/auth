@@ -131,6 +131,20 @@ RSpec.describe "App wiring authorization", type: :request do
     end
   end
 
+  context "someone who can't see the entitlement" do
+    before { sign_in owner }
+
+    it "gets the same 404 for an existing exposure as for a missing id" do
+      exposure = Directory::Exposure.create!(app: oauth_app, entitlement: entitlement, claim_name: "docs")
+
+      delete directory_exposure_path(exposure)
+      expect(response).to have_http_status(:not_found)
+      delete directory_exposure_path(exposure.id + 1000)
+      expect(response).to have_http_status(:not_found)
+      expect(Directory::Exposure.exists?(exposure.id)).to be(true)
+    end
+  end
+
   context "expose holder who doesn't own the app" do
     before do
       someone = create(:identity)
