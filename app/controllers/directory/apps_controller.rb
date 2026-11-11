@@ -5,7 +5,7 @@ module Directory
   # open the developer app page with its credentials.
   class AppsController < BaseController
     include DirectoryAppAuthorization
-    helper_method :can_manage_app_wiring?, :can_wire_any_entitlement?, :wireable_entitlements, :entitlement_visible?
+    helper_method :can_manage_app_wiring?, :wiring_context, :can_wire_any_entitlement?, :wireable_entitlements, :entitlement_visible?
 
     def index
       authorize_visible! :directory, :admin?

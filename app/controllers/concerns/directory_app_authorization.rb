@@ -6,8 +6,10 @@ module DirectoryAppAuthorization
   private
 
   def app_owner?(app)
-    app.owner_identity_id == current_identity.id ||
-      ProgramCollaborator.where(program_id: app.id, identity_id: current_identity.id, status: "accepted").exists?
+    (@app_owner ||= {}).fetch(app.id) do
+      @app_owner[app.id] = app.owner_identity_id == current_identity.id ||
+        ProgramCollaborator.where(program_id: app.id, identity_id: current_identity.id, status: "accepted").exists?
+    end
   end
 
   def directory_context
@@ -18,11 +20,19 @@ module DirectoryAppAuthorization
     end
   end
 
+  # the same context with every grant loaded up front, for pages that check row after row
+  # (the wiring partial): one query instead of one per row
+  def wiring_context
+    @wiring_context ||= Directory::Context.new(
+      identity: current_identity, person: directory_context.person, admin: directory_context.admin?
+    ).preload_grants!
+  end
+
   # Directory admins can wire and unwire any app; owners can on their own app, for
   # entitlements they hold expose on. Only hq_official apps get new wiring, but anyone
   # allowed to wire can always unwire (e.g. after an app is downgraded).
-  def can_manage_app_wiring?(app, entitlement)
-    directory_context.admin? || (app_owner?(app) && directory_context.can?(:expose, entitlement))
+  def can_manage_app_wiring?(app, entitlement, ctx = directory_context)
+    ctx.admin? || (app_owner?(app) && ctx.can?(:expose, entitlement))
   end
 
   # an entitlement the actor can't see answers like one that doesn't exist
@@ -47,8 +57,8 @@ module DirectoryAppAuthorization
 
   # app pages are seen by collaborators with no directory rights, so directory content on
   # them (descriptions, whether an exposure exists) follows directory visibility
-  def entitlement_visible?(entitlement)
-    Directory::CollectionPolicy.new(directory_context, entitlement).show?
+  def entitlement_visible?(entitlement, ctx = directory_context)
+    Directory::CollectionPolicy.new(ctx, entitlement).show?
   end
 
   # the entitlements this person may wire to app, for the wiring forms' pickers

@@ -85,6 +85,21 @@ RSpec.describe "App wiring authorization", type: :request do
 
     include_examples "can do both"
 
+    it "checks wired rows without a query per row" do
+      count_queries = lambda do
+        n = 0
+        counter = ->(*, payload) { n += 1 unless payload[:name] == "SCHEMA" || payload[:cached] }
+        ActiveSupport::Notifications.subscribed(counter, "sql.active_record") { get developer_app_path(oauth_app) }
+        n
+      end
+      Directory::Exposure.create!(app: oauth_app, entitlement: entitlement, claim_name: "docs")
+      count_queries.call # warm up
+      one = count_queries.call
+      5.times { |i| Directory::Exposure.create!(app: oauth_app, entitlement: create(:directory_entitlement, slug: "extra-#{i}"), claim_name: "extra#{i}") }
+
+      expect(count_queries.call).to eq(one)
+    end
+
     it "picks from the entitlements it can expose, with their descriptions" do
       entitlement.update!(description: "docs for staff")
       other = create(:directory_entitlement, slug: "not-mine", name: "Not Mine")
