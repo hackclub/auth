@@ -128,4 +128,22 @@ RSpec.describe "Directory add-by-identifier limits", type: :request do
       expect(member?(target)).to be(true)
     end
   end
+
+  describe "picker lookups" do
+    it "limits pasted-batch resolves and email searches, but not name searches" do
+      sign_in manager_of(group).identity
+
+      20.times { get directory_picker_resolve_path, params: { emails: [ "nobody@example.com" ] } }
+      expect(response).to have_http_status(:ok)
+      get directory_picker_resolve_path, params: { emails: [ target.primary_email ] }
+      expect(response).to have_http_status(:too_many_requests)
+
+      200.times { get directory_picker_search_path, params: { q: "x@example.com", scope: "people" } }
+      get directory_picker_search_path, params: { q: "x@example.com", scope: "people" }
+      expect(response).to have_http_status(:too_many_requests)
+
+      get directory_picker_search_path, params: { q: "jane", scope: "people" }
+      expect(response).to have_http_status(:ok)
+    end
+  end
 end

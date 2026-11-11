@@ -2,6 +2,16 @@
 
 module Directory
   class PickerController < BaseController
+    # exact-email answers say whether an address has an account (and whose), so bound them
+    # like the add actions do. typing an email fires a search per debounced keystroke, so
+    # searches get a bigger budget than pasted batches. admins are exempt.
+    rate_limit to: 20, within: 10.minutes, store: MembershipsController::ADD_RATE_STORE, name: "picker-resolve",
+      by: -> { current_identity.id }, with: -> { render json: { error: "rate_limited" }, status: :too_many_requests },
+      only: :resolve, unless: :directory_admin?
+    rate_limit to: 200, within: 10.minutes, store: MembershipsController::ADD_RATE_STORE, name: "picker-email-search",
+      by: -> { current_identity.id }, with: -> { render json: { error: "rate_limited" }, status: :too_many_requests },
+      only: :search, if: -> { params[:q].to_s.include?("@") }, unless: :directory_admin?
+
     def search
       authorize Directory::Person, :picker?
 
