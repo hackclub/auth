@@ -40,16 +40,6 @@ module DeletionService
     dir_revocations = []
 
     ActiveRecord::Base.transaction do
-      # held to commit: no directory write (an add by email included) can create or change
-      # this identity's Directory::Person between the lookup here and its removal in 12b
-      ActiveRecord::Base.connection.execute("SELECT pg_advisory_xact_lock(#{Directory::Rebuild::LOCK_KEY})")
-      dir_person = Directory::Person.find_by(identity: identity)
-      if dir_person
-        activity_trackables << [ "Directory::Person", dir_person.id ] unless activity_trackables.include?([ "Directory::Person", dir_person.id ])
-        # before redaction: revocations need the real email to reach app revokers
-        dir_revocations = Directory::DestroyRevocations.for_person(dir_person)
-      end
-
       log.call "step 1: locking account..."
       identity.lock_account! unless identity.locked?
 
@@ -149,6 +139,23 @@ module DeletionService
         "DELETE FROM flipper_gates WHERE key = 'actors' AND value = #{ActiveRecord::Base.connection.quote(identity.public_id)}"
       )
       log.call "  removed #{gates}" if gates > 0
+
+      # the directory lock is held from here to commit, so every directory write waits only
+      # for the short tail of the deletion, not the version and activity scans above. no
+      # person can appear for this identity after the lookup: creating one takes the same
+      # lock, and once this commits it sees the identity as deleted
+      log.call "step 11b: finding directory person under the directory lock..."
+      Directory.lock!
+      dir_person = Directory::Person.find_by(identity: identity)
+      if dir_person
+        # before redaction: revocations need the real email to reach app revokers
+        dir_revocations = Directory::DestroyRevocations.for_person(dir_person)
+        # a person created after the trackables were collected missed step 10's scrub. this
+        # runs before 12b, so the redacted rows the destroy writes are kept
+        unless activity_trackables.include?([ "Directory::Person", dir_person.id ])
+          scrub_activities(identity, [ [ "Directory::Person", dir_person.id ] ], [])
+        end
+      end
 
       log.call "step 12: scrubbing identity PII..."
       tombstone_email = "tombstoned+#{identity.id}@identity.invalid"
