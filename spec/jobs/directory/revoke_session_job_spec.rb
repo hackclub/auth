@@ -101,6 +101,14 @@ RSpec.describe Directory::RevokeSessionJob do
     end
   end
 
+  it "retries when every address refuses the connection" do
+    allow_any_instance_of(Net::HTTP).to receive(:start).and_raise(Errno::ECONNREFUSED)
+
+    expect { described_class.perform_now(app_id: app.id, email: "p@example.test") }
+      .to have_enqueued_job(described_class)
+    expect(Directory::AppRevoker.find(app.id).last_result).to start_with("failed:")
+  end
+
   it "retries a TLS failure instead of calling it a config error" do
     stub_request(:post, "https://hooks.example.test/revoke").to_raise(OpenSSL::SSL::SSLError.new("SSL_connect returned=1 errno=0 state=error: unexpected eof"))
 
@@ -154,7 +162,7 @@ RSpec.describe Directory::RevokeSessionJob do
 
     described_class.perform_now(app_id: app.id, email: "p@example.test")
 
-    expect(Net::HTTP).to have_received(:new).with("2606:4700::1", 443)
+    expect(Net::HTTP).to have_received(:new).with("2606:4700::1", 443, nil)
   end
 
   it "tries the next checked address when one refuses the connection" do

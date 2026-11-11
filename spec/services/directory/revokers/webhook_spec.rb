@@ -66,7 +66,7 @@ RSpec.describe Directory::Revokers::Webhook do
   end
 
   it "gives up on a server that drips its headers past the deadline" do
-    stub_const("#{described_class}::DEADLINE", 1)
+    stub_const("Directory::Revokers::Outbound::DEADLINE", 1)
     thread = serve("HTTP/1.1 200 OK\r\n") do |client|
       40.times do
         client.write("X")
@@ -76,8 +76,64 @@ RSpec.describe Directory::Revokers::Webhook do
     url = "http://hooks.example.test:#{server.addr[1]}/revoke"
 
     started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-    expect { revoker_for(url).call(email: "p@example.test") }.to raise_error(Timeout::Error)
+    expect { revoker_for(url).call(email: "p@example.test") }.to raise_error(Directory::RevokeSessionJob::RevocationFailed, /ReadTimeout|DeadlineExceeded/)
     expect(Process.clock_gettime(Process::CLOCK_MONOTONIC) - started).to be < 3
     thread.kill
+  end
+
+  def open_fds = Dir.children("/dev/fd").size
+
+  it "ignores proxy settings in the environment" do
+    thread = serve("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n") { nil }
+    url = "http://hooks.example.test:#{server.addr[1]}/revoke"
+    dead_proxy = "http://127.0.0.1:1"
+
+    with_env = { "http_proxy" => dead_proxy, "https_proxy" => dead_proxy, "HTTP_PROXY" => dead_proxy, "HTTPS_PROXY" => dead_proxy }
+    original = with_env.keys.to_h { |k| [ k, ENV[k] ] }
+    begin
+      with_env.each { |k, v| ENV[k] = v }
+      expect(revoker_for(url).call(email: "p@example.test")).to eq(:ok)
+    ensure
+      original.each { |k, v| ENV[k] = v }
+    end
+    thread.join(2)
+  end
+
+  it "gives up on a TLS handshake that never finishes, without leaking the socket" do
+    stub_const("Directory::Revokers::Outbound::OPEN_TIMEOUT", 1)
+    stub_const("Directory::Revokers::Outbound::DEADLINE", 2)
+    held = Queue.new
+    thread = Thread.new do
+      client = server.accept
+      held << client
+      sleep 5
+    rescue IOError
+      nil
+    end
+    url = "https://hooks.example.test:#{server.addr[1]}/revoke"
+    before = open_fds
+
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    expect { revoker_for(url).call(email: "p@example.test") }.to raise_error(Directory::RevokeSessionJob::RevocationFailed)
+    expect(Process.clock_gettime(Process::CLOCK_MONOTONIC) - started).to be < 4
+
+    held.pop.close
+    thread.kill
+    # the accepted server-side socket is the only new fd, and it's closed above
+    expect(open_fds).to be <= before
+  end
+
+  it "bounds DNS against a nameserver that never answers" do
+    silent = UDPSocket.new
+    silent.bind("127.0.0.1", 0)
+    allow(Directory::AppRevoker).to receive(:resolve).and_call_original
+    allow(Directory::AppRevoker).to receive(:dns_config).and_return(nameserver_port: [ [ "127.0.0.1", silent.addr[1] ] ], search: [], ndots: 1)
+
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    expect { revoker_for("https://slow.example.test/revoke").call(email: "p@example.test") }
+      .to raise_error(Directory::RevokeSessionJob::RevocationFailed, /Unresolvable/)
+    expect(Process.clock_gettime(Process::CLOCK_MONOTONIC) - started).to be < 6
+  ensure
+    silent&.close
   end
 end

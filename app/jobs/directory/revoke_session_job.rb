@@ -8,8 +8,9 @@ module Directory
 
     class RevocationFailed < StandardError; end
 
-    # http.rb wraps socket errors in HTTP::Error, but not TLS failures or bare timeouts
-    TRANSIENT = [ RevocationFailed, HTTP::Error, OpenSSL::SSL::SSLError, Timeout::Error, EOFError ].freeze
+    # Revokers::Outbound turns every network failure into RevocationFailed; the rest are
+    # belt and braces for anything raised before it gets the chance
+    TRANSIENT = [ RevocationFailed, SystemCallError, IOError, OpenSSL::SSL::SSLError, Timeout::Error ].freeze
 
     # Cloudflare's API allows ~1200 requests per 5 minutes per token; stay under it per
     # account. Throttled jobs are rescheduled by GoodJob, not counted as failures.
