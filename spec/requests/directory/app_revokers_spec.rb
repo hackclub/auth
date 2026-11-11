@@ -35,6 +35,15 @@ RSpec.describe "Session revokers on the developer app page", type: :request do
       expect(response.body).not_to include("n3w-t0ken-value", "s3cr3t-token-value")
     end
 
+    it "logs disabling a revoker as true → false" do
+      post developer_app_session_revoker_path(oauth_app), params: cf_params
+      patch developer_app_session_revoker_path(oauth_app), params: cf_params.deep_merge(revoker: { enabled: "0" })
+
+      get activity_log_developer_app_path(oauth_app)
+
+      expect(response.parsed_body.text.squish).to include("enabled true → false")
+    end
+
     it "shows the app's owner that the account changed, but not the account ids" do
       post developer_app_session_revoker_path(oauth_app), params: cf_params
       patch developer_app_session_revoker_path(oauth_app),

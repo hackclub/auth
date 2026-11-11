@@ -5,7 +5,8 @@
     <% if !change.is_a?(Array) %>
       <%= change %>
     <% elsif %w[adapter enabled].include?(field.to_s) || directory_admin_session? %>
-      <span style="color: var(--pico-muted-color);"><%= change.first.presence || "—" %></span> &rarr; <b><%= change.last.presence || "—" %></b>
+      <% shown = ->(value) { value.nil? || value == "" ? "—" : value.to_s } %>
+      <span style="color: var(--pico-muted-color);"><%= shown.(change.first) %></span> &rarr; <b><%= shown.(change.last) %></b>
     <% else %>
       changed
     <% end %><%= "," unless i == changes.size - 1 %>
