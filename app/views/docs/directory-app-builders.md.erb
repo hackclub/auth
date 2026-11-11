@@ -42,7 +42,7 @@ ask for the `groups` scope and expose your entitlements, each with whatever name
 { "groups": ["staff", "design"] }
 ```
 
-that's only the names you set, and only for entitlements they were in when they signed in. it won't change until they sign in again, so if your app makes decisions off it, keep sessions short or refresh to re-check.
+that's only the names you set. the id token's copy is whatever was true when they signed in and never changes. userinfo works it out fresh on every call, so if your app makes decisions off it, call userinfo when it matters instead of trusting the id token from last week.
 
 ### if your app has its own sessions
 
