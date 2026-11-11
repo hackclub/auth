@@ -65,19 +65,33 @@ module Directory
       settings.reject { |key, _| FIELDS.dig(adapter.to_s, key, :secret) }
     end
 
-    # a webhook mustn't be pointed back into our own network: checked on save and again
-    # before every call, since DNS can change in between
+    # a webhook mustn't be pointed back into our own network. anything that isn't plain
+    # public unicast is out, including the ranges that tunnel to private space (cgnat,
+    # nat64, 6to4, teredo)
+    BLOCKED_RANGES = %w[
+      0.0.0.0/8 10.0.0.0/8 100.64.0.0/10 127.0.0.0/8 169.254.0.0/16 172.16.0.0/12
+      192.0.0.0/24 192.0.2.0/24 192.168.0.0/16 198.18.0.0/15 198.51.100.0/24
+      203.0.113.0/24 224.0.0.0/4 240.0.0.0/4
+      ::/128 ::1/128 64:ff9b::/96 64:ff9b:1::/48 100::/64 2001::/32 2001:db8::/32
+      2002::/16 fc00::/7 fe80::/10 ff00::/8
+    ].map { |cidr| IPAddr.new(cidr) }.freeze
+
+    def self.internal_ip?(ip)
+      ip = ip.native
+      BLOCKED_RANGES.any? { |range| range.family == ip.family && range.include?(ip) }
+    end
+
+    # every address host resolves to; raises SocketError when it doesn't resolve
+    def self.resolve(host)
+      bare = host.to_s.delete_prefix("[").delete_suffix("]")
+      [ IPAddr.new(bare) ]
+    rescue IPAddr::InvalidAddressError
+      Addrinfo.getaddrinfo(bare, nil).map { |info| IPAddr.new(info.ip_address.sub(/%.*\z/, "")) }.uniq
+    end
+
+    # for the save-time check: an unresolvable host is caught at call time instead
     def self.internal_host?(host)
-      addresses =
-        begin
-          [ IPAddr.new(host.to_s.delete_prefix("[").delete_suffix("]")) ]
-        rescue IPAddr::InvalidAddressError
-          Addrinfo.getaddrinfo(host, nil).map { |info| IPAddr.new(info.ip_address.sub(/%.*\z/, "")) }
-        end
-      addresses.any? do |ip|
-        ip = ip.native
-        ip.loopback? || ip.private? || ip.link_local? || ip.to_i.zero?
-      end
+      resolve(host).any? { |ip| internal_ip?(ip) }
     rescue SocketError, IPAddr::Error
       false
     end

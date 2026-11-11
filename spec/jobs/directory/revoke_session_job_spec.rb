@@ -11,6 +11,8 @@ RSpec.describe Directory::RevokeSessionJob do
     Directory::AppRevoker.create!(app: app, adapter: "webhook", enabled: true, config: { url: "https://hooks.example.test/revoke" }.to_json)
   end
 
+  before { allow(Directory::AppRevoker).to receive(:resolve).and_return([ IPAddr.new("93.184.216.34") ]) }
+
   it "reports to Sentry once retries run out, without the email" do
     stub_request(:post, "https://hooks.example.test/revoke").to_return(status: 503)
     allow(Sentry).to receive(:capture_exception)
@@ -91,11 +93,31 @@ RSpec.describe Directory::RevokeSessionJob do
   end
 
   it "won't call a webhook whose host now resolves to a private address" do
-    allow(Directory::AppRevoker).to receive(:internal_host?).and_return(true)
+    allow(Directory::AppRevoker).to receive(:resolve).and_return([ IPAddr.new("127.0.0.1") ])
     allow(Sentry).to receive(:capture_exception)
 
     expect { described_class.perform_now(app_id: app.id, email: "p@example.test") }.to raise_error(ArgumentError)
     expect(a_request(:post, "https://hooks.example.test/revoke")).not_to have_been_made
     expect(revoker.reload.last_result).to start_with("config_error")
+  end
+
+  it "connects to the address it checked, so a second DNS answer can't redirect it" do
+    answers = [ [ IPAddr.new("93.184.216.34") ], [ IPAddr.new("169.254.169.254") ] ]
+    allow(Directory::AppRevoker).to receive(:resolve) { answers.shift || [ IPAddr.new("169.254.169.254") ] }
+    pinned = nil
+    allow_any_instance_of(Net::HTTP).to receive(:ipaddr=).and_wrap_original { |m, ip| pinned = ip; m.call(ip) }
+    stub_request(:post, "https://hooks.example.test/revoke").to_return(status: 200)
+
+    described_class.perform_now(app_id: app.id, email: "p@example.test")
+
+    expect(pinned).to eq("93.184.216.34")
+    expect(Directory::AppRevoker).to have_received(:resolve).once
+  end
+
+  it "treats cgnat, nat64, 6to4 and reserved space as internal" do
+    %w[100.64.0.1 64:ff9b::7f00:1 2002:7f00:1:: 198.18.0.1 192.0.0.8 224.0.0.1 240.0.0.1 ::ffff:127.0.0.1].each do |ip|
+      expect(Directory::AppRevoker.internal_ip?(IPAddr.new(ip))).to be(true), ip
+    end
+    expect(Directory::AppRevoker.internal_ip?(IPAddr.new("93.184.216.34"))).to be(false)
   end
 end

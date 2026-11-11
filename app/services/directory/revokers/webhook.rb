@@ -1,24 +1,52 @@
 # frozen_string_literal: true
 
+require "net/http"
+
 module Directory
   module Revokers
     class Webhook < Base
+      # resolve once, check every address, then connect to the one we checked (Net::HTTP's
+      # ipaddr keeps the hostname for SNI and the Host header). resolving again inside an
+      # http client is what lets a rebinding DNS answer slip a private address past the
+      # check. no redirects: Net::HTTP doesn't follow them.
       def call(email:)
-        if Directory::AppRevoker.internal_host?(URI.parse(@config["url"]).host)
+        uri = URI.parse(@config["url"])
+        addresses = Directory::AppRevoker.resolve(uri.host)
+        if addresses.empty? || addresses.any? { |ip| Directory::AppRevoker.internal_ip?(ip) }
           raise ArgumentError, "webhook url resolves to a private or local address"
         end
 
-        response = HTTP.timeout(connect: 5, write: 5, read: 10).post(
-          @config["url"],
-          json: { email: email },
-          headers: webhook_headers
-        )
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.ipaddr = addresses.first.to_s
+        http.use_ssl = uri.scheme == "https"
+        http.open_timeout = 5
+        http.write_timeout = 5
+        http.read_timeout = 10
 
-        unless response.status.success?
-          raise Directory::RevokeSessionJob::RevocationFailed, "webhook revocation failed: #{response.status} #{body_excerpt(response)}"
+        request = Net::HTTP::Post.new(uri.request_uri, webhook_headers)
+        request.body = { email: email }.to_json
+
+        status = nil
+        excerpt = +""
+        http.start do
+          http.request(request) do |response|
+            status = response.code.to_i
+            next if status.between?(200, 299)
+
+            response.read_body do |chunk|
+              excerpt << chunk
+              break if excerpt.bytesize >= 4096
+            end
+          end
+        end
+
+        unless status.between?(200, 299)
+          raise Directory::RevokeSessionJob::RevocationFailed, "webhook revocation failed: #{status} #{excerpt.byteslice(0, 4096).scrub.truncate(500)}"
         end
 
         :ok
+      rescue SocketError, SystemCallError, IOError, Net::HTTPBadResponse => e
+        raise Directory::RevokeSessionJob::RevocationFailed, "webhook revocation failed: #{e.class}: #{e.message}"
       end
 
       private
