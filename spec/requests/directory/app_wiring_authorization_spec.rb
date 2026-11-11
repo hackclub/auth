@@ -108,6 +108,16 @@ RSpec.describe "App wiring authorization", type: :request do
   context "app owner without expose" do
     before { sign_in owner }
 
+    it "doesn't see descriptions of wired entitlements it can't see in the directory" do
+      entitlement.update!(description: "board-only tooling")
+      Directory::AppRequirement.create!(app: oauth_app, entitlement: entitlement)
+
+      get developer_app_path(oauth_app)
+
+      expect(response.body).to include(entitlement.name)
+      expect(response.body).not_to include("board-only tooling")
+    end
+
     include_examples "can do neither"
 
     it "doesn't see the wiring forms or remove buttons" do

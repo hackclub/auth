@@ -8,7 +8,7 @@
       <div class="collaborator-row">
         <span>
           <code><%= exp.claim_name %></code> → <%= exp.entitlement.name %><% unless app.has_scope?(:groups) %> <em style="color: var(--pico-muted-color);"><%= t("directory.developer_apps.exposure_not_sent") %></em><% end %>
-          <% if exp.entitlement.description.present? %><br><small style="color: var(--pico-muted-color);"><%= exp.entitlement.description %></small><% end %>
+          <% if exp.entitlement.description.present? && entitlement_description_visible?(exp.entitlement) %><br><small style="color: var(--pico-muted-color);"><%= exp.entitlement.description %></small><% end %>
         </span>
         <span class="collaborator-email"><%= t("directory.developer_apps.wired_by", name: exp.created_by&.full_name) %></span>
         <% if can_manage_app_wiring?(app, exp.entitlement) %>
@@ -27,7 +27,7 @@
       <div class="collaborator-row">
         <span>
           <%= req.entitlement.name %>
-          <% if req.entitlement.description.present? %><br><small style="color: var(--pico-muted-color);"><%= req.entitlement.description %></small><% end %>
+          <% if req.entitlement.description.present? && entitlement_description_visible?(req.entitlement) %><br><small style="color: var(--pico-muted-color);"><%= req.entitlement.description %></small><% end %>
         </span>
         <% confirm_key = requirements.size == 1 ? "remove_last_requirement_confirm" : "remove_requirement_confirm" %>
         <% if can_manage_app_wiring?(app, req.entitlement) %>
