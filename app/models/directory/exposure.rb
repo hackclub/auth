@@ -27,9 +27,10 @@ module Directory
     # exposures the claim still reaches someone through: the app requests groups, or someone
     # still holds an unrevoked token issued with it. per entitlement, the same rule
     # claim_pairs applies per person, so pages and revocation agree
-    REACHES_SQL = "(#{format(REQUESTS_GROUPS_SQL, 'oauth_applications.scopes')} OR EXISTS (" \
+    # written out in full (it's REQUESTS_GROUPS_SQL for both tables) so it stays a plain literal
+    REACHES_SQL = "(' ' || oauth_applications.scopes || ' ' LIKE '% groups %' OR EXISTS (" \
       "SELECT 1 FROM oauth_access_tokens WHERE oauth_access_tokens.application_id = directory_exposures.app_id " \
-      "AND oauth_access_tokens.revoked_at IS NULL AND #{format(REQUESTS_GROUPS_SQL, 'oauth_access_tokens.scopes')}))"
+      "AND oauth_access_tokens.revoked_at IS NULL AND ' ' || oauth_access_tokens.scopes || ' ' LIKE '% groups %'))"
 
     def self.reaching = joins(:app).where(REACHES_SQL)
 
