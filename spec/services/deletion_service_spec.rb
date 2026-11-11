@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe DeletionService do
+  include ActiveSupport::Testing::TimeHelpers
+
   describe ".check_for_email" do
     it "returns nil when no tombstone exists" do
       expect(described_class.check_for_email("nobody@example.com")).to be_nil
@@ -295,6 +297,22 @@ RSpec.describe DeletionService do
       delete!(victim)
 
       expect(PublicActivity::Activity.where("parameters ILIKE ?", "%#{old_email}%")).to be_empty
+    end
+
+    it "scrubs their rows under an address they gave up, but not the new holder's" do
+      travel_to(10.days.ago) do
+        victim.update!(primary_email: "x@example.com")
+        old_person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
+        Directory.mutate!(cause: "test") { old_person.reload.destroy! }
+        victim.update!(primary_email: "y@example.com")
+      end
+      bob = create(:identity, first_name: "Bob", last_name: "Else", primary_email: "x@example.com")
+      bob_person = Directory::Person.create!(identity: bob, created_by_identity_id: admin.id)
+
+      delete!(victim)
+
+      expect(PublicActivity::Activity.where("parameters ILIKE ?", "%Zelda%")).to be_empty
+      expect(PublicActivity::Activity.where(trackable: bob_person, key: "directory_person.create").sole.parameters["email"]).to eq("x@example.com")
     end
 
     it "looks the directory person up under the directory lock" do

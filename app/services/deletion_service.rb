@@ -27,7 +27,8 @@ module DeletionService
     ip_hashes = identity.sessions.where.not(ip: nil).distinct.pluck(:ip).map { |ip| Deletion.hash_ip(ip) }
     version_items = collect_version_items(identity)
     past_emails = collect_past_emails(identity)
-    activity_trackables = collect_activity_trackables(identity, past_emails)
+    handovers = email_handovers(identity, past_emails)
+    activity_trackables = collect_activity_trackables(identity, past_emails, handovers)
 
     log.call "identity ##{identity.id} (#{identity.public_id})"
     log.call "name: #{identity.first_name} #{identity.last_name}"
@@ -132,7 +133,7 @@ module DeletionService
       delete_versions(version_items)
 
       log.call "step 10: scrubbing activity parameters..."
-      scrub_activities(identity, activity_trackables, past_emails)
+      scrub_activities(identity, activity_trackables, past_emails, handovers)
 
       log.call "step 11: removing Flipper actor gates..."
       gates = ActiveRecord::Base.connection.delete(
@@ -277,8 +278,7 @@ module DeletionService
   # every address the identity actually held: the current one, the address each email change
   # started from, the address completed ones moved to, and primary_email changes in its
   # versions (both gone after steps 2 and 9).
-  # requested-but-never-completed addresses were never theirs, and an address someone else
-  # holds now belongs to that person's history, not this one's.
+  # requested-but-never-completed addresses were never theirs.
   def self.collect_past_emails(identity)
     emails = [ identity.primary_email ]
     # old_email was theirs when they asked, completed or not; new_email only once it went through
@@ -288,31 +288,49 @@ module DeletionService
     end
     PaperTrail::Version.where(item_type: "Identity", item_id: identity.id).where("object_changes ? 'primary_email'")
       .pluck(Arel.sql("object_changes -> 'primary_email'")).each { |change| emails.concat(Array(change)) }
-    emails = emails.compact_blank.map(&:downcase).uniq
+    emails.compact_blank.map(&:downcase).uniq
+  end
 
-    held_by_others = Identity.where("lower(primary_email) IN (?)", emails).where.not(id: identity.id).pluck(:primary_email).map(&:downcase)
-    emails - held_by_others
+  # { address => when someone else got it } for past addresses another identity holds now.
+  # rows mentioning one of those from then on are about the new holder, not this identity
+  def self.email_handovers(identity, emails)
+    return {} if emails.empty?
+
+    Identity.where("lower(primary_email) IN (?)", emails).where.not(id: identity.id).to_h do |other|
+      email = other.primary_email.downcase
+      moved_in = Identity::EmailChangeRequest.where(identity_id: other.id).where.not(completed_at: nil)
+        .where("lower(new_email) = ?", email).maximum(:completed_at)
+      [ email, moved_in || other.created_at ]
+    end
   end
 
   # activity rows whose stored email param is exactly one of these addresses. the LIKE is
   # only a prefilter (parameters is serialized text); the comparison is on the parsed value
-  def self.activities_with_email(scope, emails)
+  def self.activities_with_email(scope, emails, handovers = {})
     return [] if emails.empty?
 
     wanted = emails.to_set
     emails.flat_map do |email|
       scope.where("parameters ILIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(email)}%").to_a
-    end.uniq.select { |activity| wanted.include?(activity.parameters.to_h.with_indifferent_access[:email].to_s.downcase) }
+    end.uniq.select do |activity|
+      email = activity.parameters.to_h.with_indifferent_access[:email].to_s.downcase
+      next false unless wanted.include?(email)
+
+      handed_over_at = handovers[email]
+      handed_over_at.nil? || activity.created_at < handed_over_at
+    end
   end
 
   # directory people they used to be (removed, maybe re-added): only their own activity
   # rows remember them, by the email they had then
-  def self.former_directory_person_ids(past_emails)
+  def self.former_directory_person_ids(identity, past_emails, handovers)
     rows = PublicActivity::Activity.where(trackable_type: "Directory::Person", key: %w[directory_person.create directory_person.destroy])
-    activities_with_email(rows, past_emails).map(&:trackable_id).uniq
+    ids = activities_with_email(rows, past_emails, handovers).map(&:trackable_id).uniq
+    # a person that exists for someone else is theirs, whatever address it was made under
+    ids - Directory::Person.where(id: ids).where.not(identity_id: identity.id).pluck(:id)
   end
 
-  def self.collect_activity_trackables(identity, past_emails)
+  def self.collect_activity_trackables(identity, past_emails, handovers)
     trackables = [ [ "Identity", identity.id ] ]
 
     {
@@ -324,7 +342,7 @@ module DeletionService
       "Identity::TOTP" => Identity::TOTP.where(identity_id: identity.id).pluck(:id),
       "Identity::WebauthnCredential" => Identity::WebauthnCredential.where(identity_id: identity.id).pluck(:id),
       "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id),
-      "Directory::Person" => (Directory::Person.where(identity_id: identity.id).pluck(:id) + former_directory_person_ids(past_emails)).uniq
+      "Directory::Person" => (Directory::Person.where(identity_id: identity.id).pluck(:id) + former_directory_person_ids(identity, past_emails, handovers)).uniq
     }.each do |type, ids|
       ids.each { |id| trackables << [ type, id ] }
     end
@@ -484,7 +502,7 @@ module DeletionService
 
   SAFE_ACTIVITY_KEY_PREFIXES = %w[verification.].freeze
 
-  def self.scrub_activities(identity, activity_trackables, past_emails)
+  def self.scrub_activities(identity, activity_trackables, past_emails, handovers = {})
     # directory rows they only authored hold other people's names and the event's structure
     # (expiry, recursion, reason), never the author's PII; scrubbing them makes the audit
     # log describe events that didn't happen
@@ -503,7 +521,7 @@ module DeletionService
     # email in parameters. a separate statement (OR-ing an ILIKE into the scope above
     # costs it its indexes), narrowed by trackable_type so it can use the trackable index
     misses = PublicActivity::Activity.where(trackable_type: "Directory::Collection", key: "directory_collection.email_lookup_miss")
-    miss_ids = activities_with_email(misses, past_emails).map(&:id)
+    miss_ids = activities_with_email(misses, past_emails, handovers).map(&:id)
     PublicActivity::Activity.where(id: miss_ids).update_all(parameters: nil) if miss_ids.any?
 
     activity_trackables.each_slice(100) do |batch|
@@ -526,5 +544,5 @@ module DeletionService
                        :purge_or_detach, :delete_versions, :discard_pending_jobs, :scrub_activities,
                        :collect_attachments, :detach_attachments, :scrub_manual_call_checklists,
                        :scrub_verification_cases, :scrub_event_data,
-                       :collect_past_emails, :former_directory_person_ids
+                       :collect_past_emails, :email_handovers, :former_directory_person_ids
 end
