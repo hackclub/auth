@@ -11,12 +11,13 @@ module Directory
       # check. no redirects: Net::HTTP doesn't follow them.
       def call(email:)
         uri = URI.parse(@config["url"])
-        addresses = Directory::AppRevoker.resolve(uri.host)
+        addresses = Directory::AppRevoker.resolve(uri.hostname)
         if addresses.empty? || addresses.any? { |ip| Directory::AppRevoker.internal_ip?(ip) }
           raise ArgumentError, "webhook url resolves to a private or local address"
         end
 
-        http = Net::HTTP.new(uri.host, uri.port)
+        # hostname, not host: an IPv6 literal without brackets, so SNI and the cert check work
+        http = Net::HTTP.new(uri.hostname, uri.port)
         http.ipaddr = addresses.first.to_s
         http.use_ssl = uri.scheme == "https"
         http.open_timeout = 5

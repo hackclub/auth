@@ -144,4 +144,15 @@ RSpec.describe Directory::RevokeSessionJob do
     end
     expect(Directory::AppRevoker.internal_ip?(IPAddr.new("93.184.216.34"))).to be(false)
   end
+
+  it "connects to an IPv6 literal url by its bare address" do
+    allow(Directory::AppRevoker).to receive(:resolve).and_return([ IPAddr.new("2606:4700::1") ])
+    revoker.update!(config: { url: "https://[2606:4700::1]/revoke" }.to_json)
+    stub_request(:post, "https://[2606:4700::1]/revoke").to_return(status: 200)
+    allow(Net::HTTP).to receive(:new).and_call_original
+
+    described_class.perform_now(app_id: app.id, email: "p@example.test")
+
+    expect(Net::HTTP).to have_received(:new).with("2606:4700::1", 443)
+  end
 end
