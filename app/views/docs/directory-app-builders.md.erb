@@ -18,6 +18,27 @@ either way you write no directory code. you ask the directory, and handle what c
 <p>community apps can't be wired to the directory. if your app is official and you want a groups claim, it also needs the <code>groups</code> scope: ask whoever can make apps official (or a program admin) to add it.</p>
 </div>
 
+### getting set up
+
+1. **decide what access your app needs**, named after what the app does, not the org chart (see below).
+2. **file an infra ticket under "Hack Club Auth (internal)"** asking for the entitlement. say which teams or people should be in it, and whether you want to wire it yourself (you'll get `expose` on it) or have it wired for you. creating entitlements and putting whole teams into them is directory-admin only.
+3. **make sure your app is `hq_official`**, and has the `groups` scope if you want the claim.
+4. **wire it, and handle `access_denied`.**
+
+can't create a ticket? sucks to not work here lol
+
+### groups vs entitlements
+
+groups are the org chart: who works with whom. team leads manage them and they change all the time. entitlements are access decisions: who gets into what. your app only ever hears about entitlements, so reorganizing a team can't quietly change who gets into your app.
+
+that means you can't expose or require a group directly. model entitlements around what your app does:
+
+- `hq-fulltimers-apps` gates the HQ tools.
+- `bank-admins` is a role inside one app, sent as a claim.
+- `event-staff` gets into the check-in app.
+
+most apps need one to three of these, and whole teams get nested into them once.
+
 ### who does the wiring
 
 - **directory admins** can wire any official app from [directory apps](<%= directory_apps_path %>).
