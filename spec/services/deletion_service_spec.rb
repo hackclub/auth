@@ -284,6 +284,19 @@ RSpec.describe DeletionService do
       expect(PublicActivity::Activity.where(trackable: bob_person, key: "directory_person.create").sole.parameters["email"]).to eq("bob@example.com")
     end
 
+    it "counts the address an uncompleted email change started from as theirs" do
+      old_email = victim.primary_email
+      # set without a version, so only the change request remembers it
+      create(:email_change_request, identity: victim, old_email: old_email, new_email: "zelda.next@example.com")
+      victim.update_columns(primary_email: "zelda.now@example.com")
+      PaperTrail::Version.where(item_type: "Identity", item_id: victim.id).delete_all
+      group.create_activity :email_lookup_miss, owner: admin, params: { email: old_email }
+
+      delete!(victim)
+
+      expect(PublicActivity::Activity.where("parameters ILIKE ?", "%#{old_email}%")).to be_empty
+    end
+
     it "looks the directory person up under the directory lock" do
       Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
       held = nil

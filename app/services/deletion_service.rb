@@ -274,14 +274,18 @@ module DeletionService
     items
   end
 
-  # every address the identity actually held: the current one, both ends of completed email
-  # changes, and primary_email changes in its versions (both gone after steps 2 and 9).
+  # every address the identity actually held: the current one, the address each email change
+  # started from, the address completed ones moved to, and primary_email changes in its
+  # versions (both gone after steps 2 and 9).
   # requested-but-never-completed addresses were never theirs, and an address someone else
   # holds now belongs to that person's history, not this one's.
   def self.collect_past_emails(identity)
     emails = [ identity.primary_email ]
-    Identity::EmailChangeRequest.where(identity_id: identity.id).where.not(completed_at: nil)
-      .find_each { |ecr| emails.push(ecr.old_email, ecr.new_email) }
+    # old_email was theirs when they asked, completed or not; new_email only once it went through
+    Identity::EmailChangeRequest.where(identity_id: identity.id).find_each do |ecr|
+      emails << ecr.old_email
+      emails << ecr.new_email if ecr.completed_at
+    end
     PaperTrail::Version.where(item_type: "Identity", item_id: identity.id).where("object_changes ? 'primary_email'")
       .pluck(Arel.sql("object_changes -> 'primary_email'")).each { |change| emails.concat(Array(change)) }
     emails = emails.compact_blank.map(&:downcase).uniq
