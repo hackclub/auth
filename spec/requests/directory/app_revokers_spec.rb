@@ -35,6 +35,19 @@ RSpec.describe "Session revokers on the developer app page", type: :request do
       expect(response.body).not_to include("n3w-t0ken-value", "s3cr3t-token-value")
     end
 
+    it "shows the app's owner that the account changed, but not the account ids" do
+      post developer_app_session_revoker_path(oauth_app), params: cf_params
+      patch developer_app_session_revoker_path(oauth_app),
+        params: cf_params(account_id: "fedcba9876543210fedcba9876543210", api_token: "n3w-t0ken-value")
+
+      sign_in owner
+      get activity_log_developer_app_path(oauth_app)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("account_id")
+      expect(response.body).not_to include("0123456789abcdef0123456789abcdef", "fedcba9876543210fedcba9876543210")
+    end
+
     it "renders the page and lets the revoker be replaced when its config can't be read" do
       Directory::AppRevoker.create!(app: oauth_app, adapter: "webhook", config: { url: "https://a.example/r" }.to_json)
         .update_columns(config_ciphertext: "not-a-ciphertext")

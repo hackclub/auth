@@ -1,6 +1,3 @@
 <%= render Components::PublicActivity::Snippet.new(activity, owner_component: Components::IdentityMention.new(activity.owner)) do %>
-  set up the <%= activity.parameters[:adapter].to_s.humanize(capitalize: false) %> session revoker<% if (changes = activity.parameters[:changes]).present? %>:
-  <% changes.each_with_index do |(field, change), i| %>
-    <code><%= field %></code> <% if change.is_a?(Array) %><span style="color: var(--pico-muted-color);"><%= change.first.presence || "—" %></span> &rarr; <b><%= change.last.presence || "—" %></b><% else %><%= change %><% end %><%= "," unless i == changes.size - 1 %>
-  <% end %><% else %>.<% end %>
+  set up the <%= activity.parameters[:adapter].to_s.humanize(capitalize: false) %> session revoker<%= render "public_activity/program/session_revoker_changes", activity: activity %>
 <% end %>
