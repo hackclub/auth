@@ -6,59 +6,42 @@ order: 40
 audience: directory
 ---
 
-the directory is where hack club keeps track of **who's on which team** and **who gets into which internal app**. if someone gave you the power to manage a group, this is how it works.
+the directory is where we keep track of who's on what team, and who gets into which internal tools. if you're reading this, somebody probably handed you a group to look after. congrats (sorry).
 
-### the pieces
+there are two kinds of things in here. **groups** are teams: design, the events crew, whoever. **entitlements** are access: "can get into the HQ tools", "is a bank admin". apps only ever look at entitlements, never groups, so you can reshuffle your team without accidentally locking someone out of something. both can hold people, and both can hold other groups. if `design` is inside `staff`, everyone in design is in staff too.
 
-- **groups** are sets of people. a team, a program crew, an event staff list. groups can contain other groups.
-- **entitlements** are "access to a thing". an app can require one to log in, or get told about it (more on that in [Directory for app builders](<%= doc_path("directory-app-builders") %>)). entitlements hold people and groups too.
-- **memberships** put a person or a group into a group or entitlement. a membership can expire.
-- **grants** say what a group's members can do to a collection:
-  - `view`: see who's in it.
-  - `manage_members`: add and remove people.
-  - `expose`: wire the entitlement to apps you own.
-  - a grant marked **recursive** also applies to every group nested inside.
-
-membership flows down through nesting: if `design` is inside `staff`, everyone in `design` counts as being in `staff`.
+who can do what to a group or entitlement comes from grants. `view` lets you see who's in it, `manage_members` lets you add and remove people, and `expose` lets you hook an entitlement up to apps you own. a recursive grant also covers every group nested underneath.
 
 <div class="banner info">
-<b>need a new group or entitlement, or a whole team added to one?</b>
-<p>file an infra ticket under "Hack Club Auth (internal)". creating collections and putting groups into entitlements is directory-admin only. once something exists, people with <code>manage_members</code> on it can add and remove individuals themselves.</p>
+<p>need a new group or entitlement, or want a whole team added to one? file an infra ticket under "Hack Club Auth (internal)". only directory admins can make those. once something exists, anyone with <code>manage_members</code> on it can add and remove people themselves.</p>
 </div>
 
-### seeing what you're in
+### what am i in?
 
-[my access](<%= directory_my_access_path %>) lists every group and entitlement you're in (directly or through nesting), when anything expires, and which apps that gets you into. anyone in the directory can see their own.
+[my access](<%= directory_my_access_path %>). it shows everything you're in, how you got there, when it runs out, and which apps it gets you into.
 
 ### adding people
 
-open the group from the [directory](<%= directory_root_path %>) and use the add box:
+open the group from the [directory](<%= directory_root_path %>) and type a name or email into the add box. you can also paste a whole column straight out of a spreadsheet. people need a hack club auth account first, but you can add them by email even if they're not in the directory yet.
 
-- type a name or an email and pick them, or paste a list (one per line, or comma separated, straight from a spreadsheet works).
-- people need a hack club auth account. you can add someone by email even if you can't see them in the directory yet.
-- every email lookup is logged, including misses, so "does this address have an account?" leaves a trace.
-- limits: 100 people per add, 20 adds per 10 minutes.
+email lookups get logged, misses included, so please don't use the add box to check whether someone has an account. you can add up to 100 people at a time, 20 times every 10 minutes.
 
 ### expiry
 
-- pick a date and the membership lasts **through the end of that day, eastern time**.
-- the moment it lapses it stops counting everywhere: permissions, app access, claims. the row stays on the page greyed out so you can renew it.
-- change, extend, clear or renew an expiry from the date box on the member's row. extending never logs anyone out.
+give a membership a date and it lasts until the end of that day, eastern time. after that it just stops counting, everywhere, right away. the row sticks around greyed out so you can renew it from the date box on the row. pushing a date later never logs anybody out.
 
-### removing people, and what it costs them
+### taking people out
 
-- the remove button tells you what they'll lose before you confirm: other collections they only reached through this one, and apps that require or are told about it.
-- when someone loses access to an app, hack club auth revokes their tokens for it, and if the app has a session revoker, logs them out of it too.
-- removing a group from a collection removes everyone who was only there through that group.
+the confirm box on remove tells you what they're about to lose, including any apps. when someone loses access to an app we revoke their tokens for it, and if the app has a session revoker set up they get logged out of it too. taking a group out takes out everyone who was only there because of that group.
 
-### nesting groups
+### nesting
 
-you can put a group inside another group you manage, as long as you also manage the group you're nesting. only directory admins can put groups inside entitlements.
+you can put a group inside another group if you manage both (and everything under the one you're moving). putting a group inside an entitlement is admins only, because it hands the keys to that app to everyone who manages the group, forever.
 
-### keeping an eye on things
+### who did that?
 
-every collection has an **activity** tab: who added or removed whom, expiry changes, grants, renamed things. it's the audit log, so it's also the first place to look when someone asks "why can't i get in?"
+every group and entitlement has an activity tab. who added who, who removed who, expiry changes, grants, renames. when someone pings you asking why they can't get in, look there first.
 
-### directory admins
+### admins
 
-directory admins can do everything: create collections, hand out grants, [import a csv](<%= directory_new_import_path %>) (columns: `email or ident!`, `collection slug or dcol!`, `expires_at`), view the directory as someone else, and see [health](<%= directory_health_path %>). admin powers only work from a session that signed in with TOTP or a passkey.
+directory admins can do all of the above, plus make new groups and entitlements, hand out grants, [import a csv](<%= directory_new_import_path %>) (`email or ident!`, `collection slug or dcol!`, `expires_at`), look at the directory as someone else, and check [health](<%= directory_health_path %>). admin stuff only works if you signed in with TOTP or a passkey.
