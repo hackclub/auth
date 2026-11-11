@@ -38,8 +38,7 @@ module Directory
             alert: t("directory.flash.email_not_found")
           return
         end
-        person = find_or_create_person!(identity)
-        membership.member_person = person
+        new_person_identity = identity
 
       elsif params[:group_slug].present?
         group = Directory::Collection.groups.find_by!(slug: params[:group_slug].strip)
@@ -94,6 +93,7 @@ module Directory
       end
 
       Directory.mutate!(cause: Directory.cause("membership_created", actor: current_identity.id)) do
+        membership.member_person = find_or_create_person!(new_person_identity) if new_person_identity
         clear_expired!(member_person_id: membership.member_person_id, member_group_id: membership.member_group_id)
         membership.save!
       end

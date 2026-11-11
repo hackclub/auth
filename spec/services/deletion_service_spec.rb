@@ -299,6 +299,18 @@ RSpec.describe DeletionService do
       expect(held).to be(true)
     end
 
+    it "makes person creation wait on the directory lock" do
+      locked = nil
+      allow(Directory).to receive(:lock!).and_wrap_original do |original|
+        original.call
+        locked = true
+      end
+
+      Directory::Person.create!(identity: create(:identity), created_by_identity_id: admin.id)
+
+      expect(locked).to be(true)
+    end
+
     it "can't be undone by adding the deleted identity back afterwards" do
       delete!(victim)
       person = Directory::Person.new(identity: victim, created_by_identity_id: admin.id)

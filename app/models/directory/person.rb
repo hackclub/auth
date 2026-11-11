@@ -20,6 +20,9 @@ module Directory
     has_many :effective_grants, class_name: "Directory::EffectiveGrant", dependent: :delete_all
 
     validates :identity_id, uniqueness: true
+    # take the directory lock before validating, so a GDPR deletion holding it finishes first
+    # and identity_not_deleted sees it; every way a person gets created goes through here
+    before_validation -> { Directory.lock! if self.class.connection.transaction_open? }, on: :create
     validate :identity_not_deleted, on: :create
 
     delegate :full_name, :primary_email, :locked?, to: :identity
