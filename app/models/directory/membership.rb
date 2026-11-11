@@ -122,7 +122,7 @@ module Directory
       if destroyed?
         return if expiry_recorded_at.present?
         reason = (expires_at.present? && expires_at <= Time.current) ? "expired" : "removed"
-        create_membership_activity(:member_removed, owner: activity_owner, reason: reason)
+        create_membership_activity(:member_removed, owner: activity_owner(removing: true), reason: reason)
       else
         create_membership_activity(:member_added, owner: activity_owner)
       end
@@ -149,9 +149,11 @@ module Directory
       Sentry.capture_exception(e) if defined?(Sentry)
     end
 
-    def activity_owner
+    # outside a request (console, jobs) whoever added the membership didn't remove it, so a
+    # removal there has no owner rather than the wrong one
+    def activity_owner(removing: false)
       controller = Thread.current[:public_activity_controller]
-      controller&.try(:user_for_public_activity) || created_by
+      controller&.try(:user_for_public_activity) || (created_by unless removing)
     end
   end
 end
