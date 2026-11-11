@@ -26,9 +26,7 @@ module DeletionService
     name_hashes = Deletion.name_combo_hashes_for_identity(identity)
     ip_hashes = identity.sessions.where.not(ip: nil).distinct.pluck(:ip).map { |ip| Deletion.hash_ip(ip) }
     version_items = collect_version_items(identity)
-    past_emails = collect_past_emails(identity)
-    handovers = email_handovers(identity, past_emails)
-    activity_trackables = collect_activity_trackables(identity, past_emails, handovers)
+    activity_trackables = collect_activity_trackables(identity)
 
     log.call "identity ##{identity.id} (#{identity.public_id})"
     log.call "name: #{identity.first_name} #{identity.last_name}"
@@ -133,7 +131,7 @@ module DeletionService
       delete_versions(version_items)
 
       log.call "step 10: scrubbing activity parameters..."
-      scrub_activities(identity, activity_trackables, past_emails, handovers)
+      scrub_activities(identity, activity_trackables)
 
       log.call "step 11: removing Flipper actor gates..."
       gates = ActiveRecord::Base.connection.delete(
@@ -142,20 +140,15 @@ module DeletionService
       log.call "  removed #{gates}" if gates > 0
 
       # the directory lock is held from here to commit, so every directory write waits only
-      # for the short tail of the deletion, not the version and activity scans above. no
-      # person can appear for this identity after the lookup: creating one takes the same
-      # lock, and once this commits it sees the identity as deleted
+      # for the short tail of the deletion. no person can appear for this identity after the
+      # lookup: creating one takes the same lock, and once this commits it sees the identity
+      # as deleted. directory activity is the directory's audit log and is kept as is: it
+      # names people by id, so once the identity is gone they read as [deleted user]
       log.call "step 11b: finding directory person under the directory lock..."
       Directory.lock!
       dir_person = Directory::Person.find_by(identity: identity)
-      if dir_person
-        # before redaction: revocations need the real email to reach app revokers
-        dir_revocations = Directory::DestroyRevocations.for_person(dir_person)
-        # step 10 ran before the lock, so a directory write could have landed rows about
-        # this person since (or created the person). scrubbing again under the lock and before
-        # 12b catches those, and keeps the redacted rows the destroy writes
-        scrub_activities(identity, [ [ "Directory::Person", dir_person.id ] ], [])
-      end
+      # before redaction: revocations need the real email to reach app revokers
+      dir_revocations = Directory::DestroyRevocations.for_person(dir_person) if dir_person
 
       log.call "step 12: scrubbing identity PII..."
       tombstone_email = "tombstoned+#{identity.id}@identity.invalid"
@@ -176,8 +169,6 @@ module DeletionService
       )
       log.call "  => #{tombstone_email}"
 
-      # after the identity is redacted, so the activity rows the destroy writes
-      # (directory_person.destroy, member_removed) only ever see [REDACTED]
       log.call "step 12b: removing from directory (if present)..."
       if dir_person
         Directory.mutate!(cause: "person_removed:#{dir_person.id}") { dir_person.reload.destroy! }
@@ -275,62 +266,7 @@ module DeletionService
     items
   end
 
-  # every address the identity actually held: the current one, the address each email change
-  # started from, the address completed ones moved to, and primary_email changes in its
-  # versions (both gone after steps 2 and 9).
-  # requested-but-never-completed addresses were never theirs.
-  def self.collect_past_emails(identity)
-    emails = [ identity.primary_email ]
-    # old_email was theirs when they asked, completed or not; new_email only once it went through
-    Identity::EmailChangeRequest.where(identity_id: identity.id).find_each do |ecr|
-      emails << ecr.old_email
-      emails << ecr.new_email if ecr.completed_at
-    end
-    PaperTrail::Version.where(item_type: "Identity", item_id: identity.id).where("object_changes ? 'primary_email'")
-      .pluck(Arel.sql("object_changes -> 'primary_email'")).each { |change| emails.concat(Array(change)) }
-    emails.compact_blank.map(&:downcase).uniq
-  end
-
-  # { address => when someone else got it } for past addresses another identity holds now.
-  # rows mentioning one of those from then on are about the new holder, not this identity
-  def self.email_handovers(identity, emails)
-    return {} if emails.empty?
-
-    Identity.where("lower(primary_email) IN (?)", emails).where.not(id: identity.id).to_h do |other|
-      email = other.primary_email.downcase
-      moved_in = Identity::EmailChangeRequest.where(identity_id: other.id).where.not(completed_at: nil)
-        .where("lower(new_email) = ?", email).maximum(:completed_at)
-      [ email, moved_in || other.created_at ]
-    end
-  end
-
-  # activity rows whose stored email param is exactly one of these addresses. the LIKE is
-  # only a prefilter (parameters is serialized text); the comparison is on the parsed value
-  def self.activities_with_email(scope, emails, handovers = {})
-    return [] if emails.empty?
-
-    wanted = emails.to_set
-    emails.flat_map do |email|
-      scope.where("parameters ILIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(email)}%").to_a
-    end.uniq.select do |activity|
-      email = activity.parameters.to_h.with_indifferent_access[:email].to_s.downcase
-      next false unless wanted.include?(email)
-
-      handed_over_at = handovers[email]
-      handed_over_at.nil? || activity.created_at < handed_over_at
-    end
-  end
-
-  # directory people they used to be (removed, maybe re-added): only their own activity
-  # rows remember them, by the email they had then
-  def self.former_directory_person_ids(identity, past_emails, handovers)
-    rows = PublicActivity::Activity.where(trackable_type: "Directory::Person", key: %w[directory_person.create directory_person.destroy])
-    ids = activities_with_email(rows, past_emails, handovers).map(&:trackable_id).uniq
-    # a person that exists for someone else is theirs, whatever address it was made under
-    ids - Directory::Person.where(id: ids).where.not(identity_id: identity.id).pluck(:id)
-  end
-
-  def self.collect_activity_trackables(identity, past_emails, handovers)
+  def self.collect_activity_trackables(identity)
     trackables = [ [ "Identity", identity.id ] ]
 
     {
@@ -341,8 +277,7 @@ module DeletionService
       "Identity::PersonaRecord" => Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
       "Identity::TOTP" => Identity::TOTP.where(identity_id: identity.id).pluck(:id),
       "Identity::WebauthnCredential" => Identity::WebauthnCredential.where(identity_id: identity.id).pluck(:id),
-      "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id),
-      "Directory::Person" => (Directory::Person.where(identity_id: identity.id).pluck(:id) + former_directory_person_ids(identity, past_emails, handovers)).uniq
+      "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id)
     }.each do |type, ids|
       ids.each { |id| trackables << [ type, id ] }
     end
@@ -502,27 +437,15 @@ module DeletionService
 
   SAFE_ACTIVITY_KEY_PREFIXES = %w[verification.].freeze
 
-  def self.scrub_activities(identity, activity_trackables, past_emails, handovers = {})
-    # directory rows they only authored hold other people's names and the event's structure
-    # (expiry, recursion, reason), never the author's PII; scrubbing them makes the audit
-    # log describe events that didn't happen
+  def self.scrub_activities(identity, activity_trackables)
+    # directory rows are kept: they're the directory's audit log, and they name people by
+    # id, not by name or email
     scope = PublicActivity::Activity.where(
       "(trackable_type = 'Identity' AND trackable_id = ?) OR " \
       "(owner_type = 'Identity' AND owner_id = ? AND key NOT LIKE 'directory\\_%') OR " \
       "(recipient_type = 'Identity' AND recipient_id = ?)",
       identity.id, identity.id, identity.id
     )
-
-    # directory rows name the person by Directory::Person, not Identity
-    dir_person_ids = activity_trackables.filter_map { |type, id| id if type == "Directory::Person" }
-    scope = scope.or(PublicActivity::Activity.where(recipient_type: "Directory::Person", recipient_id: dir_person_ids)) if dir_person_ids.any?
-
-    # lookup misses from before they had an account sit on the collection with the raw
-    # email in parameters. a separate statement (OR-ing an ILIKE into the scope above
-    # costs it its indexes), narrowed by trackable_type so it can use the trackable index
-    misses = PublicActivity::Activity.where(trackable_type: "Directory::Collection", key: "directory_collection.email_lookup_miss")
-    miss_ids = activities_with_email(misses, past_emails, handovers).map(&:id)
-    PublicActivity::Activity.where(id: miss_ids).update_all(parameters: nil) if miss_ids.any?
 
     activity_trackables.each_slice(100) do |batch|
       batch.group_by(&:first).each do |type, pairs|
@@ -543,6 +466,5 @@ module DeletionService
   private_class_method :collect_version_items, :collect_activity_trackables, :purge_attachments,
                        :purge_or_detach, :delete_versions, :discard_pending_jobs, :scrub_activities,
                        :collect_attachments, :detach_attachments, :scrub_manual_call_checklists,
-                       :scrub_verification_cases, :scrub_event_data,
-                       :collect_past_emails, :email_handovers, :former_directory_person_ids
+                       :scrub_verification_cases, :scrub_event_data
 end

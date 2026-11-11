@@ -230,89 +230,24 @@ RSpec.describe DeletionService do
 
     def delete!(identity) = described_class.execute_deletion(identity.reload, privacy_request_reference: "rec", logger: ->(_) { })
 
-    it "leaves no activity row holding the deleted person's name or email" do
+    it "keeps directory activity, which holds no name or email, and shows them as [deleted user]" do
       email = victim.primary_email
       person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
       Directory.mutate!(cause: "test") do
         Directory::Membership.create!(collection: group, member_person: person, created_by_identity_id: admin.id)
       end
-      # a lookup miss from before they had an account
+      # a lookup miss is the record of what was typed, and stays
       group.create_activity :email_lookup_miss, owner: admin, params: { email: email }
 
       delete!(victim)
 
-      leftovers = PublicActivity::Activity.where("parameters ILIKE ? OR parameters ILIKE ? OR parameters ILIKE ?", "%Zelda%", "%Quixote%", "%#{email}%")
-      expect(leftovers.map(&:key)).to be_empty
+      rows = PublicActivity::Activity.where("key LIKE 'directory\\_%'")
+      expect(rows.pluck(:key)).to include("directory_person.create", "directory_collection.member_added",
+        "directory_collection.member_removed", "directory_person.destroy", "directory_collection.email_lookup_miss")
+      expect(rows.where.not(key: "directory_collection.email_lookup_miss").map { |a| a.parameters.to_json }.join).not_to include("Zelda", "Quixote", email)
+      expect(rows.find_by(key: "directory_collection.email_lookup_miss").parameters["email"]).to eq(email)
+      expect(Directory::ActivityPeople.name(victim.id)).to eq("[deleted user]")
       expect(Directory::Person.exists?(person.id)).to be(false)
-    end
-
-    it "scrubs rows tied to a directory person they no longer have, and lookups of a past email" do
-      old_email = victim.primary_email
-      person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
-      Directory.mutate!(cause: "test") do
-        Directory::Membership.create!(collection: group, member_person: person, created_by_identity_id: admin.id)
-      end
-      Directory.mutate!(cause: "test") { person.reload.destroy! }
-      group.create_activity :email_lookup_miss, owner: admin, params: { email: old_email }
-      victim.update!(primary_email: "zelda.new@example.com")
-
-      delete!(victim)
-
-      leftovers = PublicActivity::Activity.where(
-        "parameters ILIKE ? OR parameters ILIKE ? OR parameters ILIKE ?", "%Zelda%", "%Quixote%", "%#{old_email}%"
-      )
-      expect(leftovers.map(&:key)).to be_empty
-    end
-
-    it "only scrubs exact past addresses, not other people whose email contains one" do
-      victim.update!(primary_email: "al@example.com")
-      sal = create(:identity, first_name: "Sal", last_name: "Other", primary_email: "sal@example.com")
-      sal_person = Directory::Person.create!(identity: sal, created_by_identity_id: admin.id)
-      group.create_activity :email_lookup_miss, owner: admin, params: { email: "sal@example.com" }
-
-      delete!(victim)
-
-      expect(PublicActivity::Activity.where(trackable: sal_person, key: "directory_person.create").sole.parameters["email"]).to eq("sal@example.com")
-      expect(PublicActivity::Activity.where(key: "directory_collection.email_lookup_miss").sole.parameters).to include("email" => "sal@example.com")
-    end
-
-    it "doesn't treat an email change they never completed as an address they held" do
-      create(:email_change_request, identity: victim, new_email: "bob@example.com")
-      bob = create(:identity, first_name: "Bob", last_name: "Else", primary_email: "bob@example.com")
-      bob_person = Directory::Person.create!(identity: bob, created_by_identity_id: admin.id)
-
-      delete!(victim)
-
-      expect(PublicActivity::Activity.where(trackable: bob_person, key: "directory_person.create").sole.parameters["email"]).to eq("bob@example.com")
-    end
-
-    it "counts the address an uncompleted email change started from as theirs" do
-      old_email = victim.primary_email
-      # set without a version, so only the change request remembers it
-      create(:email_change_request, identity: victim, old_email: old_email, new_email: "zelda.next@example.com")
-      victim.update_columns(primary_email: "zelda.now@example.com")
-      PaperTrail::Version.where(item_type: "Identity", item_id: victim.id).delete_all
-      group.create_activity :email_lookup_miss, owner: admin, params: { email: old_email }
-
-      delete!(victim)
-
-      expect(PublicActivity::Activity.where("parameters ILIKE ?", "%#{old_email}%")).to be_empty
-    end
-
-    it "scrubs their rows under an address they gave up, but not the new holder's" do
-      travel_to(10.days.ago) do
-        victim.update!(primary_email: "x@example.com")
-        old_person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
-        Directory.mutate!(cause: "test") { old_person.reload.destroy! }
-        victim.update!(primary_email: "y@example.com")
-      end
-      bob = create(:identity, first_name: "Bob", last_name: "Else", primary_email: "x@example.com")
-      bob_person = Directory::Person.create!(identity: bob, created_by_identity_id: admin.id)
-
-      delete!(victim)
-
-      expect(PublicActivity::Activity.where("parameters ILIKE ?", "%Zelda%")).to be_empty
-      expect(PublicActivity::Activity.where(trackable: bob_person, key: "directory_person.create").sole.parameters["email"]).to eq("x@example.com")
     end
 
     it "looks the directory person up under the directory lock" do
@@ -328,24 +263,6 @@ RSpec.describe DeletionService do
       delete!(victim)
 
       expect(held).to be(true)
-    end
-
-    it "scrubs directory rows written about an existing person after step 10 but before the lock" do
-      person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
-      raced = false
-      allow(Directory).to receive(:lock!).and_wrap_original do |original|
-        # a concurrent add that committed between the step 10 scrub and the lock
-        unless raced
-          raced = true
-          group.create_activity :member_added, owner: admin, recipient: person,
-            params: { member_name: "Zelda Quixote", member_type: "person" }
-        end
-        original.call
-      end
-
-      delete!(victim)
-
-      expect(PublicActivity::Activity.where("parameters ILIKE ?", "%Zelda%").map(&:key)).to be_empty
     end
 
     it "makes person creation wait on the directory lock" do
@@ -366,7 +283,7 @@ RSpec.describe DeletionService do
       expect(person).not_to be_valid
     end
 
-    it "records their removal from each collection, redacted" do
+    it "records their removal from each collection, by id" do
       person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
       Directory.mutate!(cause: "test") do
         Directory::Membership.create!(collection: group, member_person: person, created_by_identity_id: admin.id)
@@ -376,7 +293,8 @@ RSpec.describe DeletionService do
       delete!(victim)
 
       removed = PublicActivity::Activity.where(key: "directory_collection.member_removed", trackable: group).sole
-      expect(removed.parameters["member_name"]).to eq("[REDACTED] [REDACTED]")
+      expect(removed.parameters).to include("member_identity_id" => victim.id)
+      expect(removed.parameters).not_to have_key("member_name")
       expect(Sentry).not_to have_received(:capture_exception)
     end
 
