@@ -85,6 +85,17 @@ RSpec.describe "App wiring authorization", type: :request do
 
     include_examples "can do both"
 
+    it "picks from the entitlements it can expose, with their descriptions" do
+      entitlement.update!(description: "docs for staff")
+      other = create(:directory_entitlement, slug: "not-mine", name: "Not Mine")
+
+      get developer_app_path(oauth_app)
+
+      options = response.parsed_body.css('select[name="entitlement_slug"] option').map { |o| [ o.text, o["value"] ] }
+      expect(options).to include([ "#{entitlement.name}: docs for staff", "docs-access" ])
+      expect(options.map(&:last)).not_to include(other.slug)
+    end
+
     it "sees the wiring forms and remove buttons" do
       exposure = Directory::Exposure.create!(app: oauth_app, entitlement: entitlement, claim_name: "docs")
       get developer_app_path(oauth_app)

@@ -28,6 +28,7 @@ en:
       revoker_removed: "session revoker removed."
     developer_apps:
       exposure_not_sent: "(not sent: this app doesn't request the groups scope)"
+      pick_entitlement: "pick an entitlement"
       remove_exposure_confirm: "stop sending %{claim} to this app? tokens issued from now on won't include it."
       remove_requirement_confirm: "stop requiring %{name}? anyone who only qualified through it gets logged out of this app."
       remove_last_requirement_confirm: "remove %{name}, this app's only requirement? the app opens to everyone with an HCA account."

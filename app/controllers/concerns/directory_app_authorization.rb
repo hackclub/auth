@@ -45,6 +45,15 @@ module DirectoryAppAuthorization
     directory_context.admin? || (app_owner?(app) && directory_context.can_expose_any_entitlement?)
   end
 
+  # the entitlements this person may wire to app, for the wiring forms' pickers
+  def wireable_entitlements(app)
+    scope = Directory::Collection.where(kind: "entitlement").order(:name)
+    return scope if directory_context.admin?
+    return scope.none unless app_owner?(app) && directory_context.person
+
+    scope.where(id: Directory::EffectiveGrant.where(person_id: directory_context.person.id, permission: "expose").select(:target_collection_id))
+  end
+
   def authorize_app_entitlement_wiring!(app, entitlement)
     raise Pundit::NotAuthorizedError unless app.hq_official? && can_manage_app_wiring?(app, entitlement)
   end

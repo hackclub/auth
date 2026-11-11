@@ -182,5 +182,5 @@ class DeveloperAppsController < ApplicationController
     backend_user = current_identity.backend_user
     backend_user&.program_manager? || backend_user&.super_admin?
   end
-  helper_method :admin?, :can_manage_app_wiring?, :can_wire_any_entitlement?
+  helper_method :admin?, :can_manage_app_wiring?, :can_wire_any_entitlement?, :wireable_entitlements
 end

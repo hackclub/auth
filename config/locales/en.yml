@@ -1220,7 +1220,6 @@ en:
       remove: "Remove"
       required_to_log_in: "required to log in"
       wire_entitlement: "wire an entitlement"
-      entitlement_slug_placeholder: "entitlement slug"
       claim_name_placeholder: "claim name (e.g. staff)"
       wire_button: "Wire"
       require_entitlement: "require an entitlement to log in"
