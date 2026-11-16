@@ -69,12 +69,15 @@ module SAMLService
         end
 
         # { entity_id => sp_config } from a service_providers list, as config_for(:saml) returns it.
-        # Raises ConfigError rather than load an SP differently from how it's written.
+        # A misconfigured SP is skipped (with a Sentry alert) rather than taking down every
+        # other SP — but it's never loaded silently wrong: unknown keys, bad gates, etc. still
+        # trigger the error that keeps that one SP out.
         def build_service_providers(sp_configs)
             return {} if sp_configs.nil?
             raise ConfigError, "SAML service_providers must be a list, got #{sp_configs.inspect}" unless sp_configs.is_a?(Array)
 
             sp_configs.each_with_object({}) do |sp_config, hash|
+            begin
             check_sp_entry!(sp_config, hash)
             label = sp_config[:slug]
 
@@ -129,6 +132,10 @@ module SAMLService
                 entitlements: entitlements,
                 groups_attribute: groups_attribute
             }
+            rescue ConfigError => e
+              Rails.logger.error("[SAML] skipping SP: #{e.message}")
+              Sentry.capture_exception(e)
+            end
             end
         end
 

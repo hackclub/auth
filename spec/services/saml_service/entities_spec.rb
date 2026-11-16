@@ -54,59 +54,74 @@ RSpec.describe SAMLService::Entities do
     end
 
     describe "config it would otherwise drop or misread" do
-      def expect_config_error(message, **overrides)
-        expect { load_sp(**overrides) }.to raise_error(described_class::ConfigError, message)
+      before { allow(Sentry).to receive(:capture_exception) }
+
+      # a misconfigured SP is skipped, not loaded — and reported to sentry
+      def expect_sp_skipped(**overrides)
+        result = described_class.build_service_providers([ sp_entry(**overrides) ])
+        expect(result).to be_empty
       end
 
-      it "rejects an unknown key, like a typo of a security key" do
-        expect_config_error(/airtable.*unknown key.*required_entitlement\b/, required_entitlement: [ "airtable-users" ])
+      it "skips an SP with an unknown key, like a typo of a security key" do
+        expect_sp_skipped(required_entitlement: [ "airtable-users" ])
       end
 
-      it "rejects an empty required_entitlements instead of reading it as no requirement" do
-        expect_config_error(/required_entitlements/, required_entitlements: [])
-        expect_config_error(/required_entitlements/, required_entitlements: nil)
-        expect_config_error(/required_entitlements/, required_entitlements: [ "airtable-users", nil ])
+      it "skips an SP with empty required_entitlements instead of reading it as no requirement" do
+        expect_sp_skipped(required_entitlements: [])
+        expect_sp_skipped(required_entitlements: nil)
+        expect_sp_skipped(required_entitlements: [ "airtable-users", nil ])
       end
 
-      it "rejects an empty allowed_emails instead of reading it as open to everyone" do
-        expect_config_error(/allowed_emails/, allowed_emails: [])
+      it "skips an SP with empty allowed_emails instead of reading it as open to everyone" do
+        expect_sp_skipped(allowed_emails: [])
       end
 
-      it "rejects entitlements that aren't a slug => value mapping" do
-        expect_config_error(/entitlements/, entitlements: [ "airtable-users" ])
-        expect_config_error(/entitlements/, entitlements: { "airtable-users": [ "a", "b" ] })
+      it "skips an SP with entitlements that aren't a slug => value mapping" do
+        expect_sp_skipped(entitlements: [ "airtable-users" ])
+        expect_sp_skipped(entitlements: { "airtable-users": [ "a", "b" ] })
       end
 
-      it "rejects a groups_attribute that isn't a name" do
-        expect_config_error(/groups_attribute/, groups_attribute: [ "groups" ])
+      it "skips an SP with a groups_attribute that isn't a name" do
+        expect_sp_skipped(groups_attribute: [ "groups" ])
       end
 
-      it "rejects entitlements the SP never requests, since the SAML2 gem would drop them from the assertion" do
-        expect_config_error(
-          /requested_attributes/,
+      it "skips an SP with entitlements it never requests, since the SAML2 gem would drop them" do
+        expect_sp_skipped(
           entitlements: { "airtable-users": "airtable" },
           attribute_consuming_services: [ { name: "Profile", requested_attributes: [ { name: "email" } ] } ]
         )
-        expect_config_error(/attribute_consuming_services/, entitlements: { "airtable-users": "airtable" }, attribute_consuming_services: nil)
+        expect_sp_skipped(entitlements: { "airtable-users": "airtable" }, attribute_consuming_services: nil)
       end
 
-      it "rejects entitlements whose attribute allowed_attributes filters out" do
-        expect_config_error(/allowed_attributes/, entitlements: { "airtable-users": "airtable" }, allowed_attributes: [ "email" ])
+      it "skips an SP with entitlements whose attribute allowed_attributes filters out" do
+        expect_sp_skipped(entitlements: { "airtable-users": "airtable" }, allowed_attributes: [ "email" ])
       end
 
-      it "rejects an SP with no slug or entity_id" do
-        expect_config_error(/slug/, slug: nil)
-        expect_config_error(/entity_id/, entity_id: nil)
+      it "skips an SP with no slug or entity_id" do
+        expect_sp_skipped(slug: nil)
+        expect_sp_skipped(entity_id: nil)
       end
 
-      it "rejects two SPs with the same entity_id or slug, which would silently shadow one another" do
-        expect {
-          described_class.build_service_providers([ sp_entry, sp_entry(slug: "airtable-2") ])
-        }.to raise_error(described_class::ConfigError, /entity_id/)
+      it "skips duplicate SPs instead of letting one silently shadow another" do
+        result = described_class.build_service_providers([ sp_entry, sp_entry(slug: "airtable-2") ])
+        expect(result.size).to eq(1)
+        expect(Sentry).to have_received(:capture_exception)
+          .with(an_instance_of(described_class::ConfigError).and(having_attributes(message: /entity_id/)))
 
-        expect {
-          described_class.build_service_providers([ sp_entry, sp_entry(entity_id: "https://other.example/metadata") ])
-        }.to raise_error(described_class::ConfigError, /slug/)
+        result = described_class.build_service_providers([ sp_entry, sp_entry(entity_id: "https://other.example/metadata") ])
+        expect(result.size).to eq(1)
+        expect(Sentry).to have_received(:capture_exception)
+          .with(an_instance_of(described_class::ConfigError).and(having_attributes(message: /slug/)))
+      end
+
+      it "loads valid SPs even when another SP in the list is broken" do
+        good = sp_entry
+        bad = sp_entry(slug: "broken", entity_id: "https://broken.example/metadata", required_entitlements: [])
+        result = described_class.build_service_providers([ good, bad ])
+
+        expect(result.size).to eq(1)
+        expect(result.values.first[:slug]).to eq("airtable")
+        expect(Sentry).to have_received(:capture_exception).once
       end
     end
   end
