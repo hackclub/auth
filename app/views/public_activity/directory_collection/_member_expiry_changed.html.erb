@@ -1,0 +1,9 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <% if activity.parameters["renewed"] %>
+    renewed expired <%= activity.parameters["member_type"] || "member" %> <b><%= (respond_to?(:activity_member_name) ? activity_member_name(activity) : Directory::ActivityPeople.member_name(activity)) || "(unknown)" %></b> in <b><%= activity.trackable&.name || activity.parameters["name"] || "(deleted)" %></b><% if activity.parameters["expires_at"].present? %>, now expiring <%= Directory::Expiry.label(Time.zone.parse(activity.parameters["expires_at"])) %><% else %> with no expiry<% end %>.
+  <% elsif activity.parameters["expires_at"].present? %>
+    set <%= activity.parameters["member_type"] || "member" %> <b><%= (respond_to?(:activity_member_name) ? activity_member_name(activity) : Directory::ActivityPeople.member_name(activity)) || "(unknown)" %></b> in <b><%= activity.trackable&.name || activity.parameters["name"] || "(deleted)" %></b> to expire <%= Directory::Expiry.label(Time.zone.parse(activity.parameters["expires_at"])) %>.
+  <% else %>
+    removed the expiry on <%= activity.parameters["member_type"] || "member" %> <b><%= (respond_to?(:activity_member_name) ? activity_member_name(activity) : Directory::ActivityPeople.member_name(activity)) || "(unknown)" %></b> in <b><%= activity.trackable&.name || activity.parameters["name"] || "(deleted)" %></b>.
+  <% end %>
+<% end %>

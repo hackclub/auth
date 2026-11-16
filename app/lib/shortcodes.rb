@@ -66,6 +66,17 @@ module Shortcodes
         ]
       end
 
+      # Directory
+      if user&.directory_services_admin?
+        shortcuts += [
+          Shortcode.new(code: "ADUC", label: "Directory", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory"),
+          Shortcode.new(code: "DPPL", label: "Directory people", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/people"),
+          Shortcode.new(code: "DRPT", label: "Directory reports", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/reports"),
+          Shortcode.new(code: "DHLT", label: "Directory health", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/health"),
+          Shortcode.new(code: "DIMP", label: "Directory import", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/import")
+        ]
+      end
+
       # Utility
       shortcuts << Shortcode.new(code: "SRCH", label: "Focus search", controller: nil, action: nil, icon: "⌕", role: :general, path_override: "#search")
       shortcuts << Shortcode.new(code: "HELP", label: "Keyboard shortcuts", controller: nil, action: nil, icon: "?", role: :general, path_override: "#hints")
@@ -106,11 +117,29 @@ module Shortcodes
             when "Identity" then "/backend/identities"
             when "Verification" then "/backend/verifications"
             when "Address" then "/backend/identities"
+            when "Directory::Person" then "/directory/people"
+            when "Directory::Collection" then "/directory/collections"
             else "/backend/#{klass.name.underscore.pluralize}"
             end
             hash[prefix] = { model: klass.name, path: path }
           end
       end
+    end
+
+    # Directory records are only for directory admins; the directory's own policies decide
+    # who else sees them, and the backend doesn't run those.
+    def directory_prefix?(info) = info[:model].start_with?("Directory::")
+
+    # The class behind a public_id_prefixes entry, looked up from the same model list rather
+    # than by constantizing a name that started out as user input.
+    def public_id_model(info)
+      ActiveRecord::Base.descendants.find { |klass| klass.name == info[:model] }
+    end
+
+    def public_id_prefixes_for(user)
+      return public_id_prefixes if user&.directory_services_admin?
+
+      public_id_prefixes.reject { |_, info| directory_prefix?(info) }
     end
 
     def search_scopes_for(user)
@@ -120,13 +149,17 @@ module Shortcodes
         scopes << { key: "oauth_apps", label: "OAuth apps", icon: "⭢" }
       end
 
+      if user&.directory_services_admin?
+        scopes << { key: "directory", label: "Directory", icon: "⭢" }
+      end
+
       scopes
     end
 
     def kbar_data_for(user)
       {
         shortcuts: all(user).map { |s| { code: s.code, label: s.label, path: s.path, icon: s.icon } },
-        prefixes: public_id_prefixes,
+        prefixes: public_id_prefixes_for(user),
         searchScopes: search_scopes_for(user)
       }.to_json
     end

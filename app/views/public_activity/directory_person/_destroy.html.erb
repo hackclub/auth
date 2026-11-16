@@ -1,0 +1,9 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <% identities = @activity_identities if defined?(@activity_identities) %>
+  <% if activity.parameters.key?("identity_id") %>
+    <% email = Directory::ActivityPeople.email(activity.parameters["identity_id"], identities) %>
+    removed <b><%= Directory::ActivityPeople.name(activity.parameters["identity_id"], identities) %></b><% if email %> (<%= email %>)<% end %> from the directory.
+  <% else %>
+    removed <b><%= activity.parameters["name"].presence || Directory::ActivityPeople::DELETED %></b><% if activity.parameters["email"].present? %> (<%= activity.parameters["email"] %>)<% end %> from the directory.
+  <% end %>
+<% end %>

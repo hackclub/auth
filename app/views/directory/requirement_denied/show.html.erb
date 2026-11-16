@@ -1,0 +1,12 @@
+<% content_for :title, t("directory.requirement_denied.title") %>
+
+<div class="error-page">
+  <div class="error-page-content">
+    <div class="error-icon"><%= inline_icon("private", size: 80) %></div>
+
+    <h1 class="error-title"><%= t("directory.requirement_denied.heading") %></h1>
+    <p class="error-description"><%= t("directory.requirement_denied.message") %></p>
+
+    <a href="/" role="button"><%= t("directory.requirement_denied.go_home") %></a>
+  </div>
+</div>

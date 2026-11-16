@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  stopped requiring <b><%= activity.trackable&.name || activity.parameters["entitlement_name"] || "(deleted)" %></b> to log in to <b><%= activity.parameters["app_name"] || "(unknown app)" %></b>.
+<% end %>

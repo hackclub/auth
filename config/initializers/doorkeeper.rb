@@ -18,9 +18,29 @@ Doorkeeper.configure do
   Doorkeeper::Application.table_name = "programs" if defined?(Doorkeeper::Application)
 
   # This block will be called to check whether the resource owner is authenticated or not.
+  # also enforces directory app requirements. doorkeeper calls it from pages with no client
+  # too (authorized_applications, the oob page), so it only checks when client_id resolves.
+  # doorkeeper instance_evals this block, so no `return`.
   resource_owner_authenticator do
     if current_identity
-      current_identity
+      app = ::Program.find_by(uid: params[:client_id].to_s) if params[:client_id].is_a?(String) && params[:client_id].present?
+      if app.nil? || Directory::RequirementCheck.passes?(identity: current_identity, app: app)
+        current_identity
+      else
+        # RFC 6749 §4.1.2.1: tell the client, but only from the authorization endpoint and
+        # only at a redirect_uri doorkeeper itself would accept for this app; anything else
+        # (other doorkeeper pages run this block too) gets the in-app page. memoizing the nil
+        # owner first stops the error handler's pre_auth from re-entering this block.
+        if is_a?(Doorkeeper::AuthorizationsController) && params[:redirect_uri].present? &&
+            Doorkeeper::OAuth::Helpers::URIChecker.valid_for_authorization?(params[:redirect_uri], app.redirect_uri) &&
+            !Doorkeeper::OAuth::Helpers::URIChecker.oob_uri?(params[:redirect_uri])
+          @current_resource_owner = nil
+          raise Directory::RequirementDenied
+        end
+
+        redirect_to directory_requirement_denied_path
+        nil
+      end
     else
       redirect_to "/oauth/welcome?return_to=#{CGI.escape(request.fullpath)}"
       nil
@@ -555,4 +575,17 @@ Doorkeeper.configure do
   # WWW-Authenticate Realm (default: "Doorkeeper").
   #
   # realm "Doorkeeper"
+end
+
+Rails.application.config.to_prepare do
+  Doorkeeper::AuthorizationsController.rescue_from Directory::RequirementDenied do
+    redirect_or_render(
+      Doorkeeper::OAuth::ErrorResponse.new(
+        name: :access_denied,
+        state: params[:state],
+        redirect_uri: pre_auth.redirect_uri,
+        response_on_fragment: pre_auth.response_on_fragment?
+      )
+    )
+  end
 end

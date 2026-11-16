@@ -3,9 +3,8 @@ class StaticPagesController < ApplicationController
 
   def home
     @sso_apps = SAMLService::Entities.service_providers.values.select do |sp|
-      sp[:allow_idp_initiated] &&
-        (sp[:allowed_emails].blank? || sp[:allowed_emails].include?(current_identity&.primary_email))
-    end.reject { |sp| sp[:slug] == "slack" && current_identity&.disallow_slack }
+      sp[:allow_idp_initiated] && SAMLService::Access.denial(current_identity, sp, report_misconfiguration: false).nil?
+    end
     @special_apps = SpecialAppCards::Base.for_identity(current_identity)
   end
 

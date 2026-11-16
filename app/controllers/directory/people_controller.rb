@@ -1,0 +1,129 @@
+# frozen_string_literal: true
+
+module Directory
+  class PeopleController < BaseController
+    def index
+      authorize Directory::Person, :create? # admin only
+      add_breadcrumb t("directory.people.index.title")
+
+      @people = Directory::Person.includes(:identity).order("identities.first_name").page(params[:page]).per(50)
+      page_ids = @people.map(&:id)
+      @holds_nothing_ids = Directory::Person
+        .where(id: page_ids)
+        .left_joins(:effective_memberships)
+        .where(directory_effective_memberships: { person_id: nil })
+        .pluck(:id)
+        .to_set
+
+      if params[:email].present?
+        term = ActiveRecord::Base.sanitize_sql_like(params[:email].strip.downcase)
+        @search_results = Identity.where("lower(primary_email) LIKE ?", "%#{term}%").limit(20).to_a
+        @existing_person_identity_ids = Directory::Person.where(identity_id: @search_results.map(&:id)).pluck(:identity_id).to_set
+      end
+    end
+
+    def show
+      @person = Directory::Person.find_by_public_id!(params[:public_id])
+      authorize_visible! @person
+      add_breadcrumb t("directory.people.index.title"), directory_people_path
+      add_breadcrumb @person.full_name
+
+      # A via path names the person's direct group, which may be one the viewer can't see.
+      # Keep the segments they can; the view says how many it left out.
+      ctx = pundit_user
+      @visible_memberships = @person.memberships_with_via_path.filter_map do |m|
+        next unless policy(m[:collection]).show?
+
+        via = m[:via_path].select { |c| ctx.can_any?(%w[view manage_members expose], c) }
+        m.merge(via_path: via, hidden_via: m[:via_path].size - via.size)
+      end
+
+      @manageable_collections = Directory::Collection
+        .joins("INNER JOIN directory_effective_grants ON directory_effective_grants.target_collection_id = directory_collections.id")
+        .where(directory_effective_grants: { person_id: @person.id, permission: "manage_members" })
+        .where("directory_effective_grants.expires_at IS NULL OR directory_effective_grants.expires_at > NOW()")
+        .distinct
+        .order(:name)
+        .select { |c| policy(c).show? }
+
+      @activities = directory_activities_for(@person)
+      # Same rule as the memberships above: an entitlement the viewer can't see doesn't get
+      # named, linked, or hinted at through the app it's exposed to.
+      @app_exposures = @person.app_exposures.transform_values { |exps| exps.select { |e| policy(e.entitlement).show? } }
+        .reject { |_, exps| exps.empty? }
+    end
+
+    def create
+      authorize Directory::Person
+      identity = Identity.find(params[:identity_id])
+
+      person = Directory::Person.new(identity: identity, created_by_identity_id: current_identity.id)
+
+      if person.save
+        redirect_to directory_person_path(person), notice: t("directory.people.created")
+      else
+        redirect_to directory_people_path, alert: person.errors.full_messages.to_sentence
+      end
+    rescue ActiveRecord::RecordNotUnique
+      existing = Directory::Person.find_by!(identity: identity)
+      redirect_to directory_person_path(existing), notice: t("directory.people.created")
+    end
+
+    def destroy
+      @person = Directory::Person.find_by_public_id!(params[:public_id])
+      authorize @person
+
+      revocations = nil
+      Directory.mutate!(cause: Directory.cause("person_removed", target: @person.id, actor: current_identity.id)) do
+        # under the lock and before destroy wipes effective_memberships, so a concurrent add
+        # can't slip in between capture and delete
+        revocations = Directory::DestroyRevocations.for_person(@person.reload)
+        @person.destroy!
+      end
+
+      # the rebuild diff won't see a deleted person
+      if revocations.any?
+        Directory::AfterChangeJob.perform_later(change_ids: [], revocations: revocations)
+      end
+
+      redirect_to directory_people_path, notice: t("directory.people.destroyed")
+    end
+
+    private
+
+    # directory rows only, never the identity's account-wide audit log (logins, legal
+    # name, email changes)
+    def directory_activities_for(person)
+      activities = PublicActivity::Activity
+      about_person = activities.where(trackable: person)
+        .or(activities.where(recipient: person))
+        .or(activities.where(owner: person.identity))
+
+      scope = activities.where(trackable_type: Directory::ActivityController::TRACKABLE_TYPES).and(about_person)
+      scope = scope.and(activities_in_visible_collections) unless directory_admin?
+      preload_activities(scope.order(created_at: :desc).limit(20))
+    end
+
+    # in SQL so the 20-row window fills with visible rows. grant/exposure rows are placed by
+    # their live record, so once it's deleted the row stays hidden.
+    def activities_in_visible_collections
+      activities = PublicActivity::Activity
+      visible = policy_scope(Directory::Collection).select(:id)
+
+      miss = Directory::CollectionsController::EMAIL_LOOKUP_MISS_KEY
+      activities.where(trackable_type: "Directory::Collection", trackable_id: visible).where.not(key: miss)
+        .or(activities.where(trackable_type: "Directory::Collection", key: miss, trackable_id: manageable_collection_ids))
+        .or(activities.where(trackable_type: "Directory::Grant", trackable_id: Directory::Grant.where(target_collection_id: visible).select(:id)))
+        .or(activities.where(trackable_type: "Directory::Exposure", trackable_id: Directory::Exposure.where(entitlement_id: visible).select(:id)))
+        .or(activities.where(trackable_type: "Directory::Person", trackable_id: policy_scope(Directory::Person).select(:id)))
+    end
+
+    # Lookup misses (raw typed addresses) only show on collections the viewer manages.
+    def manageable_collection_ids
+      person = pundit_user.person
+      return Directory::Collection.none.select(:id) unless person
+
+      Directory::EffectiveGrant.where(person_id: person.id, permission: "manage_members").select(:target_collection_id)
+    end
+  end
+end

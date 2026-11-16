@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe DeletionService do
+  include ActiveSupport::Testing::TimeHelpers
+
   describe ".check_for_email" do
     it "returns nil when no tombstone exists" do
       expect(described_class.check_for_email("nobody@example.com")).to be_nil
@@ -219,6 +221,129 @@ RSpec.describe DeletionService do
         expect(version_count_before).to be > 0
         expect(PaperTrail::Version.where(item_type: "VerificationCase", item_id: kase.id)).to be_empty
       end
+    end
+  end
+  describe ".execute_deletion directory cleanup" do
+    let(:admin) { create(:identity) }
+    let(:victim) { create(:identity, first_name: "Zelda", last_name: "Quixote") }
+    let(:group) { create(:directory_group, slug: "pii-probe", name: "PII Probe") }
+
+    def delete!(identity) = described_class.execute_deletion(identity.reload, privacy_request_reference: "rec", logger: ->(_) { })
+
+    it "keeps directory activity, which holds no name or email, and shows them as [deleted user]" do
+      email = victim.primary_email
+      person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
+      Directory.mutate!(cause: "test") do
+        Directory::Membership.create!(collection: group, member_person: person, created_by_identity_id: admin.id)
+      end
+      # a lookup miss is the record of what was typed, and stays
+      group.create_activity :email_lookup_miss, owner: admin, params: { email: email }
+
+      delete!(victim)
+
+      rows = PublicActivity::Activity.where("key LIKE 'directory\\_%'")
+      expect(rows.pluck(:key)).to include("directory_person.create", "directory_collection.member_added",
+        "directory_collection.member_removed", "directory_person.destroy", "directory_collection.email_lookup_miss")
+      expect(rows.where.not(key: "directory_collection.email_lookup_miss").map { |a| a.parameters.to_json }.join).not_to include("Zelda", "Quixote", email)
+      expect(rows.find_by(key: "directory_collection.email_lookup_miss").parameters["email"]).to eq(email)
+      expect(Directory::ActivityPeople.name(victim.id)).to eq("[deleted user]")
+      expect(Directory::Person.exists?(person.id)).to be(false)
+    end
+
+    it "looks the directory person up under the directory lock" do
+      Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
+      held = nil
+      allow(Directory::Person).to receive(:find_by).and_wrap_original do |original, *args, **kwargs|
+        held ||= ActiveRecord::Base.connection.select_value(
+          "SELECT count(*) FROM pg_locks WHERE locktype = 'advisory' AND pid = pg_backend_pid() AND objid = #{Directory::Rebuild::LOCK_KEY}"
+        ).to_i.positive?
+        original.call(*args, **kwargs)
+      end
+
+      delete!(victim)
+
+      expect(held).to be(true)
+    end
+
+    it "makes person creation wait on the directory lock" do
+      locked = nil
+      allow(Directory).to receive(:lock!).and_wrap_original do |original|
+        original.call
+        locked = true
+      end
+
+      Directory::Person.create!(identity: create(:identity), created_by_identity_id: admin.id)
+
+      expect(locked).to be(true)
+    end
+
+    it "can't be undone by adding the deleted identity back afterwards" do
+      delete!(victim)
+      person = Directory::Person.new(identity: victim, created_by_identity_id: admin.id)
+      expect(person).not_to be_valid
+    end
+
+    it "records their removal from each collection, by id" do
+      person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
+      Directory.mutate!(cause: "test") do
+        Directory::Membership.create!(collection: group, member_person: person, created_by_identity_id: admin.id)
+      end
+      allow(Sentry).to receive(:capture_exception)
+
+      delete!(victim)
+
+      removed = PublicActivity::Activity.where(key: "directory_collection.member_removed", trackable: group).sole
+      expect(removed.parameters).to include("member_identity_id" => victim.id)
+      expect(removed.parameters).not_to have_key("member_name")
+      expect(Sentry).not_to have_received(:capture_exception)
+    end
+
+    it "keeps the details of directory changes they made to other people" do
+      other = Directory::Person.create!(identity: create(:identity, first_name: "Bystander"), created_by_identity_id: admin.id)
+      Directory.mutate!(cause: "test") do
+        Directory::Membership.create!(collection: group, member_person: other, created_by_identity_id: admin.id)
+      end
+      group.create_activity :member_expiry_changed, owner: victim, recipient: other,
+        params: { member_name: "Bystander X", member_type: "person", expires_at: "2027-01-01T04:59:59Z" }
+
+      delete!(victim)
+
+      row = PublicActivity::Activity.find_by!(key: "directory_collection.member_expiry_changed")
+      expect(row.parameters).to include("expires_at" => "2027-01-01T04:59:59Z", "member_name" => "Bystander X")
+    end
+
+    it "still revokes the deleted person's app access" do
+      app = create(:program, :with_groups)
+      entitlement = create(:directory_entitlement)
+      Directory::Exposure.create!(app: app, entitlement: entitlement, claim_name: "staff")
+      person = Directory::Person.create!(identity: victim, created_by_identity_id: admin.id)
+      Directory.mutate!(cause: "test") do
+        Directory::Membership.create!(collection: entitlement, member_person: person, created_by_identity_id: admin.id)
+      end
+
+      expect { delete!(victim) }.to have_enqueued_job(Directory::AfterChangeJob)
+        .with(hash_including(revocations: [ hash_including(identity_id: victim.id, app_ids: [ app.id ]) ]))
+    end
+
+    it "doesn't discard batched AfterChangeJobs that carry other people's revocations" do
+      bystander = create(:identity)
+      payload = { "change_ids" => [], "revocations" => [
+        { "identity_id" => victim.id, "email" => victim.primary_email, "app_ids" => [ 1 ] },
+        { "identity_id" => bystander.id, "email" => bystander.primary_email, "app_ids" => [ 1 ] }
+      ] }
+      batch = GoodJob::Job.create!(
+        active_job_id: SecureRandom.uuid, queue_name: "default", job_class: "Directory::AfterChangeJob",
+        serialized_params: { "job_class" => "Directory::AfterChangeJob", "arguments" => [ payload ] }
+      )
+      own = GoodJob::Job.create!(
+        active_job_id: SecureRandom.uuid, queue_name: "default", job_class: "SomeIdentityJob",
+        serialized_params: { "job_class" => "SomeIdentityJob", "arguments" => [ { "identity_id" => victim.id } ] }
+      )
+
+      delete!(victim)
+
+      expect(batch.reload.finished_at).to be_nil
+      expect(own.reload.finished_at).to be_present
     end
   end
 end

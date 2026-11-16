@@ -49,6 +49,10 @@
         <% end %>
       </header>
 
+      <% if @directory_curious %>
+        <div class="banner info"><p>hey! fine that you're curious, but this probably doesn't mean much to you unless you work here! ^_^</p></div>
+      <% end %>
+
       <div class="docs-article-body">
         <%= @doc[:content] %>
       </div>

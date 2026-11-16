@@ -14,9 +14,13 @@ class Components::PublicActivity::Snippet < Components::Base
           render @owner_component
         else
           owner = @owner || @activity.owner
+          directory = view_context.respond_to?(:directory_activity_owner)
 
           if owner.nil?
-            i { "System" }
+            # an owner_id with no owner means a deleted identity, not the system
+            i { directory && @activity.owner_id.present? ? "[deleted user]" : "System" }
+          elsif directory && (owner.is_a?(::Identity) || owner.is_a?(::Backend::User))
+            render view_context.directory_activity_owner(owner)
           elsif owner.is_a?(::Backend::User) || owner.is_a?(::Identity)
             render Components::UserMention.new(owner)
           elsif owner.is_a?(::Program)

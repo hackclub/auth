@@ -13,6 +13,12 @@ class LoginsController < ApplicationController
     before_action :validate_browser_token, except: [ :new, :create ]
     before_action :ensure_no_user!
 
+    # every verify path ends in sign_in, which refuses locked accounts
+    rescue_from SessionsHelper::AccountLockedError do |e|
+        flash[:error] = e.message
+        redirect_to login_path
+    end
+
     def new
         @prefill_email = params[:email] if params[:email].present?
     end
@@ -227,6 +233,8 @@ class LoginsController < ApplicationController
         Rails.logger.warn "Login blocked: compromised credential detected for identity #{@identity.id}"
         flash.now[:error] = "Security issue detected with your passkey. It has been disabled for your protection. Please use another login method or register a new passkey."
         render :webauthn, status: :unprocessable_entity
+    rescue SessionsHelper::AccountLockedError
+        raise # the rescue_from above shows the lock message; the catch-all below would hide it
     rescue WebAuthn::Error => e
         Rails.logger.error "WebAuthn authentication error: #{e.message}"
         flash.now[:error] = "Passkey verification failed. Please try again or use email code."
@@ -425,6 +433,11 @@ class LoginsController < ApplicationController
         )
 
         render_saml_response(saml_response: response, sp_config: sp_config)
+    rescue SAMLHelper::AccessDenied => e
+        # they're logged in to HCA now; it's only the hop into the SP that's refused, so show
+        # the same page SAMLController would and let them carry on from there
+        @error = e.message
+        render "saml/error", layout: "application", status: :forbidden
     end
 
     def scenario_for_identity(identity)

@@ -72,6 +72,10 @@ class Program < ApplicationRecord
   has_many :collaborator_identities, -> { merge(ProgramCollaborator.accepted) },
            through: :program_collaborators, source: :identity
 
+
+  has_many :directory_exposures, class_name: "Directory::Exposure", foreign_key: :app_id, dependent: :destroy
+  has_many :directory_requirements, class_name: "Directory::AppRequirement", foreign_key: :app_id, dependent: :destroy
+  has_one :directory_revoker, class_name: "Directory::AppRevoker", foreign_key: :app_id, dependent: :destroy
   belongs_to :owner_identity, class_name: "Identity", optional: true
 
   validates :name, presence: true

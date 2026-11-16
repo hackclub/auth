@@ -13,7 +13,8 @@ Sentry.init do |config|
   config.traces_sample_rate = Rails.env.production? ? 0.1 : 1.0
   config.enabled_patches = [ :http, :redis, :puma ]
 
-  config.before_send = lambda do |event, _hint|
+  config.before_send = lambda do |event, hint|
+    event = SentryDirectoryTag.apply(event, hint)
     if event.request
       event.request.cookies = {} if event.request.respond_to?(:cookies=)
       if event.request.respond_to?(:headers) && event.request.headers.is_a?(Hash)

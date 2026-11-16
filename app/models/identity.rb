@@ -64,6 +64,7 @@ class Identity < ApplicationRecord
   has_many :email_change_requests, class_name: "Identity::EmailChangeRequest", dependent: :destroy
 
   has_one :backend_user, class_name: "Backend::User", dependent: :destroy
+  has_one :directory_person, class_name: "Directory::Person", dependent: :destroy
 
   def active_for_backend? = backend_user&.active?
 
@@ -353,9 +354,18 @@ class Identity < ApplicationRecord
   def unlock_account! = update!(locked_at: nil)
 
   def lock_account!
+    # apps they've signed in to, read before the tokens are revoked below
+    signed_in_app_ids = access_tokens.distinct.pluck(:application_id) +
+      Doorkeeper::AccessGrant.where(resource_owner_id: id, revoked_at: nil).distinct.pluck(:application_id)
+
     update!(locked_at: Time.current)
     sessions.update_all(expires_at: Time.current)
     all_access_tokens.update_all(revoked_at: Time.current)
+
+    # HCA-side tokens are dead above, but apps with a revoker hold their own
+    # sessions; tell them too
+    app_ids = signed_in_app_ids + (directory_person&.revocation_data&.flat_map { |rev| rev[:app_ids] } || [])
+    Directory::RevokeAccess.revoke_sessions(app_ids.uniq.map { |app_id| [ app_id, primary_email ] })
   end
 
   def self.calculate_age(birthday)

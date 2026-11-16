@@ -14,13 +14,12 @@ module Backend
       # Check if it's a public ID pattern
       prefix = query.split("!").first.downcase
       prefix_info = Shortcodes.public_id_prefixes[prefix]
+      # directory records are for directory admins only (no directory policy runs here)
+      prefix_info = nil if prefix_info && Shortcodes.directory_prefix?(prefix_info) && !current_user.directory_services_admin?
 
       if query.include?("!") && prefix_info
         begin
-          # Safe to use constantize because prefix_info[:model] comes from
-          # Shortcodes.public_id_prefixes which contains only whitelisted model names
-          model_name = prefix_info[:model]
-          klass = Object.const_get(model_name)
+          klass = Shortcodes.public_id_model(prefix_info)
           record = if klass == Identity
             policy_scope(Identity).find_by_public_id(query)
           else
@@ -68,6 +67,19 @@ module Backend
             }
           end
         end
+
+      when "directory"
+        if current_user.directory_services_admin?
+          Directory::Person.search(query).includes(:identity).limit(5).each do |person|
+            results << { type: "directory/person", id: person.public_id, label: person.full_name,
+                         sublabel: person.primary_email, path: directory_person_path(person) }
+          end
+          like = "%#{ActiveRecord::Base.sanitize_sql_like(query)}%"
+          Directory::Collection.where("name ILIKE :q OR slug ILIKE :q", q: like).order(:name).limit(5).each do |col|
+            results << { type: "directory/collection", id: col.public_id, label: col.name,
+                         sublabel: "#{col.kind} · #{col.slug}", path: directory_collection_path(col.slug) }
+          end
+        end
       end
 
       results
@@ -84,6 +96,10 @@ module Backend
         [ record.full_address, record.identity&.full_name, "/backend/identities/#{record.identity&.public_id}" ]
       when Verification
         [ "Verification #{record.public_id}", record.identity&.full_name, "#{base_path}/#{record.public_id}" ]
+      when Directory::Collection
+        [ record.name, "#{record.kind} · #{record.slug}", "#{base_path}/#{record.slug}" ]
+      when Directory::Person
+        [ record.full_name, record.primary_email, "#{base_path}/#{record.public_id}" ]
       else
         display = record.try(:name) || record.try(:title) || record.public_id
         [ display, nil, "#{base_path}/#{record.public_id}" ]

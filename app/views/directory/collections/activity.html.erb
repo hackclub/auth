@@ -1,0 +1,26 @@
+<% content_for :title, t("directory.collections.activity.title", name: @collection.name) %>
+<div class="dir-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.collections.activity.heading") %>: <%= @collection.name %></h2></div>
+    </div>
+  </div>
+
+  <div class="dir-section">
+    <% if @activities.any? %>
+      <%= render "backend/shared/activity_log", activities: @activities %>
+      <%= paginate @activities %>
+    <% else %>
+      <div class="dir-section-empty"><%= t("directory.collections.activity.empty") %></div>
+    <% end %>
+  </div>
+
+  <div class="dir-keyhints">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
+    </row>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">⌘K</span> command palette
+    </row>
+  </div>
+</div>

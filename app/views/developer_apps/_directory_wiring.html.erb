@@ -1,0 +1,70 @@
+<% exposures = Directory::Exposure.where(app_id: app.id).includes(:entitlement) %>
+<% requirements = Directory::AppRequirement.where(app_id: app.id).includes(:entitlement) %>
+
+<% if exposures.any? %>
+  <div class="credential-block">
+    <label><%= t("directory.developer_apps.told_about") %></label>
+    <% exposures.each do |exp| %>
+      <div class="collaborator-row">
+        <span>
+          <code><%= exp.claim_name %></code> → <%= exp.entitlement.name %><% unless app.has_scope?(:groups) %> <em style="color: var(--pico-muted-color);"><%= t("directory.developer_apps.exposure_not_sent") %></em><% end %>
+          <% if exp.entitlement.description.present? && entitlement_visible?(exp.entitlement, wiring_context) %><br><small style="color: var(--pico-muted-color);"><%= exp.entitlement.description %></small><% end %>
+        </span>
+        <span class="collaborator-email"><%= t("directory.developer_apps.wired_by", name: exp.created_by&.full_name) %></span>
+        <% if can_manage_app_wiring?(app, exp.entitlement, wiring_context) %>
+          <%= button_to t("directory.developer_apps.remove"), directory_exposure_path(exp), method: :delete, class: "danger small-btn", params: { return_to: return_to },
+                data: { confirm: t("directory.developer_apps.remove_exposure_confirm", claim: exp.claim_name) } %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<% if requirements.any? %>
+  <div class="credential-block">
+    <label><%= t("directory.developer_apps.required_to_log_in") %></label>
+    <% requirements.each do |req| %>
+      <div class="collaborator-row">
+        <span>
+          <%= req.entitlement.name %>
+          <% if req.entitlement.description.present? && entitlement_visible?(req.entitlement, wiring_context) %><br><small style="color: var(--pico-muted-color);"><%= req.entitlement.description %></small><% end %>
+        </span>
+        <% confirm_key = requirements.size == 1 ? "remove_last_requirement_confirm" : "remove_requirement_confirm" %>
+        <% if can_manage_app_wiring?(app, req.entitlement, wiring_context) %>
+          <%= button_to t("directory.developer_apps.remove"), directory_app_requirement_path(req.entitlement.slug, app_id: app.id), method: :delete, class: "danger small-btn", params: { return_to: return_to },
+                data: { confirm: t("directory.developer_apps.#{confirm_key}", name: req.entitlement.name) } %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<% if !app.hq_official? %>
+  <p style="color: var(--pico-muted-color);"><%= t("directory.developer_apps.not_official") %></p>
+<% elsif can_wire_any_entitlement?(app) %>
+  <%# "name: description", so you can tell hq-fulltimers-apps from hq-fulltimers at a glance %>
+  <% entitlement_options = wireable_entitlements(app).map { |e| [ [ e.name, e.description.presence&.truncate(90) ].compact.join(": "), e.slug ] } %>
+  <div class="add-collaborator">
+    <span class="label-upper"><%= t("directory.developer_apps.wire_entitlement") %></span>
+    <%= form_with url: directory_exposures_path, method: :post, local: true do |f| %>
+      <%= f.hidden_field :app_id, value: app.id %>
+      <%= hidden_field_tag :return_to, return_to %>
+      <%= f.select :entitlement_slug, entitlement_options, { prompt: t("directory.developer_apps.pick_entitlement") }, required: true %>
+      <%= f.text_field :claim_name, placeholder: t("directory.developer_apps.claim_name_placeholder") %>
+      <button type="submit"><%= t("directory.developer_apps.wire_button") %></button>
+    <% end %>
+  </div>
+  <div class="add-collaborator">
+    <span class="label-upper"><%= t("directory.developer_apps.require_entitlement") %></span>
+    <%= form_with url: directory_app_requirements_path, method: :post, local: true do |f| %>
+      <%= f.hidden_field :app_id, value: app.id %>
+      <%= hidden_field_tag :return_to, return_to %>
+      <%= f.select :entitlement_slug, entitlement_options, { prompt: t("directory.developer_apps.pick_entitlement") }, required: true %>
+      <button type="submit"><%= t("directory.developer_apps.require_button") %></button>
+    <% end %>
+  </div>
+<% end %>
+
+<% if directory_admin_session? %>
+  <%= render "developer_apps/session_revoker", app: app, revoker: app.directory_revoker, return_to: return_to %>
+<% end %>

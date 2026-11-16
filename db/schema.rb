@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_10_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_11_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -117,8 +117,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_000001) do
     t.string "seen_hints", default: [], array: true
     t.boolean "can_process_deletions", default: false, null: false
     t.boolean "can_ban", default: false, null: false
-    t.boolean "is_saml_officer", default: false, null: false
     t.boolean "directory_services_admin", default: false, null: false
+    t.boolean "is_saml_officer", default: false, null: false
     t.index ["identity_id"], name: "index_backend_users_on_identity_id"
   end
 
@@ -216,7 +216,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_000001) do
     t.datetime "created_at", null: false
     t.boolean "confirm_destroy", default: false, null: false
     t.index ["slug"], name: "index_directory_collections_on_slug", unique: true
-    t.check_constraint "kind::text = ANY (ARRAY['group'::character varying, 'entitlement'::character varying]::text[])", name: "chk_collection_kind"
+    t.check_constraint "kind::text = ANY (ARRAY['group'::character varying::text, 'entitlement'::character varying::text])", name: "chk_collection_kind"
   end
 
   create_table "directory_effective_grants", primary_key: ["person_id", "target_collection_id", "permission"], force: :cascade do |t|
@@ -257,7 +257,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_000001) do
     t.datetime "created_at", null: false
     t.index ["grantee_group_id", "target_collection_id", "permission"], name: "idx_grants_unique", unique: true
     t.index ["target_collection_id"], name: "index_directory_grants_on_target_collection_id"
-    t.check_constraint "permission::text = ANY (ARRAY['view'::character varying, 'manage_members'::character varying, 'expose'::character varying]::text[])", name: "chk_grant_permission"
+    t.check_constraint "permission::text = ANY (ARRAY['view'::character varying::text, 'manage_members'::character varying::text, 'expose'::character varying::text])", name: "chk_grant_permission"
   end
 
   create_table "directory_membership_changes", force: :cascade do |t|
@@ -267,7 +267,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_000001) do
     t.text "cause"
     t.datetime "created_at", null: false
     t.index ["created_at"], name: "index_directory_membership_changes_on_created_at"
-    t.check_constraint "op::text = ANY (ARRAY['added'::character varying, 'removed'::character varying]::text[])", name: "chk_membership_change_op"
+    t.check_constraint "op::text = ANY (ARRAY['added'::character varying::text, 'removed'::character varying::text])", name: "chk_membership_change_op"
   end
 
   create_table "directory_memberships", force: :cascade do |t|
@@ -663,6 +663,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_000001) do
     t.string "resource_owner_type"
     t.text "token_ciphertext"
     t.string "token_bidx"
+    t.index ["application_id"], name: "index_oauth_access_tokens_live_groups_by_application", where: "((revoked_at IS NULL) AND (((' '::text || (scopes)::text) || ' '::text) ~~ '% groups %'::text))"
     t.index ["application_id"], name: "index_oauth_access_tokens_on_application_id"
     t.index ["refresh_token"], name: "index_oauth_access_tokens_on_refresh_token", unique: true
     t.index ["resource_owner_id", "resource_owner_type"], name: "polymorphic_owner_oauth_access_tokens"

@@ -35,6 +35,8 @@ module DeletionService
     log.call ""
 
     deferred_attachments = []
+    dir_person = nil
+    dir_revocations = []
 
     ActiveRecord::Base.transaction do
       log.call "step 1: locking account..."
@@ -137,6 +139,17 @@ module DeletionService
       )
       log.call "  removed #{gates}" if gates > 0
 
+      # the directory lock is held from here to commit, so every directory write waits only
+      # for the short tail of the deletion. no person can appear for this identity after the
+      # lookup: creating one takes the same lock, and once this commits it sees the identity
+      # as deleted. directory activity is the directory's audit log and is kept as is: it
+      # names people by id, so once the identity is gone they read as [deleted user]
+      log.call "step 11b: finding directory person under the directory lock..."
+      Directory.lock!
+      dir_person = Directory::Person.find_by(identity: identity)
+      # before redaction: revocations need the real email to reach app revokers
+      dir_revocations = Directory::DestroyRevocations.for_person(dir_person) if dir_person
+
       log.call "step 12: scrubbing identity PII..."
       tombstone_email = "tombstoned+#{identity.id}@identity.invalid"
       # update_columns intentionally — bypasses PaperTrail so we don't create a version containing the old PII
@@ -156,6 +169,12 @@ module DeletionService
       )
       log.call "  => #{tombstone_email}"
 
+      log.call "step 12b: removing from directory (if present)..."
+      if dir_person
+        Directory.mutate!(cause: "person_removed:#{dir_person.id}") { dir_person.reload.destroy! }
+        log.call "  removed directory person #{dir_person.id}"
+      end
+
       log.call "step 13: creating tombstone record..."
       Deletion.create!(
         email_hash: Deletion.hash_email(original_email),
@@ -172,6 +191,10 @@ module DeletionService
         key: "identity.deletion_request",
         parameters: { tombstoned_at: Time.current.iso8601 }
       )
+    end
+
+    if dir_revocations.any?
+      Directory::AfterChangeJob.perform_later(change_ids: [], revocations: dir_revocations)
     end
 
     if deferred_attachments.any?
@@ -392,7 +415,9 @@ module DeletionService
   def self.discard_pending_jobs(identity)
     return unless defined?(GoodJob::Job)
 
-    GoodJob::Job.where(finished_at: nil).where(
+    # AfterChangeJob batches many people's revocations into one payload (and this
+    # person's own revocations should still go through), so it's never discarded.
+    GoodJob::Job.where(finished_at: nil).where("job_class IS DISTINCT FROM ?", "Directory::AfterChangeJob").where(
       "serialized_params::text LIKE ? OR serialized_params::text LIKE ? OR serialized_params::text LIKE ?",
       "%\"identity_id\": #{identity.id},%",
       "%\"identity_id\": #{identity.id}}%",
@@ -413,9 +438,11 @@ module DeletionService
   SAFE_ACTIVITY_KEY_PREFIXES = %w[verification.].freeze
 
   def self.scrub_activities(identity, activity_trackables)
+    # directory rows are kept: they're the directory's audit log, and they name people by
+    # id, not by name or email
     scope = PublicActivity::Activity.where(
       "(trackable_type = 'Identity' AND trackable_id = ?) OR " \
-      "(owner_type = 'Identity' AND owner_id = ?) OR " \
+      "(owner_type = 'Identity' AND owner_id = ? AND key NOT LIKE 'directory\\_%') OR " \
       "(recipient_type = 'Identity' AND recipient_id = ?)",
       identity.id, identity.id, identity.id
     )

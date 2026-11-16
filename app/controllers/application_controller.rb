@@ -14,13 +14,26 @@ class ApplicationController < ActionController::Base
   before_action :set_paper_trail_whodunnit
   before_action :touch_session_last_seen_at
 
-  alias_method :user_for_public_activity, :current_identity
+  def user_for_public_activity = current_identity
 
   def user_for_paper_trail = current_identity&.id
 
   def info_for_paper_trail = { extra_data: { ip: request.remote_ip, user_agent: request.user_agent }.compact_blank }
 
   def identity_signed_in? = !!current_identity
+
+  helper_method :directory_admin_session?
+
+  # directory admin powers need the same session as /backend: one that passed TOTP or a
+  # passkey. without it a directory admin is just a person with whatever grants they hold.
+  def directory_admin_session?
+    !!current_identity&.backend_user&.directory_services_admin? && two_factor_session?
+  end
+
+  def two_factor_session?
+    login_attempt = current_session&.login_attempt
+    !!(login_attempt&.authenticated_with_totp || login_attempt&.authenticated_with_webauthn)
+  end
 
 
   def invalidate_v1_sessions
@@ -101,23 +114,30 @@ class ApplicationController < ActionController::Base
     :basic_info
   end
 
-  rescue_from ActiveRecord::RecordNotFound do |e|
-    event_id = Sentry.capture_exception(e)&.event_id
-    flash[:error] = "sorry, couldn't find that object... (404)"
-    flash[:sentry_event_id] = event_id if event_id
-    redirect_to root_path unless request.path == "/"
+  # rescue_from matches the most recently declared handler first, so the
+  # catch-all has to come before the specific ones or it shadows them
+  rescue_from StandardError do |e|
+    raise e if Rails.env.local?
+
+    @event_id = Sentry.capture_exception(e)&.event_id
+    render_error_page "errors/internal_server_error", :internal_server_error
   end
 
-  rescue_from StandardError do |e|
-    event_id = Sentry.capture_exception(e)&.event_id
-    flash[:error] = "Something went wrong. Please try again."
-    flash[:sentry_event_id] = event_id if event_id
+  # a stale form (session reset in another tab) is the client's problem, not a 500
+  rescue_from ActionController::InvalidAuthenticityToken do
+    render_error_page "errors/unprocessable_entity", :unprocessable_content
+  end
 
-    raise e if Rails.env.development?
-    redirect_to root_path unless request.path == "/"
+  rescue_from ActiveRecord::RecordNotFound, ActionController::RoutingError do
+    render_error_page "errors/not_found", :not_found
   end
 
   private
+
+  # html whatever was asked for (an export.csv 404 has no csv template to render)
+  def render_error_page(template, status)
+    render template, layout: "errors", status: status, formats: [ :html ], content_type: "text/html"
+  end
 
   def touch_session_last_seen_at = current_session&.touch_last_seen_at
 end

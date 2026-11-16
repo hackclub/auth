@@ -1,0 +1,4 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <% identities = @activity_identities if defined?(@activity_identities) %>
+  brought <b><%= activity.parameters.key?("identity_id") ? Directory::ActivityPeople.name(activity.parameters["identity_id"], identities) : (activity.trackable&.full_name || Directory::ActivityPeople::DELETED) %></b> into the directory.
+<% end %>
