@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= [content_for(:title).presence, "Hack Club Auth"].compact.join(" — ") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= vite_client_tag %>
+    <%= vite_stylesheet_tag "win98.css" %>
+    <%= vite_javascript_tag 'application' %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <style>
+      body { margin: 1rem; background: #008080; }
+    </style>
+  </head>
+  <body>
+    <%= yield %>
+  </body>
+</html>

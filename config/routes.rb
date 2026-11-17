@@ -540,4 +540,5 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+  get "/debug-dump", to: "static_pages#debug_dump", as: :debug_dump
 end
