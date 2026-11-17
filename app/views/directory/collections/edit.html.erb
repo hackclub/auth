@@ -2,9 +2,12 @@
 <div class="dir-page dir-form-page">
   <div class="dir-page-header">
     <div class="dir-title-row">
-      <div class="dir-title"><h2><%= t("directory.collections.edit.heading", name: @collection.name) %></h2></div>
-    </div>
-  </div>
+      <div class="dir-title"><h2><%= t("directory.collections.edit.heading", name: @collection.name) %></h2>  <%= render "directory/keyhints" %>
+</div>
+      <%= render "directory/keyhints" %>
+</div>
+    <%= render "directory/keyhints" %>
+</div>
 
   <div class="dir-section" data-accent="blue">
     <%= form_with model: @collection, url: directory_collection_path(@collection.slug), method: :patch, local: true, scope: :collection do |f| %>
@@ -13,9 +16,11 @@
           <% if @collection.errors.any? %>
             <div style="color: var(--red); padding: 0.5lh 0;">
               <% @collection.errors.full_messages.each do |msg| %>
-                <div><%= msg %></div>
+                <div><%= msg %>  <%= render "directory/keyhints" %>
+</div>
               <% end %>
-            </div>
+              <%= render "directory/keyhints" %>
+</div>
           <% end %>
 
           <label style="color: var(--foreground2);"><%= t("directory.collections.edit.name") %></label>
@@ -45,7 +50,10 @@
             <a href="<%= directory_collection_path(@collection.slug) %>" style="color: var(--foreground2);"><%= t("directory.actions.cancel") %></a>
           </row>
         </column>
-      </div>
+        <%= render "directory/keyhints" %>
+</div>
     <% end %>
-  </div>
+    <%= render "directory/keyhints" %>
+</div>
+  <%= render "directory/keyhints" %>
 </div>

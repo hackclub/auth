@@ -39,4 +39,5 @@
     </table>
     <% if @apps.empty? %><p style="color: var(--foreground2);"><%= t("directory.apps.none") %></p><% end %>
   </div>
+  <%= render "directory/keyhints", code: "APPS" %>
 </div>

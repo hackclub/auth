@@ -212,7 +212,7 @@ module Directory
           { code: "REPT", label: "Reports", path: directory_reports_path, icon: "⭢" },
           { code: "HLTH", label: "Health", path: directory_health_path, icon: "⭢" },
           { code: "BULK", label: "Import", path: directory_new_import_path, icon: "⭢" },
-          { code: "FEED", label: "Activity", path: directory_activity_path, icon: "⭢" },
+          { code: "LOGS", label: "Activity", path: directory_activity_path, icon: "⭢" },
           { code: "SUDO", label: "View as", path: directory_view_as_path, icon: "⭢" }
         ]
       end

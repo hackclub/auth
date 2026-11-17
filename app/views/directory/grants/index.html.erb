@@ -50,12 +50,5 @@
     <% end %>
   </div>
 
-  <div class="dir-keyhints">
-    <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
-    </row>
-    <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">⌘K</span> command palette
-    </row>
-  </div>
+  <%= render "directory/keyhints", code: "PERM" %>
 </div>

@@ -1,0 +1,13 @@
+<div class="dir-keyhints">
+  <% if local_assigns[:code] %>
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="foreground2"><%= code %></span> this screen
+    </row>
+  <% end %>
+  <row gap-="1" align-="center">
+    <span is-="badge" variant-="background2">Bksp</span> <%= t("directory.layout.back") %>
+  </row>
+  <row gap-="1" align-="center">
+    <span is-="badge" variant-="background2">⌘K</span> command palette
+  </row>
+</div>

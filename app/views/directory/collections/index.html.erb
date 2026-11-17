@@ -107,12 +107,5 @@
     </div>
   <% end %>
 
-  <div class="dir-keyhints">
-    <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">⌘K</span> command palette
-    </row>
-    <row gap-="1" align-="center">
-      <span is-="badge" variant-="background2">/</span> search
-    </row>
-  </div>
+  <%= render "directory/keyhints", code: "HOME" %>
 </div>
