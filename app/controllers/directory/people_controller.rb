@@ -53,6 +53,12 @@ module Directory
         .order(:name)
         .select { |c| policy(c).show? }
 
+      @effective_grants = Directory::EffectiveGrant
+        .where(person_id: @person.id)
+        .includes(:target_collection)
+        .group_by(&:permission)
+        .transform_values { |grants| grants.map(&:target_collection).select { |c| policy(c).show? }.sort_by(&:name) }
+
       @activities = directory_activities_for(@person)
       # Same rule as the memberships above: an entitlement the viewer can't see doesn't get
       # named, linked, or hinted at through the app it's exposed to.

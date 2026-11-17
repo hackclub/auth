@@ -69,6 +69,27 @@
     <% end %>
   </div>
 
+  <%# Permissions — what this person can do %>
+  <% if @effective_grants.any? %>
+    <div class="dir-section" data-accent="yellow">
+      <div class="dir-section-header">
+        <span>can...</span>
+      </div>
+      <table>
+        <tbody>
+          <% %w[manage_members view expose].each do |perm| %>
+            <% collections = @effective_grants[perm] %>
+            <% next unless collections&.any? %>
+            <tr>
+              <td style="white-space: nowrap; vertical-align: top;"><code><%= perm.tr('_', ' ') %></code></td>
+              <td><%= collections.map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(", ").html_safe %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+
   <%# App access — the answer to "why can this person use this app?" %>
   <% if @app_exposures.any? %>
     <div class="dir-section" data-accent="green">
