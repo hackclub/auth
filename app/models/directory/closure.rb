@@ -11,23 +11,45 @@ module Directory
 
     def readonly? = true
 
-    # { ancestor_id => [via_collection] }: the direct group giving the shortest path to each
+    # { ancestor_id => [collection, collection, ...] }: the full chain from the person's
+    # direct group up to the ancestor. e.g. for HQ when person is in Gap Years:
+    # { hq_id => [Gap Years, Full-timers, HQ] }
     def self.batch_via_paths(direct_collection_ids, ancestor_ids)
       return {} if direct_collection_ids.empty? || ancestor_ids.empty?
 
+      # find the shallowest direct group reaching each ancestor
       rows = where(ancestor_id: ancestor_ids)
         .where(descendant_id: direct_collection_ids.to_a)
         .where.not("ancestor_id = descendant_id")
         .order(:depth)
 
-      best_by_ancestor = {}
+      best_leaf = {}
       rows.each do |row|
-        best_by_ancestor[row.ancestor_id] ||= row.descendant_id
+        best_leaf[row.ancestor_id] ||= row.descendant_id
       end
 
-      collections = Directory::Collection.where(id: best_by_ancestor.values.uniq).index_by(&:id)
+      return {} if best_leaf.empty?
 
-      best_by_ancestor.transform_values { |desc_id| collections[desc_id] ? [ collections[desc_id] ] : [] }
+      # for each (ancestor, leaf) pair, walk the chain via the closure table
+      # closure has (ancestor, descendant, depth) for every pair in the tree
+      all_chain_ids = Set.new
+      chains = {}
+      best_leaf.each do |ancestor_id, leaf_id|
+        # get every node between ancestor and leaf: nodes that are descendants
+        # of ancestor AND ancestors of leaf
+        intermediates = where(ancestor_id: ancestor_id)
+          .where(descendant_id: where(ancestor_id: leaf_id).select(:ancestor_id))
+          .where.not("ancestor_id = descendant_id AND depth = 0")
+          .order(:depth)
+          .pluck(:descendant_id)
+        chain = ([ leaf_id ] + intermediates).uniq
+        chains[ancestor_id] = chain
+        all_chain_ids.merge(chain)
+      end
+
+      collections = Directory::Collection.where(id: all_chain_ids.to_a).index_by(&:id)
+
+      chains.transform_values { |ids| ids.filter_map { |id| collections[id] } }
     end
   end
 end
