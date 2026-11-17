@@ -61,7 +61,13 @@
                   <span is-="badge" variant-="green"><%= t("directory.badges.add") %></span>
                 <% else %>
                   <span is-="badge" variant-="background2"><%= t("directory.badges.skip") %></span>
-                  <span style="color: var(--foreground2);"><%= change[:action] == "skip_duplicate" ? t("directory.import.preview.duplicate_of", row: change[:duplicate_of]) : t("directory.import.preview.already_member") %></span>
+                  <span style="color: var(--foreground2);"><%=
+                    case change[:action]
+                    when "skip_duplicate" then t("directory.import.preview.duplicate_of", row: change[:duplicate_of])
+                    when "skip_effective" then t("directory.import.preview.already_effective")
+                    else t("directory.import.preview.already_member")
+                    end
+                  %></span>
                 <% end %>
               </td>
             </tr>
@@ -72,6 +78,9 @@
       <% if @result.errors.empty? %>
         <%= form_with url: directory_import_path, method: :post, local: true do |f| %>
           <%= f.hidden_field :csv_text, value: @csv_string %>
+          <% if @skip_effective_members %>
+            <input type="hidden" name="skip_effective_members" value="1">
+          <% end %>
           <row gap-="2" align-="center">
             <a href="<%= directory_new_import_path %>" style="color: var(--foreground2);"><%= t("directory.import.preview.back") %></a>
             <button type="submit" size-="small"><%= t("directory.import.preview.apply_button") %></button>

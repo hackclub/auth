@@ -18,8 +18,9 @@ module Directory
         return
       end
 
+      @skip_effective_members = params[:skip_effective_members] == "1"
       @csv_string = csv_string
-      @result = Directory::Import.call(csv_string:, dry_run: true, created_by: current_identity)
+      @result = Directory::Import.call(csv_string:, dry_run: true, created_by: current_identity, skip_effective_members: @skip_effective_members)
     end
 
     def create
@@ -30,7 +31,7 @@ module Directory
         return
       end
 
-      result = Directory::Import.call(csv_string:, dry_run: false, created_by: current_identity)
+      result = Directory::Import.call(csv_string:, dry_run: false, created_by: current_identity, skip_effective_members: params[:skip_effective_members] == "1")
 
       if result.valid?
         redirect_to directory_root_path,

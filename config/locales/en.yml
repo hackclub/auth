@@ -1082,10 +1082,12 @@ en:
         paste_label: "or paste csv"
         preview_button: "preview"
         title: "import"
+        skip_effective_label: "skip people who already have access to this entitlement via an alternate path"
       file_too_large: "CSV file is too large (2MB max)."
       no_file: "please upload a CSV file or paste CSV text."
       preview:
         already_member: "already a member"
+        already_effective: "already has access via another path"
         duplicate_of: "duplicate of row %{row}"
         apply_button: "apply import"
         back: "back"

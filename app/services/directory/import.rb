@@ -10,14 +10,15 @@ module Directory
     # upload, pasted text, and the preview's re-post alike
     MAX_CSV_BYTES = 2.megabytes
 
-    def self.call(csv_string:, dry_run: false, created_by:)
-      new(csv_string:, dry_run:, created_by:).call
+    def self.call(csv_string:, dry_run: false, created_by:, skip_effective_members: false)
+      new(csv_string:, dry_run:, created_by:, skip_effective_members:).call
     end
 
-    def initialize(csv_string:, dry_run:, created_by:)
+    def initialize(csv_string:, dry_run:, created_by:, skip_effective_members: false)
       @csv_string = csv_string
       @dry_run = dry_run
       @created_by = created_by
+      @skip_effective_members = skip_effective_members
     end
 
     def call
@@ -153,6 +154,18 @@ module Directory
         Set.new
       end
 
+      # "skip people who already have access via an alternate path": check
+      # effective_memberships (which include indirect access through nested groups)
+      # rather than just direct membership on the target collection
+      effective_pairs = if @skip_effective_members && person_ids.any? && collection_ids.any?
+        Directory::EffectiveMembership
+          .where(collection_id: collection_ids, person_id: person_ids)
+          .pluck(:collection_id, :person_id)
+          .to_set
+      else
+        Set.new
+      end
+
       first_row = {}
       @resolved.each do |entry|
         # The same person and collection twice (exact repeat, different case, email and
@@ -167,14 +180,17 @@ module Directory
 
         person = persons_by_identity[entry[:identity].id]
         existing = person ? active_pairs.include?([ entry[:collection].id, person.id ]) : false
+        effective = !existing && person ? effective_pairs.include?([ entry[:collection].id, person.id ]) : false
 
         if existing
           @changes << { email: entry[:email], collection: entry[:collection].slug, expires_at: entry[:expires_at], action: "skip_existing" }
+        elsif effective
+          @changes << { email: entry[:email], collection: entry[:collection].slug, expires_at: entry[:expires_at], action: "skip_effective" }
         else
           @changes << { email: entry[:email], collection: entry[:collection].slug, expires_at: entry[:expires_at], action: "add" }
         end
 
-        entry[:existing] = existing
+        entry[:existing] = existing || effective
         entry[:person] = person
       end
     end

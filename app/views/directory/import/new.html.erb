@@ -27,6 +27,13 @@
       <%= f.text_area :csv_text, rows: 8, aria_label: "CSV text", placeholder: "email,collection_slug,expires_at\njane@example.com,engineering,\njohn@example.com,ops,2027-01-01", style: "font-family: monospace; width: 100%; border: none;" %>
     </div>
 
+    <div class="dir-section">
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0;">
+        <input type="checkbox" name="skip_effective_members" value="1">
+        <span><%= t("directory.import.new.skip_effective_label") %></span>
+      </label>
+    </div>
+
     <row gap-="1" align-="center">
       <button type="submit" size-="small"><%= t("directory.import.new.preview_button") %></button>
     </row>
