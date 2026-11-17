@@ -78,6 +78,13 @@ module Directory
       @grants = @collection.grants_as_target
         .includes(:grantee_group, :grantee_person, :created_by)
 
+      # people who effectively manage this collection via inherited grants
+      @inherited_managers = Directory::EffectiveGrant
+        .where(target_collection_id: @collection.id, permission: "manage_members")
+        .includes(person: :identity)
+        .map(&:person)
+        .uniq(&:id)
+
       if @collection.group?
         @all_memberships = @collection.memberships
           .includes({ member_person: :identity }, :member_group, :created_by)

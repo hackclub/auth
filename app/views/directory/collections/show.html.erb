@@ -303,6 +303,11 @@
     <% else %>
       <div class="dir-section-empty"><%= t("directory.collections.show.no_grants") %></div>
     <% end %>
+    <% if @inherited_managers.any? %>
+      <div style="color: var(--foreground2); padding: 0.5lh 1ch; font-size: 0.85em;">
+        effective managers: <%= @inherited_managers.map { |p| link_to(p.full_name, directory_person_path(p)) }.join(", ").html_safe %>
+      </div>
+    <% end %>
   </div>
 
   <%# Apps told about this (entitlements only) %>
