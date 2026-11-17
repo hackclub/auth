@@ -94,7 +94,7 @@
               <tr>
                 <td style="white-space: nowrap; vertical-align: top;"><code><%= perm.tr('_', ' ') %></code></td>
                 <td><%= link_to c.name, directory_collection_path(c.slug) %></td>
-                <td style="color: var(--foreground2);">grant</td>
+                <td style="color: var(--foreground2);"><%= @grant_sources[[c.id, perm]] || "grant" %></td>
               </tr>
             <% end %>
           <% end %>

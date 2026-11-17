@@ -59,6 +59,35 @@ module Directory
         .group_by(&:permission)
         .transform_values { |grants| grants.map(&:target_collection).select { |c| policy(c).show? }.sort_by(&:name) }
 
+      # trace each effective grant back to its source grant row
+      person_group_ids = Directory::EffectiveMembership.where(person_id: @person.id).pluck(:collection_id)
+      source_grants = Directory::Grant
+        .where("grantee_person_id = ? OR grantee_group_id IN (?)", @person.id, person_group_ids.presence || [0])
+        .includes(:grantee_group, :grantee_person, :target_collection)
+
+      # build ancestor map for recursive grants: which targets does each grant reach?
+      recursive_grant_targets = {}
+      source_grants.select(&:recursive).each do |g|
+        descendant_ids = Directory::Closure.where(ancestor_id: g.target_collection_id).pluck(:descendant_id)
+        descendant_ids.each { |did| recursive_grant_targets[[did, g.permission]] = g }
+      end
+
+      @grant_sources = {}
+      source_grants.each do |g|
+        key = [g.target_collection_id, g.permission]
+        if g.grantee_person_id == @person.id
+          @grant_sources[key] = "direct grant on you"
+        elsif g.grantee_group
+          @grant_sources[key] = "member of #{g.grantee_group.name}"
+        end
+      end
+      # fill in recursive grant sources for targets that didn't match directly
+      recursive_grant_targets.each do |key, g|
+        next if @grant_sources.key?(key)
+        source = g.grantee_person_id == @person.id ? "you" : g.grantee_group&.name
+        @grant_sources[key] = "#{source} on #{g.target_collection.name} (recursive)"
+      end
+
       @activities = directory_activities_for(@person)
       # Same rule as the memberships above: an entitlement the viewer can't see doesn't get
       # named, linked, or hinted at through the app it's exposed to.
