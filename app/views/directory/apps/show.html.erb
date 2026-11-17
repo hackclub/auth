@@ -2,16 +2,12 @@
 <div class="dir-page">
   <div class="dir-page-header">
     <div class="dir-title-row">
-      <div class="dir-title"><h2><%= @app.name %></h2>  <%= render "directory/keyhints" %>
-</div>
-      <%= render "directory/keyhints" %>
-</div>
-    <%= render "directory/keyhints" %>
-</div>
+      <div class="dir-title"><h2><%= @app.name %></h2></div>
+    </div>
+  </div>
 
   <div class="dir-section">
     <%= render "developer_apps/directory_wiring", app: @app, return_to: directory_app_path(@app) %>
-    <%= render "directory/keyhints" %>
-</div>
+  </div>
   <%= render "directory/keyhints" %>
 </div>
