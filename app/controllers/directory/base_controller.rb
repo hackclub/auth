@@ -198,22 +198,22 @@ module Directory
     end
 
     def directory_kbar_data
-      shortcuts = [ { code: "MYAX", label: "My access", path: directory_my_access_path, icon: "⭢" } ]
+      shortcuts = [ { code: "MINE", label: "My access", path: directory_my_access_path, icon: "⭢" } ]
       # grantless members can only open their own access page; everything else 404s for them
       if directory_browsable?
-        shortcuts.unshift({ code: "DRCT", label: "Directory home", path: directory_root_path, icon: "⌂" })
-        shortcuts << { code: "DSRC", label: "Search", path: directory_search_path, icon: "⌕" }
+        shortcuts.unshift({ code: "HOME", label: "Directory home", path: directory_root_path, icon: "⌂" })
+        shortcuts << { code: "FIND", label: "Search", path: directory_search_path, icon: "⌕" }
       end
       if directory_admin?
         shortcuts += [
-          { code: "DPPL", label: "People", path: directory_people_path, icon: "⭢" },
-          { code: "DGRT", label: "Grants", path: directory_all_grants_path, icon: "⭢" },
-          { code: "DAPP", label: "Apps", path: directory_apps_path, icon: "⭢" },
-          { code: "DRPT", label: "Reports", path: directory_reports_path, icon: "⭢" },
-          { code: "DHLT", label: "Health", path: directory_health_path, icon: "⭢" },
-          { code: "DIMP", label: "Import", path: directory_new_import_path, icon: "⭢" },
-          { code: "DACT", label: "Activity", path: directory_activity_path, icon: "⭢" },
-          { code: "DVAS", label: "View as", path: directory_view_as_path, icon: "⭢" }
+          { code: "FOLK", label: "People", path: directory_people_path, icon: "⭢" },
+          { code: "PERM", label: "Grants", path: directory_all_grants_path, icon: "⭢" },
+          { code: "APPS", label: "Apps", path: directory_apps_path, icon: "⭢" },
+          { code: "REPT", label: "Reports", path: directory_reports_path, icon: "⭢" },
+          { code: "HLTH", label: "Health", path: directory_health_path, icon: "⭢" },
+          { code: "BULK", label: "Import", path: directory_new_import_path, icon: "⭢" },
+          { code: "FEED", label: "Activity", path: directory_activity_path, icon: "⭢" },
+          { code: "SUDO", label: "View as", path: directory_view_as_path, icon: "⭢" }
         ]
       end
       if current_identity.active_for_backend?
