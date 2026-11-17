@@ -29,6 +29,10 @@
         <% end %>
       </row>
       <row gap-="2" align-="center">
+        <a href="<%= root_path %>" style="color: var(--foreground2); font-size: 0.85em; text-decoration: none;">← main</a>
+        <% if current_identity.active_for_backend? %>
+          <a href="<%= backend_root_path %>" style="color: var(--foreground2); font-size: 0.85em; text-decoration: none;">backend</a>
+        <% end %>
         <span id="theme-toggle-slot"></span>
         <span style="color: var(--foreground2);"><%= current_identity.first_name %> <%= current_identity.last_name %></span>
         <% if directory_admin? %>
