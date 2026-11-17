@@ -5,83 +5,97 @@ class Rack::Attack
   end
 
   throttle("logins/email", limit: 5, period: 5.minutes) do |req|
-    if self.normalize_path(req) == "/login" && req.post?
+    path = normalize_path(req)
+    if path == "/login" && req.post?
       req.params["email"]&.to_s&.downcase&.presence
     end
   end
 
   throttle("logins/ip", limit: 10, period: 5.minutes) do |req|
-    if self.normalize_path(req) == "/login" && req.post?
+    path = normalize_path(req)
+    if path == "/login" && req.post?
       req.ip
     end
   end
 
   throttle("email_verify/attempt", limit: 10, period: 5.minutes) do |req|
-    if req.post? && (m = self.normalize_path(req).match(%r{^/login/(.+)/verify$}))
+    path = normalize_path(req)
+    if req.post? && (m = path.match(%r{^/login/(.+)/verify$}))
       m[1]
     end
   end
 
   throttle("totp_login/attempt", limit: 5, period: 5.minutes) do |req|
-    if req.post? && (m = self.normalize_path(req).match(%r{^/login/(.+)/totp$}))
+    path = normalize_path(req)
+    if req.post? && (m = path.match(%r{^/login/(.+)/totp$}))
       m[1]
     end
   end
 
   throttle("backup_code_login/attempt", limit: 5, period: 5.minutes) do |req|
-    if req.post? && (m = self.normalize_path(req).match(%r{^/login/(.+)/backup_code$}))
+    path = normalize_path(req)
+    if req.post? && (m = path.match(%r{^/login/(.+)/backup_code$}))
       m[1]
     end
   end
 
   throttle("login_email_trigger/attempt", limit: 3, period: 15.minutes) do |req|
-    if req.post? && (m = self.normalize_path(req).match(%r{^/login/(.+)/(resend|webauthn/skip)$}))
+    path = normalize_path(req)
+    if req.post? && (m = path.match(%r{^/login/(.+)/(resend|webauthn/skip)$}))
       m[1]
     end
   end
 
   throttle("login_verify/ip", limit: 20, period: 5.minutes) do |req|
-    if self.normalize_path(req).match?(%r{^/login/.+/(verify|totp|backup_code)$}) && req.post?
+    path = normalize_path(req)
+    if path.match?(%r{^/login/.+/(verify|totp|backup_code)$}) && req.post?
       req.ip
     end
   end
 
   throttle("step_up_generate/ip", limit: 5, period: 15.minutes) do |req|
-    if req.post? && self.normalize_path(req).match?(%r{^/step_up/(send_email_code|resend_email)$})
+    path = normalize_path(req)
+    if req.post? && path.match?(%r{^/step_up/(send_email_code|resend_email)$})
       req.ip
     end
   end
 
   throttle("step_up_verify/ip", limit: 10, period: 5.minutes) do |req|
-    if req.post? && self.normalize_path(req).match?(%r{^/step_up/(verify|webauthn/verify)$})
+    path = normalize_path(req)
+    if req.post? && path.match?(%r{^/step_up/(verify|webauthn/verify)$})
       req.ip
     end
   end
 
   throttle("signup/ip", limit: 5, period: 15.minutes) do |req|
-    if req.post? && (self.normalize_path(req) == "/signup" || self.normalize_path(req) == "/migrate" || self.normalize_path(req) == "/slack" || self.normalize_path(req).match?(%r{^/join/}))
+    path = normalize_path(req)
+    if req.post? && (path == "/signup" || path == "/migrate" || path == "/slack" || path.match?(%r{^/join/}))
       req.ip
     end
   end
 
   throttle("email_change/ip", limit: 3, period: 1.hour) do |req|
-    if self.normalize_path(req) == "/email_changes" && req.post?
+    path = normalize_path(req)
+    if path == "/email_changes" && req.post?
       req.ip
     end
   end
 
   throttle("email_change_verify/ip", limit: 10, period: 5.minutes) do |req|
-    if self.normalize_path(req).match?(%r{^/email_changes/verify/(old|new)$}) && %w[GET POST].include?(req.request_method)
+    path = normalize_path(req)
+    if path.match?(%r{^/email_changes/verify/(old|new)$}) && %w[GET POST].include?(req.request_method)
       req.ip
     end
   end
 
   throttle("oauth_token/ip", limit: 20, period: 1.minute) do |req|
-    req.ip if self.normalize_path(req) == "/oauth/token" && req.post?
+    path = normalize_path(req)
+    req.ip if path == "/oauth/token" && req.post?
   end
 
   throttle("global/ip", limit: 1000, period: 1.hour) do |req|
-    req.ip unless self.normalize_path(req).start_with?("/api/", "/oauth/")
+    path = normalize_path(req)
+    req.ip unless path.start_with?("/api/", "/oauth/")
   end
 
   self.throttled_responder = lambda do |env|
