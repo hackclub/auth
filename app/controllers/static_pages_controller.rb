@@ -35,6 +35,32 @@ class StaticPagesController < ApplicationController
   def security
   end
 
+  def ruhq
+    @person = Directory::Person.find_by(identity: current_identity)
+    @hq_slugs = %w[hq hcb gap-years]
+    @hq_collections = Directory::Collection.where(slug: @hq_slugs).index_by(&:slug)
+
+    @memberships = {}
+    if @person
+      @hq_collections.each do |slug, collection|
+        em = Directory::EffectiveMembership.find_by(person_id: @person.id, collection_id: collection.id)
+        next unless em
+
+        # find the path: which direct memberships lead here?
+        direct = Directory::Membership.active.where(member_person: @person)
+          .includes(:collection).select { |m|
+            Directory::EffectiveMembership.exists?(person_id: @person.id, collection_id: m.collection_id)
+          }
+        path_groups = direct.map(&:collection).select { |c|
+          # is this collection an ancestor of the target?
+          c.id == collection.id || Directory::Closure.exists?(ancestor_id: collection.id, descendant_id: c.id)
+        }
+        @memberships[slug] = path_groups
+      end
+    end
+    render layout: "win98"
+  end
+
   def slack_id = render layout: "minimal"
 
   def debug_dump

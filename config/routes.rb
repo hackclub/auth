@@ -333,6 +333,7 @@ Rails.application.routes.draw do
   get "/slack-id", to: "static_pages#slack_id", as: :slack_id
   get "/oauth/welcome", to: "static_pages#oauth_welcome", as: :oauth_welcome
   get "/security", to: "static_pages#security", as: :security
+  get "/ruhq", to: "static_pages#ruhq", as: :ruhq
   get "/activity", to: "audit_logs#index", as: :audit_logs
 
   # Login system routes

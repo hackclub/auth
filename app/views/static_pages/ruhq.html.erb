@@ -1,0 +1,28 @@
+<% content_for :title, "r u hq?" %>
+<style>
+  .window { max-width: 420px; }
+  .result { padding: 12px; font-size: 14px; }
+  .result.yes { background: #c0ffc0; border: 2px inset; }
+  .result.no { background: #ffc0c0; border: 2px inset; }
+  .cp { cursor: pointer; font-size: 10px; opacity: 0.3; margin-left: 3px; text-decoration: none; color: #000; }
+  .cp:hover { opacity: 1; }
+</style>
+
+<div>
+  <div class="window">
+    <div class="title-bar">
+      <div class="title-bar-text">r u hq?</div>
+    </div>
+    <div class="window-body">
+      <% if @memberships.any? %>
+        <div class="result yes">
+          yes, i have direct membership in <%= @memberships.map { |slug, paths| paths.any? ? "#{slug} via #{paths.map(&:name).join(" → ")}" : slug }.join(", ") %>
+        </div>
+      <% else %>
+        <div class="result no">
+          no, my ID is <span style="font-family: monospace; font-weight: bold;"><%= current_identity.public_id %></span> though! <a href="#" class="cp" onclick="navigator.clipboard.writeText('<%= current_identity.public_id %>'); this.textContent='copied!'; event.preventDefault();">⧉ copy</a>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
