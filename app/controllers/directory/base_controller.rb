@@ -219,11 +219,13 @@ module Directory
       if current_identity.active_for_backend?
         shortcuts << { code: "BKND", label: "Backend", path: backend_root_path, icon: "⭠" }
       end
+      shortcuts << { code: "EXIT", label: "Escape hatch", path: root_path, icon: "⭠" }
 
-      # keep searchUrl even with no scopes, or the palette falls back to the backend endpoint
+      # no defaultScope: the menu shows first; "Search Directory" appears as a scope
+      # item the user can enter (or just start typing an email to auto-enter it)
       search_scopes = directory_browsable? ? [ { key: "directory", label: "Directory", icon: "⭢" } ] : []
 
-      { shortcuts: shortcuts, searchScopes: search_scopes, searchUrl: directory_search_kbar_path, defaultScope: (search_scopes.any? ? "directory" : nil) }
+      { shortcuts: shortcuts, searchScopes: search_scopes, searchUrl: directory_search_kbar_path, defaultScope: nil }
     end
     helper_method :directory_kbar_data
   end
