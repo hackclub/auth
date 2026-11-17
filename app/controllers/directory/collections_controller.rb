@@ -76,7 +76,7 @@ module Directory
       end
 
       @grants = @collection.grants_as_target
-        .includes(:grantee_group, :created_by)
+        .includes(:grantee_group, :grantee_person, :created_by)
 
       if @collection.group?
         @all_memberships = @collection.memberships

@@ -1025,6 +1025,7 @@ en:
       add_rate_limited: "too many adds in a short time. wait a few minutes and try again."
       type_slug_to_confirm: "type the collection slug to confirm deletion."
       group_not_found: "that group doesn't exist."
+      grantee_not_found: "that group or person doesn't exist."
       invalid_expires_at: "expiration date isn't a valid date."
       expires_at_in_past: "expiration date has to be in the future."
       grant_already_exists: "that grant already exists."

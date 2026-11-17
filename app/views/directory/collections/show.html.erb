@@ -257,7 +257,7 @@
     <% if directory_admin? %>
       <%= form_with url: directory_collection_grants_path(@collection.slug), method: :post, local: true do |f| %>
         <div class="dir-section-form">
-          <%= f.text_field :grantee_group_slug, placeholder: t("directory.collections.show.grantee_placeholder"), aria_label: "grantee group", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
+          <%= f.text_field :grantee_group_slug, placeholder: "group slug or person email…", aria_label: "grantee", data: { directory_picker: true, scope: "all", url: directory_picker_search_path } %>
           <%= f.select :permission, [["view", "view"], ["manage members", "manage_members"], ["expose", "expose"]] %>
           <label style="color: var(--foreground2); white-space: nowrap;"><%= f.check_box :recursive %> <%= t("directory.collections.show.recursive_label") %></label>
           <button type="submit" size-="small"><%= t("directory.collections.show.add_grant") %></button>
@@ -266,20 +266,30 @@
     <% end %>
     <% if @grants.any? %>
       <table>
-        <thead><tr><th><%= t("directory.collections.show.col_group") %></th><th><%= t("directory.collections.show.col_permission") %></th><th></th><th><%= t("directory.collections.show.col_by") %></th><% if directory_admin? %><th></th><% end %></tr></thead>
+        <thead><tr><th>grantee</th><th><%= t("directory.collections.show.col_permission") %></th><th></th><th><%= t("directory.collections.show.col_by") %></th><% if directory_admin? %><th></th><% end %></tr></thead>
         <tbody>
           <% @grants.each do |grant| %>
             <tr>
-              <td><%= collection_link(grant.grantee_group) %></td>
+              <td>
+                <% if grant.grantee_group %>
+                  <%= collection_link(grant.grantee_group) %>
+                  <span is-="badge" variant-="blue"><%= t("directory.badges.group") %></span>
+                <% elsif grant.grantee_person %>
+                  <%= link_to grant.grantee_person.full_name, directory_person_path(grant.grantee_person) %>
+                  <span is-="badge" variant-="background2">person</span>
+                <% end %>
+              </td>
               <td><code><%= grant.permission.tr('_', ' ') %></code></td>
               <td><% if grant.recursive %><span is-="badge" variant-="background2"><%= t("directory.badges.recursive") %></span><% else %>—<% end %></td>
               <td style="color: var(--foreground2);"><%= grant.created_by&.full_name || "—" %></td>
               <% if directory_admin? %>
                 <td style="text-align: right; white-space: nowrap;">
-                  <% if grant.recursive %>
-                    <%= button_to t("directory.collections.show.make_direct"), directory_collection_grant_path(@collection.slug, grant), method: :patch, params: { recursive: "0" }, data: { confirm: t("directory.collections.show.make_direct_confirm") }, form: { style: "display: inline;" } %>
-                  <% elsif @collection.group? %>
-                    <%= button_to t("directory.collections.show.make_recursive"), directory_collection_grant_path(@collection.slug, grant), method: :patch, params: { recursive: "1" }, form: { style: "display: inline;" } %>
+                  <% if grant.grantee_group_id.present? %>
+                    <% if grant.recursive %>
+                      <%= button_to t("directory.collections.show.make_direct"), directory_collection_grant_path(@collection.slug, grant), method: :patch, params: { recursive: "0" }, data: { confirm: t("directory.collections.show.make_direct_confirm") }, form: { style: "display: inline;" } %>
+                    <% elsif @collection.group? %>
+                      <%= button_to t("directory.collections.show.make_recursive"), directory_collection_grant_path(@collection.slug, grant), method: :patch, params: { recursive: "1" }, form: { style: "display: inline;" } %>
+                    <% end %>
                   <% end %>
                   <%= button_to t("directory.actions.remove"), directory_collection_grant_path(@collection.slug, grant), method: :delete, data: { confirm: t("directory.collections.show.remove_grant_confirm") }, class: "btn-destructive", form: { style: "display: inline;" } %>
                 </td>

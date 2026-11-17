@@ -7,7 +7,7 @@ module Directory
       add_breadcrumb t("directory.grants.index.title")
 
       @grants = Directory::Grant
-        .includes(:grantee_group, :target_collection, :created_by)
+        .includes(:grantee_group, :grantee_person, :target_collection, :created_by)
         .order(:created_at)
         .page(params[:page]).per(50)
     end
@@ -16,11 +16,24 @@ module Directory
       @collection = find_visible_collection!(params[:collection_slug])
       authorize Directory::Grant
 
-      grantee = Directory::Collection.groups.find_by!(slug: params[:grantee_group_slug]&.strip)
+      # the picker sets grantee_group_slug to the display text (slug or email) and
+      # grantee_group_slug_id to the public ID (dcol!xxx or dper!xxx). prefer the ID.
+      grantee_id = params[:grantee_group_slug_id]&.strip.presence || params[:grantee_group_slug]&.strip
+      grant_attrs = { permission: params[:permission] }
 
-      # re-adding an existing grant can only turn recursion on: the box is unticked by
-      # default, so reading "unticked" as "off" would silently strip it
-      grant = @collection.grants_as_target.find_or_initialize_by(grantee_group: grantee, permission: params[:permission])
+      if grantee_id&.start_with?("dper!")
+        person = Directory::Person.find_by_public_id(grantee_id)
+        raise ActiveRecord::RecordNotFound, "person not found" unless person
+        grant_attrs[:grantee_person] = person
+      elsif grantee_id&.start_with?("dcol!")
+        grantee = Directory::Collection.groups.find_by_public_id!(grantee_id)
+        grant_attrs[:grantee_group] = grantee
+      else
+        grantee = Directory::Collection.groups.find_by!(slug: grantee_id)
+        grant_attrs[:grantee_group] = grantee
+      end
+
+      grant = @collection.grants_as_target.find_or_initialize_by(grant_attrs)
       updating = grant.persisted?
       if updating && (grant.recursive || params[:recursive] != "1")
         redirect_back fallback_location: directory_collection_path(@collection.slug),
@@ -28,7 +41,7 @@ module Directory
         return
       end
 
-      grant.recursive = params[:recursive] == "1"
+      grant.recursive = params[:recursive] == "1" if grant.grantee_group_id.present?
       grant.created_by_identity_id ||= current_identity.id
       cause = updating ? "grant_updated" : "grant_created"
       Directory.mutate!(cause: Directory.cause(cause, actor: current_identity.id)) { grant.save! }
@@ -37,7 +50,7 @@ module Directory
         notice: t(updating ? "directory.flash.grant_updated" : "directory.flash.grant_added")
     rescue ActiveRecord::RecordNotFound
       missing_collection! unless @collection
-      redirect_back fallback_location: collection_fallback_path, alert: t("directory.flash.group_not_found")
+      redirect_back fallback_location: collection_fallback_path, alert: t("directory.flash.grantee_not_found")
     rescue ActiveRecord::RecordInvalid => e
       redirect_back fallback_location: collection_fallback_path, alert: e.record.errors.full_messages.to_sentence
     rescue ActiveRecord::RecordNotUnique

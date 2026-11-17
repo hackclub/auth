@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_17_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -255,7 +255,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_000001) do
     t.boolean "recursive", default: false, null: false
     t.bigint "created_by_identity_id"
     t.datetime "created_at", null: false
-    t.index ["grantee_group_id", "target_collection_id", "permission"], name: "idx_grants_unique", unique: true
+    t.bigint "grantee_person_id"
+    t.index ["grantee_group_id", "target_collection_id", "permission"], name: "idx_grants_unique_group", unique: true, where: "(grantee_group_id IS NOT NULL)"
+    t.index ["grantee_person_id", "target_collection_id", "permission"], name: "idx_grants_unique_person", unique: true, where: "(grantee_person_id IS NOT NULL)"
+    t.index ["grantee_person_id"], name: "index_directory_grants_on_grantee_person_id"
     t.index ["target_collection_id"], name: "index_directory_grants_on_target_collection_id"
     t.check_constraint "permission::text = ANY (ARRAY['view'::character varying::text, 'manage_members'::character varying::text, 'expose'::character varying::text])", name: "chk_grant_permission"
   end
@@ -897,6 +900,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_000001) do
   add_foreign_key "directory_exposures", "oauth_applications", column: "app_id", on_delete: :cascade
   add_foreign_key "directory_grants", "directory_collections", column: "grantee_group_id", on_delete: :cascade
   add_foreign_key "directory_grants", "directory_collections", column: "target_collection_id", on_delete: :cascade
+  add_foreign_key "directory_grants", "directory_people", column: "grantee_person_id"
   add_foreign_key "directory_grants", "identities", column: "created_by_identity_id", on_delete: :nullify
   add_foreign_key "directory_memberships", "directory_collections", column: "collection_id", on_delete: :cascade
   add_foreign_key "directory_memberships", "directory_collections", column: "member_group_id", on_delete: :cascade

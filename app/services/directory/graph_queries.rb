@@ -75,6 +75,7 @@ module Directory
           SELECT g.id AS grant_id, g.target_collection_id AS collection_id, g.permission,
                  g.grantee_group_id, 0 AS depth, NULL::timestamptz AS path_expires_at
           FROM directory_grants g
+          WHERE g.grantee_group_id IS NOT NULL
           UNION ALL
           SELECT gt.grant_id, m.member_group_id, gt.permission, gt.grantee_group_id,
                  gt.depth + 1,
@@ -97,12 +98,19 @@ module Directory
                CASE WHEN bool_or(path_expires_at IS NULL) THEN NULL
                     ELSE MAX(path_expires_at) END AS expires_at
         FROM (
+          -- group grants: people in the grantee group get the permission
           SELECT em.person_id, gt.collection_id AS target_collection_id, gt.permission,
                  CASE WHEN gt.path_expires_at IS NULL THEN em.expires_at
                       WHEN em.expires_at IS NULL THEN gt.path_expires_at
                       ELSE LEAST(gt.path_expires_at, em.expires_at) END AS path_expires_at
           FROM grant_targets gt
           INNER JOIN #{em_table} em ON em.collection_id = gt.grantee_group_id
+          UNION ALL
+          -- person grants: direct, no membership join needed
+          SELECT g.grantee_person_id AS person_id, g.target_collection_id, g.permission,
+                 NULL::timestamptz AS path_expires_at
+          FROM directory_grants g
+          WHERE g.grantee_person_id IS NOT NULL
         ) raw
         GROUP BY person_id, target_collection_id, permission
       SQL

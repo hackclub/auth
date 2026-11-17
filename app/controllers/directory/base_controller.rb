@@ -82,7 +82,7 @@ module Directory
 
       trackables = records.filter_map(&:trackable).group_by(&:class)
       {
-        Directory::Grant => %i[grantee_group target_collection],
+        Directory::Grant => %i[grantee_group grantee_person target_collection],
         Directory::Person => :identity
       }.each do |klass, associations|
         next unless trackables[klass]
