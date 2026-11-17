@@ -40,7 +40,7 @@ class StaticPagesController < ApplicationController
   def debug_dump
     if current_identity
       @ident = Identity
-        .includes(:totps, :webauthn_credentials, :addresses, :email_change_requests, :verification_cases,
+        .includes(:totps, :webauthn_credentials, :addresses, :email_change_requests, :verification_cases, :backend_user,
                   directory_person: { effective_memberships: :collection })
         .preload(:verifications) # not_ignored scope applied after load
         .find(current_identity.id)

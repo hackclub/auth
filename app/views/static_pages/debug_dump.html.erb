@@ -48,7 +48,8 @@
                 ["name", @ident.full_name],
                 ["country", @ident.country || "—"],
                 ["created", @ident.created_at.to_fs(:short)],
-              ].each do |k, v|
+                ["dpers", @dir_person&.public_id || "—"],
+                ["beuid", @ident.backend_user&.id&.to_s || "—"],
                 leaf.call(k, v)
               %>
                 <li><span class="leaf"><span class="key"><%= k %>:</span> <span class="val"><%= v %></span></span> <a href="#" class="cp" data-copy-to-clipboard="<%= v %>" onclick="event.preventDefault()" aria-label="copy">⧉</a></li>
