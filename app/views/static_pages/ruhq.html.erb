@@ -22,7 +22,7 @@
         <% end %>
       <% else %>
         <div class="result no">
-          no, my ID is <span style="font-family: monospace; font-weight: bold;"><%= current_identity.public_id %></span> though! <a href="#" class="cp" onclick="navigator.clipboard.writeText('<%= current_identity.public_id %>'); this.textContent='copied!'; event.preventDefault();">⧉ copy</a>
+          <span>no, but my ID is <span style="font-family: monospace; font-weight: bold;"><%= current_identity.public_id %></span> though!</span> <a href="#" class="cp" onclick="navigator.clipboard.writeText(this.previousElementSibling.innerText); this.textContent='copied!'; event.preventDefault();">⧉ copy</a>
         </div>
       <% end %>
     </div>
