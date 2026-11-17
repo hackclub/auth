@@ -70,10 +70,13 @@ module Shortcodes
       if user&.directory_services_admin?
         shortcuts += [
           Shortcode.new(code: "ADUC", label: "Directory", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory"),
-          Shortcode.new(code: "DPPL", label: "Directory people", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/people"),
-          Shortcode.new(code: "DRPT", label: "Directory reports", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/reports"),
-          Shortcode.new(code: "DHLT", label: "Directory health", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/health"),
-          Shortcode.new(code: "DIMP", label: "Directory import", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/import")
+          Shortcode.new(code: "FOLK", label: "People", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/people"),
+          Shortcode.new(code: "PERM", label: "Grants", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/grants"),
+          Shortcode.new(code: "REPT", label: "Reports", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/reports"),
+          Shortcode.new(code: "HLTH", label: "Health", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/health"),
+          Shortcode.new(code: "BULK", label: "Import", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/import"),
+          Shortcode.new(code: "FEED", label: "Dir. activity", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/activity"),
+          Shortcode.new(code: "SUDO", label: "View as", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/view_as")
         ]
       end
 
