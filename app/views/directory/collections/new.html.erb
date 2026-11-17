@@ -51,7 +51,7 @@
             <select name="parent_group_id" style="border: none;">
               <option value="">— none —</option>
               <% @parentable_groups.each do |g| %>
-                <option value="<%= g.id %>"><%= g.name %></option>
+                <option value="<%= g.id %>" <%= "selected" if @prefill_parent_id.to_s == g.id.to_s %>><%= g.name %></option>
               <% end %>
             </select>
             <span style="color: var(--foreground2); font-size: 0.85em;">adds this as a member of the chosen group after creation</span>

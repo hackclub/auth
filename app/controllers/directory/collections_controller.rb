@@ -103,9 +103,10 @@ module Directory
     end
 
     def new
-      @collection = Directory::Collection.new
+      @collection = Directory::Collection.new(kind: params[:kind].presence)
       authorize @collection
       load_parentable_groups
+      @prefill_parent_id = params[:parent_group_id].presence
       add_breadcrumb t("directory.collections.new.title")
     end
 

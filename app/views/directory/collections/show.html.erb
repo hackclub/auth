@@ -166,6 +166,9 @@
             <div class="dir-section-form">
               <%= f.text_field :group_slug, placeholder: t("directory.collections.show.group_slug_placeholder"), aria_label: "group slug", data: { directory_picker: true, scope: "groups", url: directory_picker_search_path } %>
               <button type="submit" size-="small"><%= t("directory.collections.show.add_group") %></button>
+              <% if directory_admin? %>
+                <a href="<%= new_directory_collection_path(kind: "group", parent_group_id: @collection.id) %>" style="color: var(--foreground2); font-size: 0.85em; white-space: nowrap;">or create subgroup</a>
+              <% end %>
             </div>
           <% end %>
         <% end %>
