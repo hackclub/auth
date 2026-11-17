@@ -23,21 +23,21 @@
     </div>
   </div>
 
-  <% direct, via = @visible_memberships.partition { |m| m[:direct] } %>
+  <% groups_only = @visible_memberships.select { |m| m[:collection].group? } %>
+  <% direct_groups, via_groups = groups_only.partition { |m| m[:direct] } %>
 
   <div class="dir-section" data-accent="blue">
     <div class="dir-section-header">
-      <span>memberships <span is-="badge" variant-="blue"><%= direct.size + via.size %></span></span>
+      <span>groups <span is-="badge" variant-="blue"><%= groups_only.size %></span></span>
     </div>
-    <% if direct.any? || via.any? %>
+    <% if groups_only.any? %>
       <table>
-        <thead><tr><th><%= t("directory.people.show.col_collection") %></th><th><%= t("directory.people.show.col_kind") %></th><th>access</th><% if directory_admin? %><th></th><% end %></tr></thead>
+        <thead><tr><th>group</th><th>access</th><% if directory_admin? %><th></th><% end %></tr></thead>
         <tbody>
-          <% direct.each do |m| %>
+          <% direct_groups.each do |m| %>
             <% membership = @direct_memberships_by_collection[m[:collection].id] %>
             <tr>
               <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
-              <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
               <td><span is-="badge" variant-="background2">direct</span></td>
               <% if directory_admin? && membership %>
                 <td style="text-align: right;"><%= button_to t("directory.actions.remove"), directory_collection_membership_path(m[:collection].slug, membership), method: :delete, data: { confirm: "remove #{@person.full_name} from #{m[:collection].name}?" }, class: "btn-destructive" %></td>
@@ -46,20 +46,15 @@
               <% end %>
             </tr>
           <% end %>
-          <% via.each do |m| %>
-            <tr>
+          <% via_groups.each do |m| %>
+            <tr style="opacity: 0.6;">
               <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
-              <td><span is-="badge" variant-="<%= m[:collection].group? ? 'blue' : 'green' %>"><%= m[:collection].kind %></span></td>
               <td style="color: var(--foreground2);">
                 <% if m[:via_path].present? %>
-                  <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
-                  <% if m[:hidden_via].positive? %>
-                    <span style="opacity: 0.5;"> (+<%= m[:hidden_via] %> hidden)</span>
-                  <% end %>
-                <% elsif m[:hidden_via].positive? %>
-                  <span style="opacity: 0.5;"><%= t("directory.collections.show.via_hidden", count: m[:hidden_via]) %></span>
+                  via <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
                 <% end %>
               </td>
+              <% if directory_admin? %><td></td><% end %>
             </tr>
           <% end %>
         </tbody>
@@ -77,20 +72,31 @@
         <span>can...</span>
       </div>
       <table>
+        <thead><tr><th>what</th><th>where</th><th style="color: var(--foreground2);">because</th></tr></thead>
         <tbody>
-          <% if entitlement_memberships.any? %>
+          <% entitlement_memberships.each do |m| %>
             <tr>
               <td style="white-space: nowrap; vertical-align: top;"><code>access</code></td>
-              <td><%= entitlement_memberships.map { |m| link_to(m[:collection].name, directory_collection_path(m[:collection].slug)) }.join(", ").html_safe %></td>
+              <td><%= link_to m[:collection].name, directory_collection_path(m[:collection].slug) %></td>
+              <td style="color: var(--foreground2);">
+                <% if m[:direct] %>
+                  direct member
+                <% elsif m[:via_path].present? %>
+                  via <%= m[:via_path].map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(" → ").html_safe %>
+                <% end %>
+              </td>
             </tr>
           <% end %>
           <% %w[manage_members view expose].each do |perm| %>
             <% collections = @effective_grants[perm] %>
             <% next unless collections&.any? %>
-            <tr>
-              <td style="white-space: nowrap; vertical-align: top;"><code><%= perm.tr('_', ' ') %></code></td>
-              <td><%= collections.map { |c| link_to(c.name, directory_collection_path(c.slug)) }.join(", ").html_safe %></td>
-            </tr>
+            <% collections.each do |c| %>
+              <tr>
+                <td style="white-space: nowrap; vertical-align: top;"><code><%= perm.tr('_', ' ') %></code></td>
+                <td><%= link_to c.name, directory_collection_path(c.slug) %></td>
+                <td style="color: var(--foreground2);">grant</td>
+              </tr>
+            <% end %>
           <% end %>
         </tbody>
       </table>
