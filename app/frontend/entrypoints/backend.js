@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filter = document.createElement('input');
     filter.type = 'text';
     filter.placeholder = `filter ${rows.length} rows…`;
-    filter.style.cssText = 'border: none; width: 100%; padding: 0.25lh 1ch; color: var(--foreground2); font-size: 0.85em;';
+    filter.style.cssText = 'border: none; border-bottom: 1px solid var(--background2); width: 100%; padding: 0.5lh 1ch; color: var(--foreground2); font-size: 0.85em; background: transparent; outline: none;';
     filter.setAttribute('data-filter-input', '');
 
     filter.addEventListener('input', () => {
