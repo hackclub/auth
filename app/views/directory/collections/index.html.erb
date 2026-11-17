@@ -5,7 +5,7 @@
   <div class="dir-page-header">
     <div class="dir-title-row">
       <div class="dir-title">
-        <h2><%= groups.size + entitlements.size %> collections</h2>
+        <h2><%= groups.size + entitlements.size %> <%= "collection".pluralize(groups.size + entitlements.size) %></h2>
       </div>
       <row gap-="1" align-="center">
         <% if directory_admin? %>
@@ -44,7 +44,7 @@
               </td>
               <td style="text-align: right;">
                 <% if pundit_user.can?(:manage_members, g) %>
-                  <span is-="badge" variant-="background2">manage</span>
+                  <a href="<%= directory_collection_path(g.slug) %>" is-="badge" variant-="background2">manage</a>
                 <% end %>
               </td>
             </tr>
@@ -87,7 +87,7 @@
               <td style="text-align: right;"><%= e.exposure_count %></td>
               <td style="text-align: right;">
                 <% if pundit_user.can?(:manage_members, e) %>
-                  <span is-="badge" variant-="background2">manage</span>
+                  <a href="<%= directory_collection_path(e.slug) %>" is-="badge" variant-="background2">manage</a>
                 <% end %>
               </td>
             </tr>

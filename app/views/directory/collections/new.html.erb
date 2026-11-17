@@ -46,6 +46,17 @@
             <span style="color: var(--foreground2); font-size: 0.85em;"><%= t("directory.collections.new.confirm_destroy") %></span>
           </row>
 
+          <% if @parentable_groups.any? %>
+            <label style="color: var(--foreground2); margin-top: 0.5lh;">nest into group (optional)</label>
+            <select name="parent_group_id" style="border: none;">
+              <option value="">— none —</option>
+              <% @parentable_groups.each do |g| %>
+                <option value="<%= g.id %>"><%= g.name %></option>
+              <% end %>
+            </select>
+            <span style="color: var(--foreground2); font-size: 0.85em;">adds this as a member of the chosen group after creation</span>
+          <% end %>
+
           <row gap-="2" align-="center" style="margin-top: 0.5lh;">
             <button type="submit" size-="small"><%= t("directory.collections.new.submit") %></button>
             <a href="<%= directory_collections_path %>" style="color: var(--foreground2);"><%= t("directory.actions.cancel") %></a>

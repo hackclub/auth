@@ -105,6 +105,7 @@ module Directory
     def new
       @collection = Directory::Collection.new
       authorize @collection
+      load_parentable_groups
       add_breadcrumb t("directory.collections.new.title")
     end
 
@@ -114,9 +115,13 @@ module Directory
       authorize @collection
 
       if @collection.valid?
-        Directory.mutate!(cause: Directory.cause("collection_created", actor: current_identity.id)) { @collection.save! }
+        Directory.mutate!(cause: Directory.cause("collection_created", actor: current_identity.id)) do
+          @collection.save!
+          nest_into_parent! if params[:parent_group_id].present?
+        end
         redirect_to directory_collection_path(@collection), notice: t("directory.collections.created")
       else
+        load_parentable_groups
         add_breadcrumb t("directory.collections.new.heading")
         render :new, status: :unprocessable_entity
       end
@@ -246,6 +251,25 @@ module Directory
 
     def collection_params_for_update
       params.require(:collection).permit(:name, :description, :protected, :confirm_destroy)
+    end
+    def load_parentable_groups
+      @parentable_groups = if directory_admin?
+        Directory::Collection.groups.order(:name)
+      else
+        ids = Directory::EffectiveGrant.where(person_id: current_directory_person&.id, permission: "manage_members").pluck(:target_collection_id)
+        Directory::Collection.groups.where(id: ids).order(:name)
+      end
+    end
+
+    def nest_into_parent!
+      parent = Directory::Collection.groups.find_by(id: params[:parent_group_id])
+      return unless parent
+
+      Directory::Membership.create!(
+        collection: parent,
+        member_group: @collection,
+        created_by_identity_id: current_identity.id
+      )
     end
   end
 end
