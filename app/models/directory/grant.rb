@@ -5,9 +5,9 @@ module Directory
     has_paper_trail
     include PublicActivity::Model
     tracked owner: ->(controller, _model) { controller&.try(:user_for_public_activity) },
+            trackable: ->(model) { model.target_collection },
             params: {
               grantee_name: ->(_c, model) { model.grantee_group&.name || model.grantee_person&.full_name },
-              target_name: ->(_c, model) { model.target_collection&.name },
               permission: ->(_c, model) { model.permission },
               recursive: ->(_c, model) { model.recursive }
             }

@@ -82,7 +82,6 @@ module Directory
 
       trackables = records.filter_map(&:trackable).group_by(&:class)
       {
-        Directory::Grant => %i[grantee_group grantee_person target_collection],
         Directory::Person => :identity
       }.each do |klass, associations|
         next unless trackables[klass]
@@ -132,14 +131,10 @@ module Directory
       group && collection_visible?(group) ? params["member_name"] : t("directory.hidden_group")
     end
 
-    # a grant row names its grantee group only to viewers who can see that group; once the
-    # grant is gone there's nothing left to check, so only admins get the stored name
+    # grant activities store the grantee name in parameters; the trackable is now the
+    # target collection, not the grant itself
     def activity_grantee_name(activity)
-      group = activity.trackable.try(:grantee_group)
-      return collection_label(group) if group
-      return activity.parameters["grantee_name"] || "?" if directory_admin?
-
-      t("directory.hidden_group")
+      activity.parameters["grantee_name"].presence || t("directory.hidden_group")
     end
 
     def collection_visible?(collection)
