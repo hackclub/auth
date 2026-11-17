@@ -17,7 +17,7 @@
       <% if @memberships.any? %>
         <% @memberships.each do |slug, chain| %>
           <div class="result yes">
-            yes, i have membership in <strong><%= slug %></strong> via <%= chain.join(" → ") %>
+            yes!! i'm in <strong><%= slug %></strong>! via <%= chain.join(" → ") %>
           </div>
         <% end %>
       <% else %>
