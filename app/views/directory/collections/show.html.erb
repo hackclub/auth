@@ -1,7 +1,7 @@
 <% content_for :title, @collection.name %>
 <%
   expiry_display = ->(expires_at) {
-    return "—" unless expires_at
+    return %(<span style="color: var(--foreground2); opacity: 0.5;">permanent</span>).html_safe unless expires_at
     expired = expires_at <= Time.current
     expiring_soon = !expired && expires_at <= 7.days.from_now
     color = expired ? "red" : (expiring_soon ? "yellow" : "foreground2")

@@ -1,4 +1,7 @@
-<%= form_with url: directory_collection_membership_path(collection.slug, membership), method: :patch, local: true, class: "dir-expiry-form", style: "display: inline-flex; gap: 0.25em; align-items: center;" do |f| %>
-  <input type="date" name="expires_at" value="<%= Directory::Expiry.date_for(membership.expires_at)&.iso8601 %>" min="<%= Directory::Expiry.first_selectable_date.iso8601 %>" aria-label="<%= t("directory.collections.show.expiry_label") %>" style="border: none; width: auto;">
-  <button type="submit" size-="small"><%= t("directory.collections.show.save_expiry") %></button>
-<% end %>
+<details class="dir-inline-edit" style="display: inline;">
+  <summary style="cursor: pointer; color: var(--foreground2); font-size: 0.85em;"><%= membership.expires_at ? "edit" : "set" %></summary>
+  <%= form_with url: directory_collection_membership_path(collection.slug, membership), method: :patch, local: true, style: "display: inline-flex; gap: 0.25em; align-items: center; margin-top: 0.25em;" do |f| %>
+    <input type="date" name="expires_at" value="<%= Directory::Expiry.date_for(membership.expires_at)&.iso8601 %>" min="<%= Directory::Expiry.first_selectable_date.iso8601 %>" aria-label="<%= t("directory.collections.show.expiry_label") %>" style="border: none; width: auto;">
+    <button type="submit" size-="small"><%= t("directory.collections.show.save_expiry") %></button>
+  <% end %>
+</details>
