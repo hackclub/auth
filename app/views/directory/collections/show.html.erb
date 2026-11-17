@@ -313,7 +313,7 @@
       </div>
       <% if @wired_exposures.any? %>
         <table>
-          <thead><tr><th><%= t("directory.collections.show.col_app") %></th><th><%= t("directory.collections.show.col_claim") %></th><th><%= t("directory.collections.show.col_wired_by") %></th><th><%= t("directory.collections.show.col_when") %></th></tr></thead>
+          <thead><tr><th><%= t("directory.collections.show.col_app") %></th><th><%= t("directory.collections.show.col_claim") %></th><th><%= t("directory.collections.show.col_wired_by") %></th><th><%= t("directory.collections.show.col_when") %></th><% if directory_admin? %><th></th><% end %></tr></thead>
           <tbody>
             <% @wired_exposures.each do |exp| %>
               <tr>
@@ -321,6 +321,9 @@
                 <td><code><%= exp.claim_name %></code></td>
                 <td style="color: var(--foreground2);"><%= exp.created_by&.full_name || "—" %></td>
                 <td style="color: var(--foreground2);"><%= exp.created_at.strftime("%Y-%m-%d") %></td>
+                <% if directory_admin? %>
+                  <td style="text-align: right;"><%= button_to t("directory.actions.remove"), directory_exposure_path(exp), method: :delete, data: { confirm: "remove #{exp.claim_name} claim from #{exp.app.name}?" }, class: "btn-destructive" %></td>
+                <% end %>
               </tr>
             <% end %>
           </tbody>

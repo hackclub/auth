@@ -38,6 +38,13 @@ module Directory
         m.merge(via_path: via, hidden_via: m[:via_path].size - via.size)
       end
 
+      # direct membership records for remove buttons
+      @direct_memberships_by_collection = if directory_admin?
+        Directory::Membership.active.where(member_person: @person).index_by(&:collection_id)
+      else
+        {}
+      end
+
       @manageable_collections = Directory::Collection
         .joins("INNER JOIN directory_effective_grants ON directory_effective_grants.target_collection_id = directory_collections.id")
         .where(directory_effective_grants: { person_id: @person.id, permission: "manage_members" })

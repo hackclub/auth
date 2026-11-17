@@ -17,7 +17,7 @@
             <th><%= t("directory.grants.index.col_recursive") %></th>
             <th><%= t("directory.grants.index.col_by") %></th>
             <th><%= t("directory.grants.index.col_date") %></th>
-          </tr>
+            <th></th>
         </thead>
         <tbody>
           <% @grants.each do |grant| %>
@@ -40,7 +40,16 @@
               </td>
               <td style="color: var(--foreground2);"><%= grant.created_by&.full_name || "—" %></td>
               <td style="color: var(--foreground2);"><%= grant.created_at.strftime("%Y-%m-%d") %></td>
-            </tr>
+              <td style="text-align: right; white-space: nowrap;">
+                <% if grant.grantee_group_id.present? %>
+                  <% if grant.recursive %>
+                    <%= button_to "make direct", directory_collection_grant_path(grant.target_collection.slug, grant), method: :patch, params: { recursive: "0" }, data: { confirm: "remove recursion from this grant?" }, form: { style: "display: inline;" } %>
+                  <% elsif grant.target_collection.group? %>
+                    <%= button_to "make recursive", directory_collection_grant_path(grant.target_collection.slug, grant), method: :patch, params: { recursive: "1" }, form: { style: "display: inline;" } %>
+                  <% end %>
+                <% end %>
+                <%= button_to t("directory.actions.remove"), directory_collection_grant_path(grant.target_collection.slug, grant), method: :delete, data: { confirm: "remove this grant?" }, class: "btn-destructive", form: { style: "display: inline;" } %>
+              </td>
           <% end %>
         </tbody>
       </table>
