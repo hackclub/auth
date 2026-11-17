@@ -69,14 +69,21 @@
     <% end %>
   </div>
 
-  <%# Permissions — what this person can do %>
-  <% if @effective_grants.any? %>
+  <%# Capabilities — what this person can do %>
+  <% entitlement_memberships = @visible_memberships.select { |m| m[:collection].entitlement? } %>
+  <% if @effective_grants.any? || entitlement_memberships.any? %>
     <div class="dir-section" data-accent="yellow">
       <div class="dir-section-header">
         <span>can...</span>
       </div>
       <table>
         <tbody>
+          <% if entitlement_memberships.any? %>
+            <tr>
+              <td style="white-space: nowrap; vertical-align: top;"><code>access</code></td>
+              <td><%= entitlement_memberships.map { |m| link_to(m[:collection].name, directory_collection_path(m[:collection].slug)) }.join(", ").html_safe %></td>
+            </tr>
+          <% end %>
           <% %w[manage_members view expose].each do |perm| %>
             <% collections = @effective_grants[perm] %>
             <% next unless collections&.any? %>
