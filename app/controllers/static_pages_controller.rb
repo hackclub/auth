@@ -42,20 +42,40 @@ class StaticPagesController < ApplicationController
 
     @memberships = {}
     if @person
-      @hq_collections.each do |slug, collection|
-        em = Directory::EffectiveMembership.find_by(person_id: @person.id, collection_id: collection.id)
-        next unless em
+      # find which of the target collections this person is an effective member of
+      member_of = Directory::EffectiveMembership
+        .where(person_id: @person.id, collection_id: @hq_collections.values.map(&:id))
+        .pluck(:collection_id).to_set
 
-        # find the path: which direct memberships lead here?
-        direct = Directory::Membership.active.where(member_person: @person)
-          .includes(:collection).select { |m|
-            Directory::EffectiveMembership.exists?(person_id: @person.id, collection_id: m.collection_id)
-          }
-        path_groups = direct.map(&:collection).select { |c|
-          # is this collection an ancestor of the target?
-          c.id == collection.id || Directory::Closure.exists?(ancestor_id: collection.id, descendant_id: c.id)
-        }
-        @memberships[slug] = path_groups
+      # the person's direct membership collection(s)
+      direct_collection_ids = Directory::Membership.active
+        .where(member_person: @person).pluck(:collection_id)
+
+      @hq_collections.each do |slug, target|
+        next unless member_of.include?(target.id)
+
+        # walk from the person's direct group(s) up through the closure to the target
+        # closure has (ancestor_id, descendant_id) — we want paths where
+        # descendant is something the person is directly in, ancestor is the target
+        chain_ids = Directory::Closure
+          .where(ancestor_id: target.id, descendant_id: direct_collection_ids)
+          .where.not(ancestor_id: target.id, descendant_id: target.id) # exclude self-loop unless direct
+          .order(:depth).pluck(:descendant_id)
+
+        if direct_collection_ids.include?(target.id)
+          # direct member of the target itself
+          @memberships[slug] = [target.slug]
+        elsif chain_ids.any?
+          # walk the chain: target → ... → person's direct group
+          leaf = chain_ids.first
+          path_ids = Directory::Closure
+            .where(ancestor_id: target.id, descendant_id: leaf)
+            .order(:depth).pluck(:descendant_id)
+          # path_ids goes from shallowest to deepest: [target, mid, ..., leaf]
+          # but target itself is depth 0 (self-loop), so it's already included
+          chain = Directory::Collection.where(id: [target.id] + path_ids).index_by(&:id)
+          @memberships[slug] = ([target.id] + path_ids).uniq.filter_map { |id| chain[id]&.slug }
+        end
       end
     end
     render layout: "win98"
