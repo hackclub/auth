@@ -50,6 +50,7 @@
                 ["created", @ident.created_at.to_fs(:short)],
                 ["dpers", @dir_person&.public_id || "—"],
                 ["beuid", @ident.backend_user&.id&.to_s || "—"],
+              ].each do |k, v|
                 leaf.call(k, v)
               %>
                 <li><span class="leaf"><span class="key"><%= k %>:</span> <span class="val"><%= v %></span></span> <a href="#" class="cp" data-copy-to-clipboard="<%= v %>" onclick="event.preventDefault()" aria-label="copy">⧉</a></li>
