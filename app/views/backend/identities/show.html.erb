@@ -53,33 +53,26 @@
         <a href="<%= directory_person_path(@dir_person) %>">open in directory ↗</a>
       <% end %>
     </row>
-    <% if @dir_person %>
-      <% if @dir_memberships.any? %>
-        <row gap-="1" style="flex-wrap: wrap;">
-          <% @dir_memberships.each do |em| %>
-            <a href="<%= directory_collection_path(em.collection.slug) %>" is-="badge" variant-="<%= em.collection.group? ? 'blue' : 'green' %>"><%= em.collection.name %></a>
-          <% end %>
-        </row>
-      <% else %>
-        <span style="color: var(--foreground2);">in directory, no group memberships</span>
-      <% end %>
-      <form action="" method="post" style="margin-top: 0.5lh;" data-backend-dir-add>
-        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-        <input type="hidden" name="identifiers[]" value="<%= @identity.public_id %>">
-        <row gap-="1" align-="center">
-          <select name="_collection" style="border: none; flex: 1;" onchange="this.form.action = '/directory/collections/' + this.value + '/memberships/batch_create'">
-            <option value="">— pick a group —</option>
-            <% @dir_collections.each do |c| %>
-              <option value="<%= c.slug %>"><%= c.name %> (<%= c.kind %>)</option>
-            <% end %>
-          </select>
-          <button type="submit" size-="small">add to group</button>
-        </row>
-      </form>
-    <% else %>
-      <span style="color: var(--foreground2);">not in directory</span>
-      <%= button_to "add to directory", directory_people_path, method: :post, params: { email: @identity.primary_email }, form: { style: "display: inline; margin-left: 1ch;" } %>
+    <% if @dir_memberships&.any? %>
+      <row gap-="1" style="flex-wrap: wrap;">
+        <% @dir_memberships.each do |em| %>
+          <a href="<%= directory_collection_path(em.collection.slug) %>" is-="badge" variant-="<%= em.collection.group? ? 'blue' : 'green' %>"><%= em.collection.name %></a>
+        <% end %>
+      </row>
     <% end %>
+    <form action="" method="post" style="margin-top: 0.5lh;">
+      <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+      <input type="hidden" name="identifiers[]" value="<%= @identity.public_id %>">
+      <row gap-="1" align-="center">
+        <select name="_collection" style="border: none; flex: 1;" onchange="this.form.action = '/directory/collections/' + this.value + '/memberships/batch_create'">
+          <option value="">— pick a group —</option>
+          <% @dir_collections.each do |c| %>
+            <option value="<%= c.slug %>"><%= c.name %> (<%= c.kind %>)</option>
+          <% end %>
+        </select>
+        <button type="submit" size-="small">add to group</button>
+      </row>
+    </form>
   <% end %>
 
   <% if @available_scopes.include?("address") %>
