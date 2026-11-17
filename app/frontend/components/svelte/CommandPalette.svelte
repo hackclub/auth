@@ -74,17 +74,9 @@
       }
     }
 
-    // Filtered shortcuts
     const q = query.toLowerCase();
-    const filtered = q
-      ? shortcuts.filter(s => s.code.toLowerCase().includes(q) || s.label.toLowerCase().includes(q))
-      : shortcuts;
 
-    if (filtered.length > 0) {
-      filtered.forEach(s => items.push({ label: s.label, code: s.code, icon: s.icon, path: s.path, shortcut: s }));
-    }
-
-    // Scopes (show when no query or query >= 2)
+    // Scopes first (search is the natural ⌘K→Enter gesture)
     if (!publicIdResult) {
       const filteredScopes = q
         ? searchScopes.filter(s => s.label.toLowerCase().includes(q) || 'search'.includes(q))
@@ -93,6 +85,15 @@
         const hint = Object.entries(scopeShortcuts).find(([, v]) => v === s.key)?.[0];
         items.push({ label: `Search ${s.label}`, hint, icon: '⌕', scope: s });
       });
+    }
+
+    // Filtered shortcuts
+    const filtered = q
+      ? shortcuts.filter(s => s.code.toLowerCase().includes(q) || s.label.toLowerCase().includes(q))
+      : shortcuts;
+
+    if (filtered.length > 0) {
+      filtered.forEach(s => items.push({ label: s.label, code: s.code, icon: s.icon, path: s.path, shortcut: s }));
     }
 
     return items;
