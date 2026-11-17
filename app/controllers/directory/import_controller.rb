@@ -8,6 +8,7 @@ module Directory
     before_action :set_breadcrumbs
 
     def new
+      @collections = Directory::Collection.order(:name)
     end
 
     def preview
@@ -19,8 +20,10 @@ module Directory
       end
 
       @skip_effective_members = params[:skip_effective_members] == "1"
+      @target_collection = Directory::Collection.find_by(id: params[:target_collection_id]) if params[:target_collection_id].present?
       @csv_string = csv_string
-      @result = Directory::Import.call(csv_string:, dry_run: true, created_by: current_identity, skip_effective_members: @skip_effective_members)
+      @result = Directory::Import.call(csv_string:, dry_run: true, created_by: current_identity,
+        skip_effective_members: @skip_effective_members, target_collection: @target_collection)
     end
 
     def create
@@ -31,10 +34,12 @@ module Directory
         return
       end
 
-      result = Directory::Import.call(csv_string:, dry_run: false, created_by: current_identity, skip_effective_members: params[:skip_effective_members] == "1")
+      target = Directory::Collection.find_by(id: params[:target_collection_id]) if params[:target_collection_id].present?
+      result = Directory::Import.call(csv_string:, dry_run: false, created_by: current_identity,
+        skip_effective_members: params[:skip_effective_members] == "1", target_collection: target)
 
       if result.valid?
-        redirect_to directory_root_path,
+        redirect_to (target ? directory_collection_path(target) : directory_root_path),
           notice: t("directory.import.success", created: result.created_count, skipped: result.skipped_count)
       else
         redirect_to directory_new_import_path,

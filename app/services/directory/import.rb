@@ -10,15 +10,16 @@ module Directory
     # upload, pasted text, and the preview's re-post alike
     MAX_CSV_BYTES = 2.megabytes
 
-    def self.call(csv_string:, dry_run: false, created_by:, skip_effective_members: false)
-      new(csv_string:, dry_run:, created_by:, skip_effective_members:).call
+    def self.call(csv_string:, dry_run: false, created_by:, skip_effective_members: false, target_collection: nil)
+      new(csv_string:, dry_run:, created_by:, skip_effective_members:, target_collection:).call
     end
 
-    def initialize(csv_string:, dry_run:, created_by:, skip_effective_members: false)
+    def initialize(csv_string:, dry_run:, created_by:, skip_effective_members: false, target_collection: nil)
       @csv_string = csv_string
       @dry_run = dry_run
       @created_by = created_by
       @skip_effective_members = skip_effective_members
+      @target_collection = target_collection
     end
 
     def call
@@ -58,7 +59,7 @@ module Directory
       return if lines.empty?
 
       first = lines.first
-      if first.length >= 2 && first[0]&.strip&.downcase == "email"
+      if first[0]&.strip&.downcase == "email" && (first.length >= 2 || @target_collection)
         lines = lines.drop(1)
       end
 
@@ -67,8 +68,8 @@ module Directory
 
         email = cols[0].to_s.strip
         email = email.downcase unless email.match?(/\A(ident|dper)!/) # preserve case-sensitive public IDs
-        slug = cols[1]&.strip
-        expires_at_raw = cols[2]&.strip.presence
+        slug = @target_collection&.slug || cols[1]&.strip
+        expires_at_raw = @target_collection ? cols[1]&.strip.presence : cols[2]&.strip.presence
 
         if email.blank?
           @errors << { row: idx + 1, message: "missing email" }

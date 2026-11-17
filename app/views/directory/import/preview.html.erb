@@ -2,7 +2,7 @@
 <div class="dir-page">
   <div class="dir-page-header">
     <div class="dir-title-row">
-      <div class="dir-title"><h2><%= t("directory.import.preview.heading") %></h2></div>
+      <div class="dir-title"><h2><%= t("directory.import.preview.heading") %><%= " → #{@target_collection.name}" if @target_collection %></h2></div>
       <div class="dir-meta">
         <a href="<%= directory_new_import_path %>" style="color: var(--foreground2);"><%= t("directory.import.preview.back_to_import") %></a>
       </div>
@@ -80,6 +80,9 @@
           <%= f.hidden_field :csv_text, value: @csv_string %>
           <% if @skip_effective_members %>
             <input type="hidden" name="skip_effective_members" value="1">
+          <% end %>
+          <% if @target_collection %>
+            <input type="hidden" name="target_collection_id" value="<%= @target_collection.id %>">
           <% end %>
           <row gap-="2" align-="center">
             <a href="<%= directory_new_import_path %>" style="color: var(--foreground2);"><%= t("directory.import.preview.back") %></a>
