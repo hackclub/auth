@@ -13,6 +13,9 @@
         <%= copy_to_clipboard @person.public_id, label: "copy id" do %>
           <code style="color: var(--foreground2); font-size: 0.85em; cursor: pointer;"><%= @person.public_id %></code>
         <% end %>
+        <% if current_identity.active_for_backend? %>
+          <%= link_to "ident", backend_identity_path(@person.identity), style: "color: var(--foreground2); font-size: 0.85em;" %>
+        <% end %>
         <% if directory_admin? %>
           <%= button_to t("directory.people.show.remove"), directory_person_path(@person), method: :delete, data: { confirm: t("directory.people.show.remove_confirm", name: @person.full_name, count: @visible_memberships.size) }, class: "btn-destructive" %>
         <% end %>
