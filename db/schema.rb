@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_17_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_17_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -249,7 +249,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_000001) do
   end
 
   create_table "directory_grants", force: :cascade do |t|
-    t.bigint "grantee_group_id", null: false
+    t.bigint "grantee_group_id"
     t.bigint "target_collection_id", null: false
     t.string "permission", null: false
     t.boolean "recursive", default: false, null: false
@@ -260,6 +260,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_000001) do
     t.index ["grantee_person_id", "target_collection_id", "permission"], name: "idx_grants_unique_person", unique: true, where: "(grantee_person_id IS NOT NULL)"
     t.index ["grantee_person_id"], name: "index_directory_grants_on_grantee_person_id"
     t.index ["target_collection_id"], name: "index_directory_grants_on_target_collection_id"
+    t.check_constraint "(grantee_group_id IS NOT NULL) <> (grantee_person_id IS NOT NULL)", name: "chk_grant_exactly_one_grantee"
     t.check_constraint "permission::text = ANY (ARRAY['view'::character varying::text, 'manage_members'::character varying::text, 'expose'::character varying::text])", name: "chk_grant_permission"
   end
 
