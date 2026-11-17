@@ -54,6 +54,12 @@ module Backend
 
       @addresses = @identity.addresses.order(created_at: :desc)
 
+      if current_user.directory_services_admin?
+        @dir_person = Directory::Person.find_by(identity: @identity)
+        @dir_memberships = @dir_person ? @dir_person.effective_memberships.includes(:collection).order("directory_collections.name") : []
+        @dir_collections = Directory::Collection.order(:name)
+      end
+
       @all_programs = @identity.all_programs.distinct
 
       @owned_apps = @identity.owned_developer_apps
