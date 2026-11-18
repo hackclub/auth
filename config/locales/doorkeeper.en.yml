@@ -79,6 +79,7 @@ en:
           legal_name: 'Legal name'
           address: 'Mailing address'
           rejection_reason: 'Rejection reason'
+          created_at: 'Account created'
           not_set: 'Not set'
       show:
         title: 'Authorization code'

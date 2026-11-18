@@ -76,6 +76,7 @@ Doorkeeper::OpenidConnect.configure do
     normal_claim(:slack_id, scope: :slack_id, response: [ :id_token, :user_info ]) { |ident| ident.slack_id }
     normal_claim(:verification_status, scope: :verification_status, response: [ :id_token, :user_info ]) { |ident| ident.verification_status }
     normal_claim(:ysws_eligible, scope: :verification_status, response: [ :id_token, :user_info ]) { |ident| ident.ysws_eligible }
+    normal_claim(:created_at, scope: :created_at, response: [ :id_token, :user_info ]) { |ident| ident.created_at.iso8601 }
 
     # Directory groups claim — array of claim_names for exposed entitlements the user belongs to
     normal_claim :groups, scope: :groups, response: [ :id_token, :user_info ] do |resource_owner, _scopes, access_token|
