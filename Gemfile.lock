@@ -132,7 +132,7 @@ GEM
     aws-sigv4 (1.12.1)
       aws-eventstream (~> 1, >= 1.0.2)
     base64 (0.3.0)
-    bcrypt (3.1.21)
+    bcrypt (3.1.22)
     better_html (2.2.0)
       actionview (>= 7.0)
       activesupport (>= 7.0)
