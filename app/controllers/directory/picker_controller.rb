@@ -16,18 +16,18 @@ module Directory
       authorize Directory::Person, :picker?
 
       query = params[:q].to_s.strip
-      scope = params[:scope].to_s.presence || "all"
+      scopes = params[:scope].to_s.presence&.split(",") || %w[all]
       results = []
 
-      if scope.in?(%w[people all])
+      if (scopes & %w[people all]).any?
         results.concat(search_people(query))
       end
 
-      if scope.in?(%w[groups all])
+      if (scopes & %w[groups all]).any?
         results.concat(search_collections(query, "group"))
       end
 
-      if scope.in?(%w[entitlements all])
+      if (scopes & %w[entitlements all]).any?
         results.concat(search_collections(query, "entitlement"))
       end
 
@@ -47,7 +47,7 @@ module Directory
         .where("lower(identities.primary_email) IN (?)", emails)
       results = people.map { |p| person_result(p) }
 
-      if policy(Directory::Person).create?
+      if policy(Directory::Person).picker?
         missing = emails - results.map { |r| r[:sublabel].downcase }
         if missing.any?
           Identity.where("lower(primary_email) IN (?)", missing).where.not(id: people.map(&:identity_id)).find_each do |identity|
@@ -71,7 +71,7 @@ module Directory
         person = Directory::Person.joins(:identity).find_by("lower(identities.primary_email) = ?", query.downcase)
         return [ person_result(person) ] if person
 
-        if policy(Directory::Person).create?
+        if policy(Directory::Person).picker?
           identity = Identity.find_by("lower(primary_email) = ?", query.downcase)
           return identity ? [ identity_to_picker_result(identity) ] : []
         end

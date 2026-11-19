@@ -257,7 +257,7 @@
     <% if directory_admin? %>
       <%= form_with url: directory_collection_grants_path(@collection.slug), method: :post, local: true do |f| %>
         <div class="dir-section-form">
-          <%= f.text_field :grantee_group_slug, placeholder: "group slug or person email…", aria_label: "grantee", data: { directory_picker: true, scope: "all", url: directory_picker_search_path } %>
+          <%= f.text_field :grantee_group_slug, placeholder: "group slug or person email…", aria_label: "grantee", data: { directory_picker: true, scope: "groups,people", url: directory_picker_search_path } %>
           <% perms = [["view", "view"], ["manage members", "manage_members"]] %>
           <% perms << ["expose", "expose"] if @collection.entitlement? %>
           <%= f.select :permission, perms %>
