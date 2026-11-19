@@ -33,7 +33,7 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 
   # Testing framework
-  gem "rspec-rails", "~> 7.1"
+  gem "rspec-rails", "~> 8.0"
   gem "webmock", "~> 3.24"
 
   gem "faker"
@@ -50,8 +50,8 @@ gem "vite_rails"
 
 gem "pundit", "~> 2.5"
 
-gem "sentry-ruby", "~> 5.28"
-gem "sentry-rails", "~> 5.28"
+gem "sentry-ruby", "~> 7.0"
+gem "sentry-rails", "~> 7.0"
 
 gem "http", "~> 5.3"
 
@@ -67,7 +67,7 @@ gem "jb", "~> 0.8.2"
 
 gem "wicked", "~> 2.0"
 
-gem "countries", "~> 7.1"
+gem "countries", "~> 8.0"
 
 gem "awesome_print", "~> 1.9"
 
@@ -88,7 +88,7 @@ gem "hashid-rails", "~> 1.4"
 
 gem "public_activity", "~> 3.0"
 
-gem "paper_trail", "~> 16.0"
+gem "paper_trail", "~> 17.0"
 
 gem "ahoy_matey", "~> 5.4"
 gem "chartkick", "~> 5.2"
@@ -123,7 +123,7 @@ gem "faraday-retry", "~> 2.2"
 
 gem "ruby-vips", "~> 2.3"
 
-gem "slack-ruby-client", "~> 2.7"
+gem "slack-ruby-client", "~> 3.0"
 
 gem "redcarpet", "~> 3.6"
 gem "front_matter_parser", "~> 1.0"
@@ -142,7 +142,7 @@ gem "rexml" # Required explicitly in Ruby 3.4+ for SAML XML parsing
 gem "geocoder", "~> 1.8"
 
 gem "rotp", "~> 6.3"
-gem "rqrcode", "~> 2.2"
+gem "rqrcode", "~> 3.0"
 
 gem "webauthn", "~> 3.4"
 
