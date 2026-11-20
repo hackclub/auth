@@ -74,7 +74,7 @@ gem "awesome_print", "~> 1.9"
 gem "active_storage_encryption", "~> 0.3.0"
 
 gem "doorkeeper", "~> 5.8"
-gem "doorkeeper-openid_connect", "~> 1.8"
+gem "doorkeeper-openid_connect", "~> 2.1"
 
 gem "aasm", "~> 5.5"
 
