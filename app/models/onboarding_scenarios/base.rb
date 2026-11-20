@@ -37,6 +37,8 @@ module OnboardingScenarios
     # Whether this scenario accepts adult (>18) users
     def accepts_adults = false
 
+    def adult_ineligible_message = "Hack Club is a community for teenagers. <br/>Unfortunately, you are not eligible to join.".html_safe
+
     # Whether this scenario accepts users under 13
     def accepts_under13 = false
 
