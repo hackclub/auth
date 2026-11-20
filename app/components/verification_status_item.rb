@@ -3,18 +3,14 @@ class Components::VerificationStatusItem < Components::Base
     @identity = identity
   end
 
-  def status
-    @identity.verification_status
-  end
+  def status = @identity.verification_status
 
   def show?
     # Show if not verified and not ineligible
     status != "verified"
   end
 
-  def completed?
-    status == "verified"
-  end
+  def completed? = status == "verified"
 
   def title
     case status
@@ -69,9 +65,7 @@ class Components::VerificationStatusItem < Components::Base
     end
   end
 
-  def clickable?
-    url.present?
-  end
+  def clickable? = url.present?
 
   def view_template
     return unless show?

@@ -41,6 +41,29 @@ module Backend
     def all_fields_access? = all_fields_access
     def can_break_glass? = can_break_glass
     def can_process_deletions? = can_process_deletions
+    def can_ban? = can_ban
+    def saml_officer? = is_saml_officer
+
+    # used from normal HCA sessions, outside Backend::ApplicationController's active? gate,
+    # so it has to honor deactivate! itself
+    def directory_services_admin? = active? && directory_services_admin
+
+    after_save :ensure_directory_person_exists, if: -> { saved_change_to_directory_services_admin? && directory_services_admin && identity_id.present? }
+    validate :prevent_last_admin_removal, if: -> { will_save_change_to_directory_services_admin? && !directory_services_admin && active? }
+
+    # Only active admins count: an inactive one isn't root, so stripping its flag
+    # never costs a working admin. deactivate! doesn't touch the flag and is never
+    # blocked here, since offboarding has to work even for the last admin.
+    private def prevent_last_admin_removal
+      if Backend::User.where(directory_services_admin: true, active: true).where.not(id: id).none?
+        errors.add(:base, "can't remove the last directory services admin")
+      end
+    end
+
+    private def ensure_directory_person_exists
+      Directory::Person.find_or_create_for_identity!(identity, created_by: identity)
+    end
+
 
     # Returns a human-readable string of the user's roles
     def pretty_roles
@@ -50,13 +73,14 @@ module Backend
       roles << "Manual Document Verifier" if manual_document_verifier?
       roles << "Human Endorser" if human_endorser?
       roles << "All Fields Access" if all_fields_access?
+      roles << "SAML Officer" if saml_officer?
+      roles << "Ban" if can_ban?
+      roles << "Directory Services Admin" if directory_services_admin # stored flag, like the rest; status is shown separately
       roles.presence&.join(", ") || "None"
     end
 
     # Returns an array of organized program IDs
-    def organized_program_ids
-      organized_programs.pluck(:id)
-    end
+    def organized_program_ids = organized_programs.pluck(:id)
 
     # Sets the organized programs by IDs
     def organized_program_ids=(ids)

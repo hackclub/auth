@@ -8,7 +8,9 @@ module StepUpAuthenticatable
   private
 
   def require_step_up(action_type, return_to: nil)
-    return unless current_identity.has_two_factor_method?
+    has_2fa = current_identity.has_two_factor_method?
+    email_available = !action_type.to_s.in?(StepUpController::ACTIONS_WITHOUT_EMAIL_FALLBACK)
+    return unless has_2fa || email_available
     return if current_session.recently_stepped_up?(for_action: action_type)
 
     redirect_to new_step_up_path(action_type: action_type, return_to: return_to || request.fullpath)
@@ -16,10 +18,10 @@ module StepUpAuthenticatable
   end
 
   def step_up_required?(action_type = nil)
-    current_identity.has_two_factor_method? && !current_session.recently_stepped_up?(for_action: action_type)
+    has_2fa = current_identity.has_two_factor_method?
+    email_available = action_type.nil? || !action_type.to_s.in?(StepUpController::ACTIONS_WITHOUT_EMAIL_FALLBACK)
+    (has_2fa || email_available) && !current_session.recently_stepped_up?(for_action: action_type)
   end
 
-  def consume_step_up!
-    current_session.clear_step_up!
-  end
+  def consume_step_up! = current_session.clear_step_up!
 end

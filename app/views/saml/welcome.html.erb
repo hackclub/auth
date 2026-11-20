@@ -1,4 +1,5 @@
 <% service_name = @sp_config&.dig(:display_name) || @sp_config&.dig(:entity_id) || "the service" %>
+<% content_for :title, "Continue to #{service_name}" %>
 <%= render Components::AuthWelcome.new(
   headline: "Continue to #{service_name}",
   subtitle: "Sign in or create an account to continue",

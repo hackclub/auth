@@ -47,6 +47,25 @@ Construct an authorization URL with these parameters:
 
 <%= render Components::APIExample.new(method: "GET", url: oauth_authorization_url(client_id: "client_id", redirect_uri: "redirect_uri", response_type: 'code', scope: "email")) %>
 
+#### Prefilling user information
+
+If you already know some of the user's details, you can pass them as additional query parameters on the authorization URL. If the user doesn't have an account yet, these values will prefill the signup form:
+
+- `email`: Email address
+- `first_name`: First name
+- `last_name`: Last name
+- `country`: Country code (ISO 3166-1 alpha-2, e.g. `US`, `IN`)
+- `birthday`: Date of birth (`YYYY-MM-DD`)
+- `phone_number`: Phone number
+
+**Example with prefill:**
+
+```
+<%= oauth_authorization_url(client_id: "client_id", redirect_uri: "redirect_uri", response_type: 'code', scope: "email", first_name: "Fiona", last_name: "Hackworth", email: "fiona@example.com") %>
+```
+
+These parameters are suggestions only — the user can edit any prefilled field before submitting. They are ignored for users who already have an account.
+
 <div class="banner info">
 <b>An aside about scopes:</b>
 <p>

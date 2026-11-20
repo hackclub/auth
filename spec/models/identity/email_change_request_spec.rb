@@ -43,6 +43,8 @@ RSpec.describe Identity::EmailChangeRequest do
     end
 
     it "rejects email with invalid MX records" do
+      allow(Rails.env).to receive(:production?).and_return(true)
+
       request = build(:email_change_request, identity: identity, new_email: "test@thisisnotarealdomain12345.com")
       expect(request).not_to be_valid
       expect(request.errors[:new_email]).to include("domain does not accept email")

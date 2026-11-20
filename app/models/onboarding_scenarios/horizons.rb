@@ -4,13 +4,13 @@ module OnboardingScenarios
 
     def title = "Welcome to Horizons!"
 
-    def form_fields
-      [ :first_name, :last_name, :primary_email, :birthday, :country ]
-    end
+    def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
-    def slack_user_type = :multi_channel_guest
+    def slack_user_type = :full_member
 
-    def slack_channels = chans(:horizons, :horizons_help, :horizons_bulletin, :welcome_to_hack_club)
+    def slack_channels = chans(:horizons, :horizons_help, :horizons_bulletin, :identity_help, :help, :welcome_to_hack_club, :slack_guide, :library, :lounge, :welcome, :happenings, :community, :announcements, :news_wire)
+
+    def first_step = :welcome
 
     def slack_onboarding_flow = :internal_tutorial
 
@@ -23,7 +23,6 @@ module OnboardingScenarios
 
     def dialogue_flow
       {
-        intro: { template: "tutorial/horizons/intro", next: :welcome },
         welcome: { template: "tutorial/horizons/03_welcome", next: nil },
         horizons_arcana: { template: "tutorial/horizons/04a_arcana", next: nil },
         horizons_sol: { template: "tutorial/horizons/04b_sol", next: nil },

@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  <%= activity.parameters[:enabled] ? "enabled" : "disabled" %> feature flag <code><%= activity.parameters[:flag] %></code>
+<% end %>

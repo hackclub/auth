@@ -1,0 +1,3 @@
+<%= render Components::PublicActivity::Snippet.new(activity) do %>
+  promoted saml certificate <code><%= activity.trackable&.fingerprint&.first(8) %></code> to signing.
+<% end %>

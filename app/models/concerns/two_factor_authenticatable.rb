@@ -32,9 +32,7 @@ module TwoFactorAuthenticatable
   end
 
   # Override in subclasses if needed
-  def verification_window
-    15.minutes.ago
-  end
+  def verification_window = 15.minutes.ago
 
   # Override in subclasses to implement verification logic
   def verify_code(code, **options)
@@ -42,17 +40,11 @@ module TwoFactorAuthenticatable
   end
 
   # Human-readable name for this 2FA method
-  def method_name
-    self.class.name.demodulize.titleize
-  end
+  def method_name = self.class.name.demodulize.titleize
 
   # Icon or emoji for this 2FA method (override in subclasses)
-  def method_icon
-    "private"
-  end
+  def method_icon = "private"
 
   # Whether this method can be used as primary authentication
-  def can_be_primary?
-    true
-  end
+  def can_be_primary? = true
 end

@@ -1,0 +1,49 @@
+---
+title: Directory for teams
+description: control who does what and where they do it at.
+category: Directory
+order: 40
+audience: directory
+---
+
+the directory is where we keep track of who's on what team, and who gets into which internal tools. if you're reading this, somebody probably handed you a group to look after. congrats (sorry).
+
+the point is that you manage your people in one place. your staff, your volunteers, the contractor who's around for three weeks: add them here once, instead of inviting them into five tools through five admin dashboards and then forgetting to take them out of four of them when they leave. tools hooked up to the directory can make the account the first time someone signs in, and stop letting them in once you take them out (or their date runs out).
+
+there are two kinds of things in here. **groups** are teams: design, the events crew, whoever. **entitlements** are access: "can get into the HQ tools", "is a bank admin". apps only ever look at entitlements, never groups, so you can reshuffle your team without accidentally locking someone out of something. both can hold people, and both can hold other groups. if `design` is inside `staff`, everyone in design is in staff too.
+
+who can do what to a group or entitlement comes from grants. `view` lets you see who's in it, `manage_members` lets you add and remove people, and `expose` lets you hook an entitlement up to apps you own. a recursive grant also covers every group nested underneath.
+
+<div class="banner info">
+<p>need a new group or entitlement, or want a whole team added to one? file an infra ticket under "Hack Club Auth (internal)". only directory admins can make those. once something exists, anyone with <code>manage_members</code> on it can add and remove people themselves.</p>
+</div>
+
+### what am i in?
+
+[my access](<%= directory_my_access_path %>). it shows everything you're in, how you got there, when it runs out, and which apps it gets you into.
+
+### adding people
+
+open the group from the [directory](<%= directory_root_path %>) and type a name or email into the add box. you can also paste a whole column straight out of a spreadsheet. people need a hack club auth account first, but you can add them by email even if they're not in the directory yet.
+
+email lookups get logged, misses included, so please don't use the add box to check whether someone has an account. you can add up to 100 people at a time, 20 times every 10 minutes.
+
+### expiry
+
+give a membership a date and it lasts until the end of that day, eastern time. after that it just stops counting, everywhere, right away. the row sticks around greyed out so you can renew it from the date box on the row. pushing a date later never logs anybody out.
+
+### taking people out
+
+the confirm box on remove tells you what they're about to lose, including any apps. when someone loses access to an app they can't sign into it again. apps with a session revoker log them out within a minute or so. everywhere else they stay signed in until that app's own session runs out. taking a group out takes out everyone who was only there because of that group.
+
+### nesting
+
+you can put a group inside another group if you manage both (and everything under the one you're moving). putting a group inside an entitlement is admins only, because it hands the keys to that app to everyone who manages the group, forever.
+
+### who did that?
+
+every group and entitlement has an activity tab. who added who, who removed who, expiry changes, grants, renames. when someone pings you asking why they can't get in, look there first.
+
+### admins
+
+directory admins can do all of the above, plus make new groups and entitlements, hand out grants, [import a csv](<%= directory_new_import_path %>) (`email or ident!`, `collection slug or dcol!`, `expires_at`), look at the directory as someone else, and check [health](<%= directory_health_path %>). admin stuff only works if you signed in with TOTP or a passkey.

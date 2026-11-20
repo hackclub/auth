@@ -1,0 +1,50 @@
+<% content_for :title, "Generate SAML Certificate" %>
+<column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>generate saml certificate</h2>
+    <a href="<%= backend_saml_certificates_path %>" style="color: var(--foreground2); text-decoration: none;">cancel</a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%= form_with url: backend_saml_certificates_path, method: :post, local: true do |f| %>
+    <column gap-="1">
+      <column>
+        <%= f.label :cn, "common name (CN)" %>
+        <%= f.text_field :cn, value: SAMLCertificate::DEFAULT_CN, placeholder: SAMLCertificate::DEFAULT_CN %>
+      </column>
+
+      <column>
+        <%= f.label :validity_years, "validity (years)" %>
+        <%= f.number_field :validity_years, value: 1, min: SAMLCertificate::VALIDITY_YEARS.min, max: SAMLCertificate::VALIDITY_YEARS.max %>
+      </column>
+
+      <column>
+        <span style="color: var(--foreground2);">key output directory</span>
+        <span style="font-family: monospace;"><%= SAMLCertificate::KEY_DIR %></span>
+        <span style="color: var(--foreground2); font-size: 0.85em;">set by SAML_KEY_DIR. key written here, 0600. must be persistent storage every web host can read.</span>
+      </column>
+
+      <div is-="separator"></div>
+
+      <column box-="square" style="color: var(--foreground2);">
+        <% if SAMLCertificate.current_rollover.present? %>
+          a <b>rollover</b> already exists. promote or retire it first
+        <% elsif SAMLCertificate.current_signing.present? %>
+          creates <b>rollover</b> alongside current signing cert
+        <% elsif ENV["SAML_IDP_CERT_PATH"].present? %>
+          imports current env var cert as <b>signing</b>, then creates new as <b>rollover</b>
+        <% else %>
+          no existing cert — becomes <b>signing</b> immediately
+        <% end %>
+      </column>
+
+      <div is-="separator"></div>
+
+      <row gap-="1">
+        <%= f.submit "generate" %>
+        <a href="<%= backend_saml_certificates_path %>"><button type="button">cancel</button></a>
+      </row>
+    </column>
+  <% end %>
+</column>

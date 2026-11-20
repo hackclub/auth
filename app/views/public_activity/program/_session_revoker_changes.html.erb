@@ -1,0 +1,14 @@
+<%# url and account id point at someone's infrastructure: collaborators see that they changed, directory admins see to what %>
+<% if (changes = activity.parameters[:changes]).present? %>:
+  <% changes.each_with_index do |(field, change), i| %>
+    <code><%= field %></code>
+    <% if !change.is_a?(Array) %>
+      <%= change %>
+    <% elsif %w[adapter enabled].include?(field.to_s) || directory_admin_session? %>
+      <% shown = ->(value) { value.nil? || value == "" ? "—" : value.to_s } %>
+      <span style="color: var(--pico-muted-color);"><%= shown.(change.first) %></span> &rarr; <b><%= shown.(change.last) %></b>
+    <% else %>
+      changed
+    <% end %><%= "," unless i == changes.size - 1 %>
+  <% end %>
+<% else %>.<% end %>

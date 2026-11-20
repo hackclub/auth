@@ -2,13 +2,9 @@ module OnboardingScenarios
   class SlackJoin < Base
     def self.slug = "slack"
 
-    def title
-      "Join the Hack Club Slack!"
-    end
+    def title = "Join the Hack Club Slack!"
 
-    def form_fields
-      [ :first_name, :last_name, :primary_email, :birthday, :country ]
-    end
+    def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
     def slack_user_type
       Flipper.enabled?(:full_user_open_floodgates_2026_04_06, @identity) ? :full_member : :multi_channel_guest
@@ -28,7 +24,7 @@ module OnboardingScenarios
       channels
     end
 
-    def promotion_channels = Rails.configuration.slack_channels.slice(:announcements, :happenings, :community, :hardware, :code, :ship, :neighbourhood, :library, :lounge, :help).values
+    def promotion_channels = Rails.configuration.slack_channels.slice(:announcements, :lounge, :help, :news_wire, :slack_guide).values
 
     def send_ephemeral_in_channel? = true
 

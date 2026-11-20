@@ -8,8 +8,8 @@
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
-ARG RUBY_VERSION=3.4.4
-FROM docker.io/library/ruby:3.4.4-slim@sha256:4020c2d289c1266fe4a2ea1d0018c22c17435905c514c66f8437555da57723ad AS base
+ARG RUBY_VERSION=3.4.13
+FROM docker.io/library/ruby:3.4.13-slim-bookworm@sha256:8a935f9fb9ccac16cbb8d49c818208382966a8b17844b2d8d4e76fc904fe2642 AS base
 
 # Rails app lives here
 WORKDIR /rails
@@ -43,8 +43,8 @@ ENV BUNDLE_DEPLOYMENT="1" \
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
-ARG LIBHEIF_VERSION=1.21.2
-ARG LIBHEIF_SHA256=79996de959d28ca82ef070c382304683f5cdaf04cbe2953a74587160a3710a36
+ARG LIBHEIF_VERSION=1.23.2
+ARG LIBHEIF_SHA256=1405ed070421459b569ff49deab109b7f1a30a447e72a9b20a4154f774634a44
 # Install packages needed to build gems
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y curl libjemalloc2 libvips imagemagick postgresql-client libffi-dev build-essential git libpq-dev libyaml-dev pkg-config \
@@ -77,8 +77,20 @@ COPY . .
 
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/ && \
-    SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile && \
-    rm -rf node_modules
+    mv config/credentials config/credentials.bak && \
+    mkdir config/credentials && \
+    mv config/credentials.yml.enc config/credentials.yml.enc.bak && \
+    SECRET_KEY_BASE_DUMMY=1 \
+    ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=precompile \
+    ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=precompile \
+    ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=precompile \
+    ./bin/rails assets:precompile ; \
+    STATUS=$? && \
+    rm -rf config/credentials && \
+    mv config/credentials.bak config/credentials && \
+    mv config/credentials.yml.enc.bak config/credentials.yml.enc && \
+    rm -rf node_modules && \
+    exit $STATUS
 
 # Final stage for app image
 FROM base
@@ -91,6 +103,9 @@ COPY --from=build /usr/local/lib/libheif* /usr/local/lib/
 COPY --from=build /usr/local/bin/heif-* /usr/local/bin/
 COPY --from=build /usr/local/include/libheif /usr/local/include/libheif
 RUN ldconfig
+
+# Restrictive ImageMagick policy: only allow JPEG, PNG, HEIC, WEBP, PDF
+COPY config/imagemagick-policy.xml /etc/ImageMagick-6/policy.xml
 
 # Run and own only the runtime files as a non-root users for security
 RUN groupadd --system --gid 1000 rails && \

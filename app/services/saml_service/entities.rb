@@ -1,53 +1,86 @@
 module SAMLService
     module Entities
+        # Signing state as of one SAMLCertificate.version: cert, parsed key and rollover cert read
+        # together, plus anything built from them (idp, metadata). Swapped whole, never mutated piecemeal,
+        # so a request can't end up with one cert's key and another's KeyInfo.
+        class Keys
+            attr_reader :version, :certificate, :private_key, :rollover_certificate
+
+            def initialize(version:, certificate: nil, private_key: nil, rollover_certificate: nil)
+                @version = version
+                @certificate = certificate
+                @private_key = private_key
+                @rollover_certificate = rollover_certificate
+                @memo = {}
+            end
+
+            def signing? = certificate.present? && private_key.present?
+
+            def memo(name) = @memo.fetch(name) { @memo[name] = yield }
+        end
+
+        LOCK = Mutex.new
+
+        # Raised when a service_providers entry in config/saml.yml can't be loaded as written.
+        class ConfigError < StandardError; end
+
+        # anything else raises: an unknown key would otherwise be dropped silently, and a
+        # dropped gate like required_entitlements opens the SP to everyone
+        SP_CONFIG_KEYS = %i[
+            slug entity_id friendly_name tagline icon
+            assertion_consumer_services attribute_consuming_services
+            allow_idp_initiated allow_unsigned_requests signing_certificate
+            attribute_format allowed_attributes allowed_emails
+            required_entitlements entitlements groups_attribute
+        ].freeze
+
+        DEFAULT_GROUPS_ATTRIBUTE = "groups"
+
         class << self
-        # returns a SAML2::IdentityProvider object
-        def idp
-            @idp ||= begin
-                idp = SAML2::IdentityProvider.new
+        # one cheap max(updated_at) per call; rebuilds when any worker (or a console) rotated
+        def keys
+            version = SAMLCertificate.version
+            current = @keys
+            return current if current && current.version == version
 
-                # contacts:
-                idp.contacts = idp_meta.dig(:contacts).map { |details| yaml_to_saml(details, SAML2::Contact.new) }
-
-                # organization metadata:
-                idp.organization = SAML2::Organization.new(
-                    idp_meta.dig(:organization, :name),
-                    idp_meta.dig(:organization, :display_name),
-                    idp_meta.dig(:organization, :url)
-                )
-
-                idp.want_authn_requests_signed = false
-                idp.instance_variable_set(:@name_id_formats, [ SAML2::NameID::Format::UNSPECIFIED ])
-
-                # single sign-on services:
-                idp_meta.dig(:single_sign_on_services)&.each do |sso_config|
-                    endpoint = SAML2::Endpoint.new(sso_config[:location], sso_config[:binding])
-                    idp.single_sign_on_services << endpoint
-                end
-
-                idp.keys << signing_key if signing_key.present?
-
-                idp
+            LOCK.synchronize do
+                @keys = load_keys(version) unless @keys && @keys.version == version
+                @keys
             end
         end
 
-        def idp_entity = @idp_entity ||= begin
-            ent = SAML2::Entity.new
-            ent.entity_id = idp_meta.dig(:entity_id)
-            ent.instance_variable_set(:@roles, [ idp ])
-            ent
-        end
+        # returns a SAML2::IdentityProvider object
+        def idp = idp_for(keys)
+
+        def idp_entity = idp_entity_for(keys)
 
         def metadata_xml
-          @metadata_xml ||= begin
-                              xml = idp_entity.to_xml
-                              xml.root.add_child Nokogiri::XML::Comment.new(xml, " haiii :3 ")
-                              xml.add_child Nokogiri::XML::Comment.new(xml, " curious thing, aren't you? – https://hack.af/gh/auth , glory awaits")
-                              xml.to_s
-                            end
+            k = keys
+            k.memo(:metadata_xml) do
+                xml = idp_entity_for(k).to_xml
+                xml.root.add_child Nokogiri::XML::Comment.new(xml, " haiii :3 ")
+                xml.add_child Nokogiri::XML::Comment.new(xml, " curious thing, aren't you? – https://hack.af/gh/auth , glory awaits")
+                xml.to_s
+            end
         end
+
         def service_providers
-            @service_providers ||= cfg.dig(:service_providers)&.each_with_object({}) do |sp_config, hash|
+            @service_providers ||= build_service_providers(cfg.dig(:service_providers))
+        end
+
+        # { entity_id => sp_config } from a service_providers list, as config_for(:saml) returns it.
+        # A misconfigured SP is skipped (with a Sentry alert) rather than taking down every
+        # other SP — but it's never loaded silently wrong: unknown keys, bad gates, etc. still
+        # trigger the error that keeps that one SP out.
+        def build_service_providers(sp_configs)
+            return {} if sp_configs.nil?
+            raise ConfigError, "SAML service_providers must be a list, got #{sp_configs.inspect}" unless sp_configs.is_a?(Array)
+
+            sp_configs.each_with_object({}) do |sp_config, hash|
+            begin
+            check_sp_entry!(sp_config, hash)
+            label = sp_config[:slug]
+
             sp = SAML2::ServiceProvider.new
             sp.want_assertions_signed = true
 
@@ -73,6 +106,10 @@ module SAMLService
                 sp.attribute_consuming_services << acs
             end
 
+            entitlements = sp_entitlements(sp_config, label)
+            groups_attribute = sp_groups_attribute(sp_config, label)
+            check_groups_attribute_reaches_sp!(sp_config, sp, groups_attribute, label) if entitlements.any?
+
             ent = SAML2::Entity.new
             ent.entity_id = sp_config[:entity_id]
             ent.instance_variable_set(:@roles, [ sp ])
@@ -88,59 +125,168 @@ module SAMLService
                 allow_unsigned_requests: sp_config[:allow_unsigned_requests] || false,
                 attribute_format: sp_config[:attribute_format]&.to_sym || :default,
                 allowed_attributes: sp_config[:allowed_attributes],
-                allowed_emails: sp_config[:allowed_emails],
+                allowed_emails: sp_string_list(sp_config, :allowed_emails, label),
                 signing_certificate: load_sp_certificate(sp_config[:signing_certificate]),
-                slug: sp_config[:slug]
+                slug: sp_config[:slug],
+                required_entitlements: sp_string_list(sp_config, :required_entitlements, label),
+                entitlements: entitlements,
+                groups_attribute: groups_attribute
             }
-            end || {}
+            rescue ConfigError => e
+              Rails.logger.error("[SAML] skipping SP: #{e.message}")
+              Sentry.capture_exception(e)
+            end
+            end
         end
 
         def sp_by_entity_id(entity_id) = service_providers[entity_id]
 
         def sp_by_slug(slug) = service_providers.values.find { |sp_data| sp_data[:slug] == slug }
 
-        def x509_certificate
-            @cert ||= begin
-                return nil unless (cert_path = ENV["SAML_IDP_CERT_PATH"])
-                File.read(cert_path)
-                    .gsub(/-----(BEGIN|END) CERTIFICATE-----/, "")
-                    .gsub(/\n/, "")
-            end
-        end
-
-        def private_key
-            @key ||= begin
-                return nil unless (key_path = ENV["SAML_IDP_KEY_PATH"])
-                File.read(key_path)
-            end
-        end
-
-        def signing_key
-            @signing_key ||= begin
-                return nil unless x509_certificate && private_key
-
-                SAML2::KeyDescriptor.new(x509_certificate, SAML2::KeyDescriptor::Type::SIGNING)
-            end
-        end
-
-        def validate_keys!
-            raise "SAML IdP private key not configured. Set SAML_IDP_KEY_PATH environment variable." unless private_key.present?
-            raise "SAML IdP certificate not configured. Set SAML_IDP_CERT_PATH environment variable." unless x509_certificate.present?
-
-            # Verify key and cert match
-            cert = OpenSSL::X509::Certificate.new("-----BEGIN CERTIFICATE-----\n#{x509_certificate}\n-----END CERTIFICATE-----")
-            key = OpenSSL::PKey::RSA.new(private_key)
-
-            unless cert.check_private_key(key)
-              raise "SAML IdP certificate and private key do not match!"
-            end
-
-            true
-          rescue OpenSSL::PKey::PKeyError, OpenSSL::X509::CertificateError => e
-            raise "Invalid SAML IdP certificate or key: #{e.message}"
+        # Bust the snapshot in this process; other processes notice via SAMLCertificate.version
+        def reset!
+            @keys = nil
+            @service_providers = nil
         end
 
         private
+
+        # The checks that need the raw entry or the SPs loaded before it: shape, unknown keys,
+        # the two identifiers, and that neither is reused (a reused entity_id would let the
+        # later entry silently replace the earlier one, requirements and all).
+        def check_sp_entry!(sp_config, loaded)
+            raise ConfigError, "SAML service_providers entries must be mappings, got #{sp_config.inspect}" unless sp_config.is_a?(Hash)
+
+            label = sp_config[:slug] || sp_config[:entity_id] || "(no slug)"
+            unknown_keys = sp_config.keys - SP_CONFIG_KEYS
+            if unknown_keys.any?
+                raise ConfigError, "SAML SP #{label}: unknown key #{unknown_keys.join(', ')} (known keys: #{SP_CONFIG_KEYS.join(', ')})"
+            end
+
+            %i[slug entity_id].each do |key|
+                raise ConfigError, "SAML SP #{label}: #{key} is required" unless sp_config[key].is_a?(String) && sp_config[key].present?
+            end
+            if loaded.key?(sp_config[:entity_id])
+                raise ConfigError, "SAML SP #{label}: entity_id #{sp_config[:entity_id]} is already used by another SP"
+            end
+            if loaded.each_value.any? { |other| other[:slug] == sp_config[:slug] }
+                raise ConfigError, "SAML SP #{label}: slug is already used by another SP"
+            end
+        end
+
+        # allowed_emails and required_entitlements: one string or a list of them, [] when absent.
+        # A key that's present but empty raises instead of reading as "no restriction", since
+        # that would open the SP to everyone. (A bare string is wrapped so it's matched exactly
+        # and not through String#include?.)
+        def sp_string_list(sp_config, key, label)
+            return [] unless sp_config.key?(key)
+
+            list = Array.wrap(sp_config[key])
+            unless list.any? && list.all? { |item| item.is_a?(String) && item.present? }
+                raise ConfigError, "SAML SP #{label}: #{key} must be a string or a list of strings with at least one entry, got #{sp_config[key].inspect}"
+            end
+
+            list.uniq.freeze
+        end
+
+        # entitlement slug => the value the SP sees for it in the groups attribute
+        def sp_entitlements(sp_config, label)
+            entitlements = sp_config[:entitlements]
+            return {} if entitlements.nil?
+
+            unless entitlements.is_a?(Hash) && entitlements.each_value.all? { |value| value.is_a?(String) && value.present? }
+                raise ConfigError, "SAML SP #{label}: entitlements must map entitlement slugs to the value the SP sees, got #{entitlements.inspect}"
+            end
+
+            entitlements.to_h { |slug, value| [ slug.to_s, value ] }.freeze
+        end
+
+        def sp_groups_attribute(sp_config, label)
+            name = sp_config[:groups_attribute]
+            return DEFAULT_GROUPS_ATTRIBUTE if name.nil?
+            return name if name.is_a?(String) && name.present?
+
+            raise ConfigError, "SAML SP #{label}: groups_attribute must be an attribute name, got #{name.inspect}"
+        end
+
+        # SAMLHelper adds the groups attribute only if allowed_attributes lets it through, and the
+        # SAML2 gem then keeps only the attributes an SP's attribute_consuming_services request.
+        # If either drops it, the SP never sees its entitlements, so refuse the config instead.
+        def check_groups_attribute_reaches_sp!(sp_config, sp, attr_name, label)
+            allowed_attributes = sp_config[:allowed_attributes]
+            if allowed_attributes.present? && !Array.wrap(allowed_attributes).include?(attr_name)
+                raise ConfigError, "SAML SP #{label}: has entitlements, but allowed_attributes doesn't include #{attr_name}, so they'd never be sent"
+            end
+
+            if sp.attribute_consuming_services.empty?
+                raise ConfigError, "SAML SP #{label}: has entitlements but no attribute_consuming_services, so it's sent no attributes at all. add one whose requested_attributes include #{attr_name}"
+            end
+
+            unless sp.attribute_consuming_services.all? { |acs| acs.requested_attributes.any? { |attr| attr.name == attr_name } }
+                raise ConfigError, "SAML SP #{label}: has entitlements, but #{attr_name} isn't in the requested_attributes of every attribute_consuming_service, so the SAML2 gem would drop it"
+            end
+        end
+
+        # DB-backed with env var fallback. Both roles in one query so a promote can't land between them.
+        def load_keys(version)
+            certs = SAMLCertificate.where(role: %w[signing rollover]).order(:id).to_a if version
+            signing = certs&.find(&:signing?)
+            rollover = certs&.find(&:rollover?)
+
+            if signing
+                Keys.new(version:, certificate: signing.x509_certificate_base64, private_key: signing.private_key,
+                         rollover_certificate: rollover&.x509_certificate_base64)
+            elsif (cert_path = ENV["SAML_IDP_CERT_PATH"]) && (key_path = ENV["SAML_IDP_KEY_PATH"])
+                Keys.new(version:,
+                         certificate: Base64.strict_encode64(OpenSSL::X509::Certificate.new(File.read(cert_path)).to_der),
+                         private_key: OpenSSL::PKey::RSA.new(File.read(key_path)),
+                         rollover_certificate: rollover&.x509_certificate_base64)
+            else
+                Keys.new(version:, rollover_certificate: rollover&.x509_certificate_base64)
+            end
+        end
+
+        def idp_entity_for(k)
+            k.memo(:idp_entity) do
+                ent = SAML2::Entity.new
+                ent.entity_id = idp_meta.dig(:entity_id)
+                ent.instance_variable_set(:@roles, [ idp_for(k) ])
+                ent
+            end
+        end
+
+        def idp_for(k) = k.memo(:idp) { build_idp(k) }
+
+        def build_idp(k)
+            idp = SAML2::IdentityProvider.new
+
+            # contacts:
+            idp.contacts = idp_meta.dig(:contacts).map { |details| yaml_to_saml(details, SAML2::Contact.new) }
+
+            # organization metadata:
+            idp.organization = SAML2::Organization.new(
+                idp_meta.dig(:organization, :name),
+                idp_meta.dig(:organization, :display_name),
+                idp_meta.dig(:organization, :url)
+            )
+
+            idp.want_authn_requests_signed = false
+            idp.instance_variable_set(:@name_id_formats, [ SAML2::NameID::Format::UNSPECIFIED ])
+
+            # single sign-on services:
+            idp_meta.dig(:single_sign_on_services)&.each do |sso_config|
+                endpoint = SAML2::Endpoint.new(sso_config[:location], sso_config[:binding])
+                idp.single_sign_on_services << endpoint
+            end
+
+            idp.keys << SAML2::KeyDescriptor.new(k.certificate, SAML2::KeyDescriptor::Type::SIGNING) if k.signing?
+            # rollover cert published in metadata so SPs can pre-trust it
+            if k.rollover_certificate
+                idp.keys << SAML2::KeyDescriptor.new(k.rollover_certificate, SAML2::KeyDescriptor::Type::SIGNING)
+            end
+
+            idp
+        end
 
         def load_sp_certificate(cert_config)
             return nil unless cert_config.present?

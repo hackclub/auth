@@ -1,3 +1,4 @@
+<% content_for :title, "Activity Log" %>
 <% if request.headers["HX-Request"] %>
   <%= render Components::PublicActivity::Container.new(@activities) %>
   <%= paginate @activities %>

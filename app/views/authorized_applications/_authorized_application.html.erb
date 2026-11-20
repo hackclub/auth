@@ -1,41 +1,39 @@
+<% app, tok, scopes = e.values_at(:application, :token, :scopes) %>
 <div class="card-hoverable">
   <div class="session-header">
     <div class="session-icon"><%= inline_icon("private", size: 20) %></div>
     <div class="session-info">
-      <div class="session-device">
-        <%= access_token.application.name %>
-      </div>
+      <div class="session-device"><%= app.name %></div>
     </div>
   </div>
 
   <div class="session-details">
     <div>
       <span class="detail-label"><%= t "authorized_applications.created_at" %></span>
-      <span><%= access_token.created_at.strftime("%b %d, %Y at %l:%M %p") %></span>
+      <span><%= e[:authorized_at].strftime("%b %d, %Y at %l:%M %p") %></span>
     </div>
-    <% if access_token.expires_at %>
+    <% if e[:expires_at] %>
       <div>
         <span class="detail-label"><%= t "authorized_applications.expires_at" %></span>
-        <span><%= access_token.expires_at.strftime("%b %d, %Y") %></span>
+        <span><%= e[:expires_at].strftime("%b %d, %Y") %></span>
       </div>
     <% end %>
-    <% unless access_token.scopes.empty? %>
+    <% if scopes.present? %>
       <div>
         <span class="detail-label"><%= t "authorized_applications.scopes" %></span>
         <span>
-          <% scope_descriptions = access_token.scopes.map { |scope|
-            Program::AVAILABLE_SCOPES.find { |s| s[:name] == scope.to_s }&.dig(:description) || scope.to_s
-          } %>
-          <%= scope_descriptions.join(", ") %>
+          <%= scopes.map { |scope|
+            Program::AVAILABLE_SCOPES.find { |x| x[:name] == scope.to_s }&.dig(:description) || scope.to_s
+          }.join(", ") %>
         </span>
       </div>
     <% end %>
   </div>
 
   <button class="danger small-btn"
-          hx-delete="<%= authorized_application_path(access_token) %>"
+          hx-delete="<%= authorized_application_path(tok) %>"
           hx-target="#authorized-apps-container"
-          hx-confirm="<%= t "authorized_applications.revoke_confirmation", app: access_token.application.name %>">
+          hx-confirm="<%= t "authorized_applications.revoke_confirmation", app: app.name %>">
     <%= t "authorized_applications.revoke" %>
   </button>
 </div>

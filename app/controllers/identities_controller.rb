@@ -34,6 +34,9 @@ class IdentitiesController < ApplicationController
         @prefill_attributes[:last_name] ||= params[:last_name] if params[:last_name].present?
         @prefill_attributes[:country] ||= params[:country] if params[:country].present?
         @prefill_attributes[:birthday] ||= params[:birthday] if params[:birthday].present?
+        @prefill_attributes[:phone_number] ||= params[:phone_number] if params[:phone_number].present?
+        # Extract prefill params embedded in the OAuth return_to URL
+        prefill_from_oauth_return_to.each { |k, v| @prefill_attributes[k] ||= v }
         # Prefill country from GeoIP if not provided
         @prefill_attributes[:country] ||= detected_country_alpha2
         @identity = Identity.new(@prefill_attributes)
@@ -81,7 +84,7 @@ class IdentitiesController < ApplicationController
           unless slack_user_id.present?
             age = Identity.calculate_age(birthday)
 
-            if age >= 19 && !@onboarding_scenario.accepts_adults
+            if age >= 19 && !@onboarding_scenario.accepts_adults && !Flipper.enabled?(:allow_adult_registration_2026_05_28)
               track_event("signup.age_rejected", scenario: analytics_scenario, rejection_type: "too_old")
               @age_restriction = "Hack Club is a community for teenagers. <br/>Unfortunately, you are not eligible to join.".html_safe
               @identity = Identity.new(@prefill_attributes.merge(attrs))
@@ -108,7 +111,9 @@ class IdentitiesController < ApplicationController
         # Ensure country is present; if missing, use GeoIP detection with US fallback
         attrs[:country] ||= detected_country_alpha2
         attrs[:onboarding_scenario] = @onboarding_scenario.class.slug
+        attrs[:registration_ip] = request.remote_ip
         @identity = Identity.new(attrs)
+        @identity.email_typo_confirmed = params[:email_typo_confirmed] == "1"
 
         if @identity.save
             track_event("signup.completed", scenario: analytics_scenario, country: @identity.country)
@@ -131,10 +136,13 @@ class IdentitiesController < ApplicationController
             # Set browser token cookie for security
             cookies.signed["browser_token_#{login_attempt.to_param}"] = {
                 value: login_attempt.browser_token,
-                expires: LoginAttempt::EXPIRATION.from_now
+                expires: LoginAttempt::EXPIRATION.from_now,
+                httponly: true,
+                secure: Rails.env.production?,
+                same_site: :lax
             }
 
-            login_code = Identity::V2LoginCode.create!(identity: @identity)
+            login_code = Identity::V2LoginCode.generate(@identity, ip_address: request.remote_ip, user_agent: request.user_agent)
             if defined?(IdentityMailer)
                 IdentityMailer.v2_login_code(login_code).deliver_later
             end
@@ -178,6 +186,25 @@ class IdentitiesController < ApplicationController
         OnboardingScenarios::DefaultJoin
     end
 
+    def prefill_from_oauth_return_to
+        return {} unless params[:return_to].present?
+        return {} unless params[:return_to].start_with?("/oauth/authorize")
+
+        uri = URI.parse(params[:return_to])
+        query = URI.decode_www_form(uri.query || "").to_h
+
+        {
+          primary_email: query["email"].presence || query["login_hint"].presence,
+          first_name: query["first_name"].presence,
+          last_name: query["last_name"].presence,
+          country: query["country"].presence,
+          birthday: query["birthday"].presence,
+          phone_number: query["phone_number"].presence
+        }.compact
+    rescue URI::InvalidURIError
+        {}
+    end
+
     def scenario_from_oauth_return_to
         return nil unless params[:return_to].present?
         return nil unless params[:return_to].start_with?("/oauth/authorize")
@@ -207,14 +234,12 @@ class IdentitiesController < ApplicationController
     end
 
     def set_return_to
-        @return_to = params[:return_to] if params[:return_to].present?
+        @return_to = url_from(params[:return_to]) if params[:return_to].present?
     end
 
     def portal_onboarding_scenario = @onboarding_scenario
 
-    def identity_params
-        params.require(:identity).permit(:first_name, :last_name, :phone_number, :developer_mode, :saml_debug)
-    end
+    def identity_params = params.require(:identity).permit(:first_name, :last_name, :phone_number, :developer_mode, :saml_debug)
 
     public
 

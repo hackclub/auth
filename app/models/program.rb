@@ -35,6 +35,8 @@ class Program < ApplicationRecord
   audit_field :active, type: :boolean
   audit_field :byline
   audit_field :onboarding_scenario, transform: ->(v) { v&.titleize }
+  audit_field :whoami_enabled, type: :boolean
+  audit_field :whoami_allowed_origin
 
   COLLABORATOR_ACTIVITY_KEYS = %w[
     program.collaborator_invited
@@ -44,13 +46,18 @@ class Program < ApplicationRecord
     program.collaborator_cancelled
   ].freeze
 
-  has_paper_trail
+  has_paper_trail skip: %i[secret program_key_ciphertext program_key_bidx]
 
   include ::Doorkeeper::Orm::ActiveRecord::Mixins::Application
 
   enum :trust_level, { hq_official: 0, community_untrusted: 1, community_trusted: 2 }, default: :hq_official
 
   scope :official, -> { where(trust_level: :hq_official) }
+
+  scope :whoami_for_origin, ->(origin) {
+    where(whoami_enabled: true)
+      .where("LOWER(whoami_allowed_origin) = LOWER(?)", origin.to_s.strip)
+  }
 
   AVAILABLE_SCOPES = OAuthScope::ALL.map { |s| { name: s.name, description: s.description } }.freeze
   COMMUNITY_ALLOWED_SCOPES = OAuthScope::COMMUNITY_ALLOWED
@@ -65,6 +72,10 @@ class Program < ApplicationRecord
   has_many :collaborator_identities, -> { merge(ProgramCollaborator.accepted) },
            through: :program_collaborators, source: :identity
 
+
+  has_many :directory_exposures, class_name: "Directory::Exposure", foreign_key: :app_id, dependent: :destroy
+  has_many :directory_requirements, class_name: "Directory::AppRequirement", foreign_key: :app_id, dependent: :destroy
+  has_one :directory_revoker, class_name: "Directory::AppRevoker", foreign_key: :app_id, dependent: :destroy
   belongs_to :owner_identity, class_name: "Identity", optional: true
 
   validates :name, presence: true
@@ -103,9 +114,7 @@ class Program < ApplicationRecord
     self.scopes = Doorkeeper::OAuth::Scopes.from_array(Array(array).reject(&:blank?)).to_s
   end
 
-  def redirect_uris
-    redirect_uri.to_s.split
-  end
+  def redirect_uris = redirect_uri.to_s.split
 
   def has_scope?(scope_name) = scopes.include?(scope_name.to_s)
 

@@ -1,6 +1,6 @@
-<% if document.files.attached? %>
+<% if record.files.attached? %>
   <column gap-="2">
-    <% document.files.each_with_index do |file, index| %>
+    <% record.files.each_with_index do |file, index| %>
       <column gap-="1">
         <row align-="center between">
           <b><%= index + 1 %>. <%= file.filename %></b>

@@ -1,3 +1,4 @@
+<% content_for :title, "#{@identity.first_name} #{@identity.last_name}" %>
 <column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
   <%# === Header === %>
   <h2><%= @identity.first_name %> <%= @identity.last_name %></h2>
@@ -27,6 +28,12 @@
         <%= button_to "clear photo", clear_slack_photo_backend_identity_path(@identity), method: :post, data: { confirm: "clear #{@identity.first_name}'s Slack profile photo?" }, form: { style: "display:inline" } %>
       <% end %>
     <% end %>
+    <% if @identity.persona_dashboard_url %>
+      <% super_admin_tool(element: "span") do %>
+        <span>·</span>
+        <a href="<%= @identity.persona_dashboard_url %>" target="_blank">persona ↗</a>
+      <% end %>
+    <% end %>
   </row>
 
   <% if @identity.permabanned %>
@@ -37,6 +44,36 @@
 
   <%# === Identity details === %>
   <%= render "backend/shared/identity_details", identity: @identity, show_legal_name: @available_scopes.include?("legal_name") %>
+
+  <% if current_user.directory_services_admin? %>
+    <div is-="separator"></div>
+    <row align-="center between">
+      <span style="color: var(--foreground2); font-style: italic;">directory</span>
+      <% if @dir_person %>
+        <a href="<%= directory_person_path(@dir_person) %>">open in directory ↗</a>
+      <% end %>
+    </row>
+    <% if @dir_memberships&.any? %>
+      <row gap-="1" style="flex-wrap: wrap;">
+        <% @dir_memberships.each do |em| %>
+          <a href="<%= directory_collection_path(em.collection.slug) %>" is-="badge" variant-="<%= em.collection.group? ? 'blue' : 'green' %>"><%= em.collection.name %></a>
+        <% end %>
+      </row>
+    <% end %>
+    <form action="" method="post" style="margin-top: 0.5lh;">
+      <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+      <input type="hidden" name="identifiers[]" value="<%= @identity.public_id %>">
+      <row gap-="1" align-="center">
+        <select name="_collection" style="border: none; flex: 1;" onchange="this.form.action = '/directory/collections/' + this.value + '/memberships/batch_create'">
+          <option value="">— pick a group —</option>
+          <% @dir_collections.each do |c| %>
+            <option value="<%= c.slug %>"><%= c.name %> (<%= c.kind %>)</option>
+          <% end %>
+        </select>
+        <button type="submit" size-="small">add to group</button>
+      </row>
+    </form>
+  <% end %>
 
   <% if @available_scopes.include?("address") %>
     <div is-="separator"></div>
@@ -126,7 +163,8 @@
           <% if @identity.is_alum %><span is-="badge" variant-="foreground2">alum</span><% end %>
           <% if @identity.came_in_through_adult_program %><span is-="badge" variant-="foreground2">adult program</span><% end %>
           <% if @identity.developer_mode %><span is-="badge" variant-="foreground2">developer</span><% end %>
-          <% unless @identity.hq_override || @identity.can_hq_officialize || @identity.is_alum || @identity.came_in_through_adult_program || @identity.developer_mode %>
+          <% if @identity.disallow_slack %><span is-="badge" variant-="red">no slack</span><% end %>
+          <% unless @identity.hq_override || @identity.can_hq_officialize || @identity.is_alum || @identity.came_in_through_adult_program || @identity.developer_mode || @identity.disallow_slack %>
             <span style="color: var(--foreground2);">none</span>
           <% end %>
         </row>
@@ -137,8 +175,55 @@
     </column>
   </row>
 
+  <%# === Feature Flags === %>
+  <% if current_user&.super_admin? || current_user&.manual_document_verifier? %>
+  <div is-="separator"></div>
+  <details>
+    <summary style="color: var(--foreground2); cursor: pointer;">feature flags</summary>
+    <column gap-="0">
+      <% Flipper.features.sort_by { |f| f.name.to_s }.reject { |f| Rails.env.production? && f.name.to_s.start_with?("dev_") }.each do |flag| %>
+        <% global = flag.state == :on %>
+        <% user_enabled = flag.enabled?(@identity) %>
+        <% desc = Rails.configuration.flipper_features[flag.name] %>
+        <row align-="center" gap-="1" style="padding: 0.25em 0;">
+          <% case flag.state %>
+          <% when :on %>
+            <span is-="badge" variant-="green">on</span>
+          <% when :off %>
+            <span is-="badge" variant-="red">off</span>
+          <% when :conditional %>
+            <span is-="badge" variant-="yellow">cond</span>
+          <% end %>
+          <% if current_user&.super_admin? %>
+            <a href="<%= backend_flipper_path %>/features/<%= flag.name %>" target="_blank" style="font-family: monospace;"><%= flag.name %></a>
+          <% else %>
+            <span style="font-family: monospace;"><%= flag.name %></span>
+          <% end %>
+          <% if desc.present? %>
+            <abbr title="<%= desc %>" style="color: var(--foreground2); cursor: help;">(?)</abbr>
+          <% end %>
+          <span style="flex: 1;"></span>
+          <% if global %>
+            <span style="color: var(--foreground2); font-style: italic;">enabled, because it's on for everyone</span>
+          <% elsif user_enabled %>
+            <span is-="badge" variant-="green">enabled</span>
+            <% if current_user&.super_admin? %>
+              <%= button_to "disable", flip_backend_identity_path(@identity, flag: flag.name, state: false), method: :post, form: { style: "display:inline" }, "size-": "small" %>
+            <% end %>
+          <% else %>
+            <span style="color: var(--foreground2);">disabled</span>
+            <% if current_user&.super_admin? %>
+              <%= button_to "enable", flip_backend_identity_path(@identity, flag: flag.name, state: true), method: :post, form: { style: "display:inline" }, "size-": "small" %>
+            <% end %>
+          <% end %>
+        </row>
+      <% end %>
+    </column>
+  </details>
+  <% end %>
+
   <%# === Recent Sessions === %>
-  <% if @sessions.any? %>
+  <% if @sessions.any? && (current_user&.super_admin? || current_user&.manual_document_verifier?) %>
     <div is-="separator"></div>
     <details>
       <summary style="color: var(--foreground2); cursor: pointer;">recent sessions (<%= @active_session_count %> active)
@@ -183,33 +268,68 @@
   <% end %>
 
   <%# === Verifications === %>
-  <% if @verifications.any? %>
-    <div is-="separator"></div>
-    <row align-="center between">
+  <%# always rendered (not gated on @verifications.any?) so staff can
+      vouch or open a manual call case for identities with no
+      verification record yet %>
+  <div is-="separator"></div>
+  <row align-="center between">
+    <row align-="center" gap-="2">
       <span style="color: var(--foreground2); font-style: italic;">verifications</span>
-      <% super_admin_tool(element: "span") do %>
-        <a href="<%= new_vouch_backend_identity_path(@identity) %>">+ vouch</a>
+      <% if @identity.consumed_persona_attempts > 0 %>
+        <span is-="badge" variant-="<%= @identity.persona_verification_locked? ? 'red' : 'yellow' %>">
+          persona: <%= @identity.consumed_persona_attempts %>/<%= Identity::MAX_PERSONA_ATTEMPTS %> attempts
+        </span>
       <% end %>
     </row>
+    <row gap-="1" align-="center">
+      <% super_admin_tool(element: "span") do %>
+        <% if @identity.persona_verification_locked? %>
+          <%= button_to "reset persona attempts",
+                reset_persona_attempts_backend_identity_path(@identity),
+                method: :post,
+                data: { confirm: "Ignore all rejected persona verifications and let #{@identity.first_name} try again?" },
+                form: { style: "display:inline" },
+                style: "color: var(--yellow); font-size: 0.85em;" %>
+        <% end %>
+        <a href="<%= new_vouch_backend_identity_path(@identity) %>">+ vouch</a>
+      <% end %>
+      <% if policy(VerificationCase).create? && !@identity.verification_cases.open_cases.exists? %>
+        <%= form_with url: backend_verification_cases_path, method: :post, local: true, style: "display: inline-flex; align-items: center; gap: 2ch;" do %>
+          <input type="hidden" name="identity_id" value="<%= @identity.public_id %>">
+          <label style="display: inline-flex; align-items: center; gap: 1ch; font-size: 0.85em; color: var(--foreground2); cursor: pointer; white-space: nowrap;" title="for users who refuse persona — document capture happens via their camera on our page instead">
+            <input type="checkbox" name="skip_persona" value="1"> skip persona
+          </label>
+          <button type="submit" is-="button" size-="small" onclick="return confirm('Open a manual verification call case and email a single-use link to <%= j @identity.primary_email %>?')">+ manual call case</button>
+        <% end %>
+      <% end %>
+    </row>
+  </row>
+  <% open_cases = @identity.verification_cases.open_cases.order(created_at: :desc) %>
+  <% if @verifications.none? && open_cases.none? %>
+    <span style="color: var(--foreground2);">no verifications yet</span>
+  <% else %>
     <table>
       <thead>
         <tr><th>type</th><th>status</th><th>submitted</th><th>reason</th><th></th></tr>
       </thead>
       <tbody>
+        <% open_cases.each do |kase| %>
+          <tr>
+            <td>Manual call case</td>
+            <td><span is-="badge" variant-="yellow"><%= kase.status.humanize.downcase %></span></td>
+            <td style="color: var(--foreground2);"><%= kase.created_at.strftime("%b %d, %Y") %></td>
+            <td style="color: var(--foreground2);"><%= kase.document_class.present? ? kase.document_class.humanize.downcase : "—" %></td>
+            <td><%= link_to "view →", backend_verification_case_path(kase) %></td>
+          </tr>
+        <% end %>
         <% @verifications.each do |verification| %>
           <tr>
             <td>
-              <% if verification.is_a?(Verification::AadhaarVerification) %>
-                Aadhaar
-              <% elsif verification.is_a?(Verification::DocumentVerification) %>
-                <%= Identity::Document::FRIENDLY_NAMES[verification.identity_document.document_type.to_sym] %>
-              <% elsif verification.is_a?(Verification::VouchVerification) %>
-                Vouch
-              <% end %>
+              <%= verification.document_type_label %>
               <% if verification.ignored_at.present? %> <span is-="badge" variant-="yellow">ignored</span><% end %>
             </td>
             <td>
-              <span is-="badge" variant-="<%= verification.pending? ? 'yellow' : verification.approved? ? 'green' : 'red' %>"><%= verification.status %></span>
+              <span is-="badge" variant-="<%= verification.approved? ? 'green' : verification.rejected? ? 'red' : 'yellow' %>"><%= verification.status %></span>
             </td>
             <td style="color: var(--foreground2);"><%= (verification.respond_to?(:pending_at) && verification.pending_at || verification.created_at).strftime("%b %d, %Y") %></td>
             <td style="color: var(--foreground2);"><%= verification.ignored_at.present? ? verification.ignored_reason : verification.rejection_reason.present? ? verification.rejection_reason_name : "—" %></td>
@@ -263,7 +383,7 @@
   <% end %>
 
   <%# === Audit log === %>
-  <% if @activities.any? %>
+  <% if @activities.any? && (current_user&.super_admin? || current_user&.manual_document_verifier?) %>
     <div is-="separator"></div>
     <details>
       <summary style="color: var(--foreground2); cursor: pointer;">audit log (<%= @activities.size %>)</summary>
@@ -272,6 +392,62 @@
       </column>
     </details>
   <% end %>
+
+  <%# === Ban / Unlock === %>
+  <% ban_tool do %>
+    <div is-="separator"></div>
+    <% if @identity.locked? %>
+      <column gap-="1">
+        <row align-="center" gap-="2">
+          <span style="color: var(--red);">this account is locked</span>
+          <%= button_to "unlock account", unban_backend_identity_path(@identity), method: :post, data: { confirm: "unlock #{@identity.first_name}'s account?" } %>
+        </row>
+        <% if @identity.disallow_slack? || @identity.slack_id.present? %>
+          <span style="color: var(--foreground2);">if their Slack was deactivated, you can reprovision it after unlocking.</span>
+        <% end %>
+      </column>
+    <% else %>
+      <details>
+        <summary style="color: var(--red); cursor: pointer;">ban tools</summary>
+        <column pad-="1 0" gap-="1">
+          <%= render Components::Backend::Banner.new(kind: :warning) do %>
+            this will lock the account, expire all sessions, and prevent login.
+          <% end %>
+          <%= form_with url: ban_backend_identity_path(@identity), method: :post, local: true do %>
+            <column gap-="1">
+              <label>
+                <b>reason</b>
+                <span style="color: var(--foreground2);">(required — logged in audit trail)</span>
+                <textarea name="reason" required placeholder="why is this account being banned?" rows="2"></textarea>
+              </label>
+
+              <% if @identity.slack_id.present? %>
+                <label>
+                  <%= check_box_tag :deactivate_slack, "1", false %> also deactivate Slack account
+                </label>
+              <% end %>
+
+              <label>
+                <b>type "<%= @identity.primary_email %>" to confirm</b>
+                <input type="text" name="confirm_email" id="ban-confirm-email" required autocomplete="off" placeholder="<%= @identity.primary_email %>">
+              </label>
+
+              <button type="submit" variant-="red" id="ban-submit" disabled>lock account</button>
+
+              <script>
+                document.getElementById('ban-confirm-email').addEventListener('input', function(e) {
+                  document.getElementById('ban-submit').disabled = e.target.value !== '<%= j @identity.primary_email %>';
+                });
+              </script>
+            </column>
+          <% end %>
+        </column>
+      </details>
+    <% end %>
+  <% end %>
+
+  <%# === Simulate onboarding === %>
+  <%= render "backend/identities/simulate_onboarding", identity: @identity %>
 
   <%# === Deletion === %>
   <% deletion_tool do %>

@@ -7,7 +7,7 @@ RSpec.describe OAuthScope do
       expect(scope_names).to contain_exactly(
         "openid", "email", "name", "profile", "phone", "birthdate",
         "address", "verification_status", "slack_id", "legal_name",
-        "basic_info", "set_slack_id"
+        "basic_info", "set_slack_id", "groups"
       )
     end
 
@@ -69,8 +69,8 @@ RSpec.describe OAuthScope do
     it "returns fields for verification_status scope" do
       fields = described_class.consent_fields_for(%w[verification_status], identity)
       expect(fields).to contain_exactly(
-        a_hash_including(key: :verification_status, value: identity.verification_status),
-        a_hash_including(key: :ysws_eligible, value: "Yes")
+        a_hash_including(key: :verification_status, value: identity.verification_status.humanize),
+        a_hash_including(key: :ysws_eligible, value: "?")
       )
     end
 
@@ -136,6 +136,11 @@ RSpec.describe OAuthScope do
       expect(described_class::COMMUNITY_ALLOWED).to contain_exactly(
         "openid", "profile", "email", "name", "slack_id", "verification_status"
       )
+    end
+
+    it "keeps groups official-only, since only hq_official apps can have exposures" do
+      expect(described_class::COMMUNITY_ALLOWED).not_to include("groups")
+      expect(described_class::HQ_OFFICIAL_SCOPES).to include("groups")
     end
   end
 end

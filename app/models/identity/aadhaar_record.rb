@@ -34,7 +34,5 @@ class Identity::AadhaarRecord < ApplicationRecord
 
   has_many :break_glass_records, as: :break_glassable, dependent: :destroy
 
-  def doc_json
-    JSON.parse(raw_json_response.strip, symbolize_names: true)
-  end
+  def doc_json = JSON.parse(raw_json_response.strip, symbolize_names: true)
 end

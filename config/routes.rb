@@ -165,7 +165,8 @@ class SuperAdminConstraint
     session = IdentitySession.not_expired.find_by(session_token: session_token)
     return false unless session&.identity
 
-    session.identity.backend_user&.super_admin?
+    backend_user = session.identity.backend_user
+    backend_user&.super_admin? && backend_user&.active?
   end
 end
 
@@ -190,6 +191,7 @@ Rails.application.routes.draw do
     end
     resources :audit_logs, only: [ :index ]
     get "dashboard", to: "dashboard#show", as: :dashboard
+    get "dashboard/persona", to: "persona_dashboard#show", as: :persona_dashboard
     get "analytics", to: "analytics#show", as: :analytics
     root "static_pages#index", as: :root
     get "login", to: "static_pages#login", as: :login
@@ -208,6 +210,13 @@ Rails.application.routes.draw do
       end
     end
 
+    resources :saml_certificates, only: [ :index, :show, :new, :create ] do
+      member do
+        post :promote
+        post :retire
+      end
+    end
+
     resources :verifications, only: [ :index, :show ] do
       collection do
         get :pending
@@ -216,6 +225,23 @@ Rails.application.routes.draw do
         patch :approve
         patch :reject
         patch :ignore
+        delete :nuke_inquiry
+        patch :relink
+      end
+    end
+
+    resources :verification_cases, only: [ :index, :show, :create ] do
+      collection do
+        get :qa
+      end
+      member do
+        post :resend_link
+        post :sample
+        post :comment
+        post :request_redo
+        post :withdraw
+        patch :hold_call
+        patch :decide
       end
     end
 
@@ -229,6 +255,11 @@ Rails.application.routes.draw do
         post :promote_to_full_user
         post :revoke_sessions
         post :revoke_session
+        post :simulate_onboarding
+        post :flip
+        post :reset_persona_attempts
+        post :ban
+        post :unban
       end
       resources :addresses, only: [ :new, :create, :edit, :update, :destroy ], controller: "identity_addresses"
     end
@@ -250,12 +281,59 @@ Rails.application.routes.draw do
     end
   end
 
+  # Directory Services
+  namespace :directory do
+    root "collections#index"
+    get "me", to: "my_access#show", as: :my_access
+    get "search", to: "search#index", as: :search
+    get "search/kbar", to: "search#kbar", as: :search_kbar
+    get "activity", to: "activity#index", as: :activity
+    get "reports", to: "reports#index", as: :reports
+    get "health", to: "health#show", as: :health
+    post "health/validate", to: "health#validate", as: :health_validate
+
+    resources :collections, param: :slug do
+      member do
+        get :activity
+        get :export
+      end
+      resources :memberships, only: [ :create, :update, :destroy ] do
+        collection do
+          post :batch_create
+        end
+      end
+      resources :grants, only: [ :create, :update, :destroy ]
+    end
+
+    resources :people, only: [ :index, :show, :create, :destroy ], param: :public_id
+
+    # Picker API
+    get "picker/search", to: "picker#search", as: :picker_search
+    get "picker/resolve", to: "picker#resolve", as: :picker_resolve
+
+    # CSV Import
+    get "import", to: "import#new", as: :new_import
+    post "import", to: "import#create", as: :import
+    post "import/preview", to: "import#preview", as: :import_preview
+
+    # Admin: all grants flat view
+    get "grants", to: "grants#index", as: :all_grants
+
+    resources :exposures, only: [ :create, :destroy ]
+    resources :app_requirements, only: [ :create, :destroy ]
+    resources :apps, only: [ :index, :show ]
+    get "denied", to: "requirement_denied#show", as: :requirement_denied
+
+    get "view_as", to: "view_as#show", as: :view_as
+  end
+
   root "static_pages#home"
 
   get "/welcome", to: "static_pages#welcome", as: :welcome
   get "/slack-id", to: "static_pages#slack_id", as: :slack_id
   get "/oauth/welcome", to: "static_pages#oauth_welcome", as: :oauth_welcome
   get "/security", to: "static_pages#security", as: :security
+  get "/ruhq", to: "static_pages#ruhq", as: :ruhq
   get "/activity", to: "audit_logs#index", as: :audit_logs
 
   # Login system routes
@@ -313,8 +391,20 @@ Rails.application.routes.draw do
 
   delete "/logout", to: "sessions#logout", as: :logout
 
+  # manual verification call flow (flipper-gated, single-use link entry)
+  get "/verifications/manual", to: "manual_verifications#show", as: :manual_verification
+  post "/verifications/manual/document_class", to: "manual_verifications#choose_document_class", as: :manual_verification_document_class
+  post "/verifications/manual/capture/prepare", to: "manual_verifications#prepare_capture", as: :manual_verification_prepare_capture
+  get "/verifications/manual/capture", to: "manual_verifications#start_capture", as: :manual_verification_capture
+  post "/verifications/manual/documents", to: "manual_verifications#submit_documents", as: :manual_verification_documents
+  post "/verifications/manual/call_capture_ack", to: "manual_verifications#acknowledge_call_capture", as: :manual_verification_call_capture_ack
+
   get "/verifications/new", to: "verifications#new", as: :new_verifications
   get "/verifications/status", to: "verifications#status", as: :verification_status
+  get "/verifications/status/check", to: "verifications#status_check", as: :verification_status_check
+  get "/verifications/persona", to: "verifications#persona", as: :persona_verification
+  get "/verifications/student-id", to: "verifications#student_id", as: :student_id_verification
+  patch "/verifications/persona/legal-name", to: "verifications#update_legal_name", as: :update_legal_name
   get "/verifications/:id", to: "verifications#show", as: :verification_step
   put "/verifications/:id", to: "verifications#update", as: :update_verification_step
 
@@ -331,6 +421,9 @@ Rails.application.routes.draw do
     get "verify", to: "verifications#start"
     get "verify/document", to: "verifications#portal", as: :verify_document
     post "verify/document", to: "verifications#create"
+    get "verify/persona", to: "verifications#persona", as: :verify_persona
+    get "verify/student-id", to: "verifications#student_id", as: :verify_student_id
+    patch "verify/persona/legal-name", to: "verifications#update_legal_name", as: :verify_persona_legal_name
     delete "verify", to: "verifications#cancel"
     get "address", to: "addresses#portal"
     post "address", to: "addresses#create"
@@ -378,6 +471,7 @@ Rails.application.routes.draw do
     end
     resources :collaborators, only: [ :create, :destroy ],
       controller: "developer_app_collaborators"
+    resource :session_revoker, only: [ :create, :update, :destroy ], controller: "directory/app_revokers"
     resources :collaborator_invites, only: [], controller: "developer_app_collaborator_invitations" do
       member do
         post :accept
@@ -402,6 +496,8 @@ Rails.application.routes.draw do
     namespace :external do
       get "/check", to: "identities#check"
       options "/check", to: "identities#options"
+      get "/whoami", to: "identities#whoami"
+      options "/whoami", to: "identities#whoami_options"
     end
   end
 
@@ -416,6 +512,11 @@ Rails.application.routes.draw do
   # Slack interactivity routes
   namespace :slack do
     post "/interactivity", to: "interactivity#create"
+  end
+
+  namespace :webhooks do
+    post "persona", to: "persona#create"
+    post "calcom", to: "calcom#create"
   end
 
   scope :saml do
@@ -440,4 +541,5 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+  get "/debug-dump", to: "static_pages#debug_dump", as: :debug_dump
 end

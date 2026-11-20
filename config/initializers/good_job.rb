@@ -11,6 +11,18 @@ Rails.application.configure do
     reap_aged_out_users: {
       cron: "0 3 * * *", # Run daily at 3am
       class: "Identity::ReapAgedOutUsersJob"
+    },
+    remind_quiet_verification_cases: {
+      cron: "0 15 * * *", # Run daily at 3pm UTC (morning in the US)
+      class: "VerificationCase::SendLinkReminderJob"
+    },
+    directory_sweep_expired_memberships: {
+      cron: "*/5 * * * *",
+      class: "Directory::MembershipExpirySweepJob"
+    },
+    directory_validate: {
+      cron: "0 2 * * *",
+      class: "Directory::ValidateJob"
     }
   }
   config.good_job.enable_cron = true

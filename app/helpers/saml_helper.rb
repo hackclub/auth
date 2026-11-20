@@ -1,5 +1,13 @@
 module SAMLHelper
+  # the message is the reason, fit to show the user
+  class AccessDenied < StandardError; end
+
+  # every assertion is built here, so enforcing access here covers callers that forget to check
   def build_saml_response(identity:, sp_config:, in_response_to: nil)
+    if (reason = saml_access_denial(identity, sp_config))
+      raise AccessDenied, reason
+    end
+
     sp = sp_config[:entity].service_providers.first
 
     if in_response_to
@@ -16,6 +24,7 @@ module SAMLHelper
         identity.to_saml_nameid,
         saml_filtered_attributes(identity, sp_config)
       )
+      saml_response.assertions.first.conditions << SAML2::Conditions::AudienceRestriction.new(sp_config[:entity].entity_id)
     end
 
     now = Time.now.utc
@@ -63,6 +72,9 @@ module SAMLHelper
 
   private
 
+  # SAMLController also asks first, so it can show the error before doing anything else
+  def saml_access_denial(identity, sp_config) = SAMLService::Access.denial(identity, sp_config)
+
   def saml_issuer
     @saml_issuer ||= SAML2::NameID.new(SAMLService::Entities.idp_entity.entity_id)
   end
@@ -72,9 +84,44 @@ module SAMLHelper
 
     if sp_config[:allowed_attributes].present?
       allowed = sp_config[:allowed_attributes]
-      all_attrs.select { |attr| allowed.include?(attr.name) }
+      all_attrs = all_attrs.select { |attr| allowed.include?(attr.name) }
+    end
+
+    # an SP that maps entitlements gets the attribute even when it's empty, so one that syncs
+    # groups from the assertion drops the ones this person no longer holds
+    if sp_config[:entitlements].present?
+      groups_values = saml_directory_groups(identity, sp_config)
+      attr_name = sp_config[:groups_attribute] || "groups"
+      if sp_config[:allowed_attributes].blank? || sp_config[:allowed_attributes].include?(attr_name)
+        all_attrs << SAML2::Attribute.new(attr_name, groups_values)
+      end
+    end
+
+    all_attrs
+  end
+
+  def saml_directory_groups(identity, sp_config)
+    entitlements_map = sp_config[:entitlements]
+    return [] if entitlements_map.blank?
+
+    person = saml_directory_person(identity)
+    return [] unless person
+
+    slugs = entitlements_map.keys.map(&:to_s)
+    entitled_slugs = Directory::EffectiveMembership
+      .joins(:collection)
+      .where(person_id: person.id, directory_collections: { slug: slugs, kind: "entitlement" })
+      .pluck("directory_collections.slug")
+
+    entitled_slugs.filter_map { |slug| entitlements_map[slug] }
+  end
+
+  def saml_directory_person(identity)
+    @saml_directory_person_cache ||= {}
+    if @saml_directory_person_cache.key?(identity.id)
+      @saml_directory_person_cache[identity.id]
     else
-      all_attrs
+      @saml_directory_person_cache[identity.id] = Directory::Person.find_by(identity: identity)
     end
   end
 end

@@ -1,0 +1,63 @@
+<% content_for :title, t("directory.grants.index.title") %>
+<div class="dir-page">
+  <div class="dir-page-header">
+    <div class="dir-title-row">
+      <div class="dir-title"><h2><%= t("directory.grants.index.heading") %></h2></div>
+    </div>
+  </div>
+
+  <div class="dir-section" data-accent="yellow">
+    <% if @grants.any? %>
+      <table>
+        <thead>
+          <tr>
+            <th><%= t("directory.grants.index.col_grantee") %></th>
+            <th><%= t("directory.grants.index.col_target") %></th>
+            <th><%= t("directory.grants.index.col_permission") %></th>
+            <th><%= t("directory.grants.index.col_recursive") %></th>
+            <th><%= t("directory.grants.index.col_by") %></th>
+            <th><%= t("directory.grants.index.col_date") %></th>
+            <th></th>
+        </thead>
+        <tbody>
+          <% @grants.each do |grant| %>
+            <tr>
+              <td>
+                <% if grant.grantee_group %>
+                  <%= link_to grant.grantee_group.name, directory_collection_path(grant.grantee_group.slug) %>
+                  <span is-="badge" variant-="blue"><%= t("directory.badges.group") %></span>
+                <% elsif grant.grantee_person %>
+                  <%= link_to grant.grantee_person.full_name, directory_person_path(grant.grantee_person) %>
+                  <span is-="badge" variant-="background2">person</span>
+                <% end %>
+              </td>
+              <td><%= link_to grant.target_collection.name, directory_collection_path(grant.target_collection.slug) %></td>
+              <td><code><%= grant.permission.tr('_', ' ') %></code></td>
+              <td>
+                <% if grant.recursive %>
+                  <span is-="badge" variant-="background2"><%= t("directory.badges.recursive") %></span>
+                <% else %>—<% end %>
+              </td>
+              <td style="color: var(--foreground2);"><%= grant.created_by&.full_name || "—" %></td>
+              <td style="color: var(--foreground2);"><%= grant.created_at.strftime("%Y-%m-%d") %></td>
+              <td style="text-align: right; white-space: nowrap;">
+                <% if grant.grantee_group_id.present? %>
+                  <% if grant.recursive %>
+                    <%= button_to "make direct", directory_collection_grant_path(grant.target_collection.slug, grant), method: :patch, params: { recursive: "0" }, data: { confirm: "remove recursion from this grant?" }, form: { style: "display: inline;" } %>
+                  <% elsif grant.target_collection.group? %>
+                    <%= button_to "make recursive", directory_collection_grant_path(grant.target_collection.slug, grant), method: :patch, params: { recursive: "1" }, form: { style: "display: inline;" } %>
+                  <% end %>
+                <% end %>
+                <%= button_to t("directory.actions.remove"), directory_collection_grant_path(grant.target_collection.slug, grant), method: :delete, data: { confirm: "remove this grant?" }, class: "btn-destructive", form: { style: "display: inline;" } %>
+              </td>
+          <% end %>
+        </tbody>
+      </table>
+      <%= paginate @grants %>
+    <% else %>
+      <div class="dir-section-empty"><%= t("directory.grants.index.empty") %></div>
+    <% end %>
+  </div>
+
+  <%= render "directory/keyhints", code: "PERM" %>
+</div>

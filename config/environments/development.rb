@@ -11,7 +11,7 @@ Rails.application.configure do
 
   # Show full error reports.
   config.consider_all_requests_local = true
-
+  config.hosts << ENV["DEV_HOST"] if ENV["DEV_HOST"].present?
   # Enable server timing.
   config.server_timing = true
 

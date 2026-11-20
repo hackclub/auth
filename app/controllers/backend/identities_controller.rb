@@ -54,6 +54,12 @@ module Backend
 
       @addresses = @identity.addresses.order(created_at: :desc)
 
+      if current_user.directory_services_admin?
+        @dir_person = Directory::Person.find_by(identity: @identity)
+        @dir_memberships = @dir_person ? @dir_person.effective_memberships.includes(:collection).order("directory_collections.name") : []
+        @dir_collections = Directory::Collection.order(:name)
+      end
+
       @all_programs = @identity.all_programs.distinct
 
       @owned_apps = @identity.owned_developer_apps
@@ -121,6 +127,11 @@ module Backend
     def reprovision_slack
       authorize @identity
 
+      if @identity.disallow_slack?
+        flash[:error] = "This account is blocked from Slack. Unban it first."
+        return redirect_to backend_identity_path(@identity)
+      end
+
       scenario = OnboardingScenarios::DefaultJoin.new(@identity)
       slack_result = SCIMService.find_or_create_user(
         identity: @identity,
@@ -150,7 +161,7 @@ module Backend
     end
 
     def new_vouch
-      authorize Verification::VouchVerification, :create?
+      authorize Verification::VouchVerification, :create?, policy_class: Verification::VouchVerificationPolicy
       add_breadcrumb "IDNT", backend_identities_path
       add_breadcrumb @identity.first_name, backend_identity_path(@identity)
       add_breadcrumb "vouch"
@@ -158,7 +169,7 @@ module Backend
     end
 
     def create_vouch
-      authorize Verification::VouchVerification, :create?
+      authorize Verification::VouchVerification, :create?, policy_class: Verification::VouchVerificationPolicy
       @vouch = @identity.vouch_verifications.build(vouch_params)
       if @vouch.save
         flash[:notice] = "Vouch verification created successfully"
@@ -172,7 +183,7 @@ module Backend
       authorize @identity, :update?
 
       count = @identity.sessions.not_expired.count
-      @identity.sessions.not_expired.update_all(signed_out_at: Time.current, expires_at: Time.now)
+      @identity.sessions.not_expired.update_all(signed_out_at: Time.current, expires_at: Time.current)
 
       if count > 0
         @identity.create_activity(:revoke_all_sessions, owner: current_user, recipient: @identity, parameters: { count: count })
@@ -187,7 +198,7 @@ module Backend
     def revoke_session
       authorize @identity, :update?
       session = @identity.sessions.find(params[:session_id])
-      session.update!(signed_out_at: Time.current, expires_at: Time.now)
+      session.update!(signed_out_at: Time.current, expires_at: Time.current)
       @identity.create_activity(:revoke_all_sessions, owner: current_user, recipient: @identity, parameters: { count: 1 })
       flash[:success] = "Session revoked."
       redirect_to backend_identity_path(@identity)
@@ -214,6 +225,20 @@ module Backend
       redirect_to backend_identity_path(@identity)
     end
 
+    def simulate_onboarding
+      authorize @identity
+
+      return redirect_to backend_identity_path(@identity), alert: "identity has no slack_id — provision slack first" unless @identity.slack_id.present?
+
+      slug = params[:scenario_slug].presence
+      @identity.update!(onboarding_scenario: slug)
+
+      Tutorial::BeginJob.perform_later(@identity)
+      Tutorial::WelcomeMessageJob.set(wait: 30.minutes).perform_later(@identity)
+
+      redirect_to backend_identity_path(@identity), notice: "onboarding simulation enqueued (scenario: #{slug || 'default'})"
+    end
+
     def promote_to_full_user
       authorize @identity
 
@@ -236,6 +261,109 @@ module Backend
       redirect_to backend_identity_path(@identity)
     end
 
+    def flip
+      authorize @identity
+
+      feature = params[:flag].to_sym
+      state = params[:state] == "true"
+
+      if state
+        Flipper.enable_actor(feature, @identity)
+      else
+        Flipper.disable_actor(feature, @identity)
+      end
+
+      @identity.create_activity(
+        :flip_feature_flag,
+        owner: current_user,
+        parameters: { flag: feature, enabled: state }
+      )
+
+      flash[:notice] = "#{feature}: #{state ? 'enabled' : 'disabled'} for #{@identity.first_name}"
+      redirect_to backend_identity_path(@identity)
+    end
+
+    def ban
+      authorize @identity
+
+      if @identity == current_user&.identity
+        flash[:alert] = "You can't ban your own account."
+        return redirect_to backend_identity_path(@identity)
+      end
+
+      if params[:reason].blank?
+        flash[:alert] = "Reason is required to ban an account."
+        return redirect_to backend_identity_path(@identity)
+      end
+
+      if params[:confirm_email] != @identity.primary_email
+        flash[:alert] = "Email confirmation did not match."
+        return redirect_to backend_identity_path(@identity)
+      end
+
+      @identity.lock_account!
+      activity_params = { reason: params[:reason] }
+
+      if params[:deactivate_slack] == "1" && @identity.slack_id.present?
+        @identity.update!(disallow_slack: true)
+
+        result = SCIMService.deactivate_user(slack_id: @identity.slack_id)
+        activity_params[:slack_deactivated] = result[:success]
+
+        if result[:success]
+          flash[:notice] = "Account locked and Slack deactivated."
+        else
+          activity_params[:slack_error] = result[:error]
+          flash[:warning] = "Account locked and Slack sign-in blocked, but Slack deactivation failed: #{result[:error]}"
+        end
+      else
+        flash[:notice] = "Account locked."
+      end
+
+      @identity.create_activity(
+        :ban,
+        owner: current_user,
+        recipient: @identity,
+        parameters: activity_params
+      )
+
+      redirect_to backend_identity_path(@identity)
+    end
+
+    def unban
+      authorize @identity
+
+      @identity.unlock_account!
+      @identity.update!(disallow_slack: false) if @identity.disallow_slack?
+      @identity.create_activity(
+        :unban,
+        owner: current_user,
+        recipient: @identity,
+      )
+
+      flash[:notice] = "Account unlocked."
+      redirect_to backend_identity_path(@identity)
+    end
+
+    def reset_persona_attempts
+      authorize @identity
+
+      rejected_persona = @identity.verifications.not_ignored.rejected
+        .where(type: %w[Verification::PersonaVerification Verification::PersonaStudentIdVerification])
+
+      count = rejected_persona.count
+      rejected_persona.update_all(ignored_at: Time.current, ignored_reason: "persona attempts reset")
+
+      @identity.create_activity(
+        :reset_persona_attempts,
+        owner: current_user,
+        parameters: { ignored_count: count }
+      )
+
+      flash[:notice] = "Reset persona attempts for #{@identity.first_name} (#{count} #{'verification'.pluralize(count)} ignored)."
+      redirect_to backend_identity_path(@identity)
+    end
+
     private
 
     def set_identity
@@ -243,13 +371,11 @@ module Backend
     end
 
     def identity_params
-      permitted = [ :first_name, :last_name, :legal_first_name, :legal_last_name, :primary_email, :phone_number, :birthday, :country, :hq_override, :ysws_eligible, :permabanned ]
-      permitted << :can_hq_officialize if current_user&.super_admin?
+      permitted = [ :first_name, :last_name, :legal_first_name, :legal_last_name, :phone_number, :birthday, :country, :hq_override, :ysws_eligible, :disallow_slack ]
+      permitted.push(:primary_email, :permabanned, :can_hq_officialize) if current_user&.super_admin?
       params.require(:identity).permit(permitted)
     end
 
-    def vouch_params
-      params.require(:verification_vouch_verification).permit(:evidence)
-    end
+    def vouch_params = params.require(:verification_vouch_verification).permit(:evidence)
   end
 end

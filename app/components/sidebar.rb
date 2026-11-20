@@ -6,6 +6,7 @@ class Components::Sidebar < Components::Base
 
   register_value_helper :current_identity
   register_value_helper :signed_in?
+  register_value_helper :directory_admin_session?
   register_output_helper :copy_to_clipboard
   register_output_helper :vite_image_tag
 
@@ -50,6 +51,19 @@ class Components::Sidebar < Components::Base
     items << { label: t("sidebar.addresses"), path: addresses_path, icon: "email" }
     items << { label: t("sidebar.security"), path: security_path, icon: "private" }
 
+    if current_identity.present?
+      if directory_admin_session?
+        items << { label: t("sidebar.directory"), path: directory_root_path, icon: "admin" }
+      elsif (person = sidebar_directory_person)
+        _person_id, has_grants = person
+        if has_grants
+          items << { label: t("sidebar.directory"), path: directory_root_path, icon: "admin" }
+        else
+          items << { label: t("sidebar.directory"), path: directory_my_access_path, icon: "admin" }
+        end
+      end
+    end
+
     # Add developer link if developer mode is enabled or user is a program manager/super admin
     if current_identity.present? && (current_identity.developer_mode? || current_identity.backend_user&.program_manager? || current_identity.backend_user&.super_admin?)
       pending_count = current_identity.pending_collaboration_invitations.count
@@ -84,9 +98,7 @@ class Components::Sidebar < Components::Base
     end
   end
 
-  def render_overlay
-    div(class: "sidebar-overlay", onclick: safe("toggleSidebar()"))
-  end
+  def render_overlay = div(class: "sidebar-overlay", onclick: safe("toggleSidebar()"))
 
   def render_navigation
     div(class: "sidebar-nav") do
@@ -96,10 +108,16 @@ class Components::Sidebar < Components::Base
     end
   end
 
-  def render_nav_item(label:, path:, icon: nil, badge: nil)
-    is_active = @current_path == path
+  def active_nav_item?(path)
+    if path == "/"
+      @current_path == "/"
+    else
+      @current_path.start_with?(path.split("/").take(2).join("/"))
+    end
+  end
 
-    link_to(path, class: [ "sidebar-nav-item", ("active" if is_active) ].compact.join(" ")) do
+  def render_nav_item(label:, path:, icon: nil, badge: nil)
+    link_to(path, class: [ "sidebar-nav-item", ("active" if active_nav_item?(path)) ].compact.join(" ")) do
       span(class: "nav-icon") { inline_icon(icon, size: 24) } if icon
       span(class: "nav-label") { label }
       span(class: "nav-badge") { badge.to_s } if badge && badge > 0
@@ -163,5 +181,16 @@ class Components::Sidebar < Components::Base
         }
       JS
     end
+  end
+
+  # one query on every page: is this identity a directory person, and do they hold a live grant
+  def sidebar_directory_person
+    Directory::Person.where(identity_id: current_identity.id).pick(
+      :id,
+      Arel.sql(<<~SQL.squish)
+        EXISTS (SELECT 1 FROM directory_effective_grants g
+                WHERE g.person_id = directory_people.id AND (g.expires_at IS NULL OR g.expires_at > NOW()))
+      SQL
+    )
   end
 end

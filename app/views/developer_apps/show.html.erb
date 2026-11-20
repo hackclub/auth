@@ -1,3 +1,4 @@
+<% content_for :title, @app.name %>
 <div class="page-header">
   <h1><%= @app.name %></h1>
   <%= link_to t(".back_to_apps"), developer_apps_path %>
@@ -181,6 +182,12 @@
         </div>
       </section>
     <% end %>
+
+    <%# Directory %>
+    <section class="section-card">
+      <h3><%= t("directory.developer_apps.directory_heading") %></h3>
+      <%= render "developer_apps/directory_wiring", app: @app, return_to: developer_app_path(@app) %>
+    </section>
 
     <%# Activity Log (async) %>
     <section class="section-card">

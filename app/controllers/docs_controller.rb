@@ -16,6 +16,7 @@ class DocsController < ApplicationController
     raise ActionController::RoutingError, "Documentation not found" unless File.exist?(@doc_file_path)
 
     @doc = parse_doc_file(@doc_file_path, params[:slug])
+    @directory_curious = @doc[:audience] == "directory" && !directory_docs_reader?
     render :show
   rescue StandardError => e
     raise if e.is_a?(ActionController::RoutingError)
@@ -30,6 +31,20 @@ class DocsController < ApplicationController
   end
 
   private
+
+  # directory docs are listed for people who run something in the directory: directory
+  # admins, and anyone holding manage_members or expose on at least one collection
+  def directory_docs_reader?
+    return @directory_docs_reader if defined?(@directory_docs_reader)
+
+    identity = current_identity
+    @directory_docs_reader = identity.present? && (
+      identity.backend_user&.directory_services_admin? ||
+        Directory::EffectiveGrant
+          .where(person_id: Directory::Person.where(identity_id: identity.id).select(:id), permission: %w[manage_members expose])
+          .exists?
+    )
+  end
 
   def set_doc_path
     slug = params[:slug] || "index"
@@ -63,12 +78,15 @@ class DocsController < ApplicationController
           title: parsed["title"] || slug.titleize,
           category: parsed["category"],
           order: parsed["order"] || 999,
-          hidden: parsed["hidden"] || false
+          hidden: parsed["hidden"] || false,
+          audience: parsed["audience"]
         }
       rescue => e
         Rails.logger.error("Error parsing doc #{file_path}: #{e.message}")
         nil
-      end.compact.reject { |doc| doc[:hidden] }.sort_by { |doc| doc[:order] }
+      end.compact
+        .reject { |doc| doc[:hidden] || (doc[:audience] == "directory" && !directory_docs_reader?) }
+        .sort_by { |doc| doc[:order] }
     end
   end
 
@@ -112,6 +130,7 @@ class DocsController < ApplicationController
         description: parsed["description"],
         category: parsed["category"],
         order: parsed["order"] || 999,
+        audience: parsed["audience"],
         content: final_content.html_safe
       }
     end

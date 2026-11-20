@@ -1,3 +1,4 @@
+<% content_for :title, "Edit #{@identity.first_name} #{@identity.last_name}" %>
 <column pad-="2 1" style="max-width: 80ch; margin: 0 auto; width: 100%;">
   <row align-="center between">
     <h2>edit: <%= @identity.first_name %> <%= @identity.last_name %></h2>
@@ -40,6 +41,7 @@
       <span style="color: var(--foreground2);">overrides</span>
       <label><%= f.check_box :hq_override %> hq override <span style="color: var(--foreground2);">— bypass normal eligibility rules</span></label>
       <label><%= f.check_box :ysws_eligible %> ysws eligible</label>
+      <label><%= f.check_box :disallow_slack %> disallow slack <span style="color: var(--foreground2);">— prevent SAML into Slack</span></label>
       <% super_admin_tool do %>
         <label><%= f.check_box :permabanned %> permabanned <span style="color: var(--foreground2);">— permanently ban</span></label>
         <label><%= f.check_box :can_hq_officialize %> can officialize apps</label>

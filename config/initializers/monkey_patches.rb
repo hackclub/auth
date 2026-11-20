@@ -27,14 +27,14 @@ Rails.application.config.to_prepare do
     end
   end
 
-  class Doorkeeper::RedirectUriValidator
-    def validate_each(record, attribute, value)
-    end
-  end
-
   # Fix public_activity 3.0.2 crash when `parameters` column contains
   # raw strings instead of YAML-deserialized hashes.
   PublicActivity::Activity.prepend(Module.new do
+    def parameters
+      val = super
+      val.is_a?(Hash) ? val.with_indifferent_access : val
+    end
+
     def prepare_parameters(params)
       p = self.parameters
       if p.is_a?(String)

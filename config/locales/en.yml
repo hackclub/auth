@@ -146,6 +146,7 @@ en:
     addresses: Mailing Addresses
     security: Security
     developer: Developer
+    directory: Directory
     docs: Docs
     logout: Sign out
     backend: Admin
@@ -267,6 +268,11 @@ en:
       onboarding_default: "(default)"
       onboarding_scenario_hint: Users signing up through this OAuth app will use this onboarding flow
       active: Active
+      whoami_enabled: Enable silent email prefill (whoami)
+      whoami_enabled_hint: Lets the allowed site below silently read a logged-in visitor's email + first name (via /api/external/whoami) to prefill its forms. Off by default.
+      whoami_allowed_origin: Whoami allowed origin
+      whoami_allowed_origin_placeholder: https://program.hackclub.com
+      whoami_allowed_origin_hint: Exact browser Origin permitted to call whoami - scheme + host, no path or trailing slash. Only this origin receives identity.
       update: Update App
       cancel: Cancel
     create:
@@ -404,6 +410,9 @@ en:
       email_code: We'll send a one-time code to this address.
       continue: Continue
       wrong_email: "← Wrong email? Go back"
+      email_typo_html: "Looks like a typo... did you mean <strong>%{suggested}</strong>?"
+      email_typo_fix: "yeah, that one! →"
+      email_typo_dismiss: "no, it's correct"
     update:
       success: saved changes!
     create:
@@ -462,6 +471,11 @@ en:
       prefer_email: Don't have a passkey?
       use_email_code: Use email code instead
   saml:
+    denial:
+      not_allowed: "you don't have access to this service"
+      no_access: "you don't have access to this app — if you think that's a mistake, ask whoever runs it"
+      misconfigured: "this app is misconfigured — contact an administrator"
+      disallow_slack: "unable to log in right now"
     http_post:
       title: SAMLing...
       text: Logging you in...
@@ -628,7 +642,7 @@ en:
       upload_government_id: Upload your government-issued ID
       accepted_formats: "Accepted formats:"
       formats_india: PDF only
-      formats_other: Images, PDF, HEIC
+      formats_other: Images, PDF
       upload_transcript: Upload your transcript
       transcript_help: Your most recent report card or transcript
       upload_student_id: Upload your student ID
@@ -639,23 +653,87 @@ en:
         privacy: "Privacy: Documents are encrypted and never shared with third parties. Access is limited to HCB staff during review, then core HQ staff for exceptional cases only."
         purpose: "Purpose: Used only for age verification and preventing duplicate accounts."
       submit_documents: Submit Documents
+    choose:
+      title: Verify your identity
+      subtitle: "To participate in Hack Club programs and receive hardware, we need to confirm you're a real person."
+      instant_title: Instant verification
+      instant_description: "Scan a government-issued ID and take a quick selfie. Usually takes about 30 seconds."
+      instant_cta: Verify with ID →
+      student_id_title: Student ID and transcript
+      student_id_description: "Don't have a government ID? Upload a student ID and school transcript instead. Takes 1–2 business days to review."
+      student_id_cta: Use student ID →
+    persona:
+      title: Verify your identity
+      subtitle: "To participate in Hack Club programs and receive hardware, we need to confirm you're a real person. This is how we keep the community safe."
+      hero_title: "Here's how it works"
+      hero_description_html: "Our age and identity check is handled by <a href=\"https://withpersona.com/privacy\" target=\"_blank\">Persona</a>, an independent verification company. It's fast — usually under a minute."
+      steps:
+        scan:
+          title: Scan your ID
+          description: "Take a photo of your %{document_examples}"
+          document_examples:
+            default: "passport, driver's license, or national ID card"
+            IN: "passport or driver's license, or verify with Aadhaar"
+        selfie:
+          title: Take a selfie
+          description: "A quick photo to confirm it's you"
+        done:
+          title: Done
+          description: "Most people are verified automatically within a minute"
+      begin_verification: Start verification
+      error_title: Couldn't connect to verification provider
+      error_message: "We're having trouble reaching our verification provider right now. Please try again in a few minutes."
+      fallback_link: Upload a document manually instead
+      cancel_message: "No worries — your progress is saved. Come back anytime to finish."
+      error_sdk: "Something went wrong with the verification. You can try again, or upload a document manually instead."
+      complete_message: "Done! Checking your results…"
+      privacy_note_html: "Your photos are encrypted and access by staff is logged. <a href=\"https://withpersona.com/security\" target=\"_blank\">About our verification provider</a>."
+      cant_do_this: "Don't have your ID on you?"
+      fallback_prompt: Upload a document manually instead
+      contact_html: "Having trouble? Email us at <a href=\"mailto:identity@hackclub.com\">identity@hackclub.com</a>."
+    student_id:
+      hero_description_html: "Upload your student ID and a recent school transcript. Our team will review them within 1–2 business days."
+      steps:
+        scan:
+          title: Upload your documents
+          description: "Upload a photo of your student ID and a recent school transcript"
+        done:
+          description: "Our team will review your documents within 1–2 business days"
+      cant_do_this: "Don't have a student ID?"
+      begin_verification: Start upload
     status:
       badges:
         under_review: Under review
+        processing: Processing
         verified: Verified
         not_eligible: Not eligible
         needs_resubmission: Needs resubmission
         not_started: Not started
-      pending:
+        locked: Needs assistance
+      pending_document:
         title: We're checking your documents
         subtitle: You'll hear from us in 1–2 business days
         description: Our team is reviewing your submission. We'll email %{email} when we're done.
         submitted_ago: Submitted %{time} ago
+      pending_persona:
+        title: Your ID is being checked
+        subtitle: This usually takes less than 24 hours
+        description: "Your ID is being reviewed automatically. We'll email %{email} as soon as it's done — you don't need to stay on this page."
+        review_title: We're reviewing your submission
+        review_subtitle: We'll get back to you soon
+        review_description: "We're taking a closer look at your submission. We'll email %{email} when we're done — you don't need to stay on this page."
+        submitted_ago: Started %{time} ago
+      pending_aadhaar:
+        title: Verifying your Aadhaar
+        subtitle: This usually takes just a few minutes
+        description: "Your Aadhaar is being verified automatically. We'll email %{email} when it's done."
+        submitted_ago: Started %{time} ago
       verified:
         title_ysws: You're all set for YSWS
-        title_verified: You're verified
+        title_verified: "You're verified — but not eligible for YSWS"
         subtitle_ysws: You can now participate in programs and compete for prizes
-        subtitle_verified: Your account is verified and ready to go
+        subtitle_verified: "Your identity has been confirmed, but our records show you're 18 or older. YSWS programs are only open to participants under 18."
+        contact_verified_html: "Think this is wrong? Email us at <a href=\"mailto:identity@hackclub.com\">identity@hackclub.com</a>."
         verified_ago: Verified %{time} ago
         back_to_home: Back to Home
       ineligible:
@@ -670,6 +748,10 @@ en:
         contact: Questions? Email identity@hackclub.com
         back_to_home: Back to Home
       needs_submission:
+        locked:
+          title: Let's get you verified
+          subtitle: "You've used your available verification attempts, but don't worry — we can help"
+          contact_html: "Email us at <a href=\"mailto:identity@hackclub.com\">identity@hackclub.com</a> and we'll get you sorted out."
         resubmission:
           title: Please resubmit your documents
           subtitle: We found some issues with your previous submission that you can fix
@@ -680,6 +762,7 @@ en:
           subtitle: Verify your age and identity to participate in programs and compete for prizes
           start_verification: Start Verification
   email_changes:
+    unavailable: Email changes aren't available on this account.
     new:
       title: Change your email
       current_email: Current email
@@ -738,6 +821,9 @@ en:
         message: Your documents are currently being reviewed.
         check_back: We'll email you once the review is complete. You can close this window.
         return_button: Return to app
+      persona:
+        title: One last step
+        subtitle: "Quick ID check so we know you're really you — takes about 2 minutes."
     addresses:
       title: We'll need your address...
       subtitle: Please use a real address — we're going to send you something here!
@@ -752,3 +838,392 @@ en:
         add_new: Add a new address
         add_button: Add Address
         done: Done
+  directory:
+    layout:
+      title: "directory"
+      page_title: "Directory"
+      my_access: "my access"
+      admin: "admin"
+      back: "back"
+    nav:
+      activity: "activity"
+      health: "health"
+      import: "import"
+      reports: "reports"
+    actions:
+      cancel: "cancel"
+      remove: "remove"
+    activity:
+      index:
+        empty: "no activity"
+        heading: "activity"
+        title: "activity"
+      staff: "staff"
+      title: "activity"
+    badges:
+      group: "group"
+      protected: "protected"
+      recursive: "recursive"
+      locked: "locked"
+      expired: "expired"
+      already_in: "already in"
+      add: "add"
+      skip: "skip"
+    collections:
+      activity:
+        empty: "no activity recorded."
+        heading: "activity"
+        title: "activity — %{name}"
+      created: "collection created."
+      cannot_destroy_in_use: "can't delete this collection — it's still required by one or more apps."
+      destroyed: "collection deleted."
+      edit:
+        heading: "edit: %{name}"
+        title: "edit: %{name}"
+        submit: "save changes"
+        name: "name"
+        slug: "slug"
+        kind: "kind"
+        description: "description"
+        protected: "protected"
+        protected_hint: "stops grant inheritance — must be granted directly"
+        confirm_destroy: "require slug confirmation to delete"
+      form:
+        description: "description"
+        kind: "kind"
+        kind_entitlement: "entitlement"
+        kind_group: "group"
+        name: "name"
+        protected: "protected"
+        slug: "slug"
+      index:
+        col_name: "name"
+        empty_message: "nothing here yet. create a group or entitlement to get started."
+        entitlements: "entitlements"
+        groups: "groups"
+        heading: "directory"
+        new_button: "+ new"
+        no_entitlements: "no entitlements yet"
+        no_groups: "no groups yet"
+        search_button: "search"
+        search_placeholder: "search people and groups…"
+        title: "directory"
+      new:
+        heading: "new collection"
+        title: "new collection"
+        submit: "create collection"
+        name: "name"
+        slug: "slug"
+        slug_hint: "url-safe identifier. can't be changed after creation."
+        kind: "kind"
+        kind_group: "group"
+        kind_entitlement: "entitlement"
+        description: "description"
+        description_placeholder: "what is this collection for?"
+        protected: "protected"
+        protected_hint: "stops grant inheritance — must be granted directly"
+        confirm_destroy: "require slug confirmation to delete"
+        name_placeholder: "e.g. fulltimers"
+        slug_placeholder: "e.g. fulltimers"
+      show:
+        add_grant: "add grant"
+        add_group: "add group"
+        add_person: "add person"
+        all_activity: "all activity →"
+        apps_told_about: "apps told about this"
+        col_added: "added"
+        col_app: "app"
+        col_by: "by"
+        col_claim: "claim"
+        col_expires: "expires"
+        col_group: "group"
+        col_member: "member"
+        col_permission: "permission"
+        col_person: "person"
+        col_when: "when"
+        col_wired_by: "wired by"
+        counts: "%{direct} direct · %{effective} total"
+        danger_zone: "danger zone"
+        delete_collection: "delete collection"
+        delete_confirm: "delete %{name}? this cannot be undone."
+        direct_people: "direct people"
+        edit: "edit"
+        email_placeholder: "name or email…"
+        group_slug_placeholder: "group slug…"
+        grantee_placeholder: "group slug…"
+        also_includes: "also includes %{count} through nested groups"
+        people_count:
+          one: "%{count} person"
+          other: "%{count} people"
+        groups_count:
+          one: "%{count} group"
+          other: "%{count} groups"
+        plus_expired: "+%{count} expired"
+        expiry_label: "expiry date (empty for never)"
+        make_direct: "make direct"
+        make_direct_confirm: "stop this grant applying to nested groups?"
+        make_recursive: "make recursive"
+        managed_by: "managed by"
+        member_groups: "member groups"
+        members: "members"
+        no_apps_wired: "no apps wired"
+        no_direct_people: "no direct people"
+        no_grants: "no grants"
+        no_members: "no members yet"
+        recent_activity: "recent activity"
+        recursive_label: "recursive"
+        remove_confirm: "remove %{name}?"
+        remove_grant_confirm: "remove this grant?"
+        save_expiry: "set"
+        remove_group_confirm: "remove this group?"
+        structural_admin_only: "group membership · admin only"
+        type_slug_confirm: "type slug to confirm…"
+        via_hidden:
+          one: "via %{count} group you can't view"
+          other: "via %{count} groups you can't view"
+        you_can_manage: "you can manage this"
+        col_email: "email"
+        col_via: "via"
+      updated: "collection updated."
+    export:
+      email: "email"
+      membership_type: "membership type"
+      name: "name"
+      hca_id: "hca_id"
+    flash:
+      member_added: "member added."
+      member_removed: "member removed."
+      grant_added: "grant added."
+      grant_removed: "grant removed."
+      email_not_found: "no hca account with that email."
+      admin_only_group_on_entitlement: "only admins can add member groups to entitlements."
+      need_manage_on_child_group: "you need permission to manage both groups to nest them."
+      need_manage_on_child_subgroups: "you also need permission to manage the groups nested inside that one."
+      admin_only_remove_group: "only admins can remove member groups from entitlements."
+      member_not_found: "that person or group doesn't exist."
+      already_a_member: "already a member of this collection."
+      provide_email_or_slug: "provide an email or group slug."
+      exposure_added: "exposure added."
+      exposure_removed: "exposure removed."
+      already_wired: "already wired."
+      requirement_added: "requirement added."
+      requirement_removed: "requirement removed."
+      requirement_already_exists: "requirement already exists."
+      not_authorized: "you don't have permission to do that."
+      health_valid: "valid — no drift detected."
+      health_drift: "drift detected!"
+      batch_added:
+        one: "added %{count} person."
+        other: "added %{count} people."
+      batch_skipped:
+        one: "%{count} already a member."
+        other: "%{count} already members."
+      batch_not_found:
+        one: "%{count} not found: %{items}."
+        other: "%{count} not found: %{items}."
+      batch_too_many: "that's more than %{max} at once. split it into smaller batches."
+      add_rate_limited: "too many adds in a short time. wait a few minutes and try again."
+      type_slug_to_confirm: "type the collection slug to confirm deletion."
+      group_not_found: "that group doesn't exist."
+      grantee_not_found: "that group or person doesn't exist."
+      invalid_expires_at: "expiration date isn't a valid date."
+      expires_at_in_past: "expiration date has to be in the future."
+      grant_already_exists: "that grant already exists."
+      grant_updated: "grant updated."
+      expiry_updated: "expiry updated."
+      batch_failed:
+        one: "%{count} couldn't be added: %{items}."
+        other: "%{count} couldn't be added: %{items}."
+    grants:
+      created: "grant added."
+      destroyed: "grant removed."
+      index:
+        col_by: "by"
+        col_date: "date"
+        col_grantee: "grantee"
+        col_permission: "permission"
+        col_recursive: "recursive"
+        col_target: "target"
+        empty: "no grants"
+        heading: "all grants"
+        title: "all grants"
+    health:
+      invalid: "drift detected"
+      show:
+        col_adapter: "adapter"
+        col_app: "app"
+        col_enabled: "enabled"
+        col_last_called: "last called"
+        col_record: "record"
+        col_result: "result"
+        col_status: "status"
+        extra: "extra"
+        heading: "health"
+        invalid: "drift detected"
+        last_run: "last run %{time} ago"
+        mismatches: "mismatches"
+        missing: "missing"
+        stale_expiry: "wrong expiry"
+        never_run: "never run"
+        no_revokers: "no revokers configured"
+        revokers: "revokers"
+        run_now: "run now"
+        title: "health"
+        valid: "valid"
+      title: "health"
+      valid: "valid"
+    import:
+      breadcrumb: "import"
+      errors: "import failed with %{count} error(s)."
+      new:
+        description_html: "bulk-add memberships from a csv. three columns: <code>email or ident!</code>, <code>collection slug or dcol!</code>, <code>expires_at</code>."
+        expires_at_html: "expiry is optional — leave it blank for permanent access. dates are <code>YYYY-MM-DD</code> (access lasts through the end of that day, eastern time) or a full ISO 8601 datetime. preview first to make sure it looks right."
+        file_label: "upload file"
+        heading: "import"
+        paste_label: "or paste csv"
+        preview_button: "preview"
+        title: "import"
+        skip_effective_label: "skip people who already have access to this entitlement via an alternate path"
+      file_too_large: "CSV file is too large (2MB max)."
+      no_file: "please upload a CSV file or paste CSV text."
+      preview:
+        already_member: "already a member"
+        already_effective: "already has access via another path"
+        duplicate_of: "duplicate of row %{row}"
+        apply_button: "apply import"
+        back: "back"
+        back_to_import: "back to import"
+        changes: "changes"
+        col_action: "action"
+        col_collection: "collection"
+        col_email: "email"
+        col_error: "error"
+        col_expires: "expires"
+        col_row: "row"
+        errors: "errors"
+        heading: "import preview"
+        never: "never"
+        no_changes: "no changes to apply"
+        summary: "%{add_count} to add, %{skip_count} to skip"
+        title: "import preview"
+      success: "import complete: %{created} created, %{skipped} skipped."
+    memberships:
+      admin_only_group_on_entitlement: "only admins can add groups to entitlements."
+      need_manage_on_child_group: "you need permission to manage both groups to nest them."
+      created: "member added."
+      destroyed: "member removed."
+    my_access:
+      not_in_directory:
+        heading: "not in directory"
+        message: "you're not in the directory. this page shows your access when you have some."
+        title: "my access"
+      show:
+        col_collection: "collection"
+        col_kind: "kind"
+        col_via: "via"
+        direct_memberships: "direct memberships"
+        heading: "my access"
+        no_memberships: "you don't have any directory memberships."
+        title: "my access"
+        via_nesting: "inherited"
+    people:
+      created: "person added to directory."
+      destroyed: "person removed from directory."
+      index:
+        all_people: "all people"
+        already_in: "already in"
+        bring_in: "bring in"
+        bring_someone_in: "bring someone in"
+        col_email: "email"
+        col_name: "name"
+        col_status: "status"
+        email_placeholder: "search by email…"
+        heading: "people"
+        no_people: "no people in the directory yet."
+        remove: "remove"
+        remove_confirm: "remove %{name}?"
+        search: "search"
+        title: "people"
+      show:
+        add_to_group: "add to group"
+        add_btn: "add"
+        pick_group: "pick a group..."
+        can_manage: "can manage"
+        col_collection: "collection"
+        col_kind: "kind"
+        col_via: "via"
+        direct_memberships: "direct memberships"
+        locked: "locked"
+        no_visible_memberships: "no visible memberships."
+        recent_activity: "recent activity"
+        remove: "remove from directory"
+        remove_confirm: "remove %{name}? they have %{count} visible memberships."
+        via_nesting: "inherited"
+    reports:
+      index:
+        col_collection: "collection"
+        col_created: "created"
+        col_email: "email"
+        col_expires: "expires"
+        col_kind: "kind"
+        col_name: "name"
+        col_person: "person"
+        empty_collections: "empty collections"
+        expiring_memberships: "memberships expiring in 30 days"
+        heading: "reports"
+        locked_identities: "locked identities in directory"
+        none: "none"
+        old_memberships: "memberships older than 1 year"
+        orphan_people: "people with no memberships"
+        title: "reports"
+        unmanaged_collections: "collections nobody can manage"
+      title: "reports"
+    view_as:
+      title: "view as"
+      heading: "view as"
+      person_label: "person:"
+      placeholder: "search for a person…"
+      go: "go"
+      viewing_as: "viewing as:"
+      memberships: "memberships"
+      direct: "direct"
+      via_nesting: "inherited"
+      no_memberships: "no memberships"
+      visible_collections: "visible collections"
+      no_visible: "no visible collections (no grants)"
+      effective_grants: "effective grants"
+      no_grants: "no grants"
+      col_collection: "collection"
+      col_kind: "kind"
+      col_name: "name"
+      col_permission: "permission"
+      col_via: "via"
+    requirement_denied:
+      title: "not available"
+      heading: "you don't have access to this app."
+      message: "if you think this is wrong, ask whoever runs it."
+      go_home: "go home →"
+    search:
+      button: "search"
+      col_email: "email"
+      col_kind: "kind"
+      col_name: "name"
+      collections: "collections"
+      heading: "search"
+      no_results: "no results"
+      people: "people"
+      placeholder: "search people and collections…"
+      prompt: "enter a query to search people and collections"
+      title: "search"
+    developer_apps:
+      directory_heading: "directory"
+      told_about: "told about"
+      wired_by: "wired by %{name}"
+      remove: "Remove"
+      required_to_log_in: "required to log in"
+      wire_entitlement: "wire an entitlement"
+      claim_name_placeholder: "claim name (e.g. staff)"
+      wire_button: "Wire"
+      require_entitlement: "require an entitlement to log in"
+      require_button: "Require"
+      not_official: "only official hack club apps can be wired to the directory."

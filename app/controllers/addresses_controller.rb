@@ -140,13 +140,9 @@ class AddressesController < ApplicationController
     render partial: "addresses/address_list", locals: { addresses: @addresses, address: @address, portal: portal_context? }, layout: false
   end
 
-  def htmx_request?
-    request.headers["HX-Request"].present?
-  end
+  def htmx_request? = request.headers["HX-Request"].present?
 
-  def htmx_target
-    request.headers["HX-Target"]
-  end
+  def htmx_target = request.headers["HX-Target"]
 
   def portal_context?
     ActiveModel::Type::Boolean.new.cast(params[:portal]) || request.headers["HX-Target"] == "#portal-addresses"
@@ -156,9 +152,7 @@ class AddressesController < ApplicationController
     @address = policy_scope(Address).find_by_public_id!(params[:id])
   end
 
-  def address_params
-    params.require(:address).permit(:first_name, :last_name, :line_1, :line_2, :city, :state, :postal_code, :country, :phone_number)
-  end
+  def address_params = params.require(:address).permit(:first_name, :last_name, :line_1, :line_2, :city, :state, :postal_code, :country, :phone_number)
 
   def create_address
     @address = current_identity.addresses.new(address_params)

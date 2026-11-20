@@ -5,18 +5,22 @@ module SAMLService
 
     class << self
       def sign_response(response)
+        # one snapshot for the whole response, so a rotation mid-sign can't mix keys
+        keys = Entities.keys
+        raise "SAML IdP signing key not configured." unless keys.signing?
+
         unsigned_xml = response.to_xml.to_s
         doc = Nokogiri::XML(unsigned_xml) { |cfg| cfg.noblanks }
 
         assertion = doc.at_xpath("//saml:Assertion", "saml" => SAML_NS)
         assertion_digest = calculate_digest(assertion)
-        assertion_signature = build_complete_signature(assertion["ID"], assertion_digest)
+        assertion_signature = build_complete_signature(assertion["ID"], assertion_digest, keys)
         assertion_issuer = assertion.at_xpath("saml:Issuer", "saml" => SAML_NS)
         assertion_issuer.add_next_sibling(assertion_signature)
 
         response_elem = doc.at_xpath("//samlp:Response", "samlp" => "urn:oasis:names:tc:SAML:2.0:protocol")
         response_digest = calculate_digest(response_elem)
-        response_signature = build_complete_signature(response_elem["ID"], response_digest)
+        response_signature = build_complete_signature(response_elem["ID"], response_digest, keys)
         response_issuer = response_elem.at_xpath("saml:Issuer", "saml" => SAML_NS)
         response_issuer.add_next_sibling(response_signature)
 
@@ -32,10 +36,10 @@ module SAMLService
         Base64.strict_encode64(hash).gsub(/\n/, "")
       end
 
-      def build_complete_signature(reference_id, digest)
+      def build_complete_signature(reference_id, digest, keys)
         signed_info = build_signed_info(reference_id, digest)
-        signature_value = sign_data(signed_info)
-        build_signature(signed_info, signature_value)
+        signature_value = sign_data(signed_info, keys.private_key)
+        build_signature(signed_info, signature_value, keys.certificate)
       end
 
       def build_signed_info(reference_id, digest)
@@ -56,21 +60,20 @@ module SAMLService
         builder.doc.root
       end
 
-      def sign_data(signed_info_node)
+      def sign_data(signed_info_node, key)
         canon = signed_info_node.canonicalize(Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0)
-        key = OpenSSL::PKey::RSA.new(Entities.private_key)
         signature = key.sign(OpenSSL::Digest::SHA256.new, canon)
         Base64.strict_encode64(signature).gsub(/\n/, "")
       end
 
-      def build_signature(signed_info_node, signature_value)
+      def build_signature(signed_info_node, signature_value, certificate)
         builder = Nokogiri::XML::Builder.new do |xml|
           xml["ds"].Signature("xmlns:ds" => DS_NS) do
             xml.parent << signed_info_node
             xml["ds"].SignatureValue(signature_value)
             xml["ds"].KeyInfo do
               xml["ds"].X509Data do
-                xml["ds"].X509Certificate(Entities.x509_certificate.gsub(/-----(BEGIN|END) CERTIFICATE-----|\s/, ""))
+                xml["ds"].X509Certificate(certificate)
               end
             end
           end

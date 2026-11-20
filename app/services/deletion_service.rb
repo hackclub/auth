@@ -22,6 +22,7 @@ module DeletionService
     raise Error, "cannot tombstone admin accounts — remove backend_user first" if identity.backend_user.present?
 
     original_email = identity.primary_email
+    persona_account_id = identity.persona_account_id
     name_hashes = Deletion.name_combo_hashes_for_identity(identity)
     ip_hashes = identity.sessions.where.not(ip: nil).distinct.pluck(:ip).map { |ip| Deletion.hash_ip(ip) }
     version_items = collect_version_items(identity)
@@ -33,9 +34,13 @@ module DeletionService
     log.call "created: #{identity.created_at.strftime("%Y-%m-%d")}"
     log.call ""
 
+    deferred_attachments = []
+    dir_person = nil
+    dir_revocations = []
+
     ActiveRecord::Base.transaction do
       log.call "step 1: locking account..."
-      identity.lock! unless identity.locked?
+      identity.lock_account! unless identity.locked?
 
       log.call "step 2: destroying auth data..."
       counts = {
@@ -53,9 +58,10 @@ module DeletionService
       ].each { |assoc| counts[assoc.klass.name.demodulize.underscore.pluralize.to_sym] = assoc.destroy_all.size }
       log.call "  destroyed: #{counts.select { |_, v| v > 0 }.map { |k, v| "#{v} #{k}" }.join(", ").presence || "nothing"}"
 
-      log.call "step 3: purging document files..."
-      doc_count = purge_attachments(identity)
-      log.call "  purged #{doc_count} #{"attachment".pluralize(doc_count)}" if doc_count > 0
+      log.call "step 3: collecting attachment references (purge deferred until after commit)..."
+      deferred_attachments = collect_attachments(identity)
+      log.call "  found #{deferred_attachments.size} #{"attachment".pluralize(deferred_attachments.size)}" if deferred_attachments.any?
+      detach_attachments(identity)
 
       log.call "step 4: scrubbing associated record PII..."
       addr_count = 0
@@ -73,7 +79,34 @@ module DeletionService
         record.update_columns(name: "[REDACTED]", date_of_birth: nil, raw_json_response: nil)
         aadhaar_count += 1
       end
-      log.call "  scrubbed #{addr_count} #{"address".pluralize(addr_count)}, #{aadhaar_count} aadhaar #{"record".pluralize(aadhaar_count)}"
+      persona_count = 0
+      Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).find_each do |record|
+        record.update_columns(
+          name_first: "[REDACTED]", name_last: "[REDACTED]",
+          birthdate: nil, raw_json_response: nil,
+          behaviors: {}, network_signals: {}, checks: [],
+          inquiry_id: "REDACTED-#{record.id}", expiration_date: nil,
+          country_code: nil, id_class: nil
+        )
+        persona_count += 1
+      end
+      Verification.with_deleted.where(identity_id: identity.id)
+        .update_all(
+          persona_session_token: nil,
+          internal_rejection_comment: nil,
+          rejection_reason_details: nil,
+          aadhaar_hc_transaction_id: nil,
+          aadhaar_external_transaction_id: nil,
+          aadhaar_link: nil,
+          persona_inquiry_id: nil,
+          sample_notes: nil
+        )
+      call_count = scrub_manual_call_checklists(identity)
+      case_counts = scrub_verification_cases(identity)
+      log.call "  scrubbed #{addr_count} #{"address".pluralize(addr_count)}, #{aadhaar_count} aadhaar, #{persona_count} persona, " \
+               "#{call_count} manual call #{"checklist".pluralize(call_count)}, " \
+               "#{case_counts[:cases]} verification #{"case".pluralize(case_counts[:cases])} " \
+               "(#{case_counts[:events]} #{"event".pluralize(case_counts[:events])}, #{case_counts[:comments]} #{"comment".pluralize(case_counts[:comments])})"
 
       log.call "step 5: destroying resemblances..."
       r_count = Identity::Resemblance.where(identity_id: identity.id).destroy_all.size +
@@ -102,9 +135,20 @@ module DeletionService
 
       log.call "step 11: removing Flipper actor gates..."
       gates = ActiveRecord::Base.connection.delete(
-        "DELETE FROM flipper_gates WHERE key = 'actors' AND value = #{ActiveRecord::Base.connection.quote("Identity;#{identity.id}")}"
+        "DELETE FROM flipper_gates WHERE key = 'actors' AND value = #{ActiveRecord::Base.connection.quote(identity.public_id)}"
       )
       log.call "  removed #{gates}" if gates > 0
+
+      # the directory lock is held from here to commit, so every directory write waits only
+      # for the short tail of the deletion. no person can appear for this identity after the
+      # lookup: creating one takes the same lock, and once this commits it sees the identity
+      # as deleted. directory activity is the directory's audit log and is kept as is: it
+      # names people by id, so once the identity is gone they read as [deleted user]
+      log.call "step 11b: finding directory person under the directory lock..."
+      Directory.lock!
+      dir_person = Directory::Person.find_by(identity: identity)
+      # before redaction: revocations need the real email to reach app revokers
+      dir_revocations = Directory::DestroyRevocations.for_person(dir_person) if dir_person
 
       log.call "step 12: scrubbing identity PII..."
       tombstone_email = "tombstoned+#{identity.id}@identity.invalid"
@@ -115,7 +159,7 @@ module DeletionService
         primary_email: tombstone_email,
         birthday: Date.new(1970, 1, 1),
         phone_number: nil, slack_id: nil, slack_dm_channel_id: nil,
-        aadhaar_number_ciphertext: nil, aadhaar_number_bidx: nil,
+        aadhaar_number_ciphertext: nil, aadhaar_number_bidx: nil, persona_account_id: nil,
         locked_at: identity.locked_at || Time.current,
         permabanned: true,
         deleted_at: identity.deleted_at || Time.current,
@@ -124,6 +168,12 @@ module DeletionService
         onboarding_scenario: nil
       )
       log.call "  => #{tombstone_email}"
+
+      log.call "step 12b: removing from directory (if present)..."
+      if dir_person
+        Directory.mutate!(cause: "person_removed:#{dir_person.id}") { dir_person.reload.destroy! }
+        log.call "  removed directory person #{dir_person.id}"
+      end
 
       log.call "step 13: creating tombstone record..."
       Deletion.create!(
@@ -141,6 +191,32 @@ module DeletionService
         key: "identity.deletion_request",
         parameters: { tombstoned_at: Time.current.iso8601 }
       )
+    end
+
+    if dir_revocations.any?
+      Directory::AfterChangeJob.perform_later(change_ids: [], revocations: dir_revocations)
+    end
+
+    if deferred_attachments.any?
+      log.call "step 14b: purging #{deferred_attachments.size} collected attachments from storage..."
+      deferred_attachments.each do |blob|
+        blob.purge
+      rescue Aws::S3::Errors::ServiceError => e
+        Rails.logger.warn "DeletionService: failed to purge blob #{blob.id}: #{e.message}"
+        blob.destroy
+      end
+      log.call "  done"
+    end
+
+    if persona_account_id.present?
+      log.call "step 15: redacting persona account #{persona_account_id}..."
+      begin
+        Persona.instance.redact_account(persona_account_id)
+        log.call "  done"
+      rescue Persona::APIError => e
+        log.call "  failed: #{e.message} — manual redaction required"
+        Sentry.capture_exception(e, tags: { component: "persona_deletion", identity_id: identity.id })
+      end
     end
 
     log.call ""
@@ -163,17 +239,25 @@ module DeletionService
       "Identity::BackupCode" => Identity::BackupCode.where(identity_id: identity.id).pluck(:id),
       "Identity::TOTP" => Identity::TOTP.where(identity_id: identity.id).pluck(:id),
       "Identity::AadhaarRecord" => Identity::AadhaarRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
+      "Identity::PersonaRecord" => Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
       "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id),
       "Verification" => Verification.with_deleted.where(identity_id: identity.id).pluck(:id),
+      "VerificationCase" => VerificationCase.with_deleted.where(identity_id: identity.id).pluck(:id),
       "BreakGlassRecord" => BreakGlassRecord.where(
         "(break_glassable_type = 'Identity' AND break_glassable_id = ?) OR " \
         "(break_glassable_type = 'Identity::Document' AND break_glassable_id IN (?)) OR " \
         "(break_glassable_type = 'Identity::AadhaarRecord' AND break_glassable_id IN (?)) OR " \
-        "(break_glassable_type = 'Verification::VouchVerification' AND break_glassable_id IN (?))",
+        "(break_glassable_type = 'Identity::PersonaRecord' AND break_glassable_id IN (?)) OR " \
+        "(break_glassable_type = 'Verification::VouchVerification' AND break_glassable_id IN (?)) OR " \
+        "(break_glassable_type = 'VerificationCase::Document' AND break_glassable_id IN (?))",
         identity.id,
         Identity::Document.with_deleted.where(identity_id: identity.id).pluck(:id),
         Identity::AadhaarRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
-        Verification::VouchVerification.with_deleted.where(identity_id: identity.id).pluck(:id)
+        Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
+        Verification::VouchVerification.with_deleted.where(identity_id: identity.id).pluck(:id),
+        VerificationCase::Document.with_deleted.where(
+          verification_case_id: VerificationCase.with_deleted.where(identity_id: identity.id).select(:id)
+        ).pluck(:id)
       ).pluck(:id)
     }.each do |type, ids|
       ids.each { |id| items << [ type, id ] }
@@ -189,6 +273,8 @@ module DeletionService
       "Address" => identity.addresses.pluck(:id),
       "IdentitySession" => IdentitySession.where(identity_id: identity.id).pluck(:id),
       "Verification" => Verification.with_deleted.where(identity_id: identity.id).pluck(:id),
+      "VerificationCase" => VerificationCase.with_deleted.where(identity_id: identity.id).pluck(:id),
+      "Identity::PersonaRecord" => Identity::PersonaRecord.with_deleted.where(identity_id: identity.id).pluck(:id),
       "Identity::TOTP" => Identity::TOTP.where(identity_id: identity.id).pluck(:id),
       "Identity::WebauthnCredential" => Identity::WebauthnCredential.where(identity_id: identity.id).pluck(:id),
       "OAuthToken" => Doorkeeper::AccessToken.where(resource_owner_id: identity.id).pluck(:id)
@@ -197,6 +283,97 @@ module DeletionService
     end
 
     trackables
+  end
+
+  def self.collect_attachments(identity)
+    blobs = []
+    identity.documents.with_deleted.each do |doc|
+      doc.files.each { |f| blobs << f.blob }
+    end
+    identity.vouch_verifications.with_deleted.each do |vv|
+      blobs << vv.evidence.blob if vv.evidence.attached?
+    end
+    identity.verification_cases.with_deleted.each do |kase|
+      kase.documents.with_deleted.each do |doc|
+        blobs << doc.file.blob if doc.file.attached?
+      end
+    end
+    blobs.compact
+  end
+
+  def self.detach_attachments(identity)
+    identity.documents.with_deleted.each do |doc|
+      doc.files.detach
+    end
+    identity.vouch_verifications.with_deleted.each do |vv|
+      vv.evidence.detach if vv.evidence.attached?
+    end
+    identity.verification_cases.with_deleted.each do |kase|
+      kase.documents.with_deleted.each do |doc|
+        doc.file.detach if doc.file.attached?
+      end
+    end
+  end
+
+  # the reviewer's y/n answers and confidence are the decision; the free-text
+  # notes are where names, addresses and "the dad said..." end up
+  def self.scrub_manual_call_checklists(identity)
+    count = 0
+    Verification::ManualVerificationCall.with_deleted.where(identity_id: identity.id).where.not(checklist: nil).find_each do |call|
+      call.update_columns(checklist: call.checklist.except("notes"))
+      count += 1
+    end
+    count
+  end
+
+  # keys inside VerificationCase::Event#data that hold typed free text
+  # (reviewer's redo message, withdrawal reason, checklist notes). the
+  # structural keys — verification_id, booking_uid, verdicts — stay so the
+  # audit trail keeps its shape.
+  EVENT_DATA_FREE_TEXT_KEYS = %w[message reason notes].freeze
+
+  def self.scrub_verification_cases(identity)
+    cases = VerificationCase.with_deleted.where(identity_id: identity.id)
+    case_ids = cases.pluck(:id)
+    counts = { cases: case_ids.size, events: 0, comments: 0 }
+    return counts if case_ids.empty?
+
+    # update_all intentionally — bypasses PaperTrail (the old versions are
+    # deleted in step 9) and the AASM/validation layer on closed cases
+    cases.update_all(
+      submitted_fields: {},
+      persona_signal_snapshot: nil,
+      alternative_reason_details: nil,
+      persona_inquiry_id: nil,
+      persona_session_token: nil,
+      access_token: nil,
+      access_token_expires_at: nil
+    )
+
+    # events are append-only (readonly? + before_destroy guard), so even
+    # update_columns refuses them — go straight to the table. rows and their
+    # keys survive; the request fingerprint and typed text do not.
+    VerificationCase::Event.where(verification_case_id: case_ids).find_each do |event|
+      VerificationCase::Event.where(id: event.id).update_all(
+        ip_address: nil, user_agent: nil, data: scrub_event_data(event.data)
+      )
+      counts[:events] += 1
+    end
+
+    counts[:comments] = VerificationCase::Comment.where(verification_case_id: case_ids).update_all(body: "[REDACTED]")
+
+    counts
+  end
+
+  def self.scrub_event_data(data)
+    case data
+    when Hash
+      data.to_h { |k, v| [ k, EVENT_DATA_FREE_TEXT_KEYS.include?(k.to_s) && v.present? ? "[REDACTED]" : scrub_event_data(v) ] }
+    when Array
+      data.map { |v| scrub_event_data(v) }
+    else
+      data
+    end
   end
 
   def self.purge_attachments(identity)
@@ -238,9 +415,12 @@ module DeletionService
   def self.discard_pending_jobs(identity)
     return unless defined?(GoodJob::Job)
 
-    GoodJob::Job.where(finished_at: nil).where(
-      "serialized_params::text LIKE ? OR serialized_params::text LIKE ?",
-      "%\"identity_id\":#{identity.id}%",
+    # AfterChangeJob batches many people's revocations into one payload (and this
+    # person's own revocations should still go through), so it's never discarded.
+    GoodJob::Job.where(finished_at: nil).where("job_class IS DISTINCT FROM ?", "Directory::AfterChangeJob").where(
+      "serialized_params::text LIKE ? OR serialized_params::text LIKE ? OR serialized_params::text LIKE ?",
+      "%\"identity_id\": #{identity.id},%",
+      "%\"identity_id\": #{identity.id}}%",
       "%Identity/#{identity.id}\"%"
     ).find_each do |job|
       job.update_columns(finished_at: Time.current, error: "discarded by deletion_request")
@@ -258,9 +438,11 @@ module DeletionService
   SAFE_ACTIVITY_KEY_PREFIXES = %w[verification.].freeze
 
   def self.scrub_activities(identity, activity_trackables)
+    # directory rows are kept: they're the directory's audit log, and they name people by
+    # id, not by name or email
     scope = PublicActivity::Activity.where(
       "(trackable_type = 'Identity' AND trackable_id = ?) OR " \
-      "(owner_type = 'Identity' AND owner_id = ?) OR " \
+      "(owner_type = 'Identity' AND owner_id = ? AND key NOT LIKE 'directory\\_%') OR " \
       "(recipient_type = 'Identity' AND recipient_id = ?)",
       identity.id, identity.id, identity.id
     )
@@ -282,5 +464,7 @@ module DeletionService
   end
 
   private_class_method :collect_version_items, :collect_activity_trackables, :purge_attachments,
-                       :purge_or_detach, :delete_versions, :discard_pending_jobs, :scrub_activities
+                       :purge_or_detach, :delete_versions, :discard_pending_jobs, :scrub_activities,
+                       :collect_attachments, :detach_attachments, :scrub_manual_call_checklists,
+                       :scrub_verification_cases, :scrub_event_data
 end

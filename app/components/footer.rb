@@ -40,7 +40,5 @@ class Components::Footer < Components::Base
 
   def commit_link = Rails.application.config.try(:commit_link)
 
-  def server_start_time
-    Rails.application.config.try(:server_start_time)
-  end
+  def server_start_time = Rails.application.config.try(:server_start_time)
 end

@@ -3,6 +3,11 @@ module SCIMService
     SCIM_BASE_URL = "https://api.slack.com/scim/v2"
 
     def find_or_create_user(identity:, scenario:)
+      if identity.disallow_slack?
+        Rails.logger.warn "Refusing to provision Slack for blocked identity #{identity.id}"
+        return { success: false, error: "This account is blocked from Slack" }
+      end
+
       if Rails.env.staging?
         Rails.logger.info "Skipping Slack provisioning in staging for #{identity.primary_email}"
         return {
@@ -16,7 +21,7 @@ module SCIMService
       email = identity.primary_email
 
       # Check if user exists - use Web API if not enterprise, SCIM API if enterprise
-      existing_slack_id = if Flipper.enabled?(:are_we_enterprise_yet, identity)
+      existing_slack_id = if Flipper.enabled?(:are_we_enterprise_yet_2025_10_21, identity)
         find_existing_user_by_email(email)
       else
         SlackService.find_by_email(email)
@@ -59,7 +64,7 @@ module SCIMService
         }
       end
 
-      unless Flipper.enabled?(:are_we_enterprise_yet, identity)
+      unless Flipper.enabled?(:are_we_enterprise_yet_2025_10_21, identity)
         Rails.logger.info "SCIM user creation disabled (not enterprise yet) for #{email}"
         return {
           success: false,
@@ -74,7 +79,7 @@ module SCIMService
     end
 
     def create_user(identity:, scenario:)
-      if Flipper.enabled?(:disable_slack_invites, identity)
+      if Flipper.enabled?(:disable_slack_invites_2025_12_08, identity)
         Rails.logger.info "Slack invite creation disabled via Flipper for #{identity.primary_email}"
         return {
           success: false,
@@ -97,7 +102,7 @@ module SCIMService
       response = nil
 
       loop do
-        Rails.logger.info "Creating Slack user with payload: #{user_payload.inspect}"
+        Rails.logger.info "Creating Slack user for identity #{identity.public_id} with username #{username}"
         response = client.post("Users", user_payload)
 
         if response.success?
@@ -243,7 +248,40 @@ module SCIMService
       { success: false, error: e.message }
     end
 
+    def deactivate_user(slack_id:)
+      if Rails.env.staging?
+        Rails.logger.info "Skipping Slack deactivation in staging for #{slack_id}"
+        return { success: true }
+      end
+
+      response = client.patch("Users/#{slack_id}", {
+        schemas: [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
+        Operations: [
+          { op: "replace", path: "active", value: false }
+        ]
+      })
+
+      if response.success?
+        { success: true }
+      else
+        error_msg = if response.body.is_a?(Hash)
+          response.body.dig("Errors", 0, "description") ||
+            response.body["detail"] ||
+            response.body["message"] ||
+            response.body["error"]
+        end
+        error_msg ||= "Unknown error (Status #{response.status})"
+        { success: false, error: error_msg }
+      end
+    rescue => e
+      Rails.logger.error "Error deactivating Slack user #{slack_id}: #{e.message}"
+      Sentry.capture_exception(e, tags: { component: "slack", operation: "scim_deactivate_user" })
+      { success: false, error: e.message }
+    end
+
     def find_existing_user_by_email(email)
+      return nil if email.include?('"')
+
       response = client.get("Users") do |req|
         req.params["filter"] = "emails eq \"#{email}\""
       end

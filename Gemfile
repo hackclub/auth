@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.0.4"
+gem "rails", "~> 8.1.0"
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.6"
 # Use the Puma web server [https://github.com/puma/puma]
@@ -33,7 +33,8 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 
   # Testing framework
-  gem "rspec-rails", "~> 7.1"
+  gem "rspec-rails", "~> 8.0"
+  gem "webmock", "~> 3.24"
 
   gem "faker"
 end
@@ -49,8 +50,8 @@ gem "vite_rails"
 
 gem "pundit", "~> 2.5"
 
-gem "sentry-ruby", "~> 5.28"
-gem "sentry-rails", "~> 5.28"
+gem "sentry-ruby", "~> 7.0"
+gem "sentry-rails", "~> 7.0"
 
 gem "http", "~> 5.3"
 
@@ -66,7 +67,7 @@ gem "jb", "~> 0.8.2"
 
 gem "wicked", "~> 2.0"
 
-gem "countries", "~> 7.1"
+gem "countries", "~> 8.0"
 
 gem "awesome_print", "~> 1.9"
 
@@ -87,7 +88,7 @@ gem "hashid-rails", "~> 1.4"
 
 gem "public_activity", "~> 3.0"
 
-gem "paper_trail", "~> 16.0"
+gem "paper_trail", "~> 17.0"
 
 gem "ahoy_matey", "~> 5.4"
 gem "chartkick", "~> 5.2"
@@ -107,7 +108,7 @@ gem "valid_email2", github: "24c02/valid_email2"
 
 gem "rails_semantic_logger", "~> 4.19"
 
-gem "acts_as_paranoid", "~> 0.10.3"
+gem "acts_as_paranoid", "~> 0.11"
 
 gem "console1984", "~> 0.2.3"
 
@@ -115,13 +116,14 @@ gem "audits1984", "~> 0.1.7"
 
 gem "propshaft", "~> 1.3"
 
-gem "mini-levenshtein", "~> 0.1.2"
+gem "damerau-levenshtein", "~> 1.3"
 
 gem "faraday", "~> 2.14"
+gem "faraday-retry", "~> 2.2"
 
 gem "ruby-vips", "~> 2.3"
 
-gem "slack-ruby-client", "~> 2.7"
+gem "slack-ruby-client", "~> 3.0"
 
 gem "redcarpet", "~> 3.6"
 gem "front_matter_parser", "~> 1.0"
@@ -140,7 +142,7 @@ gem "rexml" # Required explicitly in Ruby 3.4+ for SAML XML parsing
 gem "geocoder", "~> 1.8"
 
 gem "rotp", "~> 6.3"
-gem "rqrcode", "~> 2.2"
+gem "rqrcode", "~> 3.0"
 
 gem "webauthn", "~> 3.4"
 

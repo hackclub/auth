@@ -26,6 +26,8 @@ module Shortcodes
       if user&.manual_document_verifier? || user&.super_admin?
         shortcuts << Shortcode.new(code: "PEND", label: "Pending verifications", controller: "backend/verifications", action: "pending", icon: "⭢", role: :mdv, path_override: nil)
         shortcuts << Shortcode.new(code: "VERF", label: "All verifications", controller: "backend/verifications", action: "index", icon: "⭢", role: :mdv, path_override: nil)
+        shortcuts << Shortcode.new(code: "CASE", label: "Manual call cases", controller: "backend/verification_cases", action: "index", icon: "⭢", role: :mdv, path_override: nil)
+        shortcuts << Shortcode.new(code: "QASM", label: "QA sampling", controller: "backend/verification_cases", action: "qa", icon: "⭢", role: :mdv, path_override: nil)
       end
 
       # Common
@@ -44,6 +46,16 @@ module Shortcodes
         shortcuts << Shortcode.new(code: "APPS", label: "OAuth2 apps", controller: "developer_apps", action: "index", icon: "⭢", role: :program_manager, path_override: "/developer/apps")
       end
 
+      # Deletions
+      if user&.can_process_deletions?
+        shortcuts << Shortcode.new(code: "DELS", label: "Deletions", controller: "backend/deletions", action: "index", icon: "⭢", role: :super_admin, path_override: nil)
+      end
+
+      # SAML certificate management
+      if user&.saml_officer?
+        shortcuts << Shortcode.new(code: "SAML", label: "SAML certificates", controller: "backend/saml_certificates", action: "index", icon: "⭢", role: :saml_officer, path_override: nil)
+      end
+
       # Super admin (less frequent)
       if user&.super_admin?
         shortcuts += [
@@ -51,6 +63,20 @@ module Shortcodes
           Shortcode.new(code: "JOBS", label: "Job queue", controller: "good_job/jobs", action: "index", icon: "⭢", role: :super_admin, path_override: "/backend/good_job"),
           Shortcode.new(code: "FLIP", label: "Feature flags", controller: "flipper/features", action: "index", icon: "⭢", role: :super_admin, path_override: "/backend/flipper"),
           Shortcode.new(code: "ORWL", label: "Console audit", controller: "audits1984/audits", action: "index", icon: "⭢", role: :super_admin, path_override: "/backend/console_audit")
+        ]
+      end
+
+      # Directory
+      if user&.directory_services_admin?
+        shortcuts += [
+          Shortcode.new(code: "ADUC", label: "Directory", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory"),
+          Shortcode.new(code: "FOLK", label: "People", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/people"),
+          Shortcode.new(code: "PERM", label: "Grants", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/grants"),
+          Shortcode.new(code: "REPT", label: "Reports", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/reports"),
+          Shortcode.new(code: "HLTH", label: "Health", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/health"),
+          Shortcode.new(code: "BULK", label: "Import", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/import"),
+          Shortcode.new(code: "FEED", label: "Dir. activity", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/activity"),
+          Shortcode.new(code: "SUDO", label: "View as", controller: nil, action: nil, icon: "⭢", role: :general, path_override: "/directory/view_as")
         ]
       end
 
@@ -94,11 +120,29 @@ module Shortcodes
             when "Identity" then "/backend/identities"
             when "Verification" then "/backend/verifications"
             when "Address" then "/backend/identities"
+            when "Directory::Person" then "/directory/people"
+            when "Directory::Collection" then "/directory/collections"
             else "/backend/#{klass.name.underscore.pluralize}"
             end
             hash[prefix] = { model: klass.name, path: path }
           end
       end
+    end
+
+    # Directory records are only for directory admins; the directory's own policies decide
+    # who else sees them, and the backend doesn't run those.
+    def directory_prefix?(info) = info[:model].start_with?("Directory::")
+
+    # The class behind a public_id_prefixes entry, looked up from the same model list rather
+    # than by constantizing a name that started out as user input.
+    def public_id_model(info)
+      ActiveRecord::Base.descendants.find { |klass| klass.name == info[:model] }
+    end
+
+    def public_id_prefixes_for(user)
+      return public_id_prefixes if user&.directory_services_admin?
+
+      public_id_prefixes.reject { |_, info| directory_prefix?(info) }
     end
 
     def search_scopes_for(user)
@@ -108,13 +152,17 @@ module Shortcodes
         scopes << { key: "oauth_apps", label: "OAuth apps", icon: "⭢" }
       end
 
+      if user&.directory_services_admin?
+        scopes << { key: "directory", label: "Directory", icon: "⭢" }
+      end
+
       scopes
     end
 
     def kbar_data_for(user)
       {
         shortcuts: all(user).map { |s| { code: s.code, label: s.label, path: s.path, icon: s.icon } },
-        prefixes: public_id_prefixes,
+        prefixes: public_id_prefixes_for(user),
         searchScopes: search_scopes_for(user)
       }.to_json
     end

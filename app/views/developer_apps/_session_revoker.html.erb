@@ -1,0 +1,64 @@
+<% scope = "directory.developer_apps" %>
+<div class="credential-block">
+  <label><%= t("#{scope}.revoker_heading") %></label>
+  <p style="color: var(--pico-muted-color);"><%= t("#{scope}.revoker_explainer") %></p>
+
+  <% if revoker && !revoker.readable? %>
+    <p style="color: var(--pico-del-color);"><%= t("#{scope}.revoker_unreadable", default: "this revoker's config can't be read (wrong key or corrupt). replace it below or remove it.") %></p>
+  <% end %>
+  <% if revoker %>
+    <p style="color: var(--pico-muted-color);">
+      <% if revoker.last_called_at %>
+        <%= t("#{scope}.revoker_last_called", time: time_ago_in_words(revoker.last_called_at), result: revoker.last_result) %>
+      <% else %>
+        <%= t("#{scope}.revoker_never_called") %>
+      <% end %>
+    </p>
+  <% else %>
+    <p style="color: var(--pico-muted-color);"><%= t("#{scope}.revoker_none") %></p>
+  <% end %>
+
+  <%= form_with url: developer_app_session_revoker_path(app), method: revoker ? :patch : :post, scope: :revoker, local: true,
+        html: { data: { revoker_form: true } } do |f| %>
+    <%= hidden_field_tag :return_to, local_assigns[:return_to] %>
+    <label>
+      <%= t("#{scope}.revoker_adapter") %>
+      <%= f.select :adapter,
+            Directory::AppRevoker::ADAPTERS.map { |a| [ t("#{scope}.revoker_adapters.#{a}"), a ] },
+            { selected: revoker&.adapter }, { data: { revoker_adapter: true } } %>
+    </label>
+
+    <% Directory::AppRevoker::FIELDS.each do |adapter, fields| %>
+      <%# disabled while hidden so the other adapter's fields aren't submitted %>
+      <fieldset data-revoker-fields="<%= adapter %>">
+        <legend><%= t("#{scope}.revoker_adapters.#{adapter}") %></legend>
+        <small><%= t("#{scope}.revoker_help.#{adapter}") %></small>
+        <% current = revoker&.adapter == adapter && revoker.readable? %>
+        <% fields.each do |key, opts| %>
+          <label>
+            <%= t("#{scope}.revoker_fields.#{key}") %>
+            <% if opts[:secret] %>
+              <%= password_field_tag "revoker[fields][#{key}]", nil, autocomplete: "off",
+                    placeholder: (current && revoker.secret_set?(key)) ? t("#{scope}.revoker_secret_set") : nil %>
+            <% else %>
+              <%= text_field_tag "revoker[fields][#{key}]", (current ? revoker.settings[key] : nil), autocomplete: "off" %>
+            <% end %>
+          </label>
+        <% end %>
+      </fieldset>
+    <% end %>
+
+    <label>
+      <%= hidden_field_tag "revoker[enabled]", "0", id: nil %>
+      <%= check_box_tag "revoker[enabled]", "1", revoker.nil? || revoker.enabled %>
+      <%= t("#{scope}.revoker_enabled") %>
+    </label>
+
+    <button type="submit" class="small-btn"><%= t("#{scope}.revoker_save") %></button>
+  <% end %>
+
+  <% if revoker %>
+    <%= button_to t("#{scope}.revoker_remove"), developer_app_session_revoker_path(app), method: :delete, class: "danger small-btn", params: { return_to: local_assigns[:return_to] },
+          data: { confirm: t("#{scope}.revoker_remove_confirm") } %>
+  <% end %>
+</div>

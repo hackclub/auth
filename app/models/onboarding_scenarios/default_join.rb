@@ -1,12 +1,8 @@
 module OnboardingScenarios
     class DefaultJoin < Base
-        def title
-            "Sign up"
-        end
+        def title = "Sign up"
 
-        def form_fields
-            [ :first_name, :last_name, :primary_email, :birthday, :country ]
-        end
+        def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
 
         def slack_user_type
@@ -27,7 +23,7 @@ module OnboardingScenarios
           channels
         end
 
-        def promotion_channels = Rails.configuration.slack_channels.slice(:announcements, :happenings, :community, :hardware, :code, :ship, :neighbourhood, :library, :lounge, :help).values
+        def promotion_channels = Rails.configuration.slack_channels.slice(:announcements, :lounge, :help, :news_wire, :slack_guide).values
 
         def send_ephemeral_in_channel? = true
 

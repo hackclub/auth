@@ -1,0 +1,317 @@
+<% content_for :title, "Persona Dashboard" %>
+<%
+  delta = ->(current, prev_val) {
+    return nil unless prev_val && prev_val > 0
+    pct = ((current - prev_val).to_f / prev_val * 100).round(1)
+    color = pct >= 0 ? "var(--green)" : "var(--red)"
+    arrow = pct >= 0 ? "↑" : "↓"
+    raw("<span style=\"color: #{color}; font-size: 0.7em;\">#{arrow}#{pct.abs}%</span>")
+  }
+%>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>persona rollout</h2>
+    <%= form_tag backend_persona_dashboard_path, method: :get, style: "display:inline;" do %>
+      <%= select_tag :time_period,
+          options_for_select([
+            ["today", "today"],
+            ["this week", "this_week"],
+            ["this month", "this_month"],
+            ["all time", "all_time"]
+          ], @time_period),
+          onchange: "this.form.submit()" %>
+    <% end %>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%# Hero: approval rate + total + pending %>
+  <row align-="center center" gap-="3" pad-="1 1">
+    <column align-="center center">
+      <span style="font-size: 2em; font-weight: bold; color: var(--green);"><%= @stats[:approval_rate] %>%</span>
+      <span style="color: var(--foreground2);">approval rate <%= delta.(@stats[:approval_rate], @prev_stats&.dig(:approval_rate)) %></span>
+    </column>
+    <column align-="center center">
+      <span style="font-size: 2em; font-weight: bold;"><%= @stats[:total] %></span>
+      <span style="color: var(--foreground2);">total <%= delta.(@stats[:total], @prev_stats&.dig(:total)) %></span>
+    </column>
+    <column align-="center center">
+      <span style="font-size: 2em; font-weight: bold; color: var(--yellow);"><%= @stats[:pending] %></span>
+      <span style="color: var(--foreground2);">awaiting review</span>
+    </column>
+  </row>
+
+  <row align-="center center" gap-="3" style="color: var(--foreground2);">
+    <span><b style="color: var(--green);"><%= @stats[:approved] %></b> approved <%= delta.(@stats[:approved], @prev_stats&.dig(:approved)) %></span>
+    <span><b style="color: var(--red);"><%= @stats[:rejected] %></b> rejected <%= delta.(@stats[:rejected], @prev_stats&.dig(:rejected)) %></span>
+    <span><b><%= @stats[:draft] %></b> draft</span>
+  </row>
+
+  <%# Pending queue age %>
+  <% if @pending_age %>
+    <row align-="center center" gap-="3" pad-="1 0" style="color: var(--foreground2);">
+      <span>oldest pending: <b<%= " style=\"color: var(--red);\"".html_safe if @pending_age[:oldest] > 24.hours %>><%= distance_of_time_in_words(0, @pending_age[:oldest]) %></b></span>
+      <span>median: <b><%= distance_of_time_in_words(0, @pending_age[:median]) %></b></span>
+      <span>newest: <b><%= distance_of_time_in_words(0, @pending_age[:newest]) %></b></span>
+    </row>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <%# Outcomes + Type split %>
+  <row gap-="3" align-="start">
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">outcomes</span>
+      <table>
+        <tbody>
+          <tr>
+            <td>auto-approved</td>
+            <td><b style="color: var(--green);"><%= @outcome_breakdown[:auto_approved] %></b></td>
+          </tr>
+          <tr>
+            <td>manually approved</td>
+            <td><b style="color: var(--green);"><%= @outcome_breakdown[:manual_approved] %></b></td>
+          </tr>
+          <tr>
+            <td>awaiting review</td>
+            <td><b style="color: var(--yellow);"><%= @outcome_breakdown[:diverted_pending] %></b></td>
+          </tr>
+          <tr>
+            <td>rejected (soft)</td>
+            <td><b style="color: var(--yellow);"><%= @outcome_breakdown[:rejected_soft] %></b></td>
+          </tr>
+          <tr>
+            <td>rejected (fatal)</td>
+            <td><b style="color: var(--red);"><%= @outcome_breakdown[:rejected_fatal] %></b></td>
+          </tr>
+        </tbody>
+      </table>
+      <span style="color: var(--foreground2);">
+        <b><%= @outcome_breakdown[:diversion_rate] %>%</b> diverted to manual review
+      </span>
+    </column>
+
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">gov ID vs student ID</span>
+      <table>
+        <thead>
+          <tr>
+            <th>type</th>
+            <th>total</th>
+            <th style="color: var(--green);">appr</th>
+            <th style="color: var(--red);">rej</th>
+            <th style="color: var(--yellow);">pend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>gov ID</td>
+            <td><b><%= @type_split[:gov_id][:total] %></b></td>
+            <td style="color: var(--green);"><%= @type_split[:gov_id][:approved] %></td>
+            <td style="color: var(--red);"><%= @type_split[:gov_id][:rejected] %></td>
+            <td style="color: var(--yellow);"><%= @type_split[:gov_id][:pending] %></td>
+          </tr>
+          <tr>
+            <td>student ID</td>
+            <td><b><%= @type_split[:student_id][:total] %></b></td>
+            <td style="color: var(--green);"><%= @type_split[:student_id][:approved] %></td>
+            <td style="color: var(--red);"><%= @type_split[:student_id][:rejected] %></td>
+            <td style="color: var(--yellow);"><%= @type_split[:student_id][:pending] %></td>
+          </tr>
+        </tbody>
+      </table>
+    </column>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%# Time to resolve + Funnel %>
+  <row gap-="3" align-="start">
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">time to resolve</span>
+      <% resolved_total = @time_buckets.values.sum %>
+      <% if resolved_total > 0 %>
+        <table>
+          <thead>
+            <tr>
+              <th>bucket</th>
+              <th>count</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @time_buckets.each do |bucket, count| %>
+              <tr>
+                <td><%= bucket %></td>
+                <td><b><%= count %></b></td>
+                <td><%= (count.to_f / resolved_total * 100).round(1) %>%</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <span style="color: var(--foreground2);">nothing resolved yet</span>
+      <% end %>
+    </column>
+
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">funnel</span>
+      <table>
+        <tbody>
+          <tr>
+            <td>started (draft)</td>
+            <td><b><%= @funnel[:started] %></b></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>→ inquiry completed</td>
+            <td><b><%= @funnel[:completed] %></b></td>
+            <td style="color: var(--foreground2);"><%= @funnel[:start_to_complete] %>%</td>
+          </tr>
+          <tr>
+            <td>→ approved</td>
+            <td><b style="color: var(--green);"><%= @funnel[:approved] %></b></td>
+            <td style="color: var(--foreground2);"><%= @funnel[:complete_to_approved] %>%</td>
+          </tr>
+        </tbody>
+      </table>
+    </column>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%# Resubmissions + Rejection reasons %>
+  <row gap-="3" align-="start">
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">resubmissions</span>
+      <% if @resubmission[:total_people] > 0 %>
+        <table>
+          <tbody>
+            <tr>
+              <td>verified first try</td>
+              <td><b><%= @resubmission[:first_try] %></b></td>
+            </tr>
+            <tr>
+              <td>needed multiple attempts</td>
+              <td><b style="color: var(--yellow);"><%= @resubmission[:multiple_tries] %></b></td>
+            </tr>
+          </tbody>
+        </table>
+        <span style="color: var(--foreground2);">
+          <b><%= @resubmission[:rate] %>%</b> resubmission rate
+          (<%= @resubmission[:total_people] %> people)
+        </span>
+      <% else %>
+        <span style="color: var(--foreground2);">no one verified yet</span>
+      <% end %>
+    </column>
+
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2); font-style: italic;">rejection reasons</span>
+      <% if @rejection_breakdown.any? %>
+        <% total_rejected = @stats[:rejected] %>
+        <table>
+          <thead>
+            <tr>
+              <th>reason</th>
+              <th>count</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @rejection_breakdown.each do |reason, data| %>
+              <tr>
+                <td>
+                  <%= reason %>
+                  <% if data[:fatal] %><span is-="badge" variant-="red">fatal</span><% end %>
+                </td>
+                <td><b><%= data[:count] %></b></td>
+                <td><%= total_rejected > 0 ? "#{(data[:count].to_f / total_rejected * 100).round(1)}%" : "0%" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <span style="color: var(--foreground2);">no rejections</span>
+      <% end %>
+    </column>
+  </row>
+
+  <div is-="separator"></div>
+
+  <%# API errors %>
+  <span style="color: var(--foreground2); font-style: italic;">persona API health</span>
+  <% if @api_errors[:total] > 0 %>
+    <row align-="center" gap-="3" pad-="0 0 1 0">
+      <span><span is-="badge" variant-="red"><%= @api_errors[:total] %></span> failed jobs</span>
+      <% @api_errors[:by_class].each do |cls, count| %>
+        <span style="color: var(--foreground2);"><%= cls.demodulize %>: <b><%= count %></b></span>
+      <% end %>
+    </row>
+    <table>
+      <thead>
+        <tr>
+          <th>job</th>
+          <th>error</th>
+          <th>when</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @api_errors[:recent].each do |err| %>
+          <tr>
+            <td><%= err[:job] %></td>
+            <td style="color: var(--red);"><%= err[:error] %></td>
+            <td style="color: var(--foreground2);"><%= time_ago_in_words(err[:at]) %> ago</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--green);">no errors ✓</span>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <%# By country %>
+  <span style="color: var(--foreground2); font-style: italic;">by country</span>
+  <% if @by_country.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>country</th>
+          <th>total</th>
+          <th style="color: var(--green);">approved</th>
+          <th style="color: var(--red);">rejected</th>
+          <th style="color: var(--yellow);">pending</th>
+          <th>approval rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @by_country.each do |country, data| %>
+          <tr>
+            <td><b><%= country %></b></td>
+            <td><%= data[:total] %></td>
+            <td style="color: var(--green);"><%= data[:approved] %></td>
+            <td style="color: var(--red);"><%= data[:rejected] %></td>
+            <td style="color: var(--yellow);"><%= data[:pending] %></td>
+            <td>
+              <% if data[:approval_rate] %>
+                <% if data[:approval_rate] < 50 %>
+                  <span is-="badge" variant-="red"><%= data[:approval_rate] %>%</span>
+                <% elsif data[:approval_rate] < 80 %>
+                  <span is-="badge" variant-="yellow"><%= data[:approval_rate] %>%</span>
+                <% else %>
+                  <b style="color: var(--green);"><%= data[:approval_rate] %>%</b>
+                <% end %>
+              <% else %>
+                <span style="color: var(--foreground2);">—</span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <span style="color: var(--foreground2);">no verifications yet</span>
+  <% end %>
+</column>

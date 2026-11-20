@@ -3,7 +3,7 @@
 module SpecialAppCards
   class Flavortown < Base
     def visible?
-      identity.ysws_eligible != false && Flipper.enabled?(:flavortown, identity)
+      identity.ysws_eligible != false && Flipper.enabled?(:app_card_flavortown_2025_12_09, identity)
     end
 
     def friendly_name = "Flavortown"

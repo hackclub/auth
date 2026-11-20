@@ -4,6 +4,7 @@
   scenario = scenario_class&.new(current_identity)
   custom_logo_path = scenario&.logo_path
 %>
+<% content_for :title, "Authorize #{@pre_auth.client.name}" %>
 <%= render "shared/scenario_background_style", scenario: %>
 <div class="auth-container<%= ' has-background' if scenario&.background_path || scenario&.dark_mode_background_path %>">
   <div class="auth-brand">
@@ -31,7 +32,7 @@
       <%
         scopes = @pre_auth.scopes.map(&:to_s)
         not_set = t('.data.not_set')
-        scope_data = OAuthScope.consent_data_by_scope(scopes, current_identity)
+        scope_data = OAuthScope.consent_data_by_scope(scopes, current_identity, app: application)
         unknown_scopes = scopes.reject { |s| OAuthScope.known?(s) }
       %>
 

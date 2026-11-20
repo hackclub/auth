@@ -1,4 +1,5 @@
-<% if Flipper.enabled?(:are_we_enterprise_yet, current_identity) && !@missing_message %><%= @error %>
+<% content_for :title, "SAML Error" %>
+<% if Flipper.enabled?(:are_we_enterprise_yet_2025_10_21, current_identity) && !@missing_message %>
   <%= @error %>
 <% else %>
   <b>Hack Club is currently migrating to Slack Enterprise Grid.</b> <br>

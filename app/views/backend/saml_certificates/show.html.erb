@@ -1,0 +1,94 @@
+<% content_for :title, "SAML Certificate" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>
+      <% if @certificate.signing? %>
+        <span is-="badge" variant-="green">signing</span>
+      <% elsif @certificate.rollover? %>
+        <span is-="badge" variant-="yellow">rollover</span>
+      <% elsif @certificate.retired? %>
+        <span is-="badge" variant-="background2">retired</span>
+      <% end %>
+      certificate
+    </h2>
+    <row gap-="2" align-="center">
+      <% if @certificate.may_promote? %>
+        <%= button_to "promote to signing", promote_backend_saml_certificate_path(@certificate),
+          method: :post,
+          form: { style: "display:inline", onsubmit: "return confirm('switches signing to this cert. current signing cert becomes rollover so you can roll back. have SP admin panels ready.')" } %>
+      <% end %>
+      <% if @certificate.may_retire? %>
+        <%= button_to "retire", retire_backend_saml_certificate_path(@certificate),
+          method: :post,
+          style: "all:unset; color:var(--red); text-decoration:underline; cursor:pointer;",
+          form: { style: "display:inline", onsubmit: "return confirm('retire this cert? removes it from metadata, and retired is permanent.')" } %>
+      <% end %>
+    </row>
+  </row>
+
+  <div is-="separator"></div>
+
+  <row gap-="3">
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2);">status</span>
+      <% if @certificate.status == "expired" %>
+        <span style="color: var(--red);">expired</span>
+      <% elsif @certificate.status == "expiring" %>
+        <span style="color: var(--yellow);"><%= @certificate.days_until_expiry %>d left</span>
+      <% else %>
+        <span style="color: var(--green);"><%= @certificate.days_until_expiry %>d left</span>
+      <% end %>
+    </column>
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2);">expires</span>
+      <span><%= @certificate.expires_at.strftime("%Y-%m-%d %H:%M UTC") %></span>
+    </column>
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2);">key path</span>
+      <span style="font-family: monospace; font-size: 0.85em;"><%= @certificate.key_path %></span>
+    </column>
+  </row>
+
+  <div is-="separator"></div>
+
+  <row gap-="3">
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2);">activated</span>
+      <span><%= @certificate.signing_at&.strftime("%Y-%m-%d %H:%M UTC") || "—" %></span>
+    </column>
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2);">retired</span>
+      <span><%= @certificate.retired_at&.strftime("%Y-%m-%d %H:%M UTC") || "—" %></span>
+    </column>
+    <column style="flex: 1;">
+      <span style="color: var(--foreground2);">created</span>
+      <span><%= @certificate.created_at.strftime("%Y-%m-%d %H:%M UTC") %></span>
+    </column>
+  </row>
+
+  <div is-="separator"></div>
+
+  <column>
+    <span style="color: var(--foreground2);">SHA-256 fingerprint</span>
+    <span style="font-family: monospace; font-size: 0.85em; word-break: break-all;"><%= @certificate.fingerprint %></span>
+  </column>
+
+  <div is-="separator"></div>
+
+  <column>
+    <row align-="center between">
+      <span style="color: var(--foreground2);">public certificate (PEM)</span>
+      <button size-="small" onclick="navigator.clipboard.writeText(document.getElementById('cert-pem').textContent).then(() => this.textContent = 'copied!')">copy</button>
+    </row>
+    <pre id="cert-pem" style="font-size: 0.8em; overflow-x: auto; padding: 1ch; background: var(--background2); border: 1px solid var(--foreground2);"><%= @certificate.certificate %></pre>
+  </column>
+
+  <div is-="separator"></div>
+
+  <row gap-="2" align-="center" style="color: var(--foreground2);">
+    <row gap-="1" align-="center">
+      <span is-="badge" variant-="background2">Bksp</span>
+      back
+    </row>
+  </row>
+</column>

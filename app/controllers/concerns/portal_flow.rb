@@ -10,7 +10,7 @@ module PortalFlow
   private
 
   def portal_return_url
-    session[:portal_return_to] || params[:return_to]
+    session[:portal_return_to]
   end
 
   def portal_program
@@ -68,13 +68,11 @@ module PortalFlow
     redirect_to uri.to_s, notice: notice, allow_other_host: true
   end
 
-  def cancel_portal_flow
-    redirect_to_portal_return(status: :canceled)
-  end
+  def cancel_portal_flow = redirect_to_portal_return(status: :canceled)
 
   def redirect_to_simple_return
     return_url = portal_return_url
     session.delete(:portal_return_to)
-    redirect_to return_url, allow_other_host: true
+    redirect_to return_url || root_path, allow_other_host: true
   end
 end

@@ -9,12 +9,14 @@
   let shortcuts = $state([]);
   let prefixes = $state({});
   let searchScopes = $state([]);
+  let searchUrl = $state('/backend/kbar/search');
   let query = $state('');
   let activeScope = $state(null);
   let scopedResults = $state([]);
   let publicIdResult = $state(null);
   let activeIndex = $state(0);
   let isExiting = $state(false);
+  let _defaultScope = null;
 
   let scopedSearchTimeout;
   let publicIdTimeout;
@@ -31,7 +33,7 @@
 
   function open() {
     query = '';
-    activeScope = null;
+    activeScope = _defaultScope;
     scopedResults = [];
     publicIdResult = null;
     isExiting = false;
@@ -72,17 +74,9 @@
       }
     }
 
-    // Filtered shortcuts
     const q = query.toLowerCase();
-    const filtered = q
-      ? shortcuts.filter(s => s.code.toLowerCase().includes(q) || s.label.toLowerCase().includes(q))
-      : shortcuts;
 
-    if (filtered.length > 0) {
-      filtered.forEach(s => items.push({ label: s.label, code: s.code, icon: s.icon, path: s.path, shortcut: s }));
-    }
-
-    // Scopes (show when no query or query >= 2)
+    // Scopes first (search is the natural ⌘K→Enter gesture)
     if (!publicIdResult) {
       const filteredScopes = q
         ? searchScopes.filter(s => s.label.toLowerCase().includes(q) || 'search'.includes(q))
@@ -91,6 +85,15 @@
         const hint = Object.entries(scopeShortcuts).find(([, v]) => v === s.key)?.[0];
         items.push({ label: `Search ${s.label}`, hint, icon: '⌕', scope: s });
       });
+    }
+
+    // Filtered shortcuts
+    const filtered = q
+      ? shortcuts.filter(s => s.code.toLowerCase().includes(q) || s.label.toLowerCase().includes(q))
+      : shortcuts;
+
+    if (filtered.length > 0) {
+      filtered.forEach(s => items.push({ label: s.label, code: s.code, icon: s.icon, path: s.path, shortcut: s }));
     }
 
     return items;
@@ -231,7 +234,7 @@
     if (scopedSearchTimeout) clearTimeout(scopedSearchTimeout);
     scopedSearchTimeout = setTimeout(async () => {
       try {
-        const res = await fetch(`/backend/kbar/search?q=${encodeURIComponent(q)}&scope=${scopeKey}`);
+        const res = await fetch(`${searchUrl}?q=${encodeURIComponent(q)}&scope=${scopeKey}`);
         if (!res.ok) throw new Error('Search failed');
         scopedResults = await res.json();
       } catch (err) {
@@ -252,7 +255,7 @@
     if (publicIdTimeout) clearTimeout(publicIdTimeout);
     publicIdTimeout = setTimeout(async () => {
       try {
-        const res = await fetch(`/backend/kbar/search?q=${encodeURIComponent(q)}`);
+        const res = await fetch(`${searchUrl}?q=${encodeURIComponent(q)}`);
         if (!res.ok) return;
         const results = await res.json();
         publicIdResult = results.length > 0
@@ -273,6 +276,14 @@
         shortcuts = data.shortcuts || [];
         prefixes = data.prefixes || {};
         searchScopes = data.searchScopes || [];
+        if (data.searchUrl) searchUrl = data.searchUrl;
+        if (data.defaultScope) {
+          const scope = searchScopes.find(s => s.key === data.defaultScope);
+          if (scope) {
+            activeScope = scope;
+            _defaultScope = scope;
+          }
+        }
       } catch (err) {
         console.error('Failed to parse kbar data:', err);
       }
@@ -359,6 +370,10 @@
               <span style="color: var(--overlay0);">{item.hint}</span>
             {/if}
           </a>
+        {:else}
+          {#if query.length >= 2}
+            <span class="palette-result disabled" style="color: var(--foreground2); padding: 0.5lh 1ch;">no results</span>
+          {/if}
         {/each}
       </column>
     </div>

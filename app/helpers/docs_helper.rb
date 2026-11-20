@@ -1,7 +1,5 @@
 module DocsHelper
-  def docs_by_category
-    @all_docs.group_by { |doc| doc[:category] || "General" }
-  end
+  def docs_by_category = @all_docs.group_by { |doc| doc[:category] || "General" }
 
   def doc_nav_link(doc)
     link_to doc[:title], doc_path(slug: doc[:slug]),

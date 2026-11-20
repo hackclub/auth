@@ -1,5 +1,6 @@
 class DeveloperAppsController < ApplicationController
   include IdentityAuthorizable
+  include DirectoryAppAuthorization
 
   before_action :set_app, only: [ :show, :edit, :update, :destroy, :rotate_credentials, :revoke_all_authorizations, :activity_log ]
 
@@ -147,7 +148,11 @@ class DeveloperAppsController < ApplicationController
   end
 
   def app_params_for_identity
-    permitted = [ :name, :redirect_uri, scopes_array: [] ]
+    permitted = [ :name, scopes_array: [] ]
+
+    if @app.nil? || policy(@app).update_redirect_uri?
+      permitted << :redirect_uri
+    end
 
     if policy(@app || Program.new).update_trust_level?
       permitted << :trust_level
@@ -165,6 +170,11 @@ class DeveloperAppsController < ApplicationController
       permitted << :active
     end
 
+    if policy(@app || Program.new).update_whoami?
+      permitted << :whoami_enabled
+      permitted << :whoami_allowed_origin
+    end
+
     params.require(:program).permit(permitted)
   end
 
@@ -172,5 +182,5 @@ class DeveloperAppsController < ApplicationController
     backend_user = current_identity.backend_user
     backend_user&.program_manager? || backend_user&.super_admin?
   end
-  helper_method :admin?
+  helper_method :admin?, :can_manage_app_wiring?, :wiring_context, :can_wire_any_entitlement?, :wireable_entitlements, :entitlement_visible?
 end

@@ -1,0 +1,30 @@
+<% content_for :title, "r u hq?" %>
+<style>
+  .window { max-width: 480px; }
+  .result { padding: 12px; font-size: 14px; }
+  .result.yes { background: #c0ffc0; border: 2px inset; color: #005000; }
+  .result.no { background: #ffc0c0; border: 2px inset; color: #500000; }
+  .cp { cursor: pointer; font-size: 10px; opacity: 0.3; margin-left: 3px; text-decoration: none; color: #000; }
+  .cp:hover { opacity: 1; }
+</style>
+
+<div>
+  <div class="window">
+    <div class="title-bar">
+      <div class="title-bar-text">r u hq?</div>
+    </div>
+    <div class="window-body">
+      <% if @memberships.any? %>
+        <% @memberships.each do |slug, chain| %>
+          <div class="result yes">
+            yes, i have membership in <strong><%= slug %></strong> via <%= chain.join(" → ") %>!
+          </div>
+        <% end %>
+      <% else %>
+        <div class="result no">
+          <span>no, but my ID is <span style="font-family: monospace; font-weight: bold;"><%= current_identity.public_id %></span> though!</span> <a href="#" class="cp" onclick="navigator.clipboard.writeText(this.previousElementSibling.innerText); this.textContent='copied!'; event.preventDefault();">⧉ copy</a>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

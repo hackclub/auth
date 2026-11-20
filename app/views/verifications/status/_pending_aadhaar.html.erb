@@ -1,0 +1,17 @@
+<section class="section-card">
+  <div class="status-indicator">
+    <span class="status-badge pending"><%= t("verifications.status.badges.processing") %></span>
+    <h3><%= t("verifications.status.pending_aadhaar.title") %></h3>
+    <p><%= t("verifications.status.pending_aadhaar.subtitle") %></p>
+  </div>
+
+  <div class="status-content">
+    <p><%= t("verifications.status.pending_aadhaar.description", email: identity.primary_email) %></p>
+
+    <% if verification.present? %>
+      <div class="meta">
+        <%= t("verifications.status.pending_aadhaar.submitted_ago", time: time_ago_in_words(verification.created_at)) %>
+      </div>
+    <% end %>
+  </div>
+</section>

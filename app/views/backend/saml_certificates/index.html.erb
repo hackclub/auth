@@ -1,0 +1,56 @@
+<% content_for :title, "SAML Certificates" %>
+<column pad-="2 1" style="max-width: 120ch; margin: 0 auto; width: 100%;">
+  <row align-="center between">
+    <h2>saml certificates</h2>
+    <a href="<%= new_backend_saml_certificate_path %>"><button size-="small">+ generate</button></a>
+  </row>
+
+  <div is-="separator"></div>
+
+  <% if @certificates.empty? %>
+    <span style="color: var(--foreground2);">no db certs — falling back to env vars</span>
+  <% else %>
+    <table>
+      <thead>
+        <tr>
+          <th>role</th>
+          <th>fingerprint</th>
+          <th>status</th>
+          <th>expires</th>
+          <th>activated</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @certificates.each do |cert| %>
+          <tr>
+            <td>
+              <% if cert.signing? %>
+                <span is-="badge" variant-="green">signing</span>
+              <% elsif cert.rollover? %>
+                <span is-="badge" variant-="yellow">rollover</span>
+              <% elsif cert.retired? %>
+                <span is-="badge" variant-="background2">retired</span>
+              <% end %>
+            </td>
+            <td><%= link_to cert.fingerprint.first(23), backend_saml_certificate_path(cert) %></td>
+            <td>
+              <% if cert.status == "expired" %>
+                <span style="color: var(--red);">expired</span>
+              <% elsif cert.status == "expiring" %>
+                <span style="color: var(--yellow);"><%= cert.days_until_expiry %>d left</span>
+              <% else %>
+                <span style="color: var(--green);"><%= cert.days_until_expiry %>d left</span>
+              <% end %>
+            </td>
+            <td style="color: var(--foreground2);"><%= cert.expires_at.strftime("%Y-%m-%d") %></td>
+            <td style="color: var(--foreground2);"><%= cert.signing_at&.strftime("%Y-%m-%d") || "—" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+
+  <div is-="separator"></div>
+
+  <span style="color: var(--foreground2);">generate → promote → update SPs → retire old rollover. ~30s login blip per SP between promote and SP update. to roll back, promote the old cert again.</span>
+</column>

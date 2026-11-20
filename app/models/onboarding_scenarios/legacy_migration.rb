@@ -1,12 +1,8 @@
 module OnboardingScenarios
   class LegacyMigration < Base
-    def title
-      "Confirm your details"
-    end
+    def title = "Confirm your details"
 
-    def form_fields
-      [ :first_name, :last_name, :primary_email, :birthday, :country ]
-    end
+    def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
     def accepts_adults = true
 

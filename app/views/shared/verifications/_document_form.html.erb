@@ -107,7 +107,7 @@
         <%= form.label :files, t("verifications.document.upload_government_id") %>
         <%= file_field_tag "identity_document[files][]",
                            required: false,
-                           accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"),
+                           accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf"),
                            "x-on:change" => 'governmentIdFileCount = $event.target.files.length' %>
         <small><%= t("verifications.document.accepted_formats") %> <%= @identity.country == "IN" ? t("verifications.document.formats_india") : t("verifications.document.formats_other") %></small>
       </div>
@@ -118,7 +118,7 @@
         <%= label_tag "identity_document_files", t("verifications.document.upload_transcript") %>
         <%= file_field_tag "identity_document[files][]",
                            required: false,
-                           accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"),
+                           accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf"),
                            "x-on:change" => 'transcriptFileCount = $event.target.files.length' %>
         <small><%= t("verifications.document.transcript_help") %></small>
       </div>
@@ -127,7 +127,7 @@
         <%= label_tag "identity_document_files", t("verifications.document.upload_student_id") %>
         <%= file_field_tag "identity_document[files][]",
                            required: false,
-                           accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf,.heic,.heif"),
+                           accept: (@identity.country == "IN" ? ".pdf" : "image/*,.pdf"),
                            "x-on:change" => 'studentIdFileCount = $event.target.files.length' %>
         <small><%= t("verifications.document.student_id_help") %></small>
       </div>

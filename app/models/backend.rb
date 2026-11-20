@@ -1,5 +1,3 @@
 module Backend
-  def self.table_name_prefix
-    "backend_"
-  end
+  def self.table_name_prefix = "backend_"
 end

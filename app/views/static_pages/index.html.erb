@@ -1,3 +1,4 @@
+<% content_for :title, "Account Status" %>
 <% if current_identity %>
   <p>you're logged in as <b><%= current_identity.primary_email %>.</b></p>
   <ul>
@@ -41,7 +42,7 @@
                   <% end %>
               <% end %>
             </ul>
-            you can fix this by <%= link_to "resubmitting your documents", document_onboarding_path %>.
+            you can fix this by <%= link_to "resubmitting your verification", new_verifications_path %>.
           </div>
         <% else %>
           <%= inline_icon("docs", size: 16) %> <%= link_to "complete your identity verification", basic_info_onboarding_path %>
