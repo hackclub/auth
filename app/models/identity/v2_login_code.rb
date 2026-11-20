@@ -13,8 +13,6 @@ class Identity::V2LoginCode < ApplicationRecord
     create!(identity:, purpose:, **attrs)
   end
 
-  def pretty = code&.scan(/.../)&.join("-")
-
   private
 
   def generate_code
