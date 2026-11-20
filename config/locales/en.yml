@@ -374,6 +374,8 @@ en:
             title: See your legal name
           set_slack_id:
             title: Link Slack accounts to identities
+          created_at:
+            title: See when you joined Hack Club
   authorized_applications:
     none: You haven't authorized any apps yet.
     created_at: Authorized

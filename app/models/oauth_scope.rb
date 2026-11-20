@@ -21,7 +21,8 @@ class OAuthScope
     ysws_eligible: "check",
     slack_id: "slack",
     legal_name: "card-id",
-    groups: "admin"
+    groups: "admin",
+    created_at: "clock",
   }.freeze
 
   ALL = [
@@ -137,6 +138,14 @@ class OAuthScope
       ]
     ),
     new(
+      name: "created_at",
+      description: "See when you created your Hack Club account",
+      icon: "clock",
+      consent_fields: [
+        { key: :created_at, value: ->(ident) { ident.created_at.strftime("%B %d, %Y") } }
+      ]
+    ),
+    new(
       name: "set_slack_id",
       description: "Associate Slack IDs with identities",
       icon: "slack"
@@ -147,7 +156,7 @@ class OAuthScope
 
   COMMUNITY_ALLOWED = %w[openid profile email name slack_id verification_status].freeze
   # groups is official-only: entitlements can only be exposed to hq_official apps
-  HQ_OFFICIAL_SCOPES = (COMMUNITY_ALLOWED + %w[basic_info birthdate phone address groups]).freeze
+  HQ_OFFICIAL_SCOPES = (COMMUNITY_ALLOWED + %w[basic_info birthdate phone address groups created_at]).freeze
   SUPER_ADMIN_SCOPES = (HQ_OFFICIAL_SCOPES + %w[legal_name]).freeze
   # set_slack_id intentionally omitted from all tiers — valid but not assignable via UI
 
