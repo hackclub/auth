@@ -1,7 +1,4 @@
 module OnboardingScenarios
-  # Sign-ups that start from Hackatime's OAuth flow. Hackatime has adult users
-  # with no Slack account, who need an identity to keep signing in to it: they
-  # are accepted and get no Slack account.
   class Hackatime < Base
     def self.slug = "hackatime"
 
