@@ -345,7 +345,7 @@ GEM
     loofah (2.25.3)
       crass (~> 1.0.2)
       nokogiri (>= 1.19.5)
-    lz_string (0.3.0)
+    lz_string (1.0.0)
     mail (2.9.1)
       logger
       mini_mime (>= 0.1.1)
@@ -733,7 +733,7 @@ DEPENDENCIES
   letter_opener_web (~> 3.0)
   literal (~> 1.9)
   lockbox (~> 2.1)
-  lz_string (~> 0.3.0)
+  lz_string (~> 1.0.0)
   mini_magick (~> 5.0)
   openssl (~> 3.3)
   paper_trail (~> 17.0)

@@ -103,7 +103,7 @@ end
 
 gem "aws-sdk-s3", "~> 1.213"
 
-gem "lz_string", "~> 0.3.0"
+gem "lz_string", "~> 1.0.0"
 
 gem "valid_email2", github: "24c02/valid_email2"
 
