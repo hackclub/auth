@@ -29,7 +29,7 @@
   <policy domain="coder" rights="read|write" pattern="PNG"/>
   <policy domain="coder" rights="none" pattern="HEIC"/>
   <policy domain="coder" rights="read|write" pattern="WEBP"/>
-  <policy domain="coder" rights="read" pattern="PDF"/>
+  <policy domain="coder" rights="none" pattern="PDF"/>
 
   <policy domain="filter" rights="none" pattern="*"/>
 

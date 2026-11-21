@@ -104,7 +104,7 @@ COPY --from=build /usr/local/bin/heif-* /usr/local/bin/
 COPY --from=build /usr/local/include/libheif /usr/local/include/libheif
 RUN ldconfig
 
-# Restrictive ImageMagick policy: only allow JPEG, PNG, HEIC, WEBP, PDF
+# Restrictive ImageMagick policy: only allow JPEG, PNG, WEBP; all delegates disabled
 COPY config/imagemagick-policy.xml /etc/ImageMagick-6/policy.xml
 
 # Run and own only the runtime files as a non-root users for security
