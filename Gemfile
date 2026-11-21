@@ -64,7 +64,7 @@ gem "phlex-rails", "~> 2.4"
 
 gem "literal", "~> 1.9"
 
-gem "jb", "~> 0.8.2"
+gem "jb", "~> 0.9.1"
 
 gem "wicked", "~> 2.0"
 
