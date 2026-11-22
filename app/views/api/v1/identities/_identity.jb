@@ -56,4 +56,8 @@ scope "phone", identity: do
   ident[:phone_number] = identity.phone_number
 end
 
+scope "created_at", identity: do
+  ident[:created_at] = identity.created_at.iso8601
+end
+
 ident.compact_blank

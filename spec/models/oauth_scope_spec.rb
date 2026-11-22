@@ -7,7 +7,7 @@ RSpec.describe OAuthScope do
       expect(scope_names).to contain_exactly(
         "openid", "email", "name", "profile", "phone", "birthdate",
         "address", "verification_status", "slack_id", "legal_name",
-        "basic_info", "set_slack_id", "groups"
+        "basic_info", "set_slack_id", "groups", "created_at"
       )
     end
 
