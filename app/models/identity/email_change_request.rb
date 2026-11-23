@@ -50,6 +50,7 @@ class Identity::EmailChangeRequest < ApplicationRecord
   blind_index :new_email_token
 
   validates :new_email, :old_email, :expires_at, presence: true
+  validates :new_email, safe_email: true
   validate :validate_new_email
   validate :new_email_not_taken
   validate :new_email_not_tombstoned
@@ -215,20 +216,11 @@ class Identity::EmailChangeRequest < ApplicationRecord
 
   def validate_new_email
     return unless new_email.present?
-
-    address = ValidEmail2::Address.new(new_email)
-
-    unless address.valid?
-      errors.add(:new_email, I18n.t("errors.attributes.new_email.invalid_format", default: "is invalid"))
-      return
-    end
-
-    if new_email.match?(/\A"/)
-      errors.add(:new_email, I18n.t("errors.attributes.new_email.invalid_format", default: "is invalid"))
-      return
-    end
+    return if errors[:new_email].any?
 
     return unless Rails.env.production?
+
+    address = ValidEmail2::Address.new(new_email)
 
     if address.disposable?
       errors.add(:new_email, I18n.t("errors.attributes.new_email.temporary", default: "cannot be a temporary email"))

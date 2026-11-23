@@ -98,6 +98,7 @@ class Identity < ApplicationRecord
 
   validates :first_name, :last_name, :country, :primary_email, :birthday, presence: true
   validates :primary_email, uniqueness: { conditions: -> { where(deleted_at: nil) } }
+  validates :primary_email, safe_email: { message: I18n.t("errors.attributes.primary_email.invalid_format") }, if: -> { new_record? || primary_email_changed? }
   validate :validate_primary_email, if: -> { new_record? || primary_email_changed? }
   validate :validate_email_not_tombstoned, if: -> { new_record? || primary_email_changed? }
   validate :country_not_sanctioned, if: -> { new_record? || country_changed? }
@@ -491,29 +492,20 @@ class Identity < ApplicationRecord
 
   def validate_primary_email
     return unless primary_email.present?
-
-    address = ValidEmail2::Address.new(primary_email)
-
-    unless address.valid?
-      errors.add(:primary_email, I18n.t("errors.attributes.primary_email.invalid_format"))
-      return
-    end
-
-    if primary_email.match?(/\A"/)
-      errors.add(:primary_email, I18n.t("errors.attributes.primary_email.invalid_format"))
-      return
-    end
+    return if errors[:primary_email].any?
 
     if new_record? && !email_typo_confirmed
       self.suggested_email = EmailDomainSuggester.suggest(primary_email)
       if suggested_email
-        self.typo_dismissable = !(Rails.env.production? && address.disposable_domain?)
+        self.typo_dismissable = !(Rails.env.production? && ValidEmail2::Address.new(primary_email).disposable_domain?)
         errors.add(:primary_email, :typo)
         return
       end
     end
 
     return unless Rails.env.production?
+
+    address = ValidEmail2::Address.new(primary_email)
 
     if address.disposable?
       errors.add(:primary_email, I18n.t("errors.attributes.primary_email.temporary"))

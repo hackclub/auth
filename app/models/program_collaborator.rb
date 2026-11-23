@@ -6,7 +6,7 @@ class ProgramCollaborator < ApplicationRecord
   belongs_to :program
   belongs_to :identity, optional: true
 
-  validates :invited_email, presence: true, 'valid_email_2/email': true
+  validates :invited_email, presence: true, safe_email: true
   validates :invited_email, uniqueness: { scope: :program_id, conditions: -> { visible } }
   validates :identity_id, uniqueness: { scope: :program_id, conditions: -> { visible } }, allow_nil: true
 
