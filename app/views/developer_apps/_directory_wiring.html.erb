@@ -56,21 +56,22 @@
 <% elsif can_wire_any_entitlement?(app) %>
   <% entitlement_options = wireable_entitlements(app).map { |e| [e.name, e.slug] } %>
 
-  <div class="add-collaborator">
+  <div class="add-collaborator" x-data="{ custom: false }">
     <%= form_with url: directory_exposures_path, method: :post, local: true do |f| %>
       <%= f.hidden_field :app_id, value: app.id %>
       <%= hidden_field_tag :return_to, return_to %>
       <%= f.select :entitlement_slug, entitlement_options,
             { prompt: "add an entitlement…" }, required: true %>
+      <template x-if="custom">
+        <%= f.text_field :claim_name, placeholder: "claim name", style: "max-width: 160px; margin: 0;" %>
+      </template>
       <label style="display: inline-flex; align-items: center; gap: 0.3em; white-space: nowrap; cursor: pointer; font-size: 0.85rem; color: var(--pico-muted-color);">
-        <%= check_box_tag :also_require, "1", false, style: "width: auto; margin: 0;" %> require for login
+        <%= check_box_tag :also_require, "1", false, style: "width: auto; margin: 0;" %> require
       </label>
       <button type="submit" class="approve small-btn">add</button>
-      <details>
-        <summary>custom claim name</summary>
-        <%= f.text_field :claim_name, placeholder: "defaults to entitlement name" %>
-      </details>
     <% end %>
+    <a href="#" @click.prevent="custom = !custom" style="font-size: 0.8rem; color: var(--pico-muted-color); margin-top: 0.25rem; display: inline-block;"
+       x-text="custom ? 'use default name' : 'custom claim name'"></a>
   </div>
 <% end %>
 
