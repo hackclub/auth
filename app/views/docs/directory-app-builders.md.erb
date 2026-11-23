@@ -22,7 +22,7 @@ if you want the claim, your app also needs the `groups` scope. whoever made your
 
 ### who can wire things up
 
-directory admins can wire any official app from [directory apps](<%= directory_apps_path %>). app owners and collaborators can wire the entitlements they have `expose` on, from their app's page in [developer apps](<%= developer_apps_path %>).
+directory admins can wire any official app from [directory apps](<%= directory_apps_path %>). app owners and collaborators can wire the entitlements they have `expose` on, from their app's page under the **Groups & Access** tab in [developer apps](<%= developer_apps_path %>).
 
 ### only letting certain people in
 
@@ -36,7 +36,7 @@ careful when you remove requirements. removing one logs out anyone who only got 
 
 ### knowing who's who
 
-ask for the `groups` scope and expose your entitlements, each with whatever name you want your app to see. the id token and userinfo then include:
+ask for the `groups` scope and add your entitlements on the **Groups & Access** tab. the claim name defaults to the entitlement name; use a custom one if you need to. the id token and userinfo then include:
 
 ```json
 { "groups": ["staff", "design"] }
