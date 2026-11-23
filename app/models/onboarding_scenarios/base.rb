@@ -20,6 +20,11 @@ module OnboardingScenarios
 
     def title = "Create your account"
 
+    # Wording on the OAuth welcome page, where someone arrives from a program. nil keeps the defaults
+    # ("Continue to <program>", "Sign in or create an account to continue").
+    def welcome_headline = nil
+    def welcome_subtitle = nil
+
     def form_fields = []
 
     def extract_params_proc
