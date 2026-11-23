@@ -1,0 +1,21 @@
+// Manimator (OnboardingScenarios::Manimator). Its background is the portal from Manimator's onboarding story, and
+// the card sits where the hole is, so the card is dressed as the other side of manim's frame: a thin white rim like
+// the portal's, and its heading in Computer Modern, the type π writes in.
+@font-face {
+  font-family: "Computer Modern Serif";
+  src: url("../../images/manimator/cmunrm.woff") format("woff");
+  font-display: swap;
+}
+
+.scenario-manimator {
+  .auth-card {
+    border: 1px solid rgba(236, 233, 226, 0.4);
+    box-shadow: 0 0 0 8px rgba(11, 12, 14, 0.55), 0 30px 90px rgba(0, 0, 0, 0.65);
+  }
+
+  .auth-card header h1 {
+    font-family: "Computer Modern Serif", Georgia, serif;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+}
