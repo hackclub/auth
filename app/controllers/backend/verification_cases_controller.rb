@@ -229,20 +229,35 @@ module Backend
         end
       end
 
+      ysws_eligible = nil
+      if decision == "approve"
+        identity = @case.identity
+        age = identity.age
+        ysws_eligible = age.between?(13, 18)
+        identity.update!(ysws_eligible: ysws_eligible)
+      end
+
       @case.log_event!(:"decision_#{decision}", actor: current_user, request: request,
-        data: { verification_id: verification.id, checklist: verification.checklist })
+        data: { verification_id: verification.id, checklist: verification.checklist,
+                ysws_eligible: ysws_eligible }.compact)
       verification.create_activity(key: "verification.#{decision == 'approve' ? 'approve' : 'reject'}",
-        owner: current_user, recipient: @case.identity)
+        owner: current_user, recipient: @case.identity,
+        parameters: { ysws_eligible: ysws_eligible }.compact)
 
       if decision == "approve"
-        VerificationMailer.approved(verification).deliver_later
+        if ysws_eligible || @case.identity.came_in_through_adult_program
+          VerificationMailer.approved(verification).deliver_later
+        else
+          IdentityMailer.approved_but_ysws_ineligible(@case.identity).deliver_later
+          Slack::NotifyGuardiansJob.perform_later(@case.identity)
+        end
+        eligibility_text = ysws_eligible ? "YSWS eligible" : "YSWS ineligible"
+        flash[:success] = "Case approved — #{eligibility_text}"
       else
         # no reason in the email — the rejection reason + details are internal
         VerificationCaseMailer.denied(@case).deliver_later
+        flash[:success] = "Case denied"
       end
-
-      flash[:success] = "Case #{decision == 'approve' ? 'approved' : 'denied'}"
-      redirect_to backend_verification_case_path(@case)
     end
 
     # every state change above runs under @case.with_lock, which re-reads the

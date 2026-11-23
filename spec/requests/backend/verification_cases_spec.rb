@@ -212,16 +212,54 @@ RSpec.describe "Backend verification cases", type: :request do
       expect(guardian_pings).to be_empty
     end
 
-    it "does not send the denial email on approval" do
+    it "marks ysws_eligible true and sends the approved email for an eligible identity" do
       kase = create(:verification_case, :call_held)
+      kase.identity.update!(birthday: 16.years.ago.to_date)
 
       expect {
         patch decide_backend_verification_case_path(kase),
           params: { decision: "approve", checklist: full_checklist, confidence: "high" }
       }.to have_enqueued_mail(VerificationMailer, :approved)
 
+      expect(kase.identity.reload.ysws_eligible).to be(true)
       denial = enqueued_jobs.select { |j| j[:args].first(2) == [ "VerificationCaseMailer", "denied" ] }
       expect(denial).to be_empty
+    end
+
+    it "marks ysws_eligible false and sends the ineligible email for an over-18 identity" do
+      kase = create(:verification_case, :call_held)
+      kase.identity.update!(birthday: 21.years.ago.to_date)
+
+      expect {
+        patch decide_backend_verification_case_path(kase),
+          params: { decision: "approve", checklist: full_checklist, confidence: "high" }
+      }.to have_enqueued_mail(IdentityMailer, :approved_but_ysws_ineligible)
+
+      expect(kase.identity.reload.ysws_eligible).to be(false)
+      expect(guardian_pings.size).to eq(1)
+    end
+
+    it "sends the approved email for an ineligible adult-program identity" do
+      kase = create(:verification_case, :call_held)
+      kase.identity.update!(birthday: 25.years.ago.to_date, came_in_through_adult_program: true)
+
+      expect {
+        patch decide_backend_verification_case_path(kase),
+          params: { decision: "approve", checklist: full_checklist, confidence: "high" }
+      }.to have_enqueued_mail(VerificationMailer, :approved)
+
+      expect(kase.identity.reload.ysws_eligible).to be(false)
+      expect(guardian_pings).to be_empty
+    end
+
+    it "does not touch ysws_eligible on denial" do
+      kase = create(:verification_case, :call_held)
+      kase.identity.update!(ysws_eligible: nil)
+
+      patch decide_backend_verification_case_path(kase),
+        params: { decision: "deny", checklist: full_checklist, confidence: "high", rejection_reason: "no_show" }
+
+      expect(kase.identity.reload.ysws_eligible).to be_nil
     end
 
     it "rejects deciding before the call is held" do
