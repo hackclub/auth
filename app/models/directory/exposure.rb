@@ -15,6 +15,8 @@ module Directory
     belongs_to :entitlement, class_name: "Directory::Collection"
     belongs_to :created_by, class_name: "Identity", foreign_key: :created_by_identity_id, optional: true
 
+    before_validation :default_claim_name
+
     validates :claim_name, presence: true,
       format: { with: /\A[a-z][a-z0-9_-]*\z/, message: "must start with a lowercase letter and contain only lowercase letters, numbers, hyphens, and underscores" }
     validates :app_id, uniqueness: { scope: :entitlement_id }
@@ -58,6 +60,10 @@ module Directory
     end
 
     private
+
+    def default_claim_name
+      self.claim_name = entitlement&.slug if claim_name.blank? && entitlement
+    end
 
     def app_must_request_groups
       return unless app

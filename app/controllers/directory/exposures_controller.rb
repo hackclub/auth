@@ -19,9 +19,13 @@ module Directory
       Directory::Exposure.create!(
         app: app,
         entitlement: entitlement,
-        claim_name: params[:claim_name],
+        claim_name: params[:claim_name].presence,
         created_by_identity_id: current_identity.id
       )
+
+      if params[:also_require] == "1"
+        Directory::AppRequirement.find_or_create_by!(app: app, entitlement: entitlement)
+      end
 
       redirect_to wiring_return_path(app), notice: t("directory.flash.exposure_added")
     rescue ActiveRecord::RecordInvalid => e

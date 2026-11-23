@@ -1,70 +1,111 @@
-<% exposures = Directory::Exposure.where(app_id: app.id).includes(:entitlement) %>
-<% requirements = Directory::AppRequirement.where(app_id: app.id).includes(:entitlement) %>
+<% exposures = Directory::Exposure.where(app_id: app.id).includes(:entitlement).index_by(&:entitlement_id) %>
+<% requirements = Directory::AppRequirement.where(app_id: app.id).includes(:entitlement).index_by(&:entitlement_id) %>
+<% has_groups_scope = app.has_scope?(:groups) %>
+<% wired_ids = (exposures.keys + requirements.keys).uniq %>
+<% wired = Directory::Collection.where(id: wired_ids).order(:name) %>
 
-<% if exposures.any? %>
-  <div class="credential-block">
-    <label><%= t("directory.developer_apps.told_about") %></label>
-    <% exposures.each do |exp| %>
-      <div class="collaborator-row">
-        <span>
-          <code><%= exp.claim_name %></code> → <%= exp.entitlement.name %><% unless app.has_scope?(:groups) %> <em style="color: var(--pico-muted-color);"><%= t("directory.developer_apps.exposure_not_sent") %></em><% end %>
-          <% if exp.entitlement.description.present? && entitlement_visible?(exp.entitlement, wiring_context) %><br><small style="color: var(--pico-muted-color);"><%= exp.entitlement.description %></small><% end %>
-        </span>
-        <span class="collaborator-email"><%= t("directory.developer_apps.wired_by", name: exp.created_by&.full_name) %></span>
-        <% if can_manage_app_wiring?(app, exp.entitlement, wiring_context) %>
-          <%= button_to t("directory.developer_apps.remove"), directory_exposure_path(exp), method: :delete, class: "danger small-btn", params: { return_to: return_to },
+<% if exposures.any? && !has_groups_scope %>
+  <p style="color: var(--pico-del-color); font-size: 0.85rem; margin-bottom: 0.5rem;">this app doesn't request the <code>groups</code> scope — wired entitlements won't appear in tokens until it does.</p>
+<% end %>
+
+<% wired.each do |ent| %>
+  <% exp = exposures[ent.id] %>
+  <% req = requirements[ent.id] %>
+  <div class="collaborator-row">
+    <span>
+      <%= ent.name %>
+      <% if exp %>
+        &ensp;<code class="credential-value" style="font-size: 0.8rem;"><%= exp.claim_name %></code>
+      <% end %>
+      <% if req %>
+        <span class="badge success" style="font-size: 0.65rem; margin-left: 0.4em; vertical-align: middle;">required</span>
+      <% end %>
+      <% if ent.description.present? && entitlement_visible?(ent, wiring_context) %>
+        <br><span class="collaborator-email"><%= ent.description.truncate(80) %></span>
+      <% end %>
+    </span>
+
+    <% if can_manage_app_wiring?(app, ent, wiring_context) %>
+      <span class="inline-buttons" style="gap: 0.5rem;">
+        <% if exp && !req %>
+          <%= button_to "require", directory_app_requirements_path, method: :post, class: "secondary small-btn",
+                params: { app_id: app.id, entitlement_slug: ent.slug, return_to: return_to } %>
+        <% end %>
+        <% if req %>
+          <% confirm_key = requirements.size == 1 ? "remove_last_requirement_confirm" : "remove_requirement_confirm" %>
+          <%= button_to "unrequire", directory_app_requirement_path(ent.slug, app_id: app.id), method: :delete, class: "secondary small-btn",
+                params: { return_to: return_to },
+                data: { confirm: t("directory.developer_apps.#{confirm_key}", name: ent.name) } %>
+        <% end %>
+        <% if exp %>
+          <%= button_to "remove", directory_exposure_path(exp), method: :delete, class: "danger small-btn",
+                params: { return_to: return_to },
                 data: { confirm: t("directory.developer_apps.remove_exposure_confirm", claim: exp.claim_name) } %>
         <% end %>
-      </div>
+      </span>
     <% end %>
   </div>
 <% end %>
 
-<% if requirements.any? %>
-  <div class="credential-block">
-    <label><%= t("directory.developer_apps.required_to_log_in") %></label>
-    <% requirements.each do |req| %>
-      <div class="collaborator-row">
-        <span>
-          <%= req.entitlement.name %>
-          <% if req.entitlement.description.present? && entitlement_visible?(req.entitlement, wiring_context) %><br><small style="color: var(--pico-muted-color);"><%= req.entitlement.description %></small><% end %>
-        </span>
-        <% confirm_key = requirements.size == 1 ? "remove_last_requirement_confirm" : "remove_requirement_confirm" %>
-        <% if can_manage_app_wiring?(app, req.entitlement, wiring_context) %>
-          <%= button_to t("directory.developer_apps.remove"), directory_app_requirement_path(req.entitlement.slug, app_id: app.id), method: :delete, class: "danger small-btn", params: { return_to: return_to },
-                data: { confirm: t("directory.developer_apps.#{confirm_key}", name: req.entitlement.name) } %>
-        <% end %>
-      </div>
-    <% end %>
-  </div>
+<% if wired.empty? %>
+  <p style="color: var(--pico-muted-color);">no entitlements wired.</p>
 <% end %>
 
 <% if !app.hq_official? %>
   <p style="color: var(--pico-muted-color);"><%= t("directory.developer_apps.not_official") %></p>
 <% elsif can_wire_any_entitlement?(app) %>
-  <%# "name: description", so you can tell hq-fulltimers-apps from hq-fulltimers at a glance %>
-  <% entitlement_options = wireable_entitlements(app).map { |e| [ [ e.name, e.description.presence&.truncate(90) ].compact.join(": "), e.slug ] } %>
+  <% entitlement_options = wireable_entitlements(app).map { |e| [e.name, e.slug] } %>
+
   <div class="add-collaborator">
-    <span class="label-upper"><%= t("directory.developer_apps.wire_entitlement") %></span>
     <%= form_with url: directory_exposures_path, method: :post, local: true do |f| %>
       <%= f.hidden_field :app_id, value: app.id %>
       <%= hidden_field_tag :return_to, return_to %>
-      <%= f.select :entitlement_slug, entitlement_options, { prompt: t("directory.developer_apps.pick_entitlement") }, required: true %>
-      <%= f.text_field :claim_name, placeholder: t("directory.developer_apps.claim_name_placeholder") %>
-      <button type="submit"><%= t("directory.developer_apps.wire_button") %></button>
+      <%= f.select :entitlement_slug, entitlement_options,
+            { prompt: "add an entitlement…" }, required: true %>
+      <label style="display: inline-flex; align-items: center; gap: 0.3em; white-space: nowrap; cursor: pointer; font-size: 0.85rem; color: var(--pico-muted-color);">
+        <%= check_box_tag :also_require, "1", false, style: "width: auto; margin: 0;" %> require for login
+      </label>
+      <button type="submit" class="approve small-btn">add</button>
     <% end %>
+    <details style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--pico-muted-color);">
+      <summary style="cursor: pointer;">use a different claim name</summary>
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem;">
+        <%= text_field_tag :_claim_hint, nil, form: "nope", disabled: true,
+              placeholder: "claim name", style: "flex: 1; margin: 0; font-size: 0.85rem; max-width: 200px;" %>
+        <span>leave blank to use the entitlement name. to rename an existing claim, remove and re-add it.</span>
+      </div>
+    </details>
   </div>
-  <div class="add-collaborator">
-    <span class="label-upper"><%= t("directory.developer_apps.require_entitlement") %></span>
-    <%= form_with url: directory_app_requirements_path, method: :post, local: true do |f| %>
-      <%= f.hidden_field :app_id, value: app.id %>
-      <%= hidden_field_tag :return_to, return_to %>
-      <%= f.select :entitlement_slug, entitlement_options, { prompt: t("directory.developer_apps.pick_entitlement") }, required: true %>
-      <button type="submit"><%= t("directory.developer_apps.require_button") %></button>
-    <% end %>
-  </div>
+
+  <script>
+    (function() {
+      var details = document.querySelector('.add-collaborator details');
+      if (!details) return;
+      details.addEventListener('toggle', function() {
+        var form = this.closest('.add-collaborator').querySelector('form');
+        if (this.open && !form.querySelector('[name="claim_name"]')) {
+          var input = document.createElement('input');
+          input.type = 'text'; input.name = 'claim_name';
+          input.placeholder = 'claim name';
+          input.style.cssText = 'margin: 0;';
+          form.querySelector('button[type="submit"]').before(input);
+          // remove the disabled hint field
+          var hint = this.querySelector('input[disabled]');
+          if (hint) hint.remove();
+        }
+      });
+    })();
+  </script>
 <% end %>
 
 <% if directory_admin_session? %>
-  <%= render "developer_apps/session_revoker", app: app, revoker: app.directory_revoker, return_to: return_to %>
+  <% revoker = app.directory_revoker %>
+  <details style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--pico-card-border-color);">
+    <summary style="cursor: pointer; color: var(--pico-muted-color); font-size: 0.9rem;">
+      session revocation<% if revoker %> — <span class="badge <%= revoker.enabled ? 'success' : '' %>" style="font-size: 0.65rem;"><%= revoker.enabled ? revoker.adapter.tr("_", " ") : "disabled" %></span><% end %>
+    </summary>
+    <div style="margin-top: 0.75rem;">
+      <%= render "developer_apps/session_revoker", app: app, revoker: revoker, return_to: return_to %>
+    </div>
+  </details>
 <% end %>
