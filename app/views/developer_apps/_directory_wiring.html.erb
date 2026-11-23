@@ -14,8 +14,9 @@
   <div class="collaborator-row">
     <span>
       <%= ent.name %>
-      <% if exp %>
-        &ensp;<code class="credential-value" style="font-size: 0.8rem;"><%= exp.claim_name %></code>
+      <% if exp && exp.claim_name != ent.slug %>
+        <span style="color: var(--pico-muted-color); font-size: 0.85rem;">as</span>
+        <code class="credential-value" style="font-size: 0.8rem;"><%= exp.claim_name %></code>
       <% end %>
       <% if req %>
         <span class="badge success" style="font-size: 0.65rem; margin-left: 0.4em; vertical-align: middle;">required</span>
@@ -56,22 +57,25 @@
 <% elsif can_wire_any_entitlement?(app) %>
   <% entitlement_options = wireable_entitlements(app).map { |e| [e.name, e.slug] } %>
 
-  <div class="add-collaborator" x-data="{ custom: false }">
+  <div class="add-collaborator" x-data="{ renamed: false }">
     <%= form_with url: directory_exposures_path, method: :post, local: true do |f| %>
       <%= f.hidden_field :app_id, value: app.id %>
       <%= hidden_field_tag :return_to, return_to %>
       <%= f.select :entitlement_slug, entitlement_options,
             { prompt: "add an entitlement…" }, required: true %>
-      <template x-if="custom">
-        <%= f.text_field :claim_name, placeholder: "claim name", style: "max-width: 160px; margin: 0;" %>
+      <template x-if="renamed">
+        <span style="display: inline-flex; align-items: center; gap: 0.4em; margin: 0;">
+          <span style="color: var(--pico-muted-color); font-size: 0.85rem;">as</span>
+          <%= f.text_field :claim_name, placeholder: "name in your app", style: "max-width: 140px; margin: 0;" %>
+        </span>
       </template>
       <label style="display: inline-flex; align-items: center; gap: 0.3em; white-space: nowrap; cursor: pointer; font-size: 0.85rem; color: var(--pico-muted-color);">
         <%= check_box_tag :also_require, "1", false, style: "width: auto; margin: 0;" %> require
       </label>
       <button type="submit" class="approve small-btn">add</button>
     <% end %>
-    <a href="#" @click.prevent="custom = !custom" style="font-size: 0.8rem; color: var(--pico-muted-color); margin-top: 0.25rem; display: inline-block;"
-       x-text="custom ? 'use default name' : 'custom claim name'"></a>
+    <a href="#" @click.prevent="renamed = !renamed" style="font-size: 0.8rem; color: var(--pico-muted-color); margin-top: 0.25rem; display: inline-block;"
+       x-text="renamed ? 'use entitlement name' : 'rename'"></a>
   </div>
 <% end %>
 
