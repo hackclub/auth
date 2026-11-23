@@ -25,10 +25,8 @@ class DeveloperAppsController < ApplicationController
   def show
     authorize @app
     @identities_count = @app.identities.distinct.count
-    if policy(@app).manage_collaborators?
-      @collaborators = @app.program_collaborators.accepted.includes(:identity)
-      @pending_invitations_for_app = @app.program_collaborators.pending
-    end
+    @collaborators = @app.program_collaborators.accepted.includes(:identity)
+    @pending_invitations_for_app = @app.program_collaborators.pending
   end
 
   def activity_log

@@ -66,36 +66,12 @@
         <%= check_box_tag :also_require, "1", false, style: "width: auto; margin: 0;" %> require for login
       </label>
       <button type="submit" class="approve small-btn">add</button>
+      <details>
+        <summary>custom claim name</summary>
+        <%= f.text_field :claim_name, placeholder: "defaults to entitlement name" %>
+      </details>
     <% end %>
-    <details style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--pico-muted-color);">
-      <summary style="cursor: pointer;">use a different claim name</summary>
-      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem;">
-        <%= text_field_tag :_claim_hint, nil, form: "nope", disabled: true,
-              placeholder: "claim name", style: "flex: 1; margin: 0; font-size: 0.85rem; max-width: 200px;" %>
-        <span>leave blank to use the entitlement name. to rename an existing claim, remove and re-add it.</span>
-      </div>
-    </details>
   </div>
-
-  <script>
-    (function() {
-      var details = document.querySelector('.add-collaborator details');
-      if (!details) return;
-      details.addEventListener('toggle', function() {
-        var form = this.closest('.add-collaborator').querySelector('form');
-        if (this.open && !form.querySelector('[name="claim_name"]')) {
-          var input = document.createElement('input');
-          input.type = 'text'; input.name = 'claim_name';
-          input.placeholder = 'claim name';
-          input.style.cssText = 'margin: 0;';
-          form.querySelector('button[type="submit"]').before(input);
-          // remove the disabled hint field
-          var hint = this.querySelector('input[disabled]');
-          if (hint) hint.remove();
-        }
-      });
-    })();
-  </script>
 <% end %>
 
 <% if directory_admin_session? %>

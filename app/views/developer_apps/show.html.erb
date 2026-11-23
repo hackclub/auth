@@ -1,137 +1,148 @@
 <% content_for :title, @app.name %>
-<div class="page-header">
-  <h1><%= @app.name %></h1>
-  <%= link_to t(".back_to_apps"), developer_apps_path %>
-</div>
+<% show_directory = @app.hq_official? %>
+<% tabs = ["general", ("groups" if show_directory), "team", "activity"].compact %>
 
-<div class="dev-panel">
-  <aside class="dev-panel-sidebar">
-    <%# App identity card %>
-    <section class="section-card" style="text-align: center;">
-      <div class="app-icon large"><%= @app.name[0].upcase %></div>
-      <h2 class="app-identity-name"><%= @app.name %></h2>
-      <div class="app-badge-row">
-        <span class="badge <%= @app.active? ? 'success' : 'danger' %>"><%= @app.active? ? t(".active") : t(".inactive") %></span>
-        <span class="badge <%= @app.hq_official? ? 'success' : '' %>"><%= @app.trust_level.to_s.titleize %></span>
-      </div>
-
-      <% if admin? && @app.owner_identity %>
-        <div class="app-meta-row">
-          <span class="meta-label"><%= t(".owner") %></span>
-          <span class="meta-value"><%= link_to @app.owner_identity.full_name, backend_identity_path(@app.owner_identity) %></span>
+<div class="page-sections">
+  <div class="app-console-header">
+    <div class="app-console-identity">
+      <div>
+        <h1><%= @app.name %></h1>
+        <div style="display: flex; gap: 0.4rem; align-items: center; margin-top: 0.25rem;">
+          <span class="badge <%= @app.active? ? 'success' : 'danger' %>"><%= @app.active? ? t(".active") : t(".inactive") %></span>
+          <span class="badge <%= @app.hq_official? ? 'success' : '' %>"><%= @app.trust_level.to_s.titleize %></span>
         </div>
-      <% end %>
-      <div class="app-meta-row">
-        <span class="meta-label"><%= t(".user_count") %></span>
-        <span class="meta-value"><%= @identities_count %></span>
       </div>
-      <div class="app-meta-row">
-        <span class="meta-label"><%= t(".scopes") %></span>
-        <span class="meta-value">
-          <% if @app.scopes_array.any? %>
-            <code><%= @app.scopes_array.join(", ") %></code>
-          <% else %>
-            <span style="color: var(--pico-muted-color);"><%= t(".no_scopes") %></span>
+    </div>
+    <div class="app-console-actions">
+      <%= link_to t(".edit_app"), edit_developer_app_path(@app), class: "secondary small-btn" %>
+      <%= link_to t(".back_to_apps"), developer_apps_path, style: "font-size: 0.85rem; color: var(--pico-muted-color);" %>
+    </div>
+  </div>
+
+  <section class="section-card">
+    <div class="credential-block">
+      <label><%= t ".client_id" %></label>
+      <%= copy_to_clipboard @app.uid, label: t(".click_to_copy_client_id") do %>
+        <code class="credential-value"><%= @app.uid %></code>
+      <% end %>
+    </div>
+    <% if policy(@app).view_secret? %>
+      <div class="credential-block" x-data="{ revealed: false }">
+        <label><%= t ".client_secret" %></label>
+        <div class="cred-reveal-row">
+          <%= copy_to_clipboard @app.secret, label: t(".click_to_copy_client_secret") do %>
+            <code class="credential-value" x-show="revealed" x-cloak><%= @app.secret %></code>
+            <span class="credential-value credential-masked" x-show="!revealed">[hidden]</span>
           <% end %>
-        </span>
-      </div>
-      <% if @app.onboarding_scenario.present? %>
-        <div class="app-meta-row">
-          <span class="meta-label"><%= t(".onboarding_scenario") %></span>
-          <span class="meta-value"><%= @app.onboarding_scenario.titleize %></span>
+          <button type="button" class="secondary small-btn" @click="revealed = !revealed"
+                  x-text="revealed ? '<%= t('.hide') %>' : '<%= t('.reveal') %>'"></button>
         </div>
+      </div>
+    <% end %>
+    <% if policy(@app).view_api_key? %>
+      <div class="credential-block" x-data="{ revealed: false }">
+        <label><%= t ".api_key" %></label>
+        <div class="cred-reveal-row">
+          <%= copy_to_clipboard @app.program_key, label: t(".click_to_copy_api_key") do %>
+            <code class="credential-value" x-show="revealed" x-cloak><%= @app.program_key %></code>
+            <span class="credential-value credential-masked" x-show="!revealed">[hidden]</span>
+          <% end %>
+          <button type="button" class="secondary small-btn" @click="revealed = !revealed"
+                  x-text="revealed ? '<%= t('.hide') %>' : '<%= t('.reveal') %>'"></button>
+        </div>
+      </div>
+    <% end %>
+  </section>
+
+  <div x-data="tabPanel({ tabs: <%= tabs.to_json %>, default: 'general' })" x-cloak>
+    <nav class="app-tab-bar" role="tablist">
+      <button type="button" role="tab" @click="select('general')" :class="{ active: is('general') }">General</button>
+      <% if show_directory %>
+        <button type="button" role="tab" @click="select('groups')" :class="{ active: is('groups') }">Groups & Access</button>
       <% end %>
-    </section>
+      <button type="button" role="tab" @click="select('team')" :class="{ active: is('team') }">Team</button>
+      <button type="button" role="tab" @click="select('activity')" :class="{ active: is('activity') }">Activity</button>
+    </nav>
 
-    <%# Quick actions %>
-    <%= link_to t(".edit_app"), edit_developer_app_path(@app), class: "button-secondary" %>
-
-    <%# Danger zone %>
-    <% if policy(@app).rotate_credentials? || policy(@app).destroy? %>
-      <section class="card danger-card">
-        <h4><%= t(".danger_zone") %></h4>
-        <% if policy(@app).rotate_credentials? %>
-          <%= button_to t(".rotate_credentials"), rotate_credentials_developer_app_path(@app), method: :post, class: "danger small-btn",
-              form: { onsubmit: "return confirm('#{j t('.rotate_confirm')}')" } %>
-        <% end %>
-        <% if policy(@app).revoke_all_authorizations? %>
-          <%= button_to t(".revoke_all_authorizations"), revoke_all_authorizations_developer_app_path(@app), method: :post, class: "danger small-btn",
-              form: { onsubmit: "return confirm('#{j t('.revoke_all_authorizations_confirm')}')" } %>
-        <% end %>
-        <% if policy(@app).destroy? %>
-          <%= button_to t(".delete_app"), developer_app_path(@app), method: :delete, class: "danger small-btn",
-              form: { onsubmit: "return confirm('#{j t('.delete_confirm')}')" } %>
-        <% end %>
+    <div class="app-tab-panel" x-show="is('general')">
+      <section class="section-card">
+        <h3><%= t ".redirect_uris" %></h3>
+        <div class="redirect-uri-list">
+          <% @app.redirect_uri.split.each do |uri| %>
+            <div class="redirect-uri-row">
+              <%= copy_to_clipboard uri, label: t(".click_to_copy_redirect_uri") do %>
+                <code class="credential-value"><%= uri %></code>
+              <% end %>
+              <%= link_to oauth_authorization_path(client_id: @app.uid, redirect_uri: uri, response_type: 'code', scope: @app.scopes),
+                  class: "button-secondary small-btn", target: "_blank" do %>
+                <%= t(".test_auth") %> <%= inline_icon("external", size: 14) %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
       </section>
-    <% end %>
-  </aside>
 
-  <div class="dev-panel-main">
-    <%# Security warning %>
-    <%= render Components::Banner.new(kind: :warning) do %>
-      <strong><%= t ".security_warning_title" %></strong><br>
-      <%= t ".security_warning_message" %>
-    <% end %>
-
-    <%# OAuth Credentials %>
-    <section class="section-card">
-      <h3><%= t ".oauth_credentials" %></h3>
-      <div class="credential-block">
-        <label><%= t ".client_id" %></label>
-        <%= copy_to_clipboard @app.uid, label: t(".click_to_copy_client_id") do %>
-          <code class="credential-value"><%= @app.uid %></code>
-        <% end %>
-      </div>
-      <% if policy(@app).view_secret? %>
-        <div class="credential-block" x-data="{ revealed: false }">
-          <label><%= t ".client_secret" %></label>
-          <div class="cred-reveal-row">
-            <%= copy_to_clipboard @app.secret, label: t(".click_to_copy_client_secret") do %>
-              <code class="credential-value" x-show="revealed"><%= @app.secret %></code>
-              <span class="credential-value credential-masked" x-show="!revealed">[hidden]</span>
-            <% end %>
-            <button type="button" class="button-secondary small-btn usn" @click="revealed = !revealed" x-text="revealed ? '<%= t('.hide') %>' : '<%= t('.reveal') %>'"></button>
+      <% if admin? %>
+        <section class="section-card">
+          <h3>App Details</h3>
+          <div class="app-meta-row">
+            <span class="meta-label"><%= t(".owner") %></span>
+            <span class="meta-value"><%= @app.owner_identity ? link_to(@app.owner_identity.full_name, backend_identity_path(@app.owner_identity)) : "—" %></span>
           </div>
-        </div>
+          <div class="app-meta-row">
+            <span class="meta-label"><%= t(".user_count") %></span>
+            <span class="meta-value"><%= @identities_count %></span>
+          </div>
+          <div class="app-meta-row">
+            <span class="meta-label"><%= t(".scopes") %></span>
+            <span class="meta-value"><code><%= @app.scopes_array.any? ? @app.scopes_array.join(", ") : "—" %></code></span>
+          </div>
+          <% if @app.onboarding_scenario.present? %>
+            <div class="app-meta-row">
+              <span class="meta-label"><%= t(".onboarding_scenario") %></span>
+              <span class="meta-value"><%= @app.onboarding_scenario.titleize %></span>
+            </div>
+          <% end %>
+        </section>
       <% end %>
-      <% if policy(@app).view_api_key? %>
-        <div class="credential-block super-admin-tool" x-data="{ revealed: false }">
-          <label><%= t ".api_key" %></label>
-          <div class="cred-reveal-row">
-            <%= copy_to_clipboard @app.program_key, label: t(".click_to_copy_api_key") do %>
-              <code class="credential-value" x-show="revealed"><%= @app.program_key %></code>
-              <span class="credential-value credential-masked" x-show="!revealed">[hidden]</span>
-            <% end %>
-            <button type="button" class="button-secondary small-btn usn" @click="revealed = !revealed" x-text="revealed ? '<%= t('.hide') %>' : '<%= t('.reveal') %>'"></button>
-          </div>
-        </div>
+
+      <% if policy(@app).rotate_credentials? || policy(@app).destroy? %>
+        <section class="section-card">
+          <details>
+            <summary style="cursor: pointer; color: var(--pico-del-color); font-weight: 600;"><%= t(".danger_zone") %></summary>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+              <% if policy(@app).rotate_credentials? %>
+                <%= button_to t(".rotate_credentials"), rotate_credentials_developer_app_path(@app), method: :post, class: "danger small-btn",
+                    form: { onsubmit: "return confirm('#{j t('.rotate_confirm')}')" } %>
+              <% end %>
+              <% if policy(@app).revoke_all_authorizations? %>
+                <%= button_to t(".revoke_all_authorizations"), revoke_all_authorizations_developer_app_path(@app), method: :post, class: "danger small-btn",
+                    form: { onsubmit: "return confirm('#{j t('.revoke_all_authorizations_confirm')}')" } %>
+              <% end %>
+              <% if policy(@app).destroy? %>
+                <%= button_to t(".delete_app"), developer_app_path(@app), method: :delete, class: "danger small-btn",
+                    form: { onsubmit: "return confirm('#{j t('.delete_confirm')}')" } %>
+              <% end %>
+            </div>
+          </details>
+        </section>
       <% end %>
-    </section>
+    </div>
 
-    <%# Redirect URIs %>
-    <section class="section-card">
-      <h3><%= t ".redirect_uris" %></h3>
-      <div class="redirect-uri-list">
-        <% @app.redirect_uri.split.each do |uri| %>
-          <div class="redirect-uri-row">
-            <%= copy_to_clipboard uri, label: t(".click_to_copy_redirect_uri") do %>
-              <code class="credential-value"><%= uri %></code>
-            <% end %>
-            <%= link_to oauth_authorization_path(client_id: @app.uid, redirect_uri: uri, response_type: 'code', scope: @app.scopes),
-                class: "button-secondary small-btn", target: "_blank" do %>
-              <%= t(".test_auth") %> <%= inline_icon("external", size: 14) %>
-            <% end %>
-          </div>
-        <% end %>
+    <% if show_directory %>
+      <div class="app-tab-panel" x-show="is('groups')">
+        <section class="section-card">
+          <h3>Groups & Access</h3>
+          <%= render "developer_apps/directory_wiring", app: @app, return_to: developer_app_path(@app, anchor: "groups") %>
+        </section>
       </div>
-    </section>
+    <% end %>
 
-    <%# Collaborators (owner only) %>
-    <% if policy(@app).manage_collaborators? %>
+    <div class="app-tab-panel" x-show="is('team')">
       <section class="section-card">
         <h3><%= t(".collaborators") %></h3>
-        <div class="collaborator-list">
-          <% if @collaborators.any? %>
+        <% if @collaborators.any? %>
+          <div class="collaborator-list">
             <% @collaborators.each do |collab| %>
               <div class="collaborator-row">
                 <span class="collaborator-email">
@@ -141,18 +152,16 @@
                     <%= collab.identity.primary_email %>
                   <% end %>
                 </span>
-                <%= button_to t(".remove_collaborator"),
-                    developer_app_collaborator_path(@app, collab),
-                    method: :delete, class: "danger small-btn",
-                    form: { onsubmit: "return confirm('#{j t('.remove_collaborator_confirm')}')" } %>
+                <% if policy(@app).manage_collaborators? %>
+                  <%= button_to t(".remove_collaborator"),
+                      developer_app_collaborator_path(@app, collab),
+                      method: :delete, class: "danger small-btn",
+                      form: { onsubmit: "return confirm('#{j t('.remove_collaborator_confirm')}')" } %>
+                <% end %>
               </div>
             <% end %>
-          <% else %>
-            <% unless @pending_invitations_for_app.any? %>
-              <p style="color: var(--pico-muted-color);"><%= t(".no_collaborators") %></p>
-            <% end %>
-          <% end %>
-        </div>
+          </div>
+        <% end %>
 
         <% if @pending_invitations_for_app.any? %>
           <p class="label-upper" style="margin: <%= @collaborators.any? ? '1.25rem' : '0' %> 0 0.75rem;">
@@ -165,38 +174,41 @@
                   <span class="collaborator-email"><%= inv.invited_email %></span>
                   <span class="badge pending"><%= t(".pending_badge") %></span>
                 </div>
-                <%= button_to t(".cancel_invitation"),
-                    cancel_developer_app_collaborator_invite_path(@app, inv),
-                    method: :post, class: "secondary small-btn" %>
+                <% if policy(@app).manage_collaborators? %>
+                  <%= button_to t(".cancel_invitation"),
+                      cancel_developer_app_collaborator_invite_path(@app, inv),
+                      method: :post, class: "secondary small-btn" %>
+                <% end %>
               </div>
             <% end %>
           </div>
         <% end %>
 
-        <div class="add-collaborator">
-          <p class="label-upper" style="margin: 0 0 0.75rem;"><%= t(".add_collaborator") %></p>
-          <%= form_with url: developer_app_collaborators_path(@app), method: :post, local: true do |f| %>
-            <%= email_field_tag :email, nil, placeholder: t(".collaborator_email_placeholder"), required: true %>
-            <button type="submit" class="approve small-btn"><%= t(".add_button") %></button>
+        <% if policy(@app).manage_collaborators? %>
+          <div class="add-collaborator">
+            <p class="label-upper" style="margin: 0 0 0.5rem;">invite someone</p>
+            <%= form_with url: developer_app_collaborators_path(@app), method: :post, local: true do |f| %>
+              <%= email_field_tag :email, nil, placeholder: t(".collaborator_email_placeholder"), required: true %>
+              <button type="submit" class="approve small-btn"><%= t(".add_button") %></button>
+            <% end %>
+          </div>
+        <% else %>
+          <% unless @collaborators.any? || @pending_invitations_for_app.any? %>
+            <p style="color: var(--pico-muted-color);">no collaborators yet.</p>
           <% end %>
-        </div>
+        <% end %>
       </section>
-    <% end %>
+    </div>
 
-    <%# Directory %>
-    <section class="section-card">
-      <h3><%= t("directory.developer_apps.directory_heading") %></h3>
-      <%= render "developer_apps/directory_wiring", app: @app, return_to: developer_app_path(@app) %>
-    </section>
-
-    <%# Activity Log (async) %>
-    <section class="section-card">
-      <h3><%= t(".activity_log") %></h3>
-      <%= render Components::BootlegTurboButton.new(
-            activity_log_developer_app_path(@app),
-            text: t(".show_activity"),
-            id: "activity-log-container"
-          ) %>
-    </section>
+    <div class="app-tab-panel" x-show="is('activity')">
+      <section class="section-card">
+        <h3><%= t(".activity_log") %></h3>
+        <%= render Components::BootlegTurboButton.new(
+              activity_log_developer_app_path(@app),
+              text: t(".show_activity"),
+              id: "activity-log-container"
+            ) %>
+      </section>
+    </div>
   </div>
 </div>
