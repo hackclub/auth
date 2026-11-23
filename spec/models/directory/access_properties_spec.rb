@@ -183,7 +183,8 @@ RSpec.describe "directory access properties", type: :model do
           preloaded = Directory::Context.new(identity: person.identity, person:, admin: false).preload_grants!
           world[:collections].each do |c|
             DirectoryAccessProperties::PERMISSIONS.each do |perm|
-              want = live_grants.include?([ person.id, c.id, perm ])
+              want = live_grants.include?([ person.id, c.id, perm ]) ||
+                (perm != "manage_members" && live_grants.include?([ person.id, c.id, "manage_members" ]))
               [ plain, preloaded ].each do |ctx|
                 failures << "seed #{seed} can?(#{perm}) person #{person.id} on #{c.id}: want #{want}" unless ctx.can?(perm, c) == want
               end
