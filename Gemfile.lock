@@ -244,7 +244,7 @@ GEM
       ffi (>= 1.15.5)
       rake
     fiddle (1.1.8)
-    flipper (1.4.0)
+    flipper (1.4.2)
       concurrent-ruby (< 2)
     flipper-active_record (1.4.0)
       activerecord (>= 4.2, < 9)
