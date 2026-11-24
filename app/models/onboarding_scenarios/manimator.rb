@@ -26,6 +26,7 @@ module OnboardingScenarios
     def bot_icon_url = "https://manimator.hackclub.com/pi.png"
 
     def logo_path = "images/manimator/pi.png"
-    def background_path = "images/manimator/bg.webp"
+    def background_path = "images/manimator/bg-light.webp"
+    def dark_mode_background_path = "images/manimator/bg-dark.webp"
   end
 end
