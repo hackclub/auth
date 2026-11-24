@@ -43,8 +43,8 @@ ENV BUNDLE_DEPLOYMENT="1" \
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
-ARG LIBHEIF_VERSION=1.23.2
-ARG LIBHEIF_SHA256=1405ed070421459b569ff49deab109b7f1a30a447e72a9b20a4154f774634a44
+ARG LIBHEIF_VERSION=1.23.7
+ARG LIBHEIF_SHA256=90e389caad285ca4946461d56d1c115e56bcbb5141d9038050282af91064fbc7
 # Install packages needed to build gems
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y curl libjemalloc2 libvips imagemagick postgresql-client libffi-dev build-essential git libpq-dev libyaml-dev pkg-config \
@@ -104,7 +104,7 @@ COPY --from=build /usr/local/bin/heif-* /usr/local/bin/
 COPY --from=build /usr/local/include/libheif /usr/local/include/libheif
 RUN ldconfig
 
-# Restrictive ImageMagick policy: only allow JPEG, PNG, WEBP; all delegates disabled
+# Restrictive ImageMagick policy: only allow JPEG, PNG, WEBP read/write and HEIC read; all delegates disabled
 COPY config/imagemagick-policy.xml /etc/ImageMagick-6/policy.xml
 
 # Run and own only the runtime files as a non-root users for security
