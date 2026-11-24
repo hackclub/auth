@@ -10,7 +10,7 @@ module OnboardingScenarios
     def title = "almost through the portal"
 
     def welcome_headline = "You made it through the portal"
-    def welcome_subtitle = "Type your email and Hack Club sends you a 6-digit code. Then you're straight back with π."
+    def welcome_subtitle = "Enter your email and we'll send you a code. π's holding the portal open."
 
     def form_fields = [ :first_name, :last_name, :primary_email, :birthday, :country ]
 
