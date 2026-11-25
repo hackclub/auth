@@ -62,19 +62,19 @@ module Directory
       # trace each effective grant back to its source grant row
       person_group_ids = Directory::EffectiveMembership.where(person_id: @person.id).pluck(:collection_id)
       source_grants = Directory::Grant
-        .where("grantee_person_id = ? OR grantee_group_id IN (?)", @person.id, person_group_ids.presence || [0])
+        .where("grantee_person_id = ? OR grantee_group_id IN (?)", @person.id, person_group_ids.presence || [ 0 ])
         .includes(:grantee_group, :grantee_person, :target_collection)
 
       # build ancestor map for recursive grants: which targets does each grant reach?
       recursive_grant_targets = {}
       source_grants.select(&:recursive).each do |g|
         descendant_ids = Directory::Closure.where(ancestor_id: g.target_collection_id).pluck(:descendant_id)
-        descendant_ids.each { |did| recursive_grant_targets[[did, g.permission]] = g }
+        descendant_ids.each { |did| recursive_grant_targets[[ did, g.permission ]] = g }
       end
 
       @grant_sources = {}
       source_grants.each do |g|
-        key = [g.target_collection_id, g.permission]
+        key = [ g.target_collection_id, g.permission ]
         if g.grantee_person_id == @person.id
           @grant_sources[key] = "direct grant on you"
         elsif g.grantee_group

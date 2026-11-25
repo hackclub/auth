@@ -64,7 +64,7 @@ class StaticPagesController < ApplicationController
 
         if direct_collection_ids.include?(target.id)
           # direct member of the target itself
-          @memberships[slug] = [target.slug]
+          @memberships[slug] = [ target.slug ]
         elsif chain_ids.any?
           # walk the chain: target → ... → person's direct group
           leaf = chain_ids.first
@@ -73,8 +73,8 @@ class StaticPagesController < ApplicationController
             .order(:depth).pluck(:descendant_id)
           # path_ids goes from shallowest to deepest: [target, mid, ..., leaf]
           # but target itself is depth 0 (self-loop), so it's already included
-          chain = Directory::Collection.where(id: [target.id] + path_ids).index_by(&:id)
-          @memberships[slug] = ([target.id] + path_ids).uniq.filter_map { |id| chain[id]&.slug }
+          chain = Directory::Collection.where(id: [ target.id ] + path_ids).index_by(&:id)
+          @memberships[slug] = ([ target.id ] + path_ids).uniq.filter_map { |id| chain[id]&.slug }
         end
       end
     end
