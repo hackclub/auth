@@ -1,0 +1,23 @@
+@font-face {
+  font-family: "Computer Modern Serif";
+  src: url("../images/manimator/cmunrm.woff") format("woff");
+  font-display: swap;
+}
+
+.scenario-manimator {
+  .auth-card {
+    border: 1px solid rgba(40, 42, 52, 0.28);
+    box-shadow: 0 0 0 8px rgba(250, 247, 240, 0.75), 0 30px 90px rgba(40, 42, 52, 0.18);
+  }
+
+  [data-theme="dark"] & .auth-card {
+    border-color: rgba(236, 233, 226, 0.4);
+    box-shadow: 0 0 0 8px rgba(11, 12, 14, 0.55), 0 30px 90px rgba(0, 0, 0, 0.65);
+  }
+
+  .auth-card header h1 {
+    font-family: "Computer Modern Serif", Georgia, serif;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+}

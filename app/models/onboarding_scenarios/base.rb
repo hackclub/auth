@@ -20,6 +20,11 @@ module OnboardingScenarios
 
     def title = "Create your account"
 
+    def welcome_headline = nil
+    def welcome_subtitle = nil
+
+    def stylesheet_path = nil
+
     def form_fields = []
 
     def extract_params_proc
