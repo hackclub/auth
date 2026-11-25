@@ -305,7 +305,7 @@
     <% end %>
     <% if @inherited_managers.any? %>
       <div style="color: var(--foreground2); padding: 0.5lh 1ch; font-size: 0.85em;">
-        effective managers: <%= @inherited_managers.map { |p| link_to(p.full_name, directory_person_path(p)) }.join(", ").html_safe %>
+        effective managers: <%= safe_join(@inherited_managers.map { |p| link_to(p.full_name, directory_person_path(p)) }, ", ") %>
       </div>
     <% end %>
   </div>
