@@ -7,8 +7,9 @@
     <% if dark_bg %>html[data-theme="dark"] body { background-image: url('<%= vite_asset_path(dark_bg) %>'); }<% end %>
   </style>
 <% end %>
-<%# Every page showing a scenario's background gets its class too, as the logged-out layout gives it, so a scenario
-    can style the card it sits behind. %>
+<% if scenario&.stylesheet_path %>
+  <%= vite_stylesheet_tag scenario.stylesheet_path %>
+<% end %>
 <% if scenario&.class&.slug %>
   <script>document.body.classList.add("scenario-<%= j scenario.class.slug %>")</script>
 <% end %>

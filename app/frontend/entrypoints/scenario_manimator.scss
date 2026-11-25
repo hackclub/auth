@@ -1,10 +1,6 @@
-// Manimator (OnboardingScenarios::Manimator). Its background is the portal from Manimator's onboarding story, and
-// the card sits where the hole is, so the card is dressed as the other side of manim's frame: a thin white rim like
-// the portal's, and its heading in Computer Modern, the type π writes in. In light mode the frame is on paper and the
-// rim is ink.
 @font-face {
   font-family: "Computer Modern Serif";
-  src: url("../../images/manimator/cmunrm.woff") format("woff");
+  src: url("../images/manimator/cmunrm.woff") format("woff");
   font-display: swap;
 }
 

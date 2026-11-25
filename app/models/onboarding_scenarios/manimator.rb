@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-# Manimator (manimator.hackclub.com): make math videos with manim in the browser. Its onboarding story ends at a
-# portal to Hack Club that π holds open, so this side carries the same world on: π's logo, a manim frame with the
-# portal's rings of π's digits round the card, π's words, and π greeting you in Slack.
 module OnboardingScenarios
   class Manimator < Base
     def self.slug = "manimator"
@@ -28,5 +25,6 @@ module OnboardingScenarios
     def logo_path = "images/manimator/pi.png"
     def background_path = "images/manimator/bg-light.webp"
     def dark_mode_background_path = "images/manimator/bg-dark.webp"
+    def stylesheet_path = "scenario_manimator.scss"
   end
 end
