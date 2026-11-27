@@ -81,7 +81,7 @@ gem "aasm", "~> 5.5"
 
 gem "kaminari", "~> 1.2"
 
-gem "blind_index", "~> 2.7"
+gem "blind_index", "~> 2.8"
 
 gem "lockbox", "~> 2.1"
 
