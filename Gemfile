@@ -145,7 +145,7 @@ gem "geocoder", "~> 1.8"
 gem "rotp", "~> 6.3"
 gem "rqrcode", "~> 3.0"
 
-gem "webauthn", "~> 3.4"
+gem "webauthn", "~> 3.5"
 
 gem "bcrypt", "~> 3.1"
 
