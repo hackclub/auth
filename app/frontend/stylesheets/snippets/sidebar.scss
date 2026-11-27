@@ -398,7 +398,8 @@
   }
 }
 
-.scenario-stardance .page-header-centered {
+.scenario-stardance .page-header-centered,
+.scenario-hackatime .page-header-centered {
   @include dark-mode {
     h1 { color: #ffffff !important; }
     p { color: rgba(255, 255, 255, 0.9) !important; }
