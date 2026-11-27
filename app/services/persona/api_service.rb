@@ -146,6 +146,11 @@ class Persona::APIService
       request: { timeout: 30, open_timeout: 10 }
     ) do |f|
       f.request  :json
+      # persona throws the odd 5xx mid-fetch; one blip on the selfie lookup
+      # used to drop the liveness photos for good, since a saved document
+      # stops ensure_inquiry_data_saved from ever refetching. retry only
+      # touches idempotent methods, so creates/updates never double-fire.
+      f.request  :retry, max: 2, interval: 0.5, backoff_factor: 2, retry_statuses: [ 502, 503, 504 ]
       f.response :json
       f.adapter  Faraday.default_adapter
     end

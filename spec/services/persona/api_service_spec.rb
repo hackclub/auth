@@ -214,6 +214,33 @@ RSpec.describe Persona::APIService do
       expect(result.liveness.map { |l| l[:label] }).to contain_exactly("selfie_center", "selfie_left", "selfie_right")
     end
 
+    it "retries a transient 503 before giving up on the selfie" do
+      stub = stub_request(:get, "#{base_url}/api/v1/verification/selfies/ver_selfie123")
+        .to_return({ status: 503, body: "" })
+        .then.to_return(
+          status: 200,
+          headers: { "Content-Type" => "application/json" },
+          body: { data: { id: "ver_selfie123", type: "verification/selfie", attributes: {
+            center_photo_url: "https://files.withpersona.com/center.jpg"
+          } }, meta: {} }.to_json
+        )
+
+      result = service.retrieve_verification_photos("ver_selfie123", type: "verification/selfie")
+
+      expect(stub).to have_been_requested.twice
+      expect(result.liveness.map { |l| l[:label] }).to eq([ "selfie_center" ])
+    end
+
+    it "raises Persona::APIError once 503 retries are exhausted" do
+      stub = stub_request(:get, "#{base_url}/api/v1/verification/selfies/ver_selfie123")
+        .to_return(status: 503, body: "")
+
+      expect {
+        service.retrieve_verification_photos("ver_selfie123", type: "verification/selfie")
+      }.to raise_error(Persona::APIError, /503/)
+      expect(stub).to have_been_requested.times(3)
+    end
+
     it "returns empty PhotoSet for non-selfie verifications" do
       result = service.retrieve_verification_photos("ver_gov123", type: "verification/government-id")
 
